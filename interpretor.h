@@ -31,6 +31,7 @@ class Node {
 	Node *node3;
 	Node *node4;
 	Node *node5;
+	Node *node6;
 	Token tok1;
 	Token tok2;
 	Token tok3;
@@ -290,11 +291,13 @@ const int O_NH = 2;
 class QuerySpecs {
 	public:
 	string QueryString;
+	string password;
 	vector<Token> tokArray;
 	int tokIdx;
 	int options;
 	int quantityLimit;
 	bool joining;
+	bool groupby;
 	Token Tok();
 	Token NextTok();
 	Token PeekTok();
@@ -343,5 +346,6 @@ class QuerySpecs {
 };
 */
 
+string scanTokens(QuerySpecs &q);
 
 #endif
