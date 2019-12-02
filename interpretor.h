@@ -43,6 +43,13 @@ Node* newNode(int l){
 	n->label = l;
 	return n;
 }
+Node* newNode(int l, Token t){
+	Node* n = new Node;
+	memset(n, 0, sizeof(Node));
+	n->label = l;
+	n->tok1 = t;
+	return n;
+}
 
 const int NUM_STATES =  5;
 const int EOS =         255;
@@ -183,9 +190,9 @@ map<int, string> enumMap = {
 	{STATE_WORD ,    "STATE_WORD"}
 };
 //characters of special tokens
-int specials[] = { '*','=','!','<','>','\'','"','(',')',',','+','-','%','/','^' };
+const int specials[] = { '*','=','!','<','>','\'','"','(',')',',','+','-','%','/','^' };
 //non-alphanumeric characters of words
-int others[] = { '\\',':','_','.','[',']','~','{','}' };
+const int others[] = { '\\',':','_','.','[',']','~','{','}' };
 map<string, int> keywordMap = {
 	{"and" ,       KW_AND},
 	{"or" ,        KW_OR},
@@ -267,6 +274,12 @@ map<string, int> specialMap = {
 	{"^" ,  SP_CARROT}
 };
 
+bool is_number(const std::string& s)
+{
+    return !s.empty() && std::find_if(s.begin(),
+        s.end(), [](char c) { return !std::isdigit(c); }) == s.end();
+}
+
 void error(const string &err){
 	throw invalid_argument(err);
 }
@@ -280,6 +293,8 @@ class QuerySpecs {
 	vector<Token> tokArray;
 	int tokIdx;
 	int options;
+	int quantityLimit;
+	bool joining;
 	Token Tok();
 	Token NextTok();
 	Token PeekTok();
