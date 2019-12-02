@@ -1,6 +1,5 @@
 #include "interpretor.h"
 #include <sys/stat.h>
-#include <regex>
 
 void parseOptions(QuerySpecs &q);
 Node* parseSelect(QuerySpecs &q);
