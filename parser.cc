@@ -17,19 +17,27 @@ Node* parsePredicates(QuerySpecs &q);
 Node* parsePredCompare(QuerySpecs &q);
 Node* parseJoin(QuerySpecs &q);
 Node* parseJoinPredicates(QuerySpecs &q);
+Node* parseJoinPredCompare(QuerySpecs &q);
+Node* parseOrder(QuerySpecs &q);
+Node* parseHaving(QuerySpecs &q);
+Node* parseGroupby(QuerySpecs &q);
+Node* parseFrom(QuerySpecs &q);
+Node* parseWhere(QuerySpecs &q);
+Node* parseExpressionList(QuerySpecs &q, bool independant);
+void parseLimit(QuerySpecs &q);
 
 //recursive descent parser builds parse tree and QuerySpecs
 Node* parseQuery(QuerySpecs &q) {
 	Node* n = newNode(N_QUERY);
-	//scanTokens(q);
+	scanTokens(q);
 	parseOptions(q);
 	n->node1 = parseSelect(q);
-	//n->node2 = parseFrom(q);
-	//n->node3 = parseWhere(q);
-	//n->node4 = parseGroupby(q);
-	//n->node5 = parseHaving(q);
-	//q.sortExpr,err = parseOrder(q)
-	//parseLimit(q)
+	n->node2 = parseFrom(q);
+	n->node3 = parseWhere(q);
+	n->node4 = parseGroupby(q);
+	n->node5 = parseHaving(q);
+	n->node6 = parseOrder(q);
+	parseLimit(q);
 	return n;
 }
 
@@ -277,19 +285,15 @@ Node* parsePredicates(QuerySpecs &q) {
 	return n;
 }
 
-/*
 //more strict version of parsePredicates for joins
-//tok3 tells how many conditions
+//node1 is predicate comparison
 Node* parseJoinPredicates(QuerySpecs &q) {
-	Node* n = newNode(N_PREDICATES}
-	var err error
-	n->tok2 = 0
-	n->tok3 = 1
-	n->node1,err = parseJoinPredCompare(q)
-	if err != nil { return n,err }
-	if (q.Tok().id & LOGOP) != 0 { return n,ErrMsg(q.Tok(),"Only one join condition per file") }
-	return n, err
+	Node* n = newNode(N_PREDICATES);
+	n->node1 = parseJoinPredCompare(q);
+	if ((q.Tok().id & LOGOP) != 0) error("Only one join condition per file");
+	return n;
 }
+
 //more strict version of parsePredCompare for joins
 Node* parseJoinPredCompare(QuerySpecs &q) {
 	Node* n = newNode(N_PREDCOMP);
@@ -299,7 +303,6 @@ Node* parseJoinPredCompare(QuerySpecs &q) {
 	n->node2 = parseExprAdd(q);
 	return n;
 }
-*/
 
 //tok1 is [relop, paren] for comparison or more predicates
 //tok2 is negation
@@ -534,129 +537,91 @@ Node* parseOrder(QuerySpecs &q) {
 	}
 	return nullptr;
 }
-/*
 
 //tok1 is function id
-//tok2 will be intermediate index if aggragate
-//tok3 is distinct btree for count, cipher for encryption, increment step
-//tok4 true if using aes, increment start number
+//tok2 is * for count(*)
+//tok3 is distinct or cipher
+//tok4 is password
 //node1 is expression in parens
 Node* parseFunction(QuerySpecs &q) {
-	Node* n = newNode(N_FUNCTION}
-	var err error
-	n->tok1 = functionMap[q.Tok().Lower()]
-	q.NextTok()
+	Node* n = newNode(N_FUNCTION);
+	n->tok1 = q.Tok();
+	q.NextTok();
 	//count(*)
-	if q.NextTok().id == SP_STAR && n->tok1.(int) == FN_COUNT {
-		n->node1 = &Node{
-			label: N_VALUE,
-			tok1: "1",
-			tok2: 0,
-			tok3: 1,
-		}
-		q.NextTok()
-	//other functions
+	if (q.NextTok().id == SP_STAR && n->tok1.id == FN_COUNT) {
+		n->tok2 = q.Tok();
+		q.NextTok();
+	//everything else
 	} else {
-		if (n->tok1.(int) & AGG_BIT) != 0 && q.Tok().Lower() == "distinct" {
-			n->tok3 = bt.New(200)
-			q.NextTok()
+		if (q.Tok().Lower() == "distinct") {
+			n->tok3 = q.Tok();
+			q.NextTok();
 		}
-		switch n->tok1.(int) {
+		bool needPrompt = true;
+		Token commaOrParen;
+		string cipherTok = "aes";
+		string password;
+		switch (n->tok1.id) {
 		case FN_COALESCE:
-			n->node1, err = parseExpressionList(q, true)
-		case FN_ENCRYPT: fallthrough
+			n->node1 = parseExpressionList(q, true);
+			break;
+		case FN_ENCRYPT:
 		case FN_DECRYPT:
 			//first param is expression to en/decrypt
-			n->node1, err = parseExprAdd(q)
-			cipherTok := "aes"
-			needPrompt := true
-			var password string
-			if q.Tok().id == SP_COMMA {
+			n->node1 = parseExprAdd(q);
+			if (q.Tok().id == SP_COMMA) {
 				//second param is cipher
-				cipherTok = q.NextTok().Lower()
-				commaOrParen := q.NextTok()
-				if commaOrParen.id == SP_COMMA {
+				cipherTok = q.NextTok().Lower();
+				commaOrParen = q.NextTok();
+				if (commaOrParen.id == SP_COMMA) {
 					//password is 3rd param
-					password = q.NextTok().val
-					needPrompt = false
-					q.NextTok()
-				} else if commaOrParen.id != SP_RPAREN {
-					return n,ErrMsg(q.Tok(),"Expected comma or closing parenthesis after cipher in crypto function. Found: "+commaOrParen.val)
+					password = q.NextTok().val;
+					needPrompt = false;
+					q.NextTok();
+				} else if (commaOrParen.id != SP_RPAREN) {
+					error("Expected comma or closing parenthesis after cipher in crypto function. Found: "+commaOrParen.val);
 				}
-			} else if q.Tok().id != SP_RPAREN {
-				return n,ErrMsg(q.Tok(),"Expect closing parenthesis or comma after expression in crypto function. Found: "+q.Tok().val)
+			} else if (q.Tok().id != SP_RPAREN) {
+				error("Expect closing parenthesis or comma after expression in crypto function. Found: "+q.Tok().val);
 			}
-			if q.password == "" && needPrompt { q.password = promptPassword() }
-			if password == "" { password = q.password }
-			pass := sha256.Sum256([]byte(password))
-			switch cipherTok {
-			case "rc4":
-				n->tok3 = pass[:]
-			case "aes":
-				c, _ := aes.NewCipher(pass[:])
-				gcm, _ := cipher.NewGCM(c)
-				n->tok3 = gcm
-				n->tok4 = true
-			default:
-				return n,ErrMsg(q.Tok(),"Second parameter to encryption function is cipher type (aes or rc4). Found: "+cipherTok+". Use aes for strong but bulky encryption, or rc4 for something a government could probably crack but takes less space.")
-			}
-			if err != nil { return n,err }
+			//if (q.password == "" && needPrompt) q.password = promptPassword();
+			if (password == "") { password = q.password; }
+			if (cipherTok != "rc4" && cipherTok != "aes")
+				error("Second parameter to encryption function is cipher type (aes or rc4). Found: "+cipherTok+". "
+						"Use aes for strong but bulky encryption, or rc4 for something a government could probably crack but takes less space.");
+			n->tok3.val = cipherTok;
+			n->tok4.val = password;
+			break;
 		case FN_INC:
-			if ff, err := ParseFloat(q.Tok().val,64); err == nil {
-				n->tok3 = float(ff)
-				n->tok4 = float(1.0)
-				q.NextTok()
-			} else if q.Tok().id != SP_RPAREN {
-				return n,ErrMsg(q.Tok(),"inc() function parameter must be increment amount or empty. Found: "+q.Tok().val)
-			} else {
-				n->tok3 = float(1.0)
-				n->tok4 = float(1.0)
-			}
+			break;
 		default:
-			n->node1, err = parseExprAdd(q)
+			n->node1 = parseExprAdd(q);
 		}
 	}
-	if q.Tok().id != SP_RPAREN { return n,ErrMsg(q.Tok(),"Expected closing parenthesis after function. Found: "+q.Tok().val) }
-	q.NextTok()
+	if (q.Tok().id != SP_RPAREN) error("Expected closing parenthesis after function. Found: "+q.Tok().val);
+	q.NextTok();
 	//groupby if aggregate function
-	if (n->tok1.(int) & AGG_BIT) != 0 { q.groupby = true }
-	return n,err
+	if ((n->tok1.id & AGG_BIT) != 0) { q.groupby = true; }
+	return n;
 }
 
 //node1 is groupExpressions
-//tok1 is groups map
 Node* parseGroupby(QuerySpecs &q) {
-	Node* n = newNode(N_GROUPBY}
-	var err error
-	if !(q.Tok().Lower() == "group" && q.PeekTok().Lower() == "by") { return nil,nil }
-	q.NextTok()
-	q.NextTok()
-	n->node1, err = parseExpressionList(q,false)
-	n->tok1 = make(map[interface{}]interface{})
-	return n,err
+	if (!(q.Tok().Lower() == "group" && q.PeekTok().Lower() == "by")) { return nullptr; }
+	Node* n = newNode(N_GROUPBY);
+	q.NextTok();
+	q.NextTok();
+	n->node1 = parseExpressionList(q,false);
+	return n;
 }
 
 //node1 is expression
-//node2 is expressions
-//tok1 [0,1] for map returns row or next map when used for groups
-Node* parseExpressionList(QuerySpecs &q, interdependant bool) { //bool afg if expression types are interdependant
-	label := N_EXPRESSIONS
-	if interdependant { label = N_DEXPRESSIONS }
-	Node* n = newNode(label}
-	var err error
-	n->node1, err = parseExprAdd(q)
-	if err != nil { return n,err }
-	switch q.Tok().id {
-		case SP_COMMA: q.NextTok()
-		case WORD:
-		case KW_CASE:
-		case SP_LPAREN:
-		default:
-			n->tok1 = 0
-			return n,err
-	}
-	n->tok1 = 1
-	n->node2, err = parseExpressionList(q, interdependant)
-	return n,err
+//node2 is expressionlist
+Node* parseExpressionList(QuerySpecs &q, bool interdependant) { //bool afg if expression types are interdependant
+	int label = N_EXPRESSIONS;
+	if (interdependant) label = N_DEXPRESSIONS;
+	Node* n = newNode(label);
+	n->node1 = parseExprAdd(q);
+	n->node2 = parseExpressionList(q, interdependant);
+	return n;
 }
-*/
