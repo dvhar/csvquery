@@ -9,6 +9,9 @@ constexpr size_t len(T &a)
     return sizeof(a) / sizeof(typename std::remove_all_extents<T>::type);
 }
 
+const int specials[] = { '*','=','!','<','>','\'','"','(',')',',','+','-','%','/','^' };
+const int others[] = { '\\',':','_','.','[',']','~','{','}' };
+
 int table[NUM_STATES][256];
 void initable(){
 	static bool tabinit = false;

@@ -1,0 +1,176 @@
+#include "interpretor.h"
+
+
+string Token::Lower() {
+	string s = val;
+	boost::to_lower(s);
+	return s;
+}
+
+Node* newNode(int l){
+	Node* n = new Node;
+	memset(n, 0, sizeof(Node));
+	n->label = l;
+	return n;
+}
+Node* newNode(int l, Token t){
+	Node* n = new Node;
+	memset(n, 0, sizeof(Node));
+	n->label = l;
+	n->tok1 = t;
+	return n;
+}
+
+map<int, string> enumMap = {
+	{EOS ,           "EOS"},
+	{ERROR ,         "ERROR"},
+	{FINAL ,         "FINAL"},
+	{KEYBIT ,        "KEYBIT"},
+	{LOGOP ,         "LOGOP"},
+	{RELOP ,         "RELOP"},
+	{WORD ,          "WORD"},
+	{NUMBER ,        "NUMBER"},
+	{KEYWORD ,       "KEYWORD"},
+	{KW_AND ,        "KW_AND"},
+	{KW_OR  ,        "KW_OR"},
+	{KW_XOR  ,       "KW_XOR"},
+	{KW_SELECT ,     "KW_SELECT"},
+	{KW_FROM  ,      "KW_FROM"},
+	{KW_HAVING  ,    "KW_HAVING"},
+	{KW_AS  ,        "KW_AS"},
+	{KW_WHERE ,      "KW_WHERE"},
+	{KW_ORDER ,      "KW_ORDER"},
+	{KW_BY ,         "KW_BY"},
+	{KW_DISTINCT ,   "KW_DISTINCT"},
+	{KW_ORDHOW ,     "KW_ORDHOW"},
+	{KW_CASE ,       "KW_CASE"},
+	{KW_WHEN ,       "KW_WHEN"},
+	{KW_THEN ,       "KW_THEN"},
+	{KW_ELSE ,       "KW_ELSE"},
+	{KW_END ,        "KW_END"},
+	{SPECIALBIT ,    "SPECIALBIT"},
+	{SPECIAL ,       "SPECIAL"},
+	{SP_EQ ,         "SP_EQ"},
+	{SP_NEGATE ,     "SP_NEGATE"},
+	{SP_NOEQ ,       "SP_NOEQ"},
+	{SP_LESS ,       "SP_LESS"},
+	{SP_LESSEQ ,     "SP_LESSEQ"},
+	{SP_GREAT ,      "SP_GREAT"},
+	{SP_GREATEQ ,    "SP_GREATEQ"},
+	{SP_SQUOTE ,     "SP_SQUOTE"},
+	{SP_DQUOTE ,     "SP_DQUOTE"},
+	{SP_COMMA ,      "SP_COMMA"},
+	{SP_LPAREN ,     "SP_LPAREN"},
+	{SP_RPAREN ,     "SP_RPAREN"},
+	{SP_STAR ,       "SP_STAR"},
+	{SP_DIV ,        "SP_DIV"},
+	{SP_MOD ,        "SP_MOD"},
+	{SP_MINUS ,      "SP_MINUS"},
+	{SP_PLUS ,       "SP_PLUS"},
+	{STATE_INITAL ,  "STATE_INITAL"},
+	{STATE_SSPECIAL ,"STATE_SSPECIAL"},
+	{STATE_DSPECIAL ,"STATE_DSPECIAL"},
+	{STATE_MBSPECIAL,"STATE_MBSPECIAL"},
+	{STATE_WORD ,    "STATE_WORD"}
+};
+map<string, int> keywordMap = {
+	{"and" ,       KW_AND},
+	{"or" ,        KW_OR},
+	{"xor" ,       KW_XOR},
+	{"select" ,    KW_SELECT},
+	{"from" ,      KW_FROM},
+	{"having" ,    KW_HAVING},
+	{"as" ,        KW_AS},
+	{"where" ,     KW_WHERE},
+	{"limit" ,     KW_LIMIT},
+	{"order" ,     KW_ORDER},
+	{"by" ,        KW_BY},
+	{"distinct" ,  KW_DISTINCT},
+	{"asc" ,       KW_ORDHOW},
+	{"between" ,   KW_BETWEEN},
+	{"like" ,      KW_LIKE},
+	{"case" ,      KW_CASE},
+	{"when" ,      KW_WHEN},
+	{"then" ,      KW_THEN},
+	{"else" ,      KW_ELSE},
+	{"end" ,       KW_END},
+	{"in" ,        KW_IN},
+	{"group" ,     KW_GROUP},
+	{"not" ,       SP_NEGATE}
+};
+//functions are normal words to avoid taking up too many words
+//use map when parsing not scanning
+map<string, int> functionMap = {
+	{"inc" ,      FN_INC},
+	{"sum" ,      FN_SUM},
+	{"avg" ,      FN_AVG},
+	{"min" ,      FN_MIN},
+	{"max" ,      FN_MAX},
+	{"count" ,    FN_COUNT},
+	{"stdev" ,    FN_STDEV},
+	{"stdevp" ,   FN_STDEVP},
+	{"abs" ,      FN_ABS},
+	{"format" ,   FN_FORMAT},
+	{"coalesce" , FN_COALESCE},
+	{"year" ,     FN_YEAR},
+	{"month" ,    FN_MONTH},
+	{"monthname", FN_MONTHNAME},
+	{"week" ,     FN_WEEK},
+	{"day" ,      FN_WDAY},
+	{"dayname" ,  FN_WDAYNAME},
+	{"dayofyear", FN_YDAY},
+	{"dayofmonth",FN_MDAY},
+	{"dayofweek", FN_WDAY},
+	{"hour" ,     FN_HOUR},
+	{"encrypt" ,  FN_ENCRYPT},
+	{"decrypt" ,  FN_DECRYPT}
+};
+map<string, int> joinMap = {
+	{"inner" ,  KW_INNER},
+	{"outer" ,  KW_OUTER},
+	{"left" ,   KW_LEFT},
+	{"join" ,   KW_JOIN},
+	{"bjoin" ,   KW_JOIN},
+	{"sjoin" ,   KW_JOIN}
+};
+map<string, int> specialMap = {
+	{"=" ,  SP_EQ},
+	{"!" ,  SP_NEGATE},
+	{"<>" , SP_NOEQ},
+	{"<" ,  SP_LESS},
+	{"<=" , SP_LESSEQ},
+	{">" ,  SP_GREAT},
+	{">=" , SP_GREATEQ},
+	{"'" ,  SP_SQUOTE},
+	{"\"" , SP_DQUOTE},
+	{"," ,  SP_COMMA},
+	{"(" ,  SP_LPAREN},
+	{")" ,  SP_RPAREN},
+	{"*" ,  SP_STAR},
+	{"+" ,  SP_PLUS},
+	{"-" ,  SP_MINUS},
+	{"%" ,  SP_MOD},
+	{"/" ,  SP_DIV},
+	{"^" ,  SP_CARROT}
+};
+
+bool is_number(const std::string& s)
+{
+    return !s.empty() && std::find_if(s.begin(),
+        s.end(), [](char c) { return !std::isdigit(c); }) == s.end();
+}
+
+void error(const string &err){
+	throw invalid_argument(err);
+}
+
+Token QuerySpecs::NextTok() {
+	if (tokIdx < tokArray.size()-1) tokIdx++;
+	return tokArray[tokIdx];
+}
+Token QuerySpecs::PeekTok() {
+	if (tokIdx < tokArray.size()-1) return tokArray[tokIdx+1];
+	return tokArray[tokIdx];
+}
+Token QuerySpecs::Tok() { return tokArray[tokIdx]; }
+void QuerySpecs::Reset() { tokIdx = 0; }
