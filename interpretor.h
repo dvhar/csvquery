@@ -1,6 +1,7 @@
 #ifndef TYPES_H
 #define TYPES_H
 #include <string>
+#include <iostream>
 #include <boost/algorithm/string.hpp>
 using namespace std;
 
@@ -8,30 +9,80 @@ enum nodetypes { N_QUERY, N_SELECT, N_SELECTIONS, N_FROM, N_JOINCHAIN, N_JOIN, N
 
 
 
-class Token {
+class token {
 	public:
 	int id;
 	string val;
 	int line;
 	int col;
 	bool quoted;
-	string Lower();
+	string lower();
+	void print();
 };
-class Node {
+class node {
 	public:
 	int label;
-	Node *node1;
-	Node *node2;
-	Node *node3;
-	Node *node4;
-	Node *node5;
-	Node *node6;
-	Token tok1;
-	Token tok2;
-	Token tok3;
-	Token tok4;
-	Token tok5;
+	node *node1;
+	node *node2;
+	node *node3;
+	node *node4;
+	node *node5;
+	node *node6;
+	token tok1;
+	token tok2;
+	token tok3;
+	token tok4;
+	token tok5;
 };
+class querySpecs {
+	public:
+	string queryString;
+	string password;
+	vector<token> tokArray;
+	int tokIdx;
+	int options;
+	int quantityLimit;
+	bool joining;
+	bool groupby;
+	token tok();
+	token nextTok();
+	token peekTok();
+	void Reset();
+	void init(string);
+};
+/*
+class querySpecs {
+	queryString string
+	tokArray []token
+	aliases bool
+	joining bool
+	tokIdx int
+	quantityLimit int
+	quantityRetrieved int
+	distinctExpr *node
+	distinctCheck *bt.BTree
+	sortExpr *node
+	sortWay int
+	save bool
+	showLimit int
+	stage int
+	tree *node
+	files map[string]*FileData
+	numfiles int
+	fromRow []string
+	toRow []Value
+	midRow []Value
+	midExess int
+	intColumn bool
+	groupby bool
+	noheader bool
+	bigjoin bool
+	joinSortVals []J2ValPos
+	gettingSortVals bool
+	password string
+};
+*/
+
 
 const int NUM_STATES =  5;
 const int EOS =         255;
@@ -127,57 +178,10 @@ extern map<string, int> functionMap;
 extern map<string, int> joinMap;
 extern map<string, int> specialMap;
 
-class QuerySpecs {
-	public:
-	string QueryString;
-	string password;
-	vector<Token> tokArray;
-	int tokIdx;
-	int options;
-	int quantityLimit;
-	bool joining;
-	bool groupby;
-	Token Tok();
-	Token NextTok();
-	Token PeekTok();
-	void Reset();
-};
-/*
-class QuerySpecs {
-	QueryString string
-	tokArray []Token
-	aliases bool
-	joining bool
-	tokIdx int
-	quantityLimit int
-	quantityRetrieved int
-	distinctExpr *Node
-	distinctCheck *bt.BTree
-	sortExpr *Node
-	sortWay int
-	save bool
-	showLimit int
-	stage int
-	tree *Node
-	files map[string]*FileData
-	numfiles int
-	fromRow []string
-	toRow []Value
-	midRow []Value
-	midExess int
-	intColumn bool
-	groupby bool
-	noheader bool
-	bigjoin bool
-	joinSortVals []J2ValPos
-	gettingSortVals bool
-	password string
-};
-*/
-
-string scanTokens(QuerySpecs &q);
-Node* newNode(int l);
-Node* newNode(int l, Token t);
+string scanTokens(querySpecs &q);
+node* parseQuery(querySpecs &q);
+node* newNode(int l);
+node* newNode(int l, token t);
 void error(const string &err);
 bool is_number(const std::string& s);
 

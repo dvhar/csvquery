@@ -96,7 +96,7 @@ int StringLookahead::peek() {
 	return (int) Str[idx];
 }
 
-Token scanner(StringLookahead &s) {
+token scanner(StringLookahead &s) {
 	initable();
 	static int lineNo = 1;
 	static int colNo = 1;
@@ -168,17 +168,17 @@ Token scanner(StringLookahead &s) {
 }
 
 
-string scanTokens(QuerySpecs &q) {
+string scanTokens(querySpecs &q) {
 	int lineNo = 1;
 	int colNo = 1;
-	StringLookahead input = {q.QueryString, 0};
+	StringLookahead input = {q.queryString, 0};
 	while(1) {
-		Token t = scanner(input);
+		token t = scanner(input);
 		//turn tokens inside quotes into single token
 		if (t.id == SP_SQUOTE || t.id == SP_DQUOTE) {
 			int quote = t.id;
 			string S = "";
-			for (Token t = scanner(input); t.id != quote && t.id != EOS ; t = scanner(input)) {
+			for (token t = scanner(input); t.id != quote && t.id != EOS ; t = scanner(input)) {
 				if (t.id == ERROR) return "scanner error: "+t.val;
 				S += t.val;
 			}
@@ -192,16 +192,3 @@ string scanTokens(QuerySpecs &q) {
 	return "";
 }
 
-int main(){
-	int s;
-	QuerySpecs q;
-	while (!feof(stdin)){
-		scanf("%c",&s);
-		q.QueryString.push_back((char)s);
-	}
-	scanTokens(q);
-	for (vector<Token>::iterator it = q.tokArray.begin(); it != q.tokArray.end(); ++it){
-		cout << it->val << endl;;
-	}
-
-}
