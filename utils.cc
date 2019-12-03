@@ -1,21 +1,26 @@
 #include "interpretor.h"
 
 
-string Token::Lower() {
+string token::lower() {
 	string s = val;
 	boost::to_lower(s);
 	return s;
 }
+void token::print() {
+	cout << "    id: " << id << " -> " << enumMap[id] << endl
+		<< "    val: " << val << endl;
+}
 
-Node* newNode(int l){
-	Node* n = new Node;
-	memset(n, 0, sizeof(Node));
+
+node* newNode(int l){
+	node* n = new node;
+	memset(n, 0, sizeof(node));
 	n->label = l;
 	return n;
 }
-Node* newNode(int l, Token t){
-	Node* n = new Node;
-	memset(n, 0, sizeof(Node));
+node* newNode(int l, token t){
+	node* n = new node;
+	memset(n, 0, sizeof(node));
 	n->label = l;
 	n->tok1 = t;
 	return n;
@@ -164,13 +169,19 @@ void error(const string &err){
 	throw invalid_argument(err);
 }
 
-Token QuerySpecs::NextTok() {
+token querySpecs::nextTok() {
 	if (tokIdx < tokArray.size()-1) tokIdx++;
 	return tokArray[tokIdx];
 }
-Token QuerySpecs::PeekTok() {
+token querySpecs::peekTok() {
 	if (tokIdx < tokArray.size()-1) return tokArray[tokIdx+1];
 	return tokArray[tokIdx];
 }
-Token QuerySpecs::Tok() { return tokArray[tokIdx]; }
-void QuerySpecs::Reset() { tokIdx = 0; }
+token querySpecs::tok() { return tokArray[tokIdx]; }
+void querySpecs::Reset() { tokIdx = 0; }
+
+void querySpecs::init(string s){
+	queryString = s;
+	tokIdx = options = quantityLimit = 0;
+	joining = groupby = false;
+}
