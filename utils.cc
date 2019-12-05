@@ -12,15 +12,15 @@ void token::print() {
 }
 
 
-node* newNode(int l){
-	node* n = new node;
-	memset(n, 0, sizeof(node));
+unique_ptr<node> newNode(int l){
+	unique_ptr<node> n(new node);
+	n->tok1 = n->tok2 = n->tok3 = n->tok4 = n->tok5 = token{};
 	n->label = l;
 	return n;
 }
-node* newNode(int l, token t){
-	node* n = new node;
-	memset(n, 0, sizeof(node));
+unique_ptr<node> newNode(int l, token t){
+	unique_ptr<node> n(new node);
+	n->tok2 = n->tok3 = n->tok4 = n->tok5 = token{};
 	n->label = l;
 	n->tok1 = t;
 	return n;
@@ -184,4 +184,17 @@ void querySpecs::init(string s){
 	queryString = s;
 	tokIdx = options = quantityLimit = 0;
 	joining = groupby = false;
+}
+
+void printTree(unique_ptr<node> &n, int ident){
+	if (n == nullptr) return;
+	ident++;
+	string s = "";
+	for (int i=0;i<ident;i++) s += "  ";
+	cout << s << enumMap[n->label] << endl
+		<< s << n->tok1.val << "  " << n->tok2.val << "  " << n->tok3.val << endl;
+	printTree(n->node1,ident);
+	printTree(n->node2,ident);
+	printTree(n->node3,ident);
+	printTree(n->node4,ident);
 }

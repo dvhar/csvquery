@@ -168,7 +168,7 @@ token scanner(StringLookahead &s) {
 }
 
 
-string scanTokens(querySpecs &q) {
+void scanTokens(querySpecs &q) {
 	int lineNo = 1;
 	int colNo = 1;
 	StringLookahead input = {q.queryString, 0};
@@ -179,16 +179,15 @@ string scanTokens(querySpecs &q) {
 			int quote = t.id;
 			string S = "";
 			for (token t = scanner(input); t.id != quote && t.id != EOS ; t = scanner(input)) {
-				if (t.id == ERROR) return "scanner error: "+t.val;
+				if (t.id == ERROR) error("scanner error: "+t.val);
 				S += t.val;
 			}
-			if (t.id != quote)  return "Quote was not terminated";
+			if (t.id != quote)  error("Quote was not terminated");
 			t = {WORD,S,t.line,t.col,true};
 		}
 		q.tokArray.push_back(t);
-		if (t.id == ERROR) return "scanner error: "+t.val;
+		if (t.id == ERROR) error("scanner error: "+t.val);
 		if (t.id == EOS) break;
 	}
-	return "";
 }
 

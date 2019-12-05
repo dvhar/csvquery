@@ -2,34 +2,36 @@
 #include <sys/stat.h>
 #include <iostream>
 
+//only 4 nodes used
+
 static void parseOptions(querySpecs &q);
-static node* parsePreSelect(querySpecs &q);
-static node* parseWith(querySpecs &q);
-static node* parseVars(querySpecs &q);
-static node* parseSelect(querySpecs &q);
-static node* parseSelections(querySpecs &q);
-static node* parseExprAdd(querySpecs &q);
-static node* parseExprMult(querySpecs &q);
-static node* parseExprNeg(querySpecs &q);
-static node* parseExprCase(querySpecs &q);
-static node* parseCaseWhenPredList(querySpecs &q);
-static node* parseCaseWhenExprList(querySpecs &q);
-static node* parseCaseWhenExpr(querySpecs &q);
-static node* parseCasePredicate(querySpecs &q);
-static node* parsePredicates(querySpecs &q);
-static node* parsePredCompare(querySpecs &q);
-static node* parseJoin(querySpecs &q);
-static node* parseJoinPredicates(querySpecs &q);
-static node* parseJoinPredCompare(querySpecs &q);
-static node* parseOrder(querySpecs &q);
-static node* parseHaving(querySpecs &q);
-static node* parseGroupby(querySpecs &q);
-static node* parseFrom(querySpecs &q);
-static node* parseWhere(querySpecs &q);
-static node* parseValue(querySpecs &q);
-static node* parseFunction(querySpecs &q);
-static node* parseAfterFrom(querySpecs &q);
-static node* parseExpressionList(querySpecs &q, bool independant);
+static unique_ptr<node> parsePreSelect(querySpecs &q);
+static unique_ptr<node> parseWith(querySpecs &q);
+static unique_ptr<node> parseVars(querySpecs &q);
+static unique_ptr<node> parseSelect(querySpecs &q);
+static unique_ptr<node> parseSelections(querySpecs &q);
+static unique_ptr<node> parseExprAdd(querySpecs &q);
+static unique_ptr<node> parseExprMult(querySpecs &q);
+static unique_ptr<node> parseExprNeg(querySpecs &q);
+static unique_ptr<node> parseExprCase(querySpecs &q);
+static unique_ptr<node> parseCaseWhenPredList(querySpecs &q);
+static unique_ptr<node> parseCaseWhenExprList(querySpecs &q);
+static unique_ptr<node> parseCaseWhenExpr(querySpecs &q);
+static unique_ptr<node> parseCasePredicate(querySpecs &q);
+static unique_ptr<node> parsePredicates(querySpecs &q);
+static unique_ptr<node> parsePredCompare(querySpecs &q);
+static unique_ptr<node> parseJoin(querySpecs &q);
+static unique_ptr<node> parseJoinPredicates(querySpecs &q);
+static unique_ptr<node> parseJoinPredCompare(querySpecs &q);
+static unique_ptr<node> parseOrder(querySpecs &q);
+static unique_ptr<node> parseHaving(querySpecs &q);
+static unique_ptr<node> parseGroupby(querySpecs &q);
+static unique_ptr<node> parseFrom(querySpecs &q);
+static unique_ptr<node> parseWhere(querySpecs &q);
+static unique_ptr<node> parseValue(querySpecs &q);
+static unique_ptr<node> parseFunction(querySpecs &q);
+static unique_ptr<node> parseAfterFrom(querySpecs &q);
+static unique_ptr<node> parseExpressionList(querySpecs &q, bool independant);
 static void parseTop(querySpecs &q);
 static void parseLimit(querySpecs &q);
 static token t;
@@ -38,17 +40,17 @@ static token t;
 static void e(string s){
 	static int i=0;
 	i++;
-	if (i > 50) return;
-	cerr << s << endl;
+	if (i > 200) return;
+	cerr << s << "   : " << i << endl;
 	t.print();
 }
 
 
 
 //recursive descent parser for query
-node* parseQuery(querySpecs &q) {
+unique_ptr<node> parseQuery(querySpecs &q) {
 	scanTokens(q);
-	node* n = newNode(N_QUERY);
+	unique_ptr<node> n(newNode(N_QUERY));
 	n->node1 = parsePreSelect(q);
 	n->node2 = parseSelect(q);
 	n->node3 = parseFrom(q);
@@ -59,20 +61,20 @@ node* parseQuery(querySpecs &q) {
 
 //could include other commands like describe
 //node1 is with
-static node* parsePreSelect(querySpecs &q) {
+static unique_ptr<node> parsePreSelect(querySpecs &q) {
 	t = q.tok();
 	e("preselect");
 	parseOptions(q);
-	node* n = newNode(N_PRESELECT);
+	unique_ptr<node> n(newNode(N_PRESELECT));
 	n->node1 = parseWith(q);
 	return n;
 }
 
 //anything that comes after 'from', in any order
-static node* parseAfterFrom(querySpecs &q) {
+static unique_ptr<node> parseAfterFrom(querySpecs &q) {
 	t = q.tok();
 	e("afterfrom");
-	node* n = newNode(N_AFTERFROM);
+	unique_ptr<node> n(newNode(N_AFTERFROM));
 	for (;;){
 		t = q.tok();
 		switch (t.id){
@@ -113,11 +115,11 @@ static void parseOptions(querySpecs &q) {
 }
 
 //node1 is vars
-static node* parseWith(querySpecs &q) {
+static unique_ptr<node> parseWith(querySpecs &q) {
 	t = q.tok();
 	e("with");
 	if (t.lower() != "with") { return nullptr; }
-	node* n = newNode(N_WITH);
+	unique_ptr<node> n(newNode(N_WITH));
 	q.nextTok();
 	n->node2 = parseVars(q);
 	return n;
@@ -126,10 +128,10 @@ static node* parseWith(querySpecs &q) {
 //node1 is expr
 //tok1 is id
 //node2 is vars
-static node* parseVars(querySpecs &q) {
+static unique_ptr<node> parseVars(querySpecs &q) {
 	t = q.tok();
 	e("vars");
-	node* n = newNode(N_VARS);
+	unique_ptr<node> n(newNode(N_VARS));
 	n->node1 = parseExprAdd(q);
 	t = q.tok();
 	if (t.lower() != "as") error("Expected 'as' after expression. Found "+t.val);
@@ -145,10 +147,10 @@ static node* parseVars(querySpecs &q) {
 }
 
 //node1 is selections
-static node* parseSelect(querySpecs &q) {
+static unique_ptr<node> parseSelect(querySpecs &q) {
 	t = q.tok();
 	e("select");
-	node* n = newNode(N_SELECT);
+	unique_ptr<node> n(newNode(N_SELECT));
 	if (t.lower() != "select") error("Expected 'select'. Found "+t.val);
 	q.nextTok();
 	parseTop(q);
@@ -163,22 +165,23 @@ static node* parseSelect(querySpecs &q) {
 //tok3 is bit array - 1 and 2 are distinct
 //tok4 will be aggregate function
 //tok5 will be type
-static node* parseSelections(querySpecs &q) {
+static unique_ptr<node> parseSelections(querySpecs &q) {
 	t = q.tok();
 	e("selections");
 	if (t.lower() == "from"){
 		e("found from");
 		return nullptr;
 	}
-	node* n = newNode(N_SELECTIONS);
+	unique_ptr<node> n(newNode(N_SELECTIONS));
 	if (t.id == SP_COMMA) t = q.nextTok();
 	switch (t.id) {
 	case SP_STAR:
+		e("selections star");
 		n->tok1 = t;
 		q.nextTok();
 		return n;
-	//tok3 bit 1 means distinct, bit 2 means hidden
 	case KW_DISTINCT:
+		e("selections distinct");
 		n->tok1 = t;
 		t = q.nextTok();
 		if (t.lower() == "hidden" && !t.quoted) { n->tok1 = t; t = q.nextTok(); }
@@ -187,6 +190,7 @@ static node* parseSelections(querySpecs &q) {
 	case WORD:
 	case SP_MINUS:
 	case SP_LPAREN:
+		e("selections expression");
 		//alias = expression
 		if (q.peekTok().id == SP_EQ) {
 			if (t.id != WORD) error("Alias must be a word. Found "+t.val);
@@ -209,19 +213,18 @@ static node* parseSelections(querySpecs &q) {
 		n->node2 = parseSelections(q);
 		return n;
 	default:
-		delete n;
-		error("Expected a new selection or 'from' clause. Found "+q.tok().val);
+		e("selections default");
+		error("Expected a new selection or 'from' clause. Found "+t.val);
 	}
-	delete n;
 	return nullptr;
 }
 //node1 is exprMult
 //node2 is exprAdd
 //tok1 is add/minus operator
-static node* parseExprAdd(querySpecs &q) {
+static unique_ptr<node> parseExprAdd(querySpecs &q) {
 	t = q.tok();
 	e("expradd");
-	node* n = newNode(N_EXPRADD);
+	unique_ptr<node> n(newNode(N_EXPRADD));
 	n->node1 = parseExprMult(q);
 	t = q.tok();
 	switch (t.id) {
@@ -239,10 +242,10 @@ static node* parseExprAdd(querySpecs &q) {
 //node1 is exprNeg
 //node2 is exprMult
 //tok1 is mult/div operator
-static node* parseExprMult(querySpecs &q) {
+static unique_ptr<node> parseExprMult(querySpecs &q) {
 	t = q.tok();
 	e("exprmult");
-	node* n = newNode(N_EXPRMULT);
+	unique_ptr<node> n(newNode(N_EXPRMULT));
 	n->node1 = parseExprNeg(q);
 	t = q.tok();
 	switch (t.id) {
@@ -261,10 +264,10 @@ static node* parseExprMult(querySpecs &q) {
 
 //tok1 is minus operator
 //node1 is exprCase
-static node* parseExprNeg(querySpecs &q) {
+static unique_ptr<node> parseExprNeg(querySpecs &q) {
 	t = q.tok();
 	e("exprneg");
-	node* n = newNode(N_EXPRNEG);
+	unique_ptr<node> n(newNode(N_EXPRNEG));
 	if (t.id == SP_MINUS) {
 		n->tok1 = t;
 		q.nextTok();
@@ -280,10 +283,10 @@ static node* parseExprNeg(querySpecs &q) {
 //node1 is (expression), when predicate list, expression for exprlist
 //node2 is expression list to compare to initial expression
 //node3 is else expression
-static node* parseExprCase(querySpecs &q) {
+static unique_ptr<node> parseExprCase(querySpecs &q) {
 	t = q.tok();
 	e("exprcase");
-	node* n = newNode(N_EXPRCASE);
+	unique_ptr<node> n(newNode(N_EXPRCASE));
 	token t2;
 	switch (t.id) {
 	case KW_CASE:
@@ -343,10 +346,10 @@ static node* parseExprCase(querySpecs &q) {
 //if implement dot notation, put parser here
 //tok1 is [value, column index, function id]
 //node1 is function expression if doing that
-static node* parseValue(querySpecs &q) {
+static unique_ptr<node> parseValue(querySpecs &q) {
 	t = q.tok();
 	e("value");
-	node* n = newNode(N_VALUE);
+	unique_ptr<node> n(newNode(N_VALUE));
 	//see if it's a function
 	if (functionMap.count(t.lower()) && !t.quoted && q.peekTok().id==SP_LPAREN) {
 		n->node1 = parseFunction(q);
@@ -360,29 +363,27 @@ static node* parseValue(querySpecs &q) {
 	return n;
 }
 
-//tok1 says if more predicates
 //node1 is case predicate
 //node2 is next case predicate list node
-static node* parseCaseWhenPredList(querySpecs &q) {
+static unique_ptr<node> parseCaseWhenPredList(querySpecs &q) {
 	t = q.tok();
 	e("casewhenpredlist");
-	node* n = newNode(N_CPREDLIST);
+	unique_ptr<node> n(newNode(N_CPREDLIST));
 	n->node1 = parseCasePredicate(q);
 	t = q.tok();
 	if (t.lower() == "when") {
-		t = q.tok();
-		n->tok1 = t;
 		n->node2 = parseCaseWhenPredList(q);
 	}
+	e("done casewhenpredlist");
 	return n;
 }
 
 //node1 is predicates
 //node2 is expression if true
-static node* parseCasePredicate(querySpecs &q) {
+static unique_ptr<node> parseCasePredicate(querySpecs &q) {
 	t = q.tok();
 	e("casepred");
-	node* n = newNode(N_CPRED);
+	unique_ptr<node> n(newNode(N_CPRED));
 	q.nextTok(); //eat when token
 	n->node1 = parsePredicates(q);
 	t = q.tok();
@@ -396,10 +397,10 @@ static node* parseCasePredicate(querySpecs &q) {
 //tok2 is negation
 //node1 is predicate comparison
 //node2 is next predicates node
-static node* parsePredicates(querySpecs &q) {
+static unique_ptr<node> parsePredicates(querySpecs &q) {
 	t = q.tok();
 	e("preds");
-	node* n = newNode(N_PREDICATES);
+	unique_ptr<node> n(newNode(N_PREDICATES));
 	if (t.id == SP_NEGATE) { n->tok2 = t; t = q.nextTok(); }
 	n->node1 = parsePredCompare(q);
 	t = q.tok();
@@ -413,10 +414,10 @@ static node* parsePredicates(querySpecs &q) {
 
 //more strict version of parsePredicates for joins
 //node1 is predicate comparison
-static node* parseJoinPredicates(querySpecs &q) {
+static unique_ptr<node> parseJoinPredicates(querySpecs &q) {
 	t = q.tok();
 	e("joinpreds");
-	node* n = newNode(N_PREDICATES);
+	unique_ptr<node> n(newNode(N_PREDICATES));
 	n->node1 = parseJoinPredCompare(q);
 	t = q.tok();
 	if ((t.id & LOGOP) != 0) error("Only one join condition per file");
@@ -424,10 +425,10 @@ static node* parseJoinPredicates(querySpecs &q) {
 }
 
 //more strict version of parsePredCompare for joins
-static node* parseJoinPredCompare(querySpecs &q) {
+static unique_ptr<node> parseJoinPredCompare(querySpecs &q) {
 	t = q.tok();
 	e("joinpredcomp");
-	node* n = newNode(N_PREDCOMP);
+	unique_ptr<node> n(newNode(N_PREDCOMP));
 	n->node1 = parseExprAdd(q);
 	t = q.tok();
 	if (t.id != SP_EQ) error("Expected = operator. Found: "+q.tok().val);
@@ -444,10 +445,10 @@ static node* parseJoinPredCompare(querySpecs &q) {
 //node1 is [expr, predicates]
 //node2 is second expr
 //node3 is third expr for betweens
-static node* parsePredCompare(querySpecs &q) {
+static unique_ptr<node> parsePredCompare(querySpecs &q) {
 	t = q.tok();
 	e("predcomp");
-	node* n = newNode(N_PREDCOMP);
+	unique_ptr<node> n(newNode(N_PREDCOMP));
 	int negate = 0;
 	if (t.id == SP_NEGATE) { negate ^= 1; t = q.nextTok(); }
 	//more predicates in parentheses
@@ -480,7 +481,7 @@ static node* parsePredCompare(querySpecs &q) {
 	n->tok1 = t;
 	t = q.nextTok();
 	if (n->tok1.id == KW_LIKE) {
-		n->node2 = newNode(N_VALUE,  t);
+		n->node2 = unique_ptr<node>(newNode(N_VALUE,  t));
 		t = q.nextTok();
 	} else if (n->tok1.id == KW_IN) {
 		if (t.id != SP_LPAREN) error("Expected opening parenthesis for expression list. Found: "+t.val);
@@ -500,10 +501,10 @@ static node* parsePredCompare(querySpecs &q) {
 
 //node1 is case expression
 //node2 is next exprlist node
-static node* parseCaseWhenExprList(querySpecs &q) {
+static unique_ptr<node> parseCaseWhenExprList(querySpecs &q) {
 	t = q.tok();
 	e("casewhenexprlist");
-	node* n = newNode(N_CWEXPRLIST);
+	unique_ptr<node> n(newNode(N_CWEXPRLIST));
 	n->node1 = parseCaseWhenExpr(q);
 	t = q.tok();
 	if (t.lower() == "when")
@@ -513,10 +514,10 @@ static node* parseCaseWhenExprList(querySpecs &q) {
 
 //node1 is comparison expression
 //node2 is result expression
-static node* parseCaseWhenExpr(querySpecs &q) {
+static unique_ptr<node> parseCaseWhenExpr(querySpecs &q) {
 	t = q.tok();
 	e("casewhenexpr");
-	node* n = newNode(N_CWEXPR);
+	unique_ptr<node> n(newNode(N_CWEXPR));
 	q.nextTok(); //eat when token
 	n->node1 = parseExprAdd(q);
 	q.nextTok(); //eat then token
@@ -552,10 +553,10 @@ static void parseLimit(querySpecs &q) {
 //tok2 is alias
 //tok3 is noheader
 //node1 is joins
-static node* parseFrom(querySpecs &q) {
+static unique_ptr<node> parseFrom(querySpecs &q) {
 	t = q.tok();
 	e("from");
-	node* n = newNode(N_FROM);
+	unique_ptr<node> n(newNode(N_FROM));
 	if (t.lower() != "from") error("Expected 'from'. Found: "+t.val);
 	t = q.nextTok();
 	string filepath = boost::replace_all_copy(t.val, "~/", string(getenv("HOME"))+"/");
@@ -572,6 +573,7 @@ static node* parseFrom(querySpecs &q) {
 		t = q.nextTok();
 		if (t.id != WORD) error("Expected alias after as. Found: "+t.val);
 	case WORD:
+		if (joinMap.count(t.lower())) break;
 		n->tok2 = t;
 		q.nextTok();
 	}
@@ -591,10 +593,10 @@ static node* parseFrom(querySpecs &q) {
 //tok5 is noheader
 //node1 is join condition (predicates)
 //node2 is next join
-static node* parseJoin(querySpecs &q) {
+static unique_ptr<node> parseJoin(querySpecs &q) {
 	t = q.tok();
 	e("join");
-	node* n = newNode(N_JOIN);
+	unique_ptr<node> n(newNode(N_JOIN));
 	string s = t.lower();
 	if (joinMap.count(s) == 0)
 		return nullptr;
@@ -608,18 +610,18 @@ static node* parseJoin(querySpecs &q) {
 	s = t.lower();
 	if (s == "join" || s == "sjoin" || s == "bjoin"){
 		n->tok2 = t;
-		q.nextTok();
+		t = q.nextTok();
 	} else {
 		error("Expected 'join'. Found:"+q.tok().val);
 	}
 	//file path
-	t = q.nextTok();
+	t.val = boost::replace_all_copy(t.val, "~/", string(getenv("HOME"))+"/");
 	n->tok3 = t;
     struct stat stat_buf;
-    int finfo = stat(n->tok3.val.c_str(), &stat_buf);
+    int finfo = stat(t.val.c_str(), &stat_buf);
     finfo = finfo == 0 ? stat_buf.st_size : -1;
 	if (finfo == -1)
-		error("Could not open file "+n->tok3.val);
+		error("Could not open file "+t.val);
 	//see if file is 100+ megabytes
 	if (!sizeOverride && finfo > 100000000)
 		n->tok3.id = 0;
@@ -653,22 +655,22 @@ static node* parseJoin(querySpecs &q) {
 }
 
 //node1 is conditions
-static node* parseWhere(querySpecs &q) {
+static unique_ptr<node> parseWhere(querySpecs &q) {
 	t = q.tok();
 	e("where");
 	if (t.lower() != "where") { return nullptr; }
-	node* n = newNode(N_WHERE);
+	unique_ptr<node> n(newNode(N_WHERE));
 	q.nextTok();
 	n->node1 = parsePredicates(q);
 	return n;
 }
 
 //node1 is conditions
-static node* parseHaving(querySpecs &q) {
+static unique_ptr<node> parseHaving(querySpecs &q) {
 	t = q.tok();
 	e("having");
 	if (t.lower() != "having") { return nullptr; }
-	node* n = newNode(N_WHERE);
+	unique_ptr<node> n(newNode(N_WHERE));
 	q.nextTok();
 	n->node1 = parsePredicates(q);
 	return n;
@@ -676,12 +678,12 @@ static node* parseHaving(querySpecs &q) {
 
 //node1 is sort expr
 //tok1 is asc
-static node* parseOrder(querySpecs &q) {
+static unique_ptr<node> parseOrder(querySpecs &q) {
 	t = q.tok();
 	e("order");
 	if (t.lower() == "order") {
 		if (q.nextTok().lower() != "by") error("Expected 'by' after 'order'. Found "+q.tok().val);
-		node* n = newNode(N_ORDER);
+		unique_ptr<node> n(newNode(N_ORDER));
 		n->node1 = parseExprAdd(q);
 		t = q.nextTok();
 		if (t.lower() == "asc") {
@@ -703,14 +705,15 @@ static node* parseOrder(querySpecs &q) {
 //tok3 is distinct or cipher
 //tok4 is password
 //node1 is expression in parens
-static node* parseFunction(querySpecs &q) {
+static unique_ptr<node> parseFunction(querySpecs &q) {
 	t = q.tok();
 	e("func");
-	node* n = newNode(N_FUNCTION);
+	unique_ptr<node> n(newNode(N_FUNCTION));
 	n->tok1 = t;
-	t = q.nextTok(); // eat (
-	//count(*)
+	n->tok1.id = functionMap[t.lower()];
+	q.nextTok(); // (
 	t = q.nextTok();
+	//count(*)
 	if (t.id == SP_STAR && n->tok1.lower() == "count") {
 		n->tok2 = t;
 		q.nextTok();
@@ -757,8 +760,10 @@ static node* parseFunction(querySpecs &q) {
 			n->tok4.val = password;
 			break;
 		case FN_INC:
+			e("inc case in func");
 			break;
 		default:
+			e("default case in func");
 			n->node1 = parseExprAdd(q);
 		}
 	}
@@ -766,15 +771,16 @@ static node* parseFunction(querySpecs &q) {
 	q.nextTok();
 	//groupby if aggregate function
 	if ((n->tok1.id & AGG_BIT) != 0) { q.groupby = true; }
+	e("done func");
 	return n;
 }
 
 //node1 is groupExpressions
-static node* parseGroupby(querySpecs &q) {
+static unique_ptr<node> parseGroupby(querySpecs &q) {
 	t = q.tok();
 	e("groupby");
 	if (!(t.lower() == "group" && q.peekTok().lower() == "by")) { return nullptr; }
-	node* n = newNode(N_GROUPBY);
+	unique_ptr<node> n(newNode(N_GROUPBY));
 	q.nextTok();
 	q.nextTok();
 	n->node1 = parseExpressionList(q,false);
@@ -783,12 +789,12 @@ static node* parseGroupby(querySpecs &q) {
 
 //node1 is expression
 //node2 is expressionlist
-static node* parseExpressionList(querySpecs &q, bool interdependant) { //bool arg if expression types are interdependant
+static unique_ptr<node> parseExpressionList(querySpecs &q, bool interdependant) { //bool arg if expression types are interdependant
 	t = q.tok();
 	e("exprlist");
 	int label = N_EXPRESSIONS;
 	if (interdependant) label = N_DEXPRESSIONS;
-	node* n = newNode(label);
+	unique_ptr<node> n(newNode(label));
 	n->node1 = parseExprAdd(q);
 	n->node2 = parseExpressionList(q, interdependant);
 	return n;
