@@ -2,6 +2,7 @@
 #define TYPES_H
 #include <string>
 #include <iostream>
+#include <memory>
 #include <boost/algorithm/string.hpp>
 using namespace std;
 
@@ -22,13 +23,10 @@ class token {
 class node {
 	public:
 	int label;
-	node *node1;
-	node *node2;
-	node *node3;
-	node *node4;
-	node *node5;
-	node *node6;
-	node *node7;
+	unique_ptr<node> node1;
+	unique_ptr<node> node2;
+	unique_ptr<node> node3;
+	unique_ptr<node> node4;
 	token tok1;
 	token tok2;
 	token tok3;
@@ -179,11 +177,12 @@ extern map<string, int> functionMap;
 extern map<string, int> joinMap;
 extern map<string, int> specialMap;
 
-string scanTokens(querySpecs &q);
-node* parseQuery(querySpecs &q);
-node* newNode(int l);
-node* newNode(int l, token t);
+void scanTokens(querySpecs &q);
+unique_ptr<node> parseQuery(querySpecs &q);
+unique_ptr<node> newNode(int l);
+unique_ptr<node> newNode(int l, token t);
 void error(const string &err);
 bool is_number(const std::string& s);
+void printTree(unique_ptr<node> &n, int ident);
 
 #endif
