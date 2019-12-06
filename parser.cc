@@ -37,10 +37,9 @@ static token t;
 
 //for debugging
 static void e(string s){
-	return;
 	static int i=0;
 	i++;
-	if (i > 200) return;
+	if (i > 1000) return;
 	cerr << s << "   : " << i << endl;
 	t.print();
 }
@@ -77,6 +76,7 @@ static unique_ptr<node> parseAfterFrom(querySpecs &q) {
 	unique_ptr<node> n = newNode(N_AFTERFROM);
 	for (;;){
 		t = q.tok();
+		e("switching afterfrom");
 		switch (t.id){
 		case KW_WHERE:
 			n->node1 = parseWhere(q);
@@ -95,6 +95,7 @@ static unique_ptr<node> parseAfterFrom(querySpecs &q) {
 		}
 	}
 	done1:
+	e("done afterfrom");
 	return n;
 }
 
@@ -682,9 +683,9 @@ static unique_ptr<node> parseOrder(querySpecs &q) {
 	e("order");
 	if (t.lower() == "order") {
 		if (q.nextTok().lower() != "by") error("Expected 'by' after 'order'. Found "+q.tok().val);
+		q.nextTok();
 		unique_ptr<node> n = newNode(N_ORDER);
 		n->node1 = parseExprAdd(q);
-		t = q.nextTok();
 		if (t.lower() == "asc") {
 			n->tok1 = t;
 			q.nextTok();
@@ -793,6 +794,14 @@ static unique_ptr<node> parseExpressionList(querySpecs &q, bool interdependant) 
 	if (interdependant) label = N_DEXPRESSIONS;
 	unique_ptr<node> n = newNode(label);
 	n->node1 = parseExprAdd(q);
+	t = q.tok();
+	switch (t.id){
+	case SP_COMMA: q.nextTok();
+	case SP_LPAREN:
+	case KW_CASE:
+	case WORD: break;
+	default: return n;
+	}
 	n->node2 = parseExpressionList(q, interdependant);
 	return n;
 }
