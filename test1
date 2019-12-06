@@ -1,0 +1,1 @@
+with (c1 * c2  + inc()) as w select dog + (cat * count(*)), case when c1=fat then cat when c1=hat then mad end from '/home/dave/Documents/work/cities.csv' city inner join '~/Documents/work/country.csv' country on city.c1=country.c4

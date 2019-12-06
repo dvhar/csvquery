@@ -172,6 +172,7 @@ const int O_C = 1;
 const int O_NH = 2;
 
 extern map<int, string> enumMap;
+extern map<int, string> treeMap;
 extern map<string, int> keywordMap;
 extern map<string, int> functionMap;
 extern map<string, int> joinMap;
