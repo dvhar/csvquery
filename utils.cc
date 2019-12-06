@@ -78,6 +78,35 @@ map<int, string> enumMap = {
 	{STATE_MBSPECIAL,"STATE_MBSPECIAL"},
 	{STATE_WORD ,    "STATE_WORD"}
 };
+map<int, string> treeMap = {
+	{N_QUERY,      "N_QUERY"},
+	{N_SELECT,     "N_SELECT"},
+	{N_PRESELECT,  "N_PRESELECT"},
+	{N_SELECTIONS, "N_SELECTIONS"},
+	{N_FROM,       "N_FROM"},
+	{N_AFTERFROM,  "N_AFTERFROM"},
+	{N_WHERE,      "N_WHERE"},
+	{N_ORDER,      "N_ORDER"},
+	{N_EXPRADD,    "N_EXPRADD"},
+	{N_EXPRMULT,   "N_EXPRMULT"},
+	{N_EXPRNEG,    "N_EXPRNEG"},
+	{N_CPREDLIST,  "N_CPREDLIST"},
+	{N_CPRED,      "N_CPRED"},
+	{N_PREDICATES, "N_PREDICATES"},
+	{N_PREDCOMP,   "N_PREDCOMP"},
+	{N_CWEXPRLIST, "N_CWEXPRLIST"},
+	{N_CWEXPR,     "N_CWEXPR"},
+	{N_EXPRCASE,   "N_EXPRCASE"},
+	{N_VALUE,      "N_VALUE"},
+	{N_FUNCTION,   "N_FUNCTION"},
+	{N_GROUPBY,    "N_GROUPBY"},
+	{N_EXPRESSIONS,"N_EXPRESSIONS"},
+	{N_JOINCHAIN,  "N_JOINCHAIN"},
+	{N_JOIN,       "N_JOIN"},
+	{N_DEXPRESSIONS,"N_DEXPRESSIONS"},
+	{N_WITH,       "N_WITH"},
+	{N_VARS,       "N_VARS"}
+};
 map<string, int> keywordMap = {
 	{"and" ,       KW_AND},
 	{"or" ,        KW_OR},
@@ -191,7 +220,7 @@ void printTree(unique_ptr<node> &n, int ident){
 	ident++;
 	string s = "";
 	for (int i=0;i<ident;i++) s += "  ";
-	cout << s << enumMap[n->label] << endl
+	cout << s << treeMap[n->label] << endl
 		<< s << n->tok1.val << "  " << n->tok2.val << "  " << n->tok3.val << endl;
 	printTree(n->node1,ident);
 	printTree(n->node2,ident);
