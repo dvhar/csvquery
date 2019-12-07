@@ -670,7 +670,7 @@ static unique_ptr<node> parseHaving(querySpecs &q) {
 	t = q.tok();
 	e("having");
 	if (t.lower() != "having") { return nullptr; }
-	unique_ptr<node> n = newNode(N_WHERE);
+	unique_ptr<node> n = newNode(N_HAVING);
 	q.nextTok();
 	n->node1 = parsePredicates(q);
 	return n;

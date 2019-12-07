@@ -3,10 +3,12 @@
 #include <string>
 #include <iostream>
 #include <memory>
+#include <sys/time.h>
+#include <regex.h>
 #include <boost/algorithm/string.hpp>
 using namespace std;
 
-enum nodetypes { N_QUERY, N_PRESELECT, N_WITH, N_VARS, N_SELECT, N_SELECTIONS, N_FROM, N_AFTERFROM, N_JOINCHAIN, N_JOIN, N_WHERE, N_ORDER, N_EXPRADD, N_EXPRMULT, N_EXPRNEG, N_EXPRCASE, N_CPREDLIST, N_CPRED, N_CWEXPRLIST, N_CWEXPR, N_PREDICATES, N_PREDCOMP, N_VALUE, N_FUNCTION, N_GROUPBY, N_EXPRESSIONS, N_DEXPRESSIONS };
+enum nodetypes { N_QUERY, N_PRESELECT, N_WITH, N_VARS, N_SELECT, N_SELECTIONS, N_FROM, N_AFTERFROM, N_JOINCHAIN, N_JOIN, N_WHERE, N_HAVING, N_ORDER, N_EXPRADD, N_EXPRMULT, N_EXPRNEG, N_EXPRCASE, N_CPREDLIST, N_CPRED, N_CWEXPRLIST, N_CWEXPR, N_PREDICATES, N_PREDCOMP, N_VALUE, N_FUNCTION, N_GROUPBY, N_EXPRESSIONS, N_DEXPRESSIONS };
 
 
 
@@ -32,6 +34,15 @@ class node {
 	token tok3;
 	token tok4;
 	token tok5;
+};
+class fileData {
+	string fname;
+	string alias;
+	vector<string> names;
+	vector<int> types;
+	int width;
+	bool noheader;
+	void init(string);
 };
 class querySpecs {
 	public:
@@ -82,6 +93,12 @@ class querySpecs {
 };
 */
 
+const int T_NULL = 0;
+const int T_INT = 1;
+const int T_FLOAT = 2;
+const int T_DATE = 3;
+const int T_DURATION = 4;
+const int T_STRING = 5;
 
 const int NUM_STATES =  5;
 const int EOS =         255;
@@ -178,6 +195,9 @@ extern map<string, int> functionMap;
 extern map<string, int> joinMap;
 extern map<string, int> specialMap;
 
+extern regex_t leadingZeroString;
+extern regex_t durationPattern;
+
 void scanTokens(querySpecs &q);
 unique_ptr<node> parseQuery(querySpecs &q);
 unique_ptr<node> newNode(int l);
@@ -185,5 +205,12 @@ unique_ptr<node> newNode(int l, token t);
 void error(const string &err);
 bool is_number(const std::string& s);
 void printTree(unique_ptr<node> &n, int ident);
+int getNarrowestType(string value, int startType);
+string lower(string);
+int scomp(const char* s1, const char*s2);
+int slcomp(const char* s1, const char*s2);
+int isInt(const char*);
+int isFloat(const char*);
+int dateParse(const char* datestr, struct timeval* tv);
 
 #endif

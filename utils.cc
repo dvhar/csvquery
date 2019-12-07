@@ -1,6 +1,11 @@
 #include "interpretor.h"
+#include <stdlib.h>
+#include <ctype.h>
 
-
+string lower(string s){
+	boost::to_lower(s);
+	return s;
+}
 string token::lower() {
 	string s = val;
 	boost::to_lower(s);
@@ -25,6 +30,7 @@ unique_ptr<node> newNode(int l, token t){
 	n->tok1 = t;
 	return n;
 }
+
 
 map<int, string> enumMap = {
 	{EOS ,           "EOS"},
@@ -86,6 +92,7 @@ map<int, string> treeMap = {
 	{N_FROM,       "N_FROM"},
 	{N_AFTERFROM,  "N_AFTERFROM"},
 	{N_WHERE,      "N_WHERE"},
+	{N_HAVING,     "N_HAVING"},
 	{N_ORDER,      "N_ORDER"},
 	{N_EXPRADD,    "N_EXPRADD"},
 	{N_EXPRMULT,   "N_EXPRMULT"},
@@ -226,4 +233,60 @@ void printTree(unique_ptr<node> &n, int ident){
 	printTree(n->node2,ident);
 	printTree(n->node3,ident);
 	printTree(n->node4,ident);
+}
+
+//fast c string compare
+int scomp(const char* s1, const char*s2){
+	while (*s1 && *s1==*s2) { ++s1; ++s2; }
+	return *s1 - *s2;
+}
+//same but lowercase
+int slcomp(const char* s1, const char*s2){
+	while (*s1 && tolower(*s1)==*s2) { ++s1; ++s2; }
+	return *s1 - *s2;
+}
+//same but lowercase and limit length
+int slncomp(const char* s1, const char*s2, const int n){
+	int i=0;
+	while (*s1 && i<n && tolower(*s1)==*s2) { ++s1; ++s2; ++i; }
+	return *s1 - *s2;
+}
+int isInt(const char* s){
+	if (*s == 0) return 0;
+	while (*s && isdigit(*s));
+	return *s == 0;
+}
+int isFloat(const char *s) {
+  if (s == NULL) return 0;
+  char *endptr;
+  strtod(s, &endptr);
+  if (s == endptr) return 0;
+  // Look at trailing text
+  while (isspace((unsigned char ) *endptr)) ++endptr;
+  return *endptr == 0;
+}
+//placeholder - real function under construction in its own library
+int dateParse(const char* datestr, struct timeval* tv){
+	return -1;
+}
+
+int parseDuration(char* str, time_t* t) {
+	if (!regexec(&durationPattern, str, 0, NULL, 0)) return -1;
+	char* part2;
+	double quantity = strtod(str, &part2);
+	while (*part2 == ' ') ++part2;
+	if (slcomp(part2,(char*)"y") || slcomp(part2,(char*)"year") || slcomp(part2,(char*)"years"))
+		quantity *= 31536000;
+	else if (slcomp(part2,(char*)"w") || slcomp(part2,(char*)"week") || slcomp(part2,(char*)"weeks"))
+		quantity *= 604800;
+	else if (slcomp(part2,(char*)"d") || slcomp(part2,(char*)"day") || slcomp(part2,(char*)"days"))
+		quantity *= 86400;
+	else if (slcomp(part2,(char*)"h") || slcomp(part2,(char*)"hour") || slcomp(part2,(char*)"hours"))
+		quantity *= 3600;
+	else if (slcomp(part2,(char*)"m") || slcomp(part2,(char*)"minute") || slcomp(part2,(char*)"minutes"))
+		quantity *= 60;
+	else if (slcomp(part2,(char*)"s") || slcomp(part2,(char*)"second") || slcomp(part2,(char*)"seconds"))
+		quantity = quantity;
+	*t = quantity;
+	return 0;
 }
