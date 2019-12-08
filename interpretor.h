@@ -212,5 +212,6 @@ int slcomp(const char* s1, const char*s2);
 int isInt(const char*);
 int isFloat(const char*);
 int dateParse(const char* datestr, struct timeval* tv);
+int parseDuration(char* str, time_t* t);
 
 #endif
