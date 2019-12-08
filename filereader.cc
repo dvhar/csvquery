@@ -2,6 +2,7 @@
 #include <ctype.h>
 #include <memory.h>
 #include <iostream>
+#include <fstream>
 #include <sstream>
 #include <string>
 #include <vector>
@@ -12,108 +13,85 @@ using namespace std;
 class fileReader {
 	public:
 	string err;
-	FILE* fp;
+	ifstream fs;
 	int numFields;
 	int widestField;
-	char* fpos1;
-	char* fpos2;
-	char* end;
+	char* pos1;
+	char* pos2;
 	char* terminator;
-	char fileBuf[BUFSIZE];
+	char buf[BUFSIZE];
 	vector<char*> line;
 	fileReader(string);
 	int readline();
-	int getField(int);
-	int getWidth(char*, int);
-	void trim();
-	void refill();
+	int getField();
+	int getWidth(int);
 	void print();
 };
 
 fileReader::fileReader(string fname){
-	numFields = 0;
-	fp = fopen(fname.c_str(), "r");
-	if (fp == NULL) {
-		err = "could not open file "+fname;
-		return;
-	}
-	int i = fread(fileBuf, 1, BUFSIZE, fp);
-	if (i==0){
-		perror("zero size");
-		fclose(fp);
-	}
-	if (feof(fp)){
-		fclose(fp);
-	}
-	cerr << "read " << i << " bytes\n";
-	if (i < BUFSIZE) fileBuf[i] = 0;
-	fpos1 = fpos2 = fileBuf;
-	end = fileBuf+BUFSIZE-1;
+	numFields = widestField = 0;
+	fs = ifstream(fname);	
 }
 void fileReader::print(){
-	//cerr << "line size: " << line.size() << endl;
 	for (int i=0; i<line.size(); ++i){
 		cerr << "[" << line[i] << "]";
 	}
 	cerr << endl;
 }
 int fileReader::readline(){
+	fs.getline(buf, BUFSIZE);
 	line.clear();
 	int fieldsFound = 0;
-	char* startpos;;
+	pos1 = pos2 = buf;
 	while (1){
-		refill();
-		startpos = fpos1;
 		//trim leading space
-		while (*fpos2 && isblank(*fpos2)){ ++fpos2; }
-		fpos1 = fpos2;
+		while (*pos2 && isblank(*pos2)){ ++pos2; }
+		pos1 = pos2;
 		//non-quoted field
-		if (*fpos2 != '"'){
-			//cerr << "non-quote\n";
-			while(*fpos2 && *fpos2 != ',' && *fpos2 != '\n'){
-				//cerr << "'" << (int)*fpos;
-				++fpos2;
+		if (*pos2 != '"'){
+			while(*pos2 && *pos2 != ','){
+				++pos2;
 			}
-			if (*fpos2 == ','){
-				getField(fieldsFound);
+			if (*pos2 == ','){
+				terminator = pos2;
+				getField();
 				++fieldsFound;
-				fpos1 = ++fpos2;
+				pos1 = ++pos2;
 			}
-			if (*fpos2 == '\n' || !(*fpos2)){
-				getField(fieldsFound);
+			if (!(*pos2)){
+				terminator = pos2;
+				getField();
 				++fieldsFound;
-				fpos1 = ++fpos2;
-				getWidth(startpos, fieldsFound);
+				if (getWidth(fieldsFound))
+					return -1;
 				return 0;
 			}
 		//quoted field
 		} else {
-			//cerr << "quote\n";
-			++fpos1; ++fpos2;
+			++pos1; ++pos2;
 			//go to next quote
-			while(*fpos2 && *fpos2 != '"') ++fpos2;
-			//backslash escape
-			++fpos2;
-			switch (*fpos2){
+			while(*pos2 && *pos2 != '"') ++pos2;
+			//escape character - should compact this
+			++pos2;
+			switch (*pos2){
 			// "" escaped quote
 			case '"':
-				++fpos2;
+				++pos2;
 				break;
 			//end of field
 			case ',':
-				--fpos2;
-				getField(fieldsFound);
+				terminator = pos2-1;
+				getField();
 				++fieldsFound;
-				fpos1 = ++fpos2;
+				pos1 = ++pos2;
 				break;
 			//end of field
 			case '\0':
-			case '\n':
-				--fpos2;
-				getField(fieldsFound);
+				terminator = pos2-1;
+				getField();
 				++fieldsFound;
-				fpos1 = ++fpos2;
-				getWidth(startpos, fieldsFound);
+				if (getWidth(fieldsFound))
+					return -1;
 				return 0;
 			}
 		}
@@ -121,41 +99,8 @@ int fileReader::readline(){
 	}
 	return 0;
 }
-void fileReader::trim(){
-	//cerr << "trim\n";
-	terminator = fpos2;
-	while (isblank(*(terminator-1))) --terminator;
-	*terminator = '\0';
-}
-void fileReader::refill(){
-	//cerr << "refill\n";
-	char* temp = fpos2;
-	while (*temp != '\n'){
-		++temp;
-		if (temp == end){
-			temp = fileBuf;
-			//move line to beginning of buffer and refill it
-			while (fpos1 < end){
-				*(temp++) = *(++fpos1);
-			}
-			fpos1 = fileBuf;
-			int sz = temp-fpos1;
-			int i = fread(temp, 1, BUFSIZE-sz, fp);
-			if (i==0){
-				perror("zero size");
-				fclose(fp);
-			}
-			if (feof(fp)){
-				fclose(fp);
-			}
-			//cerr << "read " << i << " bytes\n";
-			fpos2 = temp;
-		}
-	}
-}
-int fileReader::getWidth(char* startpos, int fieldsFound){
-	//cerr << "getwidth\n";
-	int width = fpos2 - startpos;
+int fileReader::getWidth(int fieldsFound){
+	int width = pos2 - buf;
 	if (width > widestField){
 		//numfields is 0 until first line is done
 		if (numFields == 0)
@@ -164,17 +109,17 @@ int fileReader::getWidth(char* startpos, int fieldsFound){
 	}
 	if (fieldsFound != numFields){
 		stringstream e;
-		e << "should have " << numFields << " fields, found " << line.size()-1;
+		e << "should have " << numFields << " fields, found " << fieldsFound;
 		err = e.str();
 		return -1;
 	}
 	return 0;
 }
-int fileReader::getField(int n){
-	trim();
-	//avoid using malloc for all lines but first
-	//cerr << "get field " << n << " size: " << terminator-fpos1 << endl;
-	line.push_back(fpos1);
+int fileReader::getField(){
+	//trime trailing whitespace and push pointer
+	while (isblank(*(terminator-1))) --terminator;
+	*terminator = '\0';
+	line.push_back(pos1);
 	return 0;
 }
 
@@ -183,11 +128,11 @@ int main(){
 	fileReader f("/home/dave/Documents/work/Parking_Violations_Issued_-_Fiscal_Year_2017.csv");
 	int num = 0;
 	while(! f.readline() ){
-		//fprintf(stderr,"--------------%d--------------------------------------------\n",num++);
-		//f.print();
+		//fprintf(stderr,"%d\n",num++);
+		f.print();
 		//cerr << "printed\n";
 	}
 	cerr << f.err << endl;
 	//fprintf(stderr,"_________________________________________\n");
-	//puts(f.fileBuf);
+	//puts(f.buf);
 }
