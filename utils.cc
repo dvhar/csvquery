@@ -286,7 +286,24 @@ int parseDuration(char* str, time_t* t) {
 	else if (slcomp(part2,(char*)"m") || slcomp(part2,(char*)"minute") || slcomp(part2,(char*)"minutes"))
 		quantity *= 60;
 	else if (slcomp(part2,(char*)"s") || slcomp(part2,(char*)"second") || slcomp(part2,(char*)"seconds"))
-		quantity = quantity;
+		{}
+	else return -1;
 	*t = quantity;
 	return 0;
+}
+
+int getNarrowestType(char* value, int startType) {
+	time_t t;
+	struct timeval tv;
+	if (slcomp(value,(char*)"null") || scomp(value,(char*)"NA") || value[0] == '\0') {
+	  startType = max(T_NULL, startType);
+	} else if (regexec(&leadingZeroString, value, 0, NULL, 0))       { startType = T_STRING;
+	} else if (isInt(value))                             { startType = max(T_INT, startType);
+	} else if (isFloat(value))                           { startType = max(T_FLOAT, startType);
+	} else if (!dateParse(value, &tv))                   { startType = max(T_DATE, startType);
+	  //in case duration gets mistaken for a date
+	   if (!parseDuration(value, &t))                    { startType = max(T_DURATION, startType);}
+	} else if (!parseDuration(value, &t))                { startType = max(T_DURATION, startType);
+	} else                                               { startType = T_STRING; }
+	return startType;
 }
