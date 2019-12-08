@@ -13,13 +13,11 @@ class fileReader {
 	public:
 	string err;
 	FILE* fp;
-	int ended;
 	int numFields;
 	int widestField;
 	char* fpos1;
 	char* fpos2;
-	char* endbuf;
-	char* endfile;
+	char* end;
 	char* terminator;
 	char fileBuf[BUFSIZE];
 	vector<char*> line;
@@ -33,31 +31,29 @@ class fileReader {
 };
 
 fileReader::fileReader(string fname){
-	numFields = ended = widestField = 0;
+	numFields = 0;
 	fp = fopen(fname.c_str(), "r");
 	if (fp == NULL) {
 		err = "could not open file "+fname;
 		return;
 	}
 	int i = fread(fileBuf, 1, BUFSIZE, fp);
-	cerr << "read " << i << " bytes\n";
 	if (i==0){
 		perror("zero size");
 		fclose(fp);
 	}
-	endfile = fileBuf + BUFSIZE *2;
 	if (feof(fp)){
 		fclose(fp);
-		ended = 1;
-		endfile = fileBuf + i;
 	}
+	cerr << "read " << i << " bytes\n";
+	if (i < BUFSIZE) fileBuf[i] = 0;
 	fpos1 = fpos2 = fileBuf;
-	endbuf = fileBuf+BUFSIZE-1;
+	end = fileBuf+BUFSIZE-1;
 }
 void fileReader::print(){
 	//cerr << "line size: " << line.size() << endl;
 	for (int i=0; i<line.size(); ++i){
-		cerr << i << "[" << line[i] << "]";
+		cerr << "[" << line[i] << "]";
 	}
 	cerr << endl;
 }
@@ -74,21 +70,20 @@ int fileReader::readline(){
 		//non-quoted field
 		if (*fpos2 != '"'){
 			//cerr << "non-quote\n";
-			while(*fpos2 && *fpos2 != ',' && *fpos2 != '\n')
+			while(*fpos2 && *fpos2 != ',' && *fpos2 != '\n'){
+				//cerr << "'" << (int)*fpos;
 				++fpos2;
+			}
 			if (*fpos2 == ','){
 				getField(fieldsFound);
 				++fieldsFound;
 				fpos1 = ++fpos2;
 			}
 			if (*fpos2 == '\n' || !(*fpos2)){
-				if (fpos1 >= endfile)
-					return 1;
 				getField(fieldsFound);
 				++fieldsFound;
 				fpos1 = ++fpos2;
-				if (getWidth(startpos, fieldsFound))
-					return -1;
+				getWidth(startpos, fieldsFound);
 				return 0;
 			}
 		//quoted field
@@ -108,7 +103,6 @@ int fileReader::readline(){
 			case ',':
 				--fpos2;
 				getField(fieldsFound);
-				++fpos2;
 				++fieldsFound;
 				fpos1 = ++fpos2;
 				break;
@@ -119,8 +113,7 @@ int fileReader::readline(){
 				getField(fieldsFound);
 				++fieldsFound;
 				fpos1 = ++fpos2;
-				if (getWidth(startpos, fieldsFound))
-					return -1;
+				getWidth(startpos, fieldsFound);
 				return 0;
 			}
 		}
@@ -129,20 +122,20 @@ int fileReader::readline(){
 	return 0;
 }
 void fileReader::trim(){
+	//cerr << "trim\n";
 	terminator = fpos2;
 	while (isblank(*(terminator-1))) --terminator;
-	//cerr << "trim " << terminator-fpos1 << endl;
 	*terminator = '\0';
 }
 void fileReader::refill(){
+	//cerr << "refill\n";
 	char* temp = fpos2;
-	//cerr << "refill at " << fpos2 - fileBuf << " -- " << endbuf - temp << endl;
-	while (*temp != '\n' && temp != 0 && temp <= endbuf){
-		if (temp >= endbuf-10){
-			//cerr << "refilling -------------------------------------------------------------------------------------\n";
+	while (*temp != '\n'){
+		++temp;
+		if (temp == end){
 			temp = fileBuf;
 			//move line to beginning of buffer and refill it
-			while (fpos1 < endbuf){
+			while (fpos1 < end){
 				*(temp++) = *(++fpos1);
 			}
 			fpos1 = fileBuf;
@@ -154,13 +147,9 @@ void fileReader::refill(){
 			}
 			if (feof(fp)){
 				fclose(fp);
-				ended = 1;
-				endfile = fileBuf + i;
 			}
 			//cerr << "read " << i << " bytes\n";
-			fpos2 = fpos1;
-		} else {
-			++temp;
+			fpos2 = temp;
 		}
 	}
 }
@@ -175,7 +164,7 @@ int fileReader::getWidth(char* startpos, int fieldsFound){
 	}
 	if (fieldsFound != numFields){
 		stringstream e;
-		e << "should have " << numFields << " fields, found " << fieldsFound;
+		e << "should have " << numFields << " fields, found " << line.size()-1;
 		err = e.str();
 		return -1;
 	}
@@ -184,22 +173,21 @@ int fileReader::getWidth(char* startpos, int fieldsFound){
 int fileReader::getField(int n){
 	trim();
 	//avoid using malloc for all lines but first
+	//cerr << "get field " << n << " size: " << terminator-fpos1 << endl;
 	line.push_back(fpos1);
-	//cerr << "pushed line " << line.size() << endl;
 	return 0;
 }
 
 int main(){
-	//fileReader f("/home/dave/Documents/work/parkingTestShort.csv");
+	//fileReader f("/home/dave/Documents/work/parkingTest.csv");
 	fileReader f("/home/dave/Documents/work/Parking_Violations_Issued_-_Fiscal_Year_2017.csv");
 	int num = 0;
 	while(! f.readline() ){
-		//fprintf(stderr,"--------------%d-----\n",num++);
+		//fprintf(stderr,"--------------%d--------------------------------------------\n",num++);
 		//f.print();
 		//cerr << "printed\n";
 	}
 	cerr << f.err << endl;
-	f.print();
 	//fprintf(stderr,"_________________________________________\n");
 	//puts(f.fileBuf);
 }
