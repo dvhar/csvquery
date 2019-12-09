@@ -28,10 +28,11 @@ int main(int argc, char** argv){
 		parseQuery(q);
 		printTree(q.tree,0);
 		openfiles(q, q.tree);
+		cerr << "done with query\n";
 	} catch (const invalid_argument& ia) {
 		cerr << "Error: " << ia.what() << '\n';
 	}
-
+	return 0;
 }
 
 //initialize some stuff
