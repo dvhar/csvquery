@@ -47,15 +47,14 @@ static void e(string s){
 
 
 //recursive descent parser for query
-unique_ptr<node> parseQuery(querySpecs &q) {
+void parseQuery(querySpecs &q) {
 	scanTokens(q);
-	unique_ptr<node> n = newNode(N_QUERY);
-	n->node1 = parsePreSelect(q);
-	n->node2 = parseSelect(q);
-	n->node3 = parseFrom(q);
-	n->node4 = parseAfterFrom(q);
+	q.tree = newNode(N_QUERY);
+	q.tree->node1 = parsePreSelect(q);
+	q.tree->node2 = parseSelect(q);
+	q.tree->node3 = parseFrom(q);
+	q.tree->node4 = parseAfterFrom(q);
 	parseLimit(q);
-	return n;
 }
 
 //could include other commands like describe
@@ -104,10 +103,11 @@ static void parseOptions(querySpecs &q) {
 	e("options");
 	string s = t.lower();
 	if (s == "c") {
-		q.options = O_C;
-	} else if (s == "nh") {
-		q.options = O_NH;
-	} else if (s == "h") {
+		q.options |= O_C;
+	} else if (s == "nh" || s == "noheader") {
+		q.options |= O_NH;
+	} else if (s == "h" || s == "header") {
+		q.options |= O_H;
 	} else {
 		return;
 	}
@@ -565,7 +565,8 @@ static unique_ptr<node> parseFrom(querySpecs &q) {
 	if ( access( filepath.c_str(), F_OK ) == -1 )
 		error("Could not open file "+filepath);
 	t = q.nextTok();
-	if (t.lower() == "noheader" || t.lower() == "nh") {
+	string s = t.lower();
+	if (s == "noheader" || s == "nh" || s == "header" || s == "h") {
 		n->tok3 = t;
 		t = q.nextTok();
 	}
@@ -579,7 +580,8 @@ static unique_ptr<node> parseFrom(querySpecs &q) {
 		q.nextTok();
 	}
 	t = q.tok();
-	if (t.lower() == "noheader" || t.lower() == "nh") {
+	s = t.lower();
+	if (s == "noheader" || s == "nh" || s == "header" || s == "h") {
 		n->tok3 = t;
 		q.nextTok();
 	}
@@ -628,7 +630,8 @@ static unique_ptr<node> parseJoin(querySpecs &q) {
 		n->tok3.id = 0;
 	//1st after filepath
 	t = q.nextTok();
-	if (t.lower() == "noheader" || t.lower() == "nh") {
+	s = t.lower();
+	if (s == "noheader" || s == "nh" || s == "header" || s == "h") {
 		n->tok5 = t;
 		t = q.nextTok();
 	}
@@ -643,7 +646,8 @@ static unique_ptr<node> parseJoin(querySpecs &q) {
 		t = q.nextTok();
 		break;
 	}
-	if (t.lower() == "noheader" || t.lower() == "nh") {
+	s = t.lower();
+	if (s == "noheader" || s == "nh" || s == "header" || s == "h") {
 		n->tok5 = t;
 		t = q.nextTok();
 	}

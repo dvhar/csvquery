@@ -23,14 +23,14 @@ int main(int argc, char** argv){
 	init();
 	querySpecs q;
 	q.init(qs);
-	unique_ptr<node> tree;
 	try {
 		scanTokens(q);
-		tree = parseQuery(q);
+		parseQuery(q);
+		printTree(q.tree,0);
+		openfiles(q, q.tree);
 	} catch (const invalid_argument& ia) {
 		cerr << "Error: " << ia.what() << '\n';
 	}
-	printTree(tree,0);
 
 }
 
