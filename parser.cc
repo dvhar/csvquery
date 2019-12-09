@@ -589,9 +589,9 @@ static unique_ptr<node> parseFrom(querySpecs &q) {
 	return n;
 }
 
-//tok1 is join details (left/outer or inner)
+//tok1 is filepath
 //tok2 is join token (join,sjoin,bjoin)
-//tok3 is filepath. id==0 means non-override big file
+//tok3 is join details (left/outer or inner). id==0 means non-override big file
 //tok4 is alias
 //tok5 is noheader
 //node1 is join condition (predicates)
@@ -605,7 +605,7 @@ static unique_ptr<node> parseJoin(querySpecs &q) {
 		return nullptr;
 	q.joining = true;
 	if (s == "left" || s == "inner" || s == "outer"){
-		n->tok1 = t;
+		n->tok3 = t;
 		q.nextTok();
 	}
 	bool sizeOverride = false;
@@ -619,7 +619,7 @@ static unique_ptr<node> parseJoin(querySpecs &q) {
 	}
 	//file path
 	t.val = boost::replace_all_copy(t.val, "~/", string(getenv("HOME"))+"/");
-	n->tok3 = t;
+	n->tok1 = t;
     struct stat stat_buf;
     int finfo = stat(t.val.c_str(), &stat_buf);
     finfo = finfo == 0 ? stat_buf.st_size : -1;

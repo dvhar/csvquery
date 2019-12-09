@@ -9,7 +9,6 @@ fileReader::fileReader(string fname){
 	numFields = widestField = 0;
 	fs = ifstream(fname);	
 	pos = fs.tellg();
-	inferTypes();
 }
 void fileReader::print(){
 	for (auto &l : line){
@@ -111,9 +110,9 @@ void fileReader::inferTypes() {
 		if (noheader)
 			colnames.push_back(nstring("col%d",i+1));
 		else
-			colnames.push_back(line[i]);
+			colnames.push_back(string(line[i]));
 		types.push_back(0);
-		cerr << line[i] << endl;
+		cerr << "firstline member:" << line[i] << endl;
 	}
 	//get samples and infer types from them
 	if (!noheader){
@@ -132,12 +131,9 @@ void fileReader::inferTypes() {
 
 void openfiles(querySpecs &q, unique_ptr<node> &n){
 	static int fileNo = 1;
-	cerr << "openfile " << endl;
 	if (n == nullptr)
 		return;
-	cerr << "openfile at node " << treeMap[n->label] << endl;
 	if (n->label == N_FROM || n->label == N_JOIN){
-		cerr << "openfile found one at node " << treeMap[n->label] << endl;
 		//initialize and put in map
 		shared_ptr<fileReader> fr(new fileReader(n->tok1.val));
 		q.files[nstring("_f%d",fileNo)] = fr;
