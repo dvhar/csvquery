@@ -275,24 +275,24 @@ int parseDuration(char* str, time_t* t) {
 	char* part2;
 	double quantity = strtod(str, &part2);
 	while (*part2 == ' ') ++part2;
-	if (slcomp(part2,(char*)"y") || slcomp(part2,(char*)"year") || slcomp(part2,(char*)"years"))
+	if (slcomp(part2,"y") || slcomp(part2,"year") || slcomp(part2,"years"))
 		quantity *= 31536000;
-	else if (slcomp(part2,(char*)"w") || slcomp(part2,(char*)"week") || slcomp(part2,(char*)"weeks"))
+	else if (slcomp(part2,"w") || slcomp(part2,"week") || slcomp(part2,"weeks"))
 		quantity *= 604800;
-	else if (slcomp(part2,(char*)"d") || slcomp(part2,(char*)"day") || slcomp(part2,(char*)"days"))
+	else if (slcomp(part2,"d") || slcomp(part2,"day") || slcomp(part2,"days"))
 		quantity *= 86400;
-	else if (slcomp(part2,(char*)"h") || slcomp(part2,(char*)"hour") || slcomp(part2,(char*)"hours"))
+	else if (slcomp(part2,"h") || slcomp(part2,"hour") || slcomp(part2,"hours"))
 		quantity *= 3600;
-	else if (slcomp(part2,(char*)"m") || slcomp(part2,(char*)"minute") || slcomp(part2,(char*)"minutes"))
+	else if (slcomp(part2,"m") || slcomp(part2,"minute") || slcomp(part2,"minutes"))
 		quantity *= 60;
-	else if (slcomp(part2,(char*)"s") || slcomp(part2,(char*)"second") || slcomp(part2,(char*)"seconds"))
+	else if (slcomp(part2,"s") || slcomp(part2,"second") || slcomp(part2,"seconds"))
 		{}
 	else return -1;
 	*t = quantity;
 	return 0;
 }
 
-int getNarrowestType(char* value, int startType) {
+int getNarrowestType(char* value, int &startType) {
 	time_t t;
 	struct timeval tv;
 	if (slcomp(value,(char*)"null") || scomp(value,(char*)"NA") || value[0] == '\0') {
@@ -307,3 +307,9 @@ int getNarrowestType(char* value, int startType) {
 	} else                                               { startType = T_STRING; }
 	return startType;
 }
+
+string nstring(string s, int n) {
+    boost::format fmt = boost::format(s) % n;
+    return fmt.str();
+}
+

@@ -1,47 +1,27 @@
-#include <stdio.h>
 #include <ctype.h>
-#include <memory.h>
-#include <iostream>
 #include <fstream>
 #include <sstream>
 #include <string>
-#include <vector>
-using namespace std;
+#include "interpretor.h"
 
-#define BUFSIZE  1024*1024
-
-class fileReader {
-	public:
-	string err;
-	ifstream fs;
-	int numFields;
-	int widestField;
-	char* pos1;
-	char* pos2;
-	char* terminator;
-	char buf[BUFSIZE];
-	vector<char*> line;
-	fileReader(string);
-	int readline();
-	int getField();
-	int getWidth(int);
-	void print();
-};
 
 fileReader::fileReader(string fname){
 	numFields = widestField = 0;
 	fs = ifstream(fname);	
+	pos = fs.tellg();
+	inferTypes();
 }
 void fileReader::print(){
-	for (int i=0; i<line.size(); ++i){
-		cerr << "[" << line[i] << "]";
+	for (auto &l : line){
+		cerr << "[" << l << "]";
 	}
 	cerr << endl;
 }
 int fileReader::readline(){
+	pos = fs.tellg();
 	fs.getline(buf, BUFSIZE);
 	line.clear();
-	int fieldsFound = 0;
+	fieldsFound = 0;
 	pos1 = pos2 = buf;
 	while (1){
 		//trim leading space
@@ -62,7 +42,7 @@ int fileReader::readline(){
 				terminator = pos2;
 				getField();
 				++fieldsFound;
-				if (getWidth(fieldsFound))
+				if (getWidth())
 					return -1;
 				return 0;
 			}
@@ -85,12 +65,12 @@ int fileReader::readline(){
 				++fieldsFound;
 				pos1 = ++pos2;
 				break;
-			//end of field
+			//end of line
 			case '\0':
 				terminator = pos2-1;
 				getField();
 				++fieldsFound;
-				if (getWidth(fieldsFound))
+				if (getWidth())
 					return -1;
 				return 0;
 			}
@@ -99,7 +79,7 @@ int fileReader::readline(){
 	}
 	return 0;
 }
-int fileReader::getWidth(int fieldsFound){
+int fileReader::getWidth(){
 	int width = pos2 - buf;
 	if (width > widestField){
 		//numfields is 0 until first line is done
@@ -116,23 +96,74 @@ int fileReader::getWidth(int fieldsFound){
 	return 0;
 }
 int fileReader::getField(){
-	//trime trailing whitespace and push pointer
+	//trim trailing whitespace and push pointer
 	while (isblank(*(terminator-1))) --terminator;
 	*terminator = '\0';
 	line.push_back(pos1);
 	return 0;
 }
 
-int main(){
-	//fileReader f("/home/dave/Documents/work/parkingTest.csv");
-	fileReader f("/home/dave/Documents/work/Parking_Violations_Issued_-_Fiscal_Year_2017.csv");
-	int num = 0;
-	while(! f.readline() ){
-		//fprintf(stderr,"%d\n",num++);
-		f.print();
-		//cerr << "printed\n";
+void fileReader::inferTypes() {
+	readline();
+	auto startData = pos;
+	//get col names and initialize blank types
+	for (int i=0; i<line.size(); ++i) {
+		if (noheader)
+			colnames.push_back(nstring("col%d",i+1));
+		else
+			colnames.push_back(line[i]);
+		types.push_back(0);
+		cerr << line[i] << endl;
 	}
-	cerr << f.err << endl;
-	//fprintf(stderr,"_________________________________________\n");
-	//puts(f.buf);
+	//get samples and infer types from them
+	if (!noheader){
+		readline();
+		startData = pos;
+	}
+	for (int j=0; j<10000; ++j) {
+		for (int i=0; i<line.size(); ++i)
+			getNarrowestType(line[i], types[i]);
+		if (!readline())
+			break;
+	}
+	fs.clear();
+	fs.seekg(startData);
+}
+
+void openfiles(querySpecs &q, unique_ptr<node> &n){
+	static int fileNo = 1;
+	cerr << "openfile " << endl;
+	if (n == nullptr)
+		return;
+	cerr << "openfile at node " << treeMap[n->label] << endl;
+	if (n->label == N_FROM || n->label == N_JOIN){
+		cerr << "openfile found one at node " << treeMap[n->label] << endl;
+		//initialize and put in map
+		shared_ptr<fileReader> fr(new fileReader(n->tok1.val));
+		q.files[nstring("_f%d",fileNo)] = fr;
+		if (n->tok2.id)
+			q.files[n->tok2.val] = fr;
+		string path = n->tok1.val;
+		int a = path.find_last_of("/\\") + 1;
+		int b = path.size()-4-a;
+		path = path.substr(a, b);
+		q.files[path] = fr;
+
+		//header options
+		if ((q.options & O_NH) != 0)
+			fr->noheader = true;
+		else
+			fr->noheader = false;
+		if (n->tok3.id){
+			string s = n->tok3.lower();
+			if (s == "n" || s == "noheader")
+				fr->noheader = true;
+			if (s == "h" || s == "header")
+				fr->noheader = false;
+		}
+		fr->inferTypes();
+	}
+	openfiles(q, n->node1);
+	openfiles(q, n->node2);
+	openfiles(q, n->node3);
 }
