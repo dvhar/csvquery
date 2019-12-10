@@ -1,6 +1,10 @@
 #include "interpretor.h"
 #include <stdlib.h>
 #include <ctype.h>
+#define max(a,b) (a) > (b) ? (a) : (b)
+
+//placeholder - real function under construction in its own library
+int dateParse(const char* datestr, struct timeval* tv){ return -1; }
 
 string lower(string s){
 	boost::to_lower(s);
@@ -31,6 +35,11 @@ unique_ptr<node> newNode(int l, token t){
 	return n;
 }
 
+regex_t leadingZeroString;
+regex_t durationPattern;
+regex cInt("^c\\d+$");
+regex posInt("^\\d+$");
+regex colNum("^c?\\d+$");
 
 map<int, string> enumMap = {
 	{EOS ,           "EOS"},
@@ -214,13 +223,16 @@ token querySpecs::peekTok() {
 	return tokArray[tokIdx];
 }
 token querySpecs::tok() { return tokArray[tokIdx]; }
-void querySpecs::Reset() { tokIdx = 0; }
-
+void querySpecs::reset() { tokIdx = 0; }
+void querySpecs::addVar(string var) {
+	vars.push_back({ var, 0 });
+}
 void querySpecs::init(string s){
 	queryString = s;
 	tokIdx = options = quantityLimit = 0;
 	joining = groupby = false;
 }
+bool querySpecs::numIsCol() { return (options & O_C) != 0; }
 
 void printTree(unique_ptr<node> &n, int ident){
 	if (n == nullptr) return;
@@ -228,7 +240,11 @@ void printTree(unique_ptr<node> &n, int ident){
 	string s = "";
 	for (int i=0;i<ident;i++) s += "  ";
 	cout << s << treeMap[n->label] << endl
-		<< s << n->tok1.val << "  " << n->tok2.val << "  " << n->tok3.val << endl;
+		<< s << n->tok1.val << "  "
+		<< n->tok2.val << "  "
+		<< n->tok3.val << "  "
+		<< n->tok4.val << "  "
+		<< n->tok5.val << endl;
 	printTree(n->node1,ident);
 	printTree(n->node2,ident);
 	printTree(n->node3,ident);
@@ -253,7 +269,7 @@ int slncomp(const char* s1, const char*s2, const int n){
 }
 int isInt(const char* s){
 	if (*s == 0) return 0;
-	while (*s && isdigit(*s));
+	while (*s && isdigit(*s)) ++s;
 	return *s == 0;
 }
 int isFloat(const char *s) {
@@ -265,13 +281,9 @@ int isFloat(const char *s) {
   while (isspace((unsigned char ) *endptr)) ++endptr;
   return *endptr == 0;
 }
-//placeholder - real function under construction in its own library
-int dateParse(const char* datestr, struct timeval* tv){
-	return -1;
-}
 
 int parseDuration(char* str, time_t* t) {
-	if (!regexec(&durationPattern, str, 0, NULL, 0)) return -1;
+	if (regexec(&durationPattern, str, 0, NULL, 0)) {return -1;}
 	char* part2;
 	double quantity = strtod(str, &part2);
 	while (*part2 == ' ') ++part2;
@@ -292,19 +304,19 @@ int parseDuration(char* str, time_t* t) {
 	return 0;
 }
 
-int getNarrowestType(char* value, int &startType) {
+int getNarrowestType(char* value, int startType) {
 	time_t t;
 	struct timeval tv;
-	if (slcomp(value,(char*)"null") || scomp(value,(char*)"NA") || value[0] == '\0') {
+	if (!slcomp(value,(char*)"null") || !scomp(value,(char*)"NA") || value[0] == '\0') {
 	  startType = max(T_NULL, startType);
-	} else if (regexec(&leadingZeroString, value, 0, NULL, 0))       { startType = T_STRING;
-	} else if (isInt(value))                             { startType = max(T_INT, startType);
-	} else if (isFloat(value))                           { startType = max(T_FLOAT, startType);
-	} else if (!dateParse(value, &tv))                   { startType = max(T_DATE, startType);
+	} else if (!regexec(&leadingZeroString, value, 0, NULL, 0)){ startType = T_STRING;
+	} else if (isInt(value))                       { startType = max(T_INT, startType);
+	} else if (isFloat(value))                     { startType = max(T_FLOAT, startType);
+	} else if (!dateParse(value, &tv))             { startType = max(T_DATE, startType);
 	  //in case duration gets mistaken for a date
-	   if (!parseDuration(value, &t))                    { startType = max(T_DURATION, startType);}
-	} else if (!parseDuration(value, &t))                { startType = max(T_DURATION, startType);
-	} else                                               { startType = T_STRING; }
+	   if (!parseDuration(value, &t))              { startType = max(T_DURATION, startType); }
+	} else if (!parseDuration(value, &t))          { startType = max(T_DURATION, startType);
+	} else                                         { startType = T_STRING; }
 	return startType;
 }
 
@@ -312,4 +324,3 @@ string nstring(string s, int n) {
     boost::format fmt = boost::format(s) % n;
     return fmt.str();
 }
-

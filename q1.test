@@ -3,7 +3,7 @@ select dog + (cat * count(*)), case when c1=fat then cat when c1=hat then mad en
 from '/home/dave/Documents/work/cities.csv' city nh
 inner join '~/Documents/work/country.csv' nh country 
 on city.c1=country.c4
-group by c7+"moose" 
-having sum(c1)>77-mouse and stdev(house+mouse-c1)<78
+group by c7+"moose"+0001232
+having sum(c1)>77.23-mouse and stdev(house+mouse-c1)<78
 where city.name = stlouis
-order by cow+tipper
+order by "7 days"+'1/22/1999'

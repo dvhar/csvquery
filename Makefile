@@ -1,6 +1,6 @@
 all: cql
 
-cql: main.o parser.o scanner.o utils.o filereader.o
+cql: main.o parser.o scanner.o utils.o filereader.o treetyping.o
 	clang++ -o cql $^
 
 .cc.o: interpretor.h
@@ -9,5 +9,6 @@ cql: main.o parser.o scanner.o utils.o filereader.o
 clean:
 	rm *.o
 
-test: filereader.o test.o utils.o
+test: test.o utils.o
 	clang++ -o run $^
+	./run

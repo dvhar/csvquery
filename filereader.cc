@@ -20,6 +20,7 @@ int fileReader::readline(){
 	pos = fs.tellg();
 	fs.getline(buf, BUFSIZE);
 	line.clear();
+	sizes.clear();
 	fieldsFound = 0;
 	pos1 = pos2 = buf;
 	while (1){
@@ -99,6 +100,7 @@ int fileReader::getField(){
 	while (isblank(*(terminator-1))) --terminator;
 	*terminator = '\0';
 	line.push_back(pos1);
+	sizes.push_back(terminator-pos1);
 	return 0;
 }
 
@@ -129,17 +131,26 @@ void fileReader::inferTypes() {
 	fs.seekg(startData);
 }
 
+int fileReader::getColIdx(string colname){
+	for (int i = 0; i < colnames.size(); ++i)
+		if (colnames[i] == colname)
+			return i;
+	return -1;
+}
+
 void openfiles(querySpecs &q, unique_ptr<node> &n){
 	static int fileNo = 1;
 	if (n == nullptr)
 		return;
 	if (n->label == N_FROM || n->label == N_JOIN){
 		//initialize and put in map
-		shared_ptr<fileReader> fr(new fileReader(n->tok1.val));
-		q.files[nstring("_f%d",fileNo)] = fr;
+		string path = n->tok1.val;
+		string id = nstring("_f%d",fileNo);
+		shared_ptr<fileReader> fr(new fileReader(path));
+		fr->id = id;
+		q.files[id] = fr;
 		if (n->tok2.id)
 			q.files[n->tok2.val] = fr;
-		string path = n->tok1.val;
 		int a = path.find_last_of("/\\") + 1;
 		int b = path.size()-4-a;
 		path = path.substr(a, b);
@@ -157,6 +168,7 @@ void openfiles(querySpecs &q, unique_ptr<node> &n){
 			if (s == "h" || s == "header")
 				fr->noheader = false;
 		}
+		//get types
 		fr->inferTypes();
 	}
 	openfiles(q, n->node1);

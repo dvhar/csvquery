@@ -219,9 +219,12 @@ static unique_ptr<node> parseSelections(querySpecs &q) {
 	}
 	return nullptr;
 }
+
 //node1 is exprMult
 //node2 is exprAdd
 //tok1 is add/minus operator
+//later stages:
+//  tok2.id is expression data type
 static unique_ptr<node> parseExprAdd(querySpecs &q) {
 	t = q.tok();
 	e("expradd");
@@ -344,22 +347,27 @@ static unique_ptr<node> parseExprCase(querySpecs &q) {
 	return n;
 }
 
-//if implement dot notation, put parser here
-//tok1 is [value, column index, function id]
+//tok1 is [value, column, function name]
+//tok2.id is FUNCTION if function
 //node1 is function expression if doing that
+//later stages:
+//  tok1.id is colIdx
+//  tok2.id is type [literal, column, variable, function] enum
+//  tok3.id is data type
+//  tok4.val is source file alias
 static unique_ptr<node> parseValue(querySpecs &q) {
 	t = q.tok();
 	e("value");
 	unique_ptr<node> n = newNode(N_VALUE);
+	n->tok1 = t;
 	//see if it's a function
 	if (functionMap.count(t.lower()) && !t.quoted && q.peekTok().id==SP_LPAREN) {
+		n->tok2.id = N_FUNCTION;
 		n->node1 = parseFunction(q);
-		return n;
 	//any non-function value
 	} else {
-		n->tok1 = t;
+		q.nextTok();
 	}
-	q.nextTok();
 	e("done value");
 	return n;
 }
@@ -709,6 +717,8 @@ static unique_ptr<node> parseOrder(querySpecs &q) {
 //tok3 is distinct or cipher
 //tok4 is password
 //node1 is expression in parens
+//later stages:
+//    tok5.id is data type
 static unique_ptr<node> parseFunction(querySpecs &q) {
 	t = q.tok();
 	e("func");
