@@ -6,6 +6,7 @@
 #include <fstream>
 #include <memory>
 #include <sys/time.h>
+#include <regex>
 #include <regex.h>
 #include <boost/algorithm/string.hpp>
 #include <boost/format.hpp>
@@ -14,7 +15,7 @@ using namespace std;
 
 enum nodetypes { N_QUERY, N_PRESELECT, N_WITH, N_VARS, N_SELECT, N_SELECTIONS, N_FROM, N_AFTERFROM, N_JOINCHAIN, N_JOIN, N_WHERE, N_HAVING, N_ORDER, N_EXPRADD, N_EXPRMULT, N_EXPRNEG, N_EXPRCASE, N_CPREDLIST, N_CPRED, N_CWEXPRLIST, N_CWEXPR, N_PREDICATES, N_PREDCOMP, N_VALUE, N_FUNCTION, N_GROUPBY, N_EXPRESSIONS, N_DEXPRESSIONS };
 
-
+enum valTypes { LITERAL, COLUMN, VARIABLE, FUNCTION };
 
 class token {
 	public:
@@ -39,36 +40,43 @@ class node {
 	token tok4;
 	token tok5;
 };
-class fileReader {
-		//file info
-		vector<string> colnames;
-		vector<int> types;
-		//csv parsing
-		int numFields;
-		int widestField;
-		int fieldsFound;
-		char* pos1;
-		char* pos2;
-		char* terminator;
-		char buf[BUFSIZE];
-		vector<char*> line;
-		int getField();
-		int getWidth();
+class variable {
 	public:
-		streampos pos;
-		bool noheader;
-		void inferTypes();
-		void print();
-		ifstream fs;
-		string err;
-		int readline();
-		fileReader(string);
+	string name;
+	int type;
+};
+class fileReader {
+	public:
+	vector<string> colnames;
+	vector<int> types;
+	vector<int> sizes;
+	vector<char*> line;
+	int widestField;
+	int fieldsFound;
+	char* pos1;
+	char* pos2;
+	char* terminator;
+	char buf[BUFSIZE];
+	int getField();
+	int getWidth();
+	int numFields;
+	bool noheader;
+	streampos pos;
+	ifstream fs;
+	string id;
+	string err;
+	void inferTypes();
+	void print();
+	int getColIdx(string);
+	int readline();
+	fileReader(string);
 };
 class querySpecs {
 	public:
 	string queryString;
 	string password;
 	vector<token> tokArray;
+	vector<variable> vars;
 	map<string, shared_ptr<fileReader>> files;
 	unique_ptr<node> tree;
 	int tokIdx;
@@ -79,8 +87,10 @@ class querySpecs {
 	token tok();
 	token nextTok();
 	token peekTok();
-	void Reset();
+	bool numIsCol();
+	void reset();
 	void init(string);
+	void addVar(string);
 };
 /*
 class querySpecs {
@@ -220,6 +230,9 @@ extern map<string, int> specialMap;
 
 extern regex_t leadingZeroString;
 extern regex_t durationPattern;
+extern regex cInt;
+extern regex posInt;
+extern regex colNum;
 
 void scanTokens(querySpecs &q);
 void parseQuery(querySpecs &q);
@@ -228,7 +241,6 @@ unique_ptr<node> newNode(int l, token t);
 void error(const string &err);
 bool is_number(const std::string& s);
 void printTree(unique_ptr<node> &n, int ident);
-int getNarrowestType(char*, int &startType);
 string lower(string);
 int scomp(const char*, const char*);
 int slcomp(const char*, const char*);
@@ -238,5 +250,7 @@ int dateParse(const char*, struct timeval*);
 int parseDuration(char*, time_t*);
 string nstring(string, int);
 void openfiles(querySpecs &q, unique_ptr<node> &n);
+void applyTypes(querySpecs &q, unique_ptr<node> &n);
+int getNarrowestType(char* value, int startType);
 
 #endif
