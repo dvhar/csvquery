@@ -122,7 +122,7 @@ static unique_ptr<node> parseWith(querySpecs &q) {
 	if (t.lower() != "with") { return nullptr; }
 	unique_ptr<node> n = newNode(N_WITH);
 	q.nextTok();
-	n->node2 = parseVars(q);
+	n->node1 = parseVars(q);
 	return n;
 }
 
@@ -163,9 +163,8 @@ static unique_ptr<node> parseSelect(querySpecs &q) {
 //node2 is next selection
 //tok1 is * or distinct or hidden
 //tok2 is alias
-//tok3 is bit array - 1 and 2 are distinct
-//tok4 will be aggregate function
-//tok5 will be type
+//later stages:
+//  tok3 will be aggregate function
 static unique_ptr<node> parseSelections(querySpecs &q) {
 	t = q.tok();
 	e("selections");
@@ -224,7 +223,6 @@ static unique_ptr<node> parseSelections(querySpecs &q) {
 //node2 is exprAdd
 //tok1 is add/minus operator
 //later stages:
-//  tok2.id is expression data type
 static unique_ptr<node> parseExprAdd(querySpecs &q) {
 	t = q.tok();
 	e("expradd");
@@ -283,7 +281,6 @@ static unique_ptr<node> parseExprNeg(querySpecs &q) {
 
 //tok1 is [case, word, expr] token - tells if case, terminal value, or (expr)
 //tok2 is [when, expr] token - tells what kind of case. predlist, or expr exprlist respectively
-//node2.tok3 will be initial 'when' expression type
 //node1 is (expression), when predicate list, expression for exprlist
 //node2 is expression list to compare to initial expression
 //node3 is else expression
@@ -353,8 +350,7 @@ static unique_ptr<node> parseExprCase(querySpecs &q) {
 //later stages:
 //  tok1.id is colIdx
 //  tok2.id is type [literal, column, variable, function] enum
-//  tok3.id is data type
-//  tok4.val is source file alias
+//  tok3.val is source file alias
 static unique_ptr<node> parseValue(querySpecs &q) {
 	t = q.tok();
 	e("value");
@@ -717,8 +713,6 @@ static unique_ptr<node> parseOrder(querySpecs &q) {
 //tok3 is distinct or cipher
 //tok4 is password
 //node1 is expression in parens
-//later stages:
-//    tok5.id is data type
 static unique_ptr<node> parseFunction(querySpecs &q) {
 	t = q.tok();
 	e("func");
