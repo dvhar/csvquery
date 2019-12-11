@@ -25,6 +25,8 @@ unique_ptr<node> newNode(int l){
 	unique_ptr<node> n(new node);
 	n->tok1 = n->tok2 = n->tok3 = n->tok4 = n->tok5 = token{};
 	n->label = l;
+	n->datatype = 0;
+	n->keep = false;
 	return n;
 }
 unique_ptr<node> newNode(int l, token t){
@@ -32,6 +34,8 @@ unique_ptr<node> newNode(int l, token t){
 	n->tok2 = n->tok3 = n->tok4 = n->tok5 = token{};
 	n->label = l;
 	n->tok1 = t;
+	n->datatype = 0;
+	n->keep = false;
 	return n;
 }
 
@@ -204,6 +208,22 @@ map<string, int> specialMap = {
 	{"^" ,  SP_CARROT}
 };
 
+
+int typeChart[12][12] = {
+	{5,5, 5,5, 5,5, 5,5, 5,5, 5,5},
+	{5,5, 1,1, 2,2, 3,3, 4,4, 5,5},
+	{5,1, 1,1, 2,2, 3,1, 4,4, 5,1},
+	{5,1, 1,1, 2,2, 3,1, 4,4, 5,5},
+	{5,2, 2,2, 2,2, 3,2, 4,2, 5,2},
+	{5,2, 2,2, 2,2, 3,2, 4,4, 5,5},
+	{5,3, 3,3, 3,3, 3,3, 3,3, 3,3},
+	{5,3, 1,1, 2,2, 3,3, 3,3, 5,5},
+	{5,4, 4,4, 4,4, 3,3, 4,4, 5,4},
+	{5,4, 4,4, 2,4, 3,3, 4,4, 5,5},
+	{5,5, 5,5, 5,5, 3,5, 5,5, 5,5},
+	{5,5, 1,5, 2,5, 3,5, 4,5, 5,5}
+};
+
 bool is_number(const std::string& s)
 {
     return !s.empty() && std::find_if(s.begin(),
@@ -281,6 +301,19 @@ int isFloat(const char *s) {
   while (isspace((unsigned char ) *endptr)) ++endptr;
   return *endptr == 0;
 }
+int isInList(int n, int count, ...)
+{
+    int i, temp;
+    va_list args;
+    va_start(args, count);
+    for(i=0; i<count; i++)
+    {
+        temp = va_arg(args, int);
+		if (n == temp) return 1;
+    }
+    va_end(args);
+    return 0;
+}
 
 int parseDuration(char* str, time_t* t) {
 	if (regexec(&durationPattern, str, 0, NULL, 0)) {return -1;}
@@ -307,7 +340,7 @@ int parseDuration(char* str, time_t* t) {
 int getNarrowestType(char* value, int startType) {
 	time_t t;
 	struct timeval tv;
-	if (!slcomp(value,(char*)"null") || !scomp(value,(char*)"NA") || value[0] == '\0') {
+	if (!slcomp(value,"null") || !scomp(value,"NA") || value[0] == '\0') {
 	  startType = max(T_NULL, startType);
 	} else if (!regexec(&leadingZeroString, value, 0, NULL, 0)){ startType = T_STRING;
 	} else if (isInt(value))                       { startType = max(T_INT, startType);

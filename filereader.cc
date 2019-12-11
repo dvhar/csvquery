@@ -123,9 +123,11 @@ void fileReader::inferTypes() {
 	}
 	for (int j=0; j<10000; ++j) {
 		for (int i=0; i<line.size(); ++i)
-			getNarrowestType(line[i], types[i]);
-		if (!readline())
+			types[i] = getNarrowestType(line[i], types[i]);
+		if (readline()){
+			cerr << "stopped at line " << j+1 << " because " << err << endl;
 			break;
+		}
 	}
 	fs.clear();
 	fs.seekg(startData);

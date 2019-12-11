@@ -8,6 +8,7 @@
 #include <sys/time.h>
 #include <regex>
 #include <regex.h>
+#include <stdarg.h>
 #include <boost/algorithm/string.hpp>
 #include <boost/format.hpp>
 #define BUFSIZE  1024*1024
@@ -30,6 +31,8 @@ class token {
 class node {
 	public:
 	int label;
+	int datatype;
+	bool keep; //preserve subtree types
 	unique_ptr<node> node1;
 	unique_ptr<node> node2;
 	unique_ptr<node> node3;
@@ -125,13 +128,13 @@ class querySpecs {
 };
 */
 
+
 const int T_NULL = 0;
 const int T_INT = 1;
 const int T_FLOAT = 2;
 const int T_DATE = 3;
 const int T_DURATION = 4;
 const int T_STRING = 5;
-
 const int NUM_STATES =  5;
 const int EOS =         255;
 const int ERROR =       1<<23;
@@ -221,6 +224,8 @@ const int O_C = 1;
 const int O_NH = 2;
 const int O_H = 4;
 
+extern int typeChart[12][12];
+
 extern map<int, string> enumMap;
 extern map<int, string> treeMap;
 extern map<string, int> keywordMap;
@@ -252,5 +257,6 @@ string nstring(string, int);
 void openfiles(querySpecs &q, unique_ptr<node> &n);
 void applyTypes(querySpecs &q, unique_ptr<node> &n);
 int getNarrowestType(char* value, int startType);
+int isInList(int n, int count, ...);
 
 #endif
