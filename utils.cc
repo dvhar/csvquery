@@ -39,6 +39,15 @@ unique_ptr<node> newNode(int l, token t){
 	return n;
 }
 
+void node::print(){
+	cerr << treeMap[label] << endl;
+	tok1.print();
+	tok2.print();
+	tok3.print();
+	tok4.print();
+	tok5.print();
+}
+
 regex_t leadingZeroString;
 regex_t durationPattern;
 regex cInt("^c\\d+$");
@@ -245,7 +254,7 @@ token querySpecs::peekTok() {
 token querySpecs::tok() { return tokArray[tokIdx]; }
 void querySpecs::reset() { tokIdx = 0; }
 void querySpecs::addVar(string var) {
-	vars.push_back({ var, 0 });
+	vars.push_back({ var, 0, 0});
 }
 void querySpecs::init(string s){
 	queryString = s;

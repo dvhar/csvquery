@@ -24,7 +24,9 @@ int main(int argc, char** argv){
 		scanTokens(q);
 		parseQuery(q);
 		printTree(q.tree,0);
+		cerr << "printed\n";
 		openfiles(q, q.tree);
+		cerr << "opened files\n";
 		applyTypes(q, q.tree);
 		cerr << "done with query\n";
 	} catch (const invalid_argument& ia) {

@@ -14,11 +14,12 @@ static typer typeCheck(querySpecs &q, unique_ptr<node> &n);
 
 static typer typeCompute(typer n1, typer n2){
 	if (!n2.type) return n1;
+	if (!n1.type) return n2;
 	int i1 = 2*n1.type;
 	int i2 = 2*n2.type;
 	if (n1.lit) { i1++;}
 	if (n2.lit) { i2++;}
-	return { typeChart[i1][i2], n1.lit|n2.lit };
+	return { typeChart[i1][i2], n1.lit & n2.lit };
 }
 
 static ktype keepSubtreeTypes(int t1, int t2, int op) {
@@ -154,17 +155,33 @@ static void typeInitialValue(querySpecs &q, unique_ptr<node> &n){
 }
 
 static typer typeCaseExpr(querySpecs &q, unique_ptr<node> &n){
+	if (n == nullptr) return {0,0};
+	typer result, elseExpr, whenExpr, thenExpr, compExpr;
 	switch (n->tok1.id){
 	//case statement
 	case KW_CASE:
 		switch (n->tok2.id){
 		//when predicates are true
 		case KW_WHEN:
-			break;
+			thenExpr = typeCheck(q,n->node1);
+			elseExpr = typeCheck(q,n->node3);
+			result   = typeCompute(thenExpr, elseExpr);
+			return result;
 		//expression matches expression list
 		case WORD:
 		case SP_LPAREN:
-			auto predlist = n->node1.get();
+			compExpr = typeCheck(q, n->node1);
+			thenExpr = typeCheck(q, n->node2);
+			elseExpr = typeCheck(q, n->node3);
+			result   = typeCompute(thenExpr, elseExpr);
+			node* list = n->node2.get();
+			for (auto n=list; n; n=n->node2.get()){
+				whenExpr = typeCheck(q, n->node1->node1);
+				compExpr = typeCompute(compExpr, whenExpr);
+			}
+			n->datatype = result.type;
+			n->tok3.id = compExpr.type;
+			return result;
 		}
 		break;
 	//expression
@@ -172,13 +189,60 @@ static typer typeCaseExpr(querySpecs &q, unique_ptr<node> &n){
 	case SP_LPAREN:
 		return typeCheck(q,n->node1);
 	}
+	error("bad case node");
+	return {0,0};
+}
+
+static void typePredCompare(querySpecs &q, unique_ptr<node> &n){
+	if (n == nullptr) return;
+	typer n1, n2, n3, finaltype;
+	if (n->tok1.id == SP_LPAREN){
+		typeCheck(q, n->node1);
+	} else if (n->tok1.id & RELOP) {
+		n1 = typeCheck(q, n->node1);
+		n2 = typeCheck(q, n->node2);
+		n3 = typeCheck(q, n->node3);
+		finaltype = typeCompute(n1,n2);
+		finaltype = typeCompute(finaltype,n3);
+		if (n->tok1.id == KW_LIKE) //keep raw string if using regex
+			finaltype.type = T_STRING;
+		n->datatype = finaltype.type;
+	} else { n->print(); error("bad comparision node"); }
+}
+
+static typer typeValue(querySpecs &q, unique_ptr<node> &n){
+	if (n == nullptr) return {0,0};
+	typer finaltype = {0,0};
+	switch (n->tok2.id){
+	case FUNCTION:
+		finaltype = typeCheck(q, n->node1);
+		break;
+	case LITERAL:
+		finaltype = {n->datatype, 1};
+		break;
+	case COLUMN:
+		finaltype = {n->datatype, 0};
+		break;
+	case VARIABLE:
+		for (auto &v : q.vars)
+			if (n->tok1.val == v.name){
+				finaltype = {v.type, v.lit};
+				break;
+			}
+		break;
+	}
+	return finaltype;
+}
+
+static typer typeFunction(querySpecs &q, unique_ptr<node> &n){
 	return {0,0};
 }
 
 //set datatype value of inner tree nodes where applicable
 static typer typeCheck(querySpecs &q, unique_ptr<node> &n){
 	if (n == nullptr) return {0,0};
-	typer n1, n2, n3, n4, finaltype;
+	cerr << "typecheck at node " << treeMap[n->label] << endl;
+	typer n1, n2, n3, n4, finaltype = {0,0};
 	ktype k;
 	switch (n->label){
 	//not applicable - move on to subtrees
@@ -197,12 +261,22 @@ static typer typeCheck(querySpecs &q, unique_ptr<node> &n){
 		typeCheck(q, n->node4);
 		break;
 	//things that have a type but don't matter to upper nodes
-	case N_VARS:
 	case N_SELECTIONS:
-		n->datatype = typeCheck(q, n->node1).type;
+	case N_ORDER:
+	case N_GROUPBY:
+		finaltype = typeCheck(q, n->node1);
 		typeCheck(q, n->node2);
 		break;
-	//basic math operators
+	case N_VARS:
+		finaltype = typeCheck(q, n->node1);
+		for (auto &v : q.vars)
+			if (n->tok1.val == v.name){
+				v.type = finaltype.type;
+				v.lit = finaltype.lit;
+				break;
+			}
+		typeCheck(q, n->node2);
+		break;
 	case N_EXPRNEG:
 	case N_EXPRADD:
 	case N_EXPRMULT:
@@ -214,42 +288,49 @@ static typer typeCheck(querySpecs &q, unique_ptr<node> &n){
 			finaltype.type = k.type;
 			n->keep = true;
 		}
-		n->datatype = finaltype.type;
 		break;
 	case N_EXPRCASE:
 		finaltype = typeCaseExpr(q,n);
-		n->datatype = finaltype.type;
-		break;
-	case N_ORDER:
 		break;
 	case N_CPREDLIST:
+	case N_CWEXPRLIST:
+		n1 = typeCheck(q, n->node1);
+		n2 = typeCheck(q, n->node2);
+		finaltype = typeCompute(n1, n2);
 		break;
 	case N_CPRED:
-		break;
-	case N_CWEXPRLIST:
-		break;
 	case N_CWEXPR:
+		typeCheck(q, n->node1); //conditions or comparision
+		finaltype = typeCheck(q, n->node2); //result
 		break;
 	case N_PREDICATES:
+		//both just boolean
+		typeCheck(q, n->node1);
+		typeCheck(q, n->node2);
 		break;
 	case N_PREDCOMP:
+		typePredCompare(q,n);
 		break;
 	case N_VALUE:
+		finaltype = typeValue(q,n);
 		break;
 	case N_FUNCTION:
-		break;
-	case N_GROUPBY:
+		finaltype = typeFunction(q,n);
 		break;
 	case N_EXPRESSIONS:
 		break;
 	case N_DEXPRESSIONS:
 		break;
 	}
+	cerr << "typecheck returning from node " << treeMap[n->label]
+	<< " with finaltype " << finaltype.type << endl;
+	n->datatype = finaltype.type;
 	return finaltype;
 }
 
 //do all typing
 void applyTypes(querySpecs &q, unique_ptr<node> &n){
 	typeInitialValue(q,n);
+	typeCheck(q,n);
 }
 

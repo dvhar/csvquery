@@ -284,6 +284,8 @@ static unique_ptr<node> parseExprNeg(querySpecs &q) {
 //node1 is (expression), when predicate list, expression for exprlist
 //node2 is expression list to compare to initial expression
 //node3 is else expression
+//later stages:
+//  tok3.id is datatype of when comparison expressions
 static unique_ptr<node> parseExprCase(querySpecs &q) {
 	t = q.tok();
 	e("exprcase");
@@ -437,6 +439,7 @@ static unique_ptr<node> parseJoinPredCompare(querySpecs &q) {
 	n->node1 = parseExprAdd(q);
 	t = q.tok();
 	if (t.id != SP_EQ) error("Expected = operator. Found: "+q.tok().val);
+	n->tok1 = t;
 	q.nextTok();
 	n->node2 = parseExprAdd(q);
 	return n;
@@ -444,9 +447,6 @@ static unique_ptr<node> parseJoinPredCompare(querySpecs &q) {
 
 //tok1 is [relop, paren] for comparison or more predicates
 //tok2 is negation
-//tok3 will be independant type
-//tok4 will be join file key
-//tok5 will be join struct
 //node1 is [expr, predicates]
 //node2 is second expr
 //node3 is third expr for betweens
@@ -471,7 +471,11 @@ static unique_ptr<node> parsePredCompare(querySpecs &q) {
 			q.tokIdx = pos;
 			tryAgain = true;
 		}
-		if (!tryAgain) return n;
+		//return if (more comparisions)
+		if (!tryAgain) {
+			n->tok1.id = SP_LPAREN;
+			return n;
+		}
 	}
 	//comparison
 	n->node1 = parseExprAdd(q);
