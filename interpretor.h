@@ -42,11 +42,13 @@ class node {
 	token tok3;
 	token tok4;
 	token tok5;
+	void print();
 };
 class variable {
 	public:
 	string name;
 	int type;
+	int lit;
 };
 class fileReader {
 	public:
