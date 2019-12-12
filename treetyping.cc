@@ -260,10 +260,11 @@ static typer typeCheck(querySpecs &q, unique_ptr<node> &n){
 		typeCheck(q, n->node3);
 		typeCheck(q, n->node4);
 		break;
-	//things that have a type but don't matter to upper nodes
+	//things that may be list but have independant types
 	case N_SELECTIONS:
 	case N_ORDER:
 	case N_GROUPBY:
+	case N_EXPRESSIONS:
 		finaltype = typeCheck(q, n->node1);
 		typeCheck(q, n->node2);
 		break;
@@ -292,8 +293,10 @@ static typer typeCheck(querySpecs &q, unique_ptr<node> &n){
 	case N_EXPRCASE:
 		finaltype = typeCaseExpr(q,n);
 		break;
+	//interdependant lists
 	case N_CPREDLIST:
 	case N_CWEXPRLIST:
+	case N_DEXPRESSIONS:
 		n1 = typeCheck(q, n->node1);
 		n2 = typeCheck(q, n->node2);
 		finaltype = typeCompute(n1, n2);
@@ -317,10 +320,8 @@ static typer typeCheck(querySpecs &q, unique_ptr<node> &n){
 	case N_FUNCTION:
 		finaltype = typeFunction(q,n);
 		break;
-	case N_EXPRESSIONS:
-		break;
-	case N_DEXPRESSIONS:
-		break;
+	default:
+		error("missed a node type: "+treeMap[n->label]);
 	}
 	cerr << "typecheck returning from node " << treeMap[n->label]
 	<< " with finaltype " << finaltype.type << endl;
