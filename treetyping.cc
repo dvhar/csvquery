@@ -235,7 +235,36 @@ static typer typeValue(querySpecs &q, unique_ptr<node> &n){
 }
 
 static typer typeFunction(querySpecs &q, unique_ptr<node> &n){
-	return {0,0};
+	if (n == nullptr) return {0,0};
+	typer finaltype = {0,0};
+	switch (n->tok1.id){
+	case FN_COUNT:
+		n->keep = true;
+	case FN_INC:
+		finaltype = {T_FLOAT, true};
+		break;
+	case FN_MONTHNAME:
+	case FN_WDAYNAME:
+	case FN_ENCRYPT:
+	case FN_DECRYPT:
+		n->keep = true;
+		typeCheck(q, n->node1);
+		finaltype = {T_STRING, true};
+		break;
+	case FN_YEAR:
+	case FN_MONTH:
+	case FN_WEEK:
+	case FN_YDAY:
+	case FN_MDAY:
+	case FN_WDAY:
+	case FN_HOUR:
+		typeCheck(q, n->node1);
+		finaltype = {T_DATE, true};
+		break;
+	default:
+		finaltype = typeCheck(q, n->node1);
+	}
+	return finaltype;
 }
 
 //set datatype value of inner tree nodes where applicable
