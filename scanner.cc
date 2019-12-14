@@ -9,6 +9,16 @@ constexpr size_t len(T &a)
     return sizeof(a) / sizeof(typename std::remove_all_extents<T>::type);
 }
 
+string token::lower() {
+	string s = val;
+	boost::to_lower(s);
+	return s;
+}
+void token::print() {
+	cout << "    id: " << id << " -> " << enumMap[id] << endl
+		<< "    val: " << val << endl;
+}
+
 const int specials[] = { '*','=','!','<','>','\'','"','(',')',',','+','-','%','/','^' };
 const int others[] = { '\\',':','_','.','[',']','~','{','}' };
 

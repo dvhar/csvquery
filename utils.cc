@@ -10,43 +10,6 @@ string lower(string s){
 	boost::to_lower(s);
 	return s;
 }
-string token::lower() {
-	string s = val;
-	boost::to_lower(s);
-	return s;
-}
-void token::print() {
-	cout << "    id: " << id << " -> " << enumMap[id] << endl
-		<< "    val: " << val << endl;
-}
-
-
-unique_ptr<node> newNode(int l){
-	unique_ptr<node> n(new node);
-	n->tok1 = n->tok2 = n->tok3 = n->tok4 = n->tok5 = token{};
-	n->label = l;
-	n->datatype = 0;
-	n->keep = false;
-	return n;
-}
-unique_ptr<node> newNode(int l, token t){
-	unique_ptr<node> n(new node);
-	n->tok2 = n->tok3 = n->tok4 = n->tok5 = token{};
-	n->label = l;
-	n->tok1 = t;
-	n->datatype = 0;
-	n->keep = false;
-	return n;
-}
-
-void node::print(){
-	cerr << treeMap[label] << endl;
-	tok1.print();
-	tok2.print();
-	tok3.print();
-	tok4.print();
-	tok5.print();
-}
 
 regex_t leadingZeroString;
 regex_t durationPattern;

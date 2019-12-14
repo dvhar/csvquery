@@ -358,10 +358,61 @@ static typer typeInnerNodes(querySpecs &q, unique_ptr<node> &n){
 	return innerType;
 }
 
+static typeCaseFinalNodes(querySpecs &q, unique_ptr<node> &n, int finaltype){
+	if (n == nullptr) return;
+	int comptype;
+	switch (n->tok1.id){
+	//case statement
+	case KW_CASE:
+		switch (n->tok2.id){
+		//when predicates are true
+		case KW_WHEN:
+			typeFinalValues(q, n->node1, finaltype);
+			typeFinalValues(q, n->node3, finaltype);
+			break;
+		//expression matches expression list
+		case WORD:
+		case SP_LPAREN:
+			comptype = n->tok3.id;
+			typeFinalValues(q, n->node1, comptype);
+			typeFinalValues(q, n->node2, finaltype);
+			typeFinalValues(q, n->node3, finaltype);
+			node* list = n->node2.get();
+			for (auto n=list; n; n=n->node2.get())
+				typeFinalValues(q, n->node1->node1, comptype);
+			break;
+		}
+		break;
+	//expression
+	case WORD:
+	case SP_LPAREN:
+		typeFinalValues(q, n->node1, finaltype);
+	}
+}
+
+static typePredCompFinalNodes(querySpecs &q, unique_ptr<node> &n, int finaltype){
+	if (n == nullptr) return;
+	if (n->tok1.id == SP_LPAREN){
+		typeFinalValues(q, n->node1, -1);
+	} else if (n->tok1.id & RELOP) {
+		if (n->tok1.id == KW_LIKE)
+			n2 = typeFinalValues(q, n->node2, n->datatype);
+		else {
+			n1 = typeFinalValues(q, n->node1, n->datatype);
+			n2 = typeFinalValues(q, n->node2, n->datatype);
+			n3 = typeFinalValues(q, n->node3, n->datatype);
+		}
+		n->datatype = innerType.type;
+	}
+}
+
 //use high-level nodes to give lower nodes their final types
 static void typeFinalValues(querySpecs &q, unique_ptr<node> &n, int finaltype){
 	if (n == nullptr) return;
-	static bool useOwnType = false;
+
+	//if using own datatype instead of parent node's
+	if (finaltype < 0) finaltype = n->datatype;
+
 	switch (n->label){
 	//not applicable - move on to subtrees
 	case N_SELECT:
@@ -372,7 +423,10 @@ static void typeFinalValues(querySpecs &q, unique_ptr<node> &n, int finaltype){
 	case N_JOIN:
 	case N_WHERE:
 	case N_HAVING:
-	case N_GROUPBY:
+	//applicable but straightforward
+	case N_CWEXPRLIST:
+	case N_CPREDLIST:
+	case N_DEXPRESSIONS:
 		typeFinalValues(q, n->node1, n->datatype);
 		typeFinalValues(q, n->node2, n->datatype);
 		typeFinalValues(q, n->node3, n->datatype);
@@ -381,30 +435,39 @@ static void typeFinalValues(querySpecs &q, unique_ptr<node> &n, int finaltype){
 	//things that may be list but have independant types
 	case N_SELECTIONS:
 	case N_ORDER:
+	case N_GROUPBY:
 	case N_EXPRESSIONS:
 		typeFinalValues(q, n->node1, n->datatype);
-		typeFinalValues(q, n->node2, 0);
+		typeFinalValues(q, n->node2, -1);
 		break;
 	//may or may not preserve subtree types
 	case N_EXPRNEG:
 	case N_EXPRADD:
 	case N_EXPRMULT:
-		if (useOwnType) //this node's parent says use own type
-			finaltype = n->datatype;
-		if (n->keep) //is the parent node that tells children to usen own type
-			useOwnType = true;
+		if (n->keep) finaltype = -1;
 		typeFinalValues(q, n->node1, finaltype);
 		typeFinalValues(q, n->node2, finaltype);
-		useOwnType = false;
+		break;
+	//first node is independant, second is final value
+	case N_CPRED:
+		typeFinalValues(q, n->node1, -1);
+		typeFinalValues(q, n->node2, finaltype);
 		break;
 	case N_EXPRCASE:
-	case N_CPREDLIST:
-	case N_CWEXPRLIST:
-	case N_DEXPRESSIONS:
-	case N_CPRED:
+		typeCaseFinalNodes(q, n, finaltype);
+		break;
 	case N_CWEXPR:
+		//node1 is typed in case function
+		typeFinalValues(q, n->node2, finaltype);
+		break;
 	case N_PREDICATES:
+		//both just boolean
+		typeFinalValues(q, n->node1, -1);
+		typeFinalValues(q, n->node2, -1);
+		break;
 	case N_PREDCOMP:
+		typePredCompFinalNodes(q, n, -1);
+		break;
 	case N_VALUE:
 	case N_FUNCTION:
 	case N_WITH:
@@ -417,6 +480,6 @@ static void typeFinalValues(querySpecs &q, unique_ptr<node> &n, int finaltype){
 void applyTypes(querySpecs &q){
 	typeInitialValue(q, q.tree);
 	typeInnerNodes(q, q.tree);
-	typeFinalValues(q, q.tree, 0);
+	typeFinalValues(q, q.tree, -1);
 }
 

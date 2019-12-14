@@ -97,38 +97,6 @@ class querySpecs {
 	void init(string);
 	void addVar(string);
 };
-/*
-class querySpecs {
-	queryString string
-	tokArray []token
-	aliases bool
-	joining bool
-	tokIdx int
-	quantityLimit int
-	quantityRetrieved int
-	distinctExpr *node
-	distinctCheck *bt.BTree
-	sortExpr *node
-	sortWay int
-	save bool
-	showLimit int
-	stage int
-	tree *node
-	files map[string]*FileData
-	numfiles int
-	fromRow []string
-	toRow []Value
-	midRow []Value
-	midExess int
-	intColumn bool
-	groupby bool
-	noheader bool
-	bigjoin bool
-	joinSortVals []J2ValPos
-	gettingSortVals bool
-	password string
-};
-*/
 
 
 const int T_NULL = 0;
@@ -243,8 +211,6 @@ extern regex colNum;
 
 void scanTokens(querySpecs &q);
 void parseQuery(querySpecs &q);
-unique_ptr<node> newNode(int l);
-unique_ptr<node> newNode(int l, token t);
 void error(const string &err);
 bool is_number(const std::string& s);
 void printTree(unique_ptr<node> &n, int ident);
