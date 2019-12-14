@@ -27,7 +27,7 @@ int main(int argc, char** argv){
 		cerr << "printed\n";
 		openfiles(q, q.tree);
 		cerr << "opened files\n";
-		applyTypes(q, q.tree);
+		applyTypes(q);
 		cerr << "done with query\n";
 	} catch (const invalid_argument& ia) {
 		cerr << "Error: " << ia.what() << '\n';

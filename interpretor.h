@@ -257,7 +257,7 @@ int dateParse(const char*, struct timeval*);
 int parseDuration(char*, time_t*);
 string nstring(string, int);
 void openfiles(querySpecs &q, unique_ptr<node> &n);
-void applyTypes(querySpecs &q, unique_ptr<node> &n);
+void applyTypes(querySpecs &q);
 int getNarrowestType(char* value, int startType);
 int isInList(int n, int count, ...);
 
