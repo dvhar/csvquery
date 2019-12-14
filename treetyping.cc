@@ -176,8 +176,8 @@ static typer typeCaseInnerNodes(querySpecs &q, unique_ptr<node> &n){
 			elseExpr  = typeInnerNodes(q, n->node3);
 			innerType = typeCompute(thenExpr, elseExpr);
 			node* list = n->node2.get();
-			for (auto n=list; n; n=n->node2.get()){
-				whenExpr = typeInnerNodes(q, n->node1->node1);
+			for (auto nn=list; nn; nn=nn->node2.get()){
+				whenExpr = typeInnerNodes(q, nn->node1->node1);
 				compExpr = typeCompute(compExpr, whenExpr);
 			}
 			n->datatype = innerType.type;
@@ -391,7 +391,7 @@ static void typeCaseFinalNodes(querySpecs &q, unique_ptr<node> &n, int finaltype
 	}
 }
 
-static void typePredCompFinalNodes(querySpecs &q, unique_ptr<node> &n, int finaltype){
+static void typePredCompFinalNodes(querySpecs &q, unique_ptr<node> &n){
 	if (n == nullptr) return;
 	if (n->tok1.id == SP_LPAREN){
 		typeFinalValues(q, n->node1, -1);
@@ -403,6 +403,51 @@ static void typePredCompFinalNodes(querySpecs &q, unique_ptr<node> &n, int final
 			typeFinalValues(q, n->node2, n->datatype);
 			typeFinalValues(q, n->node3, n->datatype);
 		}
+	}
+}
+
+static void typeValueFinalNodes(querySpecs &q, unique_ptr<node> &n, int finaltype){
+	if (n == nullptr) return;
+	switch (n->tok2.id){
+	case FUNCTION:
+		typeFinalValues(q, n->node1, finaltype);
+		break;
+	case VARIABLE:
+		for (auto &v : q.vars)
+			if (n->tok1.val == v.name){
+				v.types.insert(finaltype);
+				break;
+			}
+		break;
+	//datatype already set from main finaltype function
+	case LITERAL:
+	case COLUMN:
+		break;
+	}
+}
+
+static void typeFunctionFinalNodes(querySpecs &q, unique_ptr<node> &n, int finaltype){
+	if (n == nullptr) return;
+	switch (n->tok1.id){
+	case FN_COUNT:
+	case FN_INC:
+	case FN_ENCRYPT:
+	case FN_DECRYPT:
+		typeFinalValues(q, n->node1, -1);
+		break;
+	case FN_MONTHNAME:
+	case FN_WDAYNAME:
+	case FN_YEAR:
+	case FN_MONTH:
+	case FN_WEEK:
+	case FN_YDAY:
+	case FN_MDAY:
+	case FN_WDAY:
+	case FN_HOUR:
+		typeFinalValues(q, n->node1, T_DATE);
+		break;
+	default:
+		typeFinalValues(q, n->node1, finaltype);
 	}
 }
 
@@ -424,6 +469,7 @@ static void typeFinalValues(querySpecs &q, unique_ptr<node> &n, int finaltype){
 	case N_JOIN:
 	case N_WHERE:
 	case N_HAVING:
+	case N_WITH:
 	//applicable but straightforward
 	case N_CWEXPRLIST:
 	case N_CPREDLIST:
@@ -432,7 +478,6 @@ static void typeFinalValues(querySpecs &q, unique_ptr<node> &n, int finaltype){
 		typeFinalValues(q, n->node2, finaltype);
 		typeFinalValues(q, n->node3, finaltype);
 		typeFinalValues(q, n->node4, finaltype);
-		n->datatype = finaltype;
 		break;
 	//things that may be list but have independant types
 	case N_SELECTIONS:
@@ -459,7 +504,7 @@ static void typeFinalValues(querySpecs &q, unique_ptr<node> &n, int finaltype){
 		typeCaseFinalNodes(q, n, finaltype);
 		break;
 	case N_CWEXPR:
-		//node1 is typed in case function
+		//node1 is already typed in case function
 		typeFinalValues(q, n->node2, finaltype);
 		break;
 	case N_PREDICATES:
@@ -468,12 +513,20 @@ static void typeFinalValues(querySpecs &q, unique_ptr<node> &n, int finaltype){
 		typeFinalValues(q, n->node2, -1);
 		break;
 	case N_PREDCOMP:
-		typePredCompFinalNodes(q, n, -1);
+		typePredCompFinalNodes(q, n);
 		break;
 	case N_VALUE:
+		typeValueFinalNodes(q, n, finaltype);
+		break;
 	case N_FUNCTION:
-	case N_WITH:
+		typeFunctionFinalNodes(q, n, finaltype);
+		break;
 	case N_VARS:
+		for (auto &v : q.vars)
+			if (n->tok1.val == v.name){
+				v.type = finaltype;
+				break;
+			}
 		break;
 	}
 }
@@ -482,6 +535,7 @@ static void typeFinalValues(querySpecs &q, unique_ptr<node> &n, int finaltype){
 void applyTypes(querySpecs &q){
 	typeInitialValue(q, q.tree);
 	typeInnerNodes(q, q.tree);
+	//put func here to type trivial expressions as text
 	typeFinalValues(q, q.tree, -1);
 }
 
