@@ -11,6 +11,7 @@ class ktype {
 	bool keep; //keep subtree types
 };
 static typer typeInnerNodes(querySpecs &q, unique_ptr<node> &n);
+static void typeFinalValues(querySpecs &q, unique_ptr<node> &n, int finaltype);
 
 static typer typeCompute(typer n1, typer n2){
 	if (!n2.type) return n1;
@@ -358,7 +359,7 @@ static typer typeInnerNodes(querySpecs &q, unique_ptr<node> &n){
 	return innerType;
 }
 
-static typeCaseFinalNodes(querySpecs &q, unique_ptr<node> &n, int finaltype){
+static void typeCaseFinalNodes(querySpecs &q, unique_ptr<node> &n, int finaltype){
 	if (n == nullptr) return;
 	int comptype;
 	switch (n->tok1.id){
@@ -378,8 +379,8 @@ static typeCaseFinalNodes(querySpecs &q, unique_ptr<node> &n, int finaltype){
 			typeFinalValues(q, n->node2, finaltype);
 			typeFinalValues(q, n->node3, finaltype);
 			node* list = n->node2.get();
-			for (auto n=list; n; n=n->node2.get())
-				typeFinalValues(q, n->node1->node1, comptype);
+			for (auto nn=list; nn; nn=nn->node2.get())
+				typeFinalValues(q, nn->node1->node1, comptype);
 			break;
 		}
 		break;
@@ -390,19 +391,18 @@ static typeCaseFinalNodes(querySpecs &q, unique_ptr<node> &n, int finaltype){
 	}
 }
 
-static typePredCompFinalNodes(querySpecs &q, unique_ptr<node> &n, int finaltype){
+static void typePredCompFinalNodes(querySpecs &q, unique_ptr<node> &n, int finaltype){
 	if (n == nullptr) return;
 	if (n->tok1.id == SP_LPAREN){
 		typeFinalValues(q, n->node1, -1);
 	} else if (n->tok1.id & RELOP) {
 		if (n->tok1.id == KW_LIKE)
-			n2 = typeFinalValues(q, n->node2, n->datatype);
+			typeFinalValues(q, n->node2, n->datatype);
 		else {
-			n1 = typeFinalValues(q, n->node1, n->datatype);
-			n2 = typeFinalValues(q, n->node2, n->datatype);
-			n3 = typeFinalValues(q, n->node3, n->datatype);
+			typeFinalValues(q, n->node1, n->datatype);
+			typeFinalValues(q, n->node2, n->datatype);
+			typeFinalValues(q, n->node3, n->datatype);
 		}
-		n->datatype = innerType.type;
 	}
 }
 
@@ -412,6 +412,7 @@ static void typeFinalValues(querySpecs &q, unique_ptr<node> &n, int finaltype){
 
 	//if using own datatype instead of parent node's
 	if (finaltype < 0) finaltype = n->datatype;
+	n->datatype = finaltype;
 
 	switch (n->label){
 	//not applicable - move on to subtrees
@@ -427,10 +428,11 @@ static void typeFinalValues(querySpecs &q, unique_ptr<node> &n, int finaltype){
 	case N_CWEXPRLIST:
 	case N_CPREDLIST:
 	case N_DEXPRESSIONS:
-		typeFinalValues(q, n->node1, n->datatype);
-		typeFinalValues(q, n->node2, n->datatype);
-		typeFinalValues(q, n->node3, n->datatype);
-		typeFinalValues(q, n->node4, n->datatype);
+		typeFinalValues(q, n->node1, finaltype);
+		typeFinalValues(q, n->node2, finaltype);
+		typeFinalValues(q, n->node3, finaltype);
+		typeFinalValues(q, n->node4, finaltype);
+		n->datatype = finaltype;
 		break;
 	//things that may be list but have independant types
 	case N_SELECTIONS:
