@@ -45,6 +45,33 @@ static void e(string s){
 }
 
 
+unique_ptr<node> newNode(int l){
+	unique_ptr<node> n(new node);
+	n->tok1 = n->tok2 = n->tok3 = n->tok4 = n->tok5 = token{};
+	n->label = l;
+	n->datatype = 0;
+	n->keep = false;
+	return n;
+}
+unique_ptr<node> newNode(int l, token t){
+	unique_ptr<node> n(new node);
+	n->tok2 = n->tok3 = n->tok4 = n->tok5 = token{};
+	n->label = l;
+	n->tok1 = t;
+	n->datatype = 0;
+	n->keep = false;
+	return n;
+}
+void node::print(){
+	cerr << treeMap[label] << endl;
+	tok1.print();
+	tok2.print();
+	tok3.print();
+	tok4.print();
+	tok5.print();
+}
+
+
 
 //recursive descent parser for query
 void parseQuery(querySpecs &q) {
