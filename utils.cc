@@ -219,8 +219,12 @@ token querySpecs::peekTok() {
 }
 token querySpecs::tok() { return tokArray[tokIdx]; }
 void querySpecs::reset() { tokIdx = 0; }
-void querySpecs::addVar(string var) {
-	vars.push_back({ var, 0, 0});
+void querySpecs::addVar(string name) {
+	variable var;
+	var.name = name;
+	var.type = 0;
+	var.lit = 0;
+	vars.push_back(var);
 }
 void querySpecs::init(string s){
 	queryString = s;

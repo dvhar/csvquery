@@ -49,6 +49,7 @@ class variable {
 	string name;
 	int type;
 	int lit;
+	set<int> types;
 };
 class fileReader {
 	public:
