@@ -271,7 +271,6 @@ static typer typeFunctionInnerNodes(querySpecs &q, unique_ptr<node> &n){
 //set datatype value of inner tree nodes where applicable
 static typer typeInnerNodes(querySpecs &q, unique_ptr<node> &n){
 	if (n == nullptr) return {0,0};
-	cerr << "typecheck at node " << treeMap[n->label] << endl;
 	typer n1, n2, n3, n4, innerType = {0,0};
 	ktype k;
 	switch (n->label){
@@ -353,8 +352,6 @@ static typer typeInnerNodes(querySpecs &q, unique_ptr<node> &n){
 	default:
 		error("missed a node type: "+treeMap[n->label]);
 	}
-	cerr << "typecheck returning from node " << treeMap[n->label]
-	<< " with innerType " << innerType.type << endl;
 	n->datatype = innerType.type;
 	return innerType;
 }
@@ -467,17 +464,21 @@ static void typeFinalValues(querySpecs &q, unique_ptr<node> &n, int finaltype){
 	case N_PRESELECT:
 	case N_FROM:
 	case N_JOIN:
+	case N_PREDICATES:
 	case N_WHERE:
 	case N_HAVING:
 	case N_WITH:
-	//applicable but straightforward
+		typeFinalValues(q, n->node1, -1);
+		typeFinalValues(q, n->node2, -1);
+		typeFinalValues(q, n->node3, -1);
+		typeFinalValues(q, n->node4, -1);
+		break;
+	//straightforward stuff
 	case N_CWEXPRLIST:
 	case N_CPREDLIST:
 	case N_DEXPRESSIONS:
 		typeFinalValues(q, n->node1, finaltype);
 		typeFinalValues(q, n->node2, finaltype);
-		typeFinalValues(q, n->node3, finaltype);
-		typeFinalValues(q, n->node4, finaltype);
 		break;
 	//things that may be list but have independant types
 	case N_SELECTIONS:
@@ -507,11 +508,6 @@ static void typeFinalValues(querySpecs &q, unique_ptr<node> &n, int finaltype){
 		//node1 is already typed in case function
 		typeFinalValues(q, n->node2, finaltype);
 		break;
-	case N_PREDICATES:
-		//both just boolean
-		typeFinalValues(q, n->node1, -1);
-		typeFinalValues(q, n->node2, -1);
-		break;
 	case N_PREDCOMP:
 		typePredCompFinalNodes(q, n);
 		break;
@@ -527,6 +523,8 @@ static void typeFinalValues(querySpecs &q, unique_ptr<node> &n, int finaltype){
 				v.type = finaltype;
 				break;
 			}
+		typeFinalValues(q, n->node1, finaltype);
+		typeFinalValues(q, n->node2, -1);
 		break;
 	}
 }
