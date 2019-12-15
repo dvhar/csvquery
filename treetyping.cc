@@ -49,12 +49,13 @@ static void typeInitialValue(querySpecs &q, unique_ptr<node> &n){
 		return;
 
 	string thisVar;
+	string r;
 	if (n->label == N_VARS){
 		thisVar = n->tok1.val;
 	}
 
 	//only do leaf nodes
-	if (n->label == N_VALUE && n->tok2.id != N_FUNCTION){
+	if (n->label == N_VALUE && n->tok2.id != FUNCTION){
 		string val = n->tok1.val;
 		int period;
 		//see if variable
@@ -80,7 +81,7 @@ static void typeInitialValue(querySpecs &q, unique_ptr<node> &n){
 					n->datatype = f->types[i];
 					goto donetyping;
 				} else if (!n->tok1.quoted && regex_match(column, cInt)){
-					i = stoi(column.substr(1))+1;
+					i = stoi(column.substr(1))-1;
 					if (i <= f->numFields){
 						//found column idx with file alias
 						n->tok1.id = i;
@@ -90,7 +91,7 @@ static void typeInitialValue(querySpecs &q, unique_ptr<node> &n){
 						goto donetyping;
 					}
 				} else if (!n->tok1.quoted && q.numIsCol() && regex_match(column, posInt)){
-					i = stoi(column)+1;
+					i = stoi(column)-1;
 					if (i <= f->numFields){
 						//found column idx with file alias
 						n->tok1.id = i;
@@ -194,8 +195,8 @@ static typer typeCaseInnerNodes(querySpecs &q, unique_ptr<node> &n){
 	return {0,0};
 }
 
-static void typePredCompareInnerNodes(querySpecs &q, unique_ptr<node> &n){
-	if (n == nullptr) return;
+static typer typePredCompareInnerNodes(querySpecs &q, unique_ptr<node> &n){
+	if (n == nullptr) return {0,0};
 	typer n1, n2, n3, innerType;
 	if (n->tok1.id == SP_LPAREN){
 		typeInnerNodes(q, n->node1);
@@ -207,8 +208,8 @@ static void typePredCompareInnerNodes(querySpecs &q, unique_ptr<node> &n){
 		innerType = typeCompute(innerType,n3);
 		if (n->tok1.id == KW_LIKE) //keep raw string if using regex
 			innerType.type = T_STRING;
-		n->datatype = innerType.type;
 	} else { n->print(); error("bad comparision node"); }
+	return innerType;
 }
 
 static typer typeValueInnerNodes(querySpecs &q, unique_ptr<node> &n){
@@ -341,7 +342,7 @@ static typer typeInnerNodes(querySpecs &q, unique_ptr<node> &n){
 		typeInnerNodes(q, n->node2);
 		break;
 	case N_PREDCOMP:
-		typePredCompareInnerNodes(q,n);
+		innerType = typePredCompareInnerNodes(q,n);
 		break;
 	case N_VALUE:
 		innerType = typeValueInnerNodes(q,n);
@@ -353,6 +354,7 @@ static typer typeInnerNodes(querySpecs &q, unique_ptr<node> &n){
 		error("missed a node type: "+treeMap[n->label]);
 	}
 	n->datatype = innerType.type;
+	//cerr << "type node " << treeMap[n->label] << " as " << n->datatype << endl;
 	return innerType;
 }
 
@@ -531,9 +533,18 @@ static void typeFinalValues(querySpecs &q, unique_ptr<node> &n, int finaltype){
 
 //do all typing
 void applyTypes(querySpecs &q){
+	cerr << "typing initial nodes:\n";
 	typeInitialValue(q, q.tree);
+	cerr << "initial type tree:\n";
+	printTree(q.tree, 0);
+	cerr << "typing inner nodes:\n";
 	typeInnerNodes(q, q.tree);
+	cerr << "inner type tree:\n";
+	printTree(q.tree, 0);
 	//put func here to type trivial expressions as text
+	cerr << "typing final types:\n";
 	typeFinalValues(q, q.tree, -1);
+	cerr << "final type tree:\n";
+	printTree(q.tree, 0);
 }
 

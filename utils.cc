@@ -13,6 +13,8 @@ string lower(string s){
 
 regex_t leadingZeroString;
 regex_t durationPattern;
+regex_t intType;
+regex_t floatType;
 regex cInt("^c\\d+$");
 regex posInt("^\\d+$");
 regex colNum("^c?\\d+$");
@@ -243,7 +245,8 @@ void printTree(unique_ptr<node> &n, int ident){
 		<< n->tok2.val << "  "
 		<< n->tok3.val << "  "
 		<< n->tok4.val << "  "
-		<< n->tok5.val << endl;
+		<< n->tok5.val << "  "
+		<< n->datatype << endl;
 	printTree(n->node1,ident);
 	printTree(n->node2,ident);
 	printTree(n->node3,ident);
@@ -267,18 +270,12 @@ int slncomp(const char* s1, const char*s2, const int n){
 	return *s1 - *s2;
 }
 int isInt(const char* s){
-	if (*s == 0) return 0;
-	while (*s && isdigit(*s)) ++s;
-	return *s == 0;
+	if (regexec(&intType, s, 0, NULL, 0)) return 0;
+	return 1;
 }
 int isFloat(const char *s) {
-  if (s == NULL) return 0;
-  char *endptr;
-  strtod(s, &endptr);
-  if (s == endptr) return 0;
-  // Look at trailing text
-  while (isspace((unsigned char ) *endptr)) ++endptr;
-  return *endptr == 0;
+	if (regexec(&floatType, s, 0, NULL, 0)) return 0;
+	return 1;
 }
 int isInList(int n, int count, ...)
 {

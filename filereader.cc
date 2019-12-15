@@ -114,7 +114,6 @@ void fileReader::inferTypes() {
 		else
 			colnames.push_back(string(line[i]));
 		types.push_back(0);
-		cerr << "firstline member:" << line[i] << endl;
 	}
 	//get samples and infer types from them
 	if (!noheader){
@@ -146,12 +145,12 @@ void openfiles(querySpecs &q, unique_ptr<node> &n){
 	if (n->label == N_FROM || n->label == N_JOIN){
 		//initialize and put in map
 		string path = n->tok1.val;
-		string id = nstring("_f%d",fileNo);
+		string id = nstring("_f%d",fileNo++);
 		shared_ptr<fileReader> fr(new fileReader(path));
 		fr->id = id;
 		q.files[id] = fr;
-		if (n->tok2.id)
-			q.files[n->tok2.val] = fr;
+		if (n->tok4.id)
+			q.files[n->tok4.val] = fr;
 		int a = path.find_last_of("/\\") + 1;
 		int b = path.size()-4-a;
 		path = path.substr(a, b);

@@ -206,6 +206,8 @@ extern map<string, int> specialMap;
 
 extern regex_t leadingZeroString;
 extern regex_t durationPattern;
+extern regex_t intType;
+extern regex_t floatType;
 extern regex cInt;
 extern regex posInt;
 extern regex colNum;
