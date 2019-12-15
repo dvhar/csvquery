@@ -37,6 +37,7 @@ static token t;
 
 //for debugging
 static void e(string s){
+	return;
 	static int i=0;
 	i++;
 	if (i > 1000) return;
@@ -337,6 +338,7 @@ static unique_ptr<node> parseExprCase(querySpecs &q) {
 			t = q.tok();
 			if (t.lower() != "when") error("Expected 'when' after case expression. Found "+t.val);
 			n->node2 = parseCaseWhenExprList(q);
+			break;
 		default: error("Expected expression or 'when'. Found "+q.tok().val);
 		}
 
@@ -387,7 +389,7 @@ static unique_ptr<node> parseValue(querySpecs &q) {
 	n->tok1 = t;
 	//see if it's a function
 	if (functionMap.count(t.lower()) && !t.quoted && q.peekTok().id==SP_LPAREN) {
-		n->tok2.id = N_FUNCTION;
+		n->tok2.id = FUNCTION;
 		n->node1 = parseFunction(q);
 	//any non-function value
 	} else {
@@ -586,8 +588,8 @@ static void parseLimit(querySpecs &q) {
 }
 
 //tok1 is file path
-//tok2 is alias
 //tok3 is noheader
+//tok4 is alias
 //node1 is joins
 static unique_ptr<node> parseFrom(querySpecs &q) {
 	t = q.tok();
@@ -611,7 +613,7 @@ static unique_ptr<node> parseFrom(querySpecs &q) {
 		if (t.id != WORD) error("Expected alias after as. Found: "+t.val);
 	case WORD:
 		if (joinMap.count(t.lower())) break;
-		n->tok2 = t;
+		n->tok4 = t;
 		q.nextTok();
 	}
 	t = q.tok();
@@ -670,6 +672,7 @@ static unique_ptr<node> parseJoin(querySpecs &q) {
 		n->tok5 = t;
 		t = q.nextTok();
 	}
+	cerr << "should be alias: " << t.val << endl;
 	//alias
 	switch (t.id) {
 	case KW_AS:

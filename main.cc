@@ -23,12 +23,8 @@ int main(int argc, char** argv){
 	try {
 		scanTokens(q);
 		parseQuery(q);
-		printTree(q.tree,0);
-		cerr << "printed\n";
 		openfiles(q, q.tree);
-		cerr << "opened files\n";
 		applyTypes(q);
-		cerr << "done with query\n";
 	} catch (const invalid_argument& ia) {
 		cerr << "Error: " << ia.what() << '\n';
 	}
@@ -39,4 +35,6 @@ int main(int argc, char** argv){
 void init(){
 	regcomp(&leadingZeroString, "^0[0-9]+$", REG_EXTENDED);
 	regcomp(&durationPattern, "^([0-9]+|[0-9]+\\.[0-9]+)\\s(seconds|second|minutes|minute|hours|hour|days|day|weeks|week|years|year|s|m|h|d|w|y)$", REG_EXTENDED);
+	regcomp(&intType, "^-?[0-9]+$", REG_EXTENDED);
+	regcomp(&floatType, "^-?[0-9]*\\.[0-9]+$", REG_EXTENDED);
 }
