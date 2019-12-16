@@ -132,6 +132,7 @@ void fileReader::inferTypes() {
 }
 
 int fileReader::getColIdx(string colname){
+	if (noheader) return -1;
 	for (int i = 0; i < colnames.size(); ++i)
 		if (colnames[i] == colname)
 			return i;
