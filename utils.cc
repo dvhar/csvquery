@@ -231,7 +231,7 @@ void querySpecs::addVar(string name) {
 void querySpecs::init(string s){
 	queryString = s;
 	tokIdx = options = quantityLimit = 0;
-	joining = groupby = false;
+	joining = grouping = false;
 }
 bool querySpecs::numIsCol() { return (options & O_C) != 0; }
 
