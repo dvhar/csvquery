@@ -16,44 +16,6 @@
 #define byte unsigned char
 using namespace std;
 
-//virtual machine stuff
-//labels of subroutine instruction number
-int MAIN, VARS_NORM, VARS_AGG, SEL_NORM, SEL_AGG, WHERE, HAVING, ORDER;
-
-//code prefixes are for Int Float Text Date/Duration
-enum codes : unsigned char {
-	IADD, FADD, TADD, DADD,
-	ISUB, FSUB, DSUB,
-	IMULT, FMULT, DMULT,
-	IDIV, FDIV, DDIV,
-	JMP, JMPNEG, JMPPOS, JMPZ,
-	RDLINE, RDLINEAT,
-	PRINT
-	};
-
-//string type for vm
-class stringy {
-	public:
-	char* s;
-	byte m; //1 for malloced, 0 for buffered
-	int z; //size of buffered
-};
-union dat {
-	int64 i;
-	double f;
-	stringy s;
-	time_t dt;
-	time_t dr;
-};
-
-class vmachine {
-	int ip; //instruction number
-	vector<byte> bytes;
-	vector<dat> vars;
-	vector<dat> stack;
-	void run();
-};
-
 //scanning and parsing stuff
 enum nodetypes { N_QUERY, N_PRESELECT, N_WITH, N_VARS, N_SELECT, N_SELECTIONS, N_FROM, N_AFTERFROM, N_JOINCHAIN, N_JOIN, N_WHERE, N_HAVING, N_ORDER, N_EXPRADD, N_EXPRMULT, N_EXPRNEG, N_EXPRCASE, N_CPREDLIST, N_CPRED, N_CWEXPRLIST, N_CWEXPR, N_PREDICATES, N_PREDCOMP, N_VALUE, N_FUNCTION, N_GROUPBY, N_EXPRESSIONS, N_DEXPRESSIONS };
 
@@ -109,6 +71,7 @@ class fileReader {
 	int getField();
 	int getWidth();
 	int numFields;
+	int fileIdx;
 	bool noheader;
 	streampos pos;
 	ifstream fs;
@@ -130,6 +93,7 @@ class querySpecs {
 	vector<variable> vars;
 	map<string, shared_ptr<fileReader>> files;
 	unique_ptr<node> tree;
+	int numFiles;
 	int tokIdx;
 	int options;
 	int quantityLimit;
@@ -143,6 +107,16 @@ class querySpecs {
 	void reset();
 	void init(string);
 	void addVar(string);
+};
+
+class singleQueryResult {
+	public:
+	int numrows;
+	int numcols;
+	vector<int> typs;
+	vector<string> colnames;
+	vector<vector<char*>> values;
+	string query;
 };
 
 //data declarations and const definitions

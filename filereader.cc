@@ -140,15 +140,16 @@ int fileReader::getColIdx(string colname){
 }
 
 void openfiles(querySpecs &q, unique_ptr<node> &n){
-	static int fileNo = 1;
 	if (n == nullptr)
 		return;
 	if (n->label == N_FROM || n->label == N_JOIN){
 		//initialize and put in map
+		++q.numFiles;
 		string path = n->tok1.val;
-		string id = nstring("_f%d",fileNo++);
+		string id = nstring("_f%d",q.numFiles);
 		shared_ptr<fileReader> fr(new fileReader(path));
 		fr->id = id;
+		fr->fileIdx = q.numFiles - 1;
 		q.files[id] = fr;
 		if (n->tok4.id)
 			q.files[n->tok4.val] = fr;
