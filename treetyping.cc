@@ -542,6 +542,7 @@ void applyTypes(querySpecs &q){
 	cerr << "inner type tree:\n";
 	printTree(q.tree, 0);
 	//put func here to type trivial expressions as text
+	//put func here to add type-conversion nodes for inflexible subtrees
 	cerr << "typing final types:\n";
 	typeFinalValues(q, q.tree, -1);
 	cerr << "final type tree:\n";

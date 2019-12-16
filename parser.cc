@@ -725,6 +725,7 @@ static unique_ptr<node> parseOrder(querySpecs &q) {
 	e("order");
 	if (t.lower() == "order") {
 		if (q.nextTok().lower() != "by") error("Expected 'by' after 'order'. Found "+q.tok().val);
+		q.sorting = true;
 		q.nextTok();
 		unique_ptr<node> n = newNode(N_ORDER);
 		n->node1 = parseExprAdd(q);
@@ -810,7 +811,7 @@ static unique_ptr<node> parseFunction(querySpecs &q) {
 	if (q.tok().id != SP_RPAREN) error("Expected closing parenthesis after function. Found: "+q.tok().val);
 	q.nextTok();
 	//groupby if aggregate function
-	if ((n->tok1.id & AGG_BIT) != 0) { q.groupby = true; }
+	if ((n->tok1.id & AGG_BIT) != 0) { q.grouping = true; }
 	e("done func");
 	return n;
 }
@@ -820,6 +821,7 @@ static unique_ptr<node> parseGroupby(querySpecs &q) {
 	t = q.tok();
 	e("groupby");
 	if (!(t.lower() == "group" && q.peekTok().lower() == "by")) { return nullptr; }
+	q.grouping = true;
 	unique_ptr<node> n = newNode(N_GROUPBY);
 	q.nextTok();
 	q.nextTok();

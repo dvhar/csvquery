@@ -12,8 +12,49 @@
 #include <boost/algorithm/string.hpp>
 #include <boost/format.hpp>
 #define BUFSIZE  1024*1024
+#define int64 long long
+#define byte unsigned char
 using namespace std;
 
+//virtual machine stuff
+//labels of subroutine instruction number
+int MAIN, VARS_NORM, VARS_AGG, SEL_NORM, SEL_AGG, WHERE, HAVING, ORDER;
+
+//code prefixes are for Int Float Text Date/Duration
+enum codes : unsigned char {
+	IADD, FADD, TADD, DADD,
+	ISUB, FSUB, DSUB,
+	IMULT, FMULT, DMULT,
+	IDIV, FDIV, DDIV,
+	JMP, JMPNEG, JMPPOS, JMPZ,
+	RDLINE, RDLINEAT,
+	PRINT
+	};
+
+//string type for vm
+class stringy {
+	public:
+	char* s;
+	byte m; //1 for malloced, 0 for buffered
+	int z; //size of buffered
+};
+union dat {
+	int64 i;
+	double f;
+	stringy s;
+	time_t dt;
+	time_t dr;
+};
+
+class vmachine {
+	int ip; //instruction number
+	vector<byte> bytes;
+	vector<dat> vars;
+	vector<dat> stack;
+	void run();
+};
+
+//scanning and parsing stuff
 enum nodetypes { N_QUERY, N_PRESELECT, N_WITH, N_VARS, N_SELECT, N_SELECTIONS, N_FROM, N_AFTERFROM, N_JOINCHAIN, N_JOIN, N_WHERE, N_HAVING, N_ORDER, N_EXPRADD, N_EXPRMULT, N_EXPRNEG, N_EXPRCASE, N_CPREDLIST, N_CPRED, N_CWEXPRLIST, N_CWEXPR, N_PREDICATES, N_PREDCOMP, N_VALUE, N_FUNCTION, N_GROUPBY, N_EXPRESSIONS, N_DEXPRESSIONS };
 
 enum valTypes { LITERAL, COLUMN, VARIABLE, FUNCTION };
@@ -51,6 +92,8 @@ class variable {
 	int lit;
 	set<int> types;
 };
+
+//file stuff
 class fileReader {
 	public:
 	vector<string> colnames;
@@ -77,6 +120,8 @@ class fileReader {
 	int readline();
 	fileReader(string);
 };
+
+//general query stuff
 class querySpecs {
 	public:
 	string queryString;
@@ -89,7 +134,8 @@ class querySpecs {
 	int options;
 	int quantityLimit;
 	bool joining;
-	bool groupby;
+	bool grouping;
+	bool sorting;
 	token tok();
 	token nextTok();
 	token peekTok();
@@ -99,7 +145,7 @@ class querySpecs {
 	void addVar(string);
 };
 
-
+//data declarations and const definitions
 const int T_NULL = 0;
 const int T_INT = 1;
 const int T_FLOAT = 2;
@@ -212,6 +258,7 @@ extern regex cInt;
 extern regex posInt;
 extern regex colNum;
 
+//function headers
 void scanTokens(querySpecs &q);
 void parseQuery(querySpecs &q);
 void error(const string &err);
