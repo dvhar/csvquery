@@ -100,6 +100,7 @@ class querySpecs {
 	bool joining;
 	bool grouping;
 	bool sorting;
+	bool varsNeededForFilter;
 	token tok();
 	token nextTok();
 	token peekTok();
