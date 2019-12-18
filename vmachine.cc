@@ -137,19 +137,19 @@ case FMULT:
 case DRMULT:
 	break;
 case IDIV:
-	if (ISNULL(stack[s1]) || ISNULL(stack[s1-1]) || stack[s1]==0) stack[s1-1].b |= NIL;
+	if (ISNULL(stack[s1]) || ISNULL(stack[s1-1]) || stack[s1].u.i==0) stack[s1-1].b |= NIL;
 	else stack[s1-1].u.i /= stack[s1].u.i;
 	--s1;
 	++ip;
 	break;
 case FDIV:
-	if (ISNULL(stack[s1]) || ISNULL(stack[s1-1]) || stack[s1]==0) stack[s1-1].b |= NIL;
+	if (ISNULL(stack[s1]) || ISNULL(stack[s1-1]) || stack[s1].u.f==0) stack[s1-1].b |= NIL;
 	else stack[s1-1].u.f /= stack[s1].u.f;
 	--s1;
 	++ip;
 	break;
 case DDIV:
-	if (ISNULL(stack[s1]) || ISNULL(stack[s1-1]) || stack[s1]==0) stack[s1-1].b |= NIL;
+	if (ISNULL(stack[s1]) || ISNULL(stack[s1-1]) || stack[s1].u.f==0) stack[s1-1].b |= NIL;
 	else stack[s1-1].u.dr /= stack[s1].u.f; //make sure duration/num num is float
 	--s1;
 	++ip;
