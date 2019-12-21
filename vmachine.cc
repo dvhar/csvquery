@@ -18,7 +18,7 @@ void dat::print(){
 vmachine::vmachine(querySpecs* qs){
 	q = qs;
 	for (int i=0; i<q->numFiles; ++i)
-		files.push_back(q->files[nstring("_f%d", i)]);
+		files.push_back(q->files[nstring("_f", i)]);
 
 }
 
