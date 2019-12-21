@@ -1,14 +1,16 @@
 all: cql
 
+FLAGS = --std=c++17
+
 cql: main.o parser.o scanner.o utils.o filereader.o treetyping.o codegen.o vmachine.o
-	clang++ -o cql $^
+	clang++ $(FLAGS) -o cql $^
 
 .cc.o: interpretor.h vmachine.h
-	clang++ -c $<
+	clang++ $(FLAGS) -c $<
 
 clean:
 	rm *.o
 
 test: test.o utils.o
-	clang++ -o run $^
+	clang++ $(FLAGS) -o run $^
 	./run
