@@ -328,8 +328,3 @@ int getNarrowestType(char* value, int startType) {
 	} else                                         { startType = T_STRING; }
 	return startType;
 }
-
-string nstring(string s, int n) {
-    boost::format fmt = boost::format(s) % n;
-    return fmt.str();
-}

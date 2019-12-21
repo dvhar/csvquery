@@ -2,6 +2,7 @@
 #define TYPES_H
 #include <string>
 #include <map>
+#include <set>
 #include <iostream>
 #include <fstream>
 #include <memory>
@@ -10,10 +11,11 @@
 #include <regex.h>
 #include <stdarg.h>
 #include <boost/algorithm/string.hpp>
-#include <boost/format.hpp>
+#include <fmt/format.h>
 #define BUFSIZE  1024*1024
 #define int64 long long
 #define byte unsigned char
+#define nstring(S,N) fmt::format("{}{}",S,N)
 using namespace std;
 
 //scanning and parsing stuff
@@ -246,7 +248,6 @@ int isInt(const char*);
 int isFloat(const char*);
 int dateParse(const char*, struct timeval*);
 int parseDuration(char*, time_t*);
-string nstring(string, int);
 void openfiles(querySpecs &q, unique_ptr<node> &n);
 void applyTypes(querySpecs &q);
 int getNarrowestType(char* value, int startType);
