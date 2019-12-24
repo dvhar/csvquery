@@ -1,0 +1,8 @@
+building on windows using msys2:
+
+pacman -S mingw-w64-x86_64-cmake mingw-w64-x86_64-fmt mingw-w64-x86_64-boost mingw-w64-x86_64-toolchain
+
+git clone https://github.com/dvhar/csvquery
+cd csvquery/build
+cmake .. -G "MinGW Makefiles"
+mingw32-make.exe -j4
