@@ -4,6 +4,8 @@ void init();
 
 int main(int argc, char** argv){
 
+	cerr << fmt::format("running {}!\n", argv[0]);
+
 	FILE *fp;
 	string qs;
 	char c[1];
