@@ -8,7 +8,7 @@
 #include <memory>
 #include <sys/time.h>
 #include <regex>
-#include <regex.h>
+#include <tre/regex.h>
 #include <stdarg.h>
 #include <boost/algorithm/string.hpp>
 #include <fmt/format.h>
@@ -16,13 +16,6 @@
 #define int64 long long
 #define byte unsigned char
 #define nstring(S,N) fmt::format("{}{}",S,N)
-
-//windows cant use linux c regex library
-#ifdef _WIN32
-//#include <tre/regex.h>  // figure out how to use this
-#define regcomp(A,B,C) 1
-#define regexec(A,B,C,D,E) 1
-#endif
 
 
 using namespace std;
