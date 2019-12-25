@@ -4,5 +4,5 @@ pacman -S mingw-w64-x86_64-cmake mingw-w64-x86_64-fmt mingw-w64-x86_64-boost min
 
 git clone https://github.com/dvhar/csvquery
 cd csvquery/build
-cmake .. -G "MinGW Makefiles"
+cmake .. -G "MinGW Makefiles" -DCMAKE_SH="CMAKE_SH-NOTFOUND"
 mingw32-make.exe -j4
