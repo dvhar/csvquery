@@ -18,7 +18,7 @@ void dat::print(){
 vmachine::vmachine(querySpecs* qs){
 	q = qs;
 	for (int i=0; i<q->numFiles; ++i)
-		files.push_back(q->files[nstring("_f", i)]);
+		files.push_back(q->files[str2("_f", i)]);
 
 }
 
@@ -26,15 +26,19 @@ vmachine::vmachine(querySpecs* qs){
 void strplus(dat &s1, dat &s2){
 	if (ISNULL(s1)) { s1 = s2; return; }
 	if (ISNULL(s2)) return;
-	int z1 = s1.z-1; //strlen, not including null terminator
-	s1.z = z1 + s2.z;
-	char* ns = (char*) malloc(s1.z);
-	strcpy(ns, s1.u.s);
-	strcat(ns+z1, s2.u.s);
-	if (ISMAL(s1)) free(s1.u.s);
+	int newlen = s1.z+s2.z-1;
+	if (ISMAL(s1)){
+		s1.u.s = (char*) realloc(s1.u.s, newlen);
+		strcat(s1.u.s+s1.z-1, s2.u.s);
+	} else {
+		char* ns = (char*) malloc(newlen);
+		strcpy(ns, s1.u.s);
+		strcat(ns+s1.z-1, s2.u.s);
+		s1.u.s = ns;
+	}
 	if (ISMAL(s2)) free(s2.u.s);
-	s1.u.s = ns;
 	s1.b |= MAL;
+	s1.z = newlen;
 }
 
 void vmachine::run(){

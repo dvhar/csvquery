@@ -15,7 +15,9 @@
 #define BUFSIZE  1024*1024
 #define int64 long long
 #define byte unsigned char
-#define nstring(S,N) fmt::format("{}{}",S,N)
+#define str1(A) fmt::format("{}",A)
+#define str2(A,B) fmt::format("{}{}",A,B)
+#define str3(A,B,C) fmt::format("{}{}{}",A,B,C)
 
 
 using namespace std;
