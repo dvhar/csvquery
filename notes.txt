@@ -10,3 +10,13 @@ building on windows using msys2:
 cmake on linux when using vcpkg packages:
 
 	cmake .. -DCMAKE_TOOLCHAIN_FILE=/home/dave/gits/vcpkg/scripts/buildsystems/vcpkg.cmake
+
+
+how to add uninstalled libraries on specific systems:
+
+	if  (LINUX)
+		add_library(tre STATIC IMPORTED)
+		set_target_properties(tre PROPERTIES IMPORTED_LOCATION /home/dave/gits/vcpkg/installed/x64-linux/lib/libtre.a)
+		set_target_properties(tre PROPERTIES INTERFACE_INCLUDE_DIRECTORIES /home/dave/gits/vcpkg/installed/x64-linux/include/tre)
+	endif  (LINUX)
+
