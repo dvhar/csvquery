@@ -12,8 +12,8 @@ case
 	when t.c5=r.c7 then 44
 	else floaty
 	end
-from '/home/dave/Documents/work/cities.csv' t nh
-inner join '~/Documents/work/country.csv' nh r
+from 'test/cities.csv' t nh
+inner join 'test/country.csv' nh r
 on t.c3=r.c1
 where r.c3=Asia and t.c4 in (Qandahar, Herat, Balkh, 'Noord-Holland')
 group by r.c4+land

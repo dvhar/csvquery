@@ -1,5 +1,24 @@
 #include "interpretor.h"
 
+
+//what type results from operation with 2 expressions with various data types and column/literal source
+//don't use for types where different operation results in different type
+//null[c,l], int[c,l], float[c,l], date[c,l], duration[c,l], string[c,l] in both dimensions
+static int typeChart[12][12] = {
+	{5,5, 5,5, 5,5, 5,5, 5,5, 5,5},
+	{5,5, 1,1, 2,2, 3,3, 4,4, 5,5},
+	{5,1, 1,1, 2,2, 3,1, 4,4, 5,1},
+	{5,1, 1,1, 2,2, 3,1, 4,4, 5,5},
+	{5,2, 2,2, 2,2, 3,2, 4,2, 5,2},
+	{5,2, 2,2, 2,2, 3,2, 4,4, 5,5},
+	{5,3, 3,3, 3,3, 3,3, 3,3, 3,3},
+	{5,3, 1,1, 2,2, 3,3, 3,3, 5,5},
+	{5,4, 4,4, 4,4, 3,3, 4,4, 5,4},
+	{5,4, 4,4, 2,4, 3,3, 4,4, 5,5},
+	{5,5, 5,5, 5,5, 3,5, 5,5, 5,5},
+	{5,5, 1,5, 2,5, 3,5, 4,5, 5,5}
+};
+
 class typer {
 	public:
 	int type; //datatype
