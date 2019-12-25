@@ -1,0 +1,3 @@
+#!/bin/sh
+
+ls | egrep -v "(rmm|test|build)" | xargs rm -rf

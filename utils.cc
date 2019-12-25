@@ -208,6 +208,7 @@ void querySpecs::addVar(string name) {
 	var.name = name;
 	var.type = 0;
 	var.lit = 0;
+	var.filter = 0;
 	vars.push_back(var);
 }
 void querySpecs::init(string s){

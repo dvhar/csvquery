@@ -27,6 +27,7 @@ int main(int argc, char** argv){
 		parseQuery(q);
 		openfiles(q, q.tree);
 		applyTypes(q);
+		analyzeTree(q);
 	} catch (const invalid_argument& ia) {
 		cerr << "Error: " << ia.what() << '\n';
 	}

@@ -14,7 +14,7 @@ enum codes : unsigned char {
 	IDIV, FDIV, DDIV,
 	JMP, JMPCOND,
 	RDLINE, RDLINEAT,
-	PRINT, RAWROW, PUT,
+	PRINT, RAWROW, PUT, LDPUT,
 	LDINT, LDFLOAT, LDTEXT, LDDATE, LDDUR
 	};
 
@@ -64,6 +64,7 @@ class opcode {
 	byte code;
 	int p1;
 	int p2;
+	int p3;
 };
 
 class vmachine {
