@@ -15,7 +15,7 @@ case
 from 'test/cities.csv' t nh
 inner join 'test/country.csv' nh r
 on t.c3=r.c1
-where r.c3=Asia and t.c4 in (Qandahar, Herat, Balkh, 'Noord-Holland')
+where r.c3=Asia and t.c4 in (Qandahar, Herat, Balkh, 'Noord-Holland') and floaty > 0
 group by r.c4+land
 having sum(t.c5) > 1.5*100009 and stdev(r.c9) <= 130
 order by r.c11+t.c1

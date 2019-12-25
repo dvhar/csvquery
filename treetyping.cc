@@ -365,6 +365,7 @@ static typer typeInnerNodes(querySpecs &q, unique_ptr<node> &n){
 		break;
 	case N_VALUE:
 		innerType = typeValueInnerNodes(q,n);
+		//will add type conversion node for variables
 		break;
 	case N_FUNCTION:
 		innerType = typeFunctionInnerNodes(q,n);
@@ -421,26 +422,6 @@ static void typePredCompFinalNodes(querySpecs &q, unique_ptr<node> &n){
 			typeFinalValues(q, n->node2, n->datatype);
 			typeFinalValues(q, n->node3, n->datatype);
 		}
-	}
-}
-
-static void typeValueFinalNodes(querySpecs &q, unique_ptr<node> &n, int finaltype){
-	if (n == nullptr) return;
-	switch (n->tok2.id){
-	case FUNCTION:
-		typeFinalValues(q, n->node1, finaltype);
-		break;
-	case VARIABLE:
-		for (auto &v : q.vars)
-			if (n->tok1.val == v.name){
-				v.types.insert(finaltype);
-				break;
-			}
-		break;
-	//datatype already set from main finaltype function
-	case LITERAL:
-	case COLUMN:
-		break;
 	}
 }
 
@@ -533,7 +514,7 @@ static void typeFinalValues(querySpecs &q, unique_ptr<node> &n, int finaltype){
 		typePredCompFinalNodes(q, n);
 		break;
 	case N_VALUE:
-		typeValueFinalNodes(q, n, finaltype);
+		typeFinalValues(q, n->node1, finaltype); //functioin
 		break;
 	case N_FUNCTION:
 		typeFunctionFinalNodes(q, n, finaltype);

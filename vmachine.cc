@@ -60,6 +60,12 @@ case PUT:
 	torow[op.p1] = stack[s1];
 	--s1;
 	break;
+//put data from filereader directly into torow
+case LDPUT:
+	torow[op.p1].u.s = files[op.p3]->line[op.p2];
+	torow[op.p1].z = files[op.p3]->sizes[op.p2];
+	torow[op.p1].b = T;
+	break;
 
 //load data from filereader to the stack - need to check for nulls
 case LDDUR:
