@@ -562,7 +562,6 @@ static void typeFinalValues(querySpecs &q, unique_ptr<node> &n, int finaltype){
 void applyTypes(querySpecs &q){
 	typeInitialValue(q, q.tree, false);
 	typeInnerNodes(q, q.tree);
-	//put func here to add type-conversion nodes for inflexible subtrees
 	typeFinalValues(q, q.tree, -1);
 	cerr << "final type tree:\n";
 	printTree(q.tree, 0);

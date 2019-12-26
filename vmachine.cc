@@ -44,11 +44,8 @@ void strplus(dat &s1, dat &s2){
 void vmachine::run(){
 	
 	int s1 = 0; //stack top index
-	//stack will already be correct size from code generation stage
 	int ip = MAIN;
 	opcode op;
-	vector<dat> torow;
-	vector<dat> stack;
 
 	for (;;){
 		//big switch is flush-left instead of using normal indentation
@@ -66,6 +63,12 @@ case LDPUT:
 	torow[op.p1].u.s = files[op.p3]->line[op.p2];
 	torow[op.p1].z = files[op.p3]->sizes[op.p2];
 	torow[op.p1].b = T;
+	++ip;
+	break;
+
+//put variable from stack into var vector
+case LDVAR:
+	vars[op.p1] = stack[s1--];
 	++ip;
 	break;
 
@@ -154,7 +157,7 @@ case FMULT:
 	--s1;
 	++ip;
 	break;
-case DRMULT:
+case DMULT:
 	break;
 case IDIV:
 	if (ISNULL(stack[s1]) || ISNULL(stack[s1-1]) || stack[s1].u.i==0) stack[s1-1].b |= NIL;
@@ -172,6 +175,16 @@ case DDIV:
 	if (ISNULL(stack[s1]) || ISNULL(stack[s1-1]) || stack[s1].u.f==0) stack[s1-1].b |= NIL;
 	else stack[s1-1].u.dr /= stack[s1].u.f; //make sure duration/num num is float
 	--s1;
+	++ip;
+	break;
+case INEG:
+	if (ISNULL(stack[s1])) stack[s1].b |= NIL;
+	else stack[s1].u.i *= -1;
+	++ip;
+	break;
+case FNEG:
+	if (ISNULL(stack[s1])) stack[s1].b |= NIL;
+	else stack[s1].u.f *= -1;
 	++ip;
 	break;
 
