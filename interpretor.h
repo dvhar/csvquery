@@ -22,9 +22,7 @@
 
 using namespace std;
 
-//scanning and parsing stuff
 enum nodetypes { N_QUERY, N_PRESELECT, N_WITH, N_VARS, N_SELECT, N_SELECTIONS, N_FROM, N_AFTERFROM, N_JOINCHAIN, N_JOIN, N_WHERE, N_HAVING, N_ORDER, N_EXPRADD, N_EXPRMULT, N_EXPRNEG, N_EXPRCASE, N_CPREDLIST, N_CPRED, N_CWEXPRLIST, N_CWEXPR, N_PREDICATES, N_PREDCOMP, N_VALUE, N_FUNCTION, N_GROUPBY, N_EXPRESSIONS, N_DEXPRESSIONS, N_TYPECONV };
-
 
 enum valTypes { LITERAL, COLUMN, VARIABLE, FUNCTION };
 
@@ -127,7 +125,6 @@ class singleQueryResult {
 	string query;
 };
 
-//data declarations and const definitions
 const int T_NULL = 0;
 const int T_INT = 1;
 const int T_FLOAT = 2;

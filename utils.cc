@@ -2,6 +2,9 @@
 #include <stdlib.h>
 #include <ctype.h>
 #define max(a,b) (a) > (b) ? (a) : (b)
+#define isInt(A) !regexec(&intType, A, 0, NULL, 0) //make faster version
+#define isFloat(A) !regexec(&floatType, A, 0, NULL, 0)
+#define isDuration(A) !regexec(&durationPattern, A, 0, NULL, 0)
 
 //placeholder - real function under construction in its own library
 int dateParse(const char* datestr, struct timeval* tv){ return -1; }
@@ -252,14 +255,6 @@ int slncomp(const char* s1, const char*s2, const int n){
 	while (*s1 && i<n && tolower(*s1)==*s2) { ++s1; ++s2; ++i; }
 	return *s1 - *s2;
 }
-int isInt(const char* s){
-	if (regexec(&intType, s, 0, NULL, 0)) return 0;
-	return 1;
-}
-int isFloat(const char *s) {
-	if (regexec(&floatType, s, 0, NULL, 0)) return 0;
-	return 1;
-}
 int isInList(int n, int count, ...)
 {
     int i, temp;
@@ -275,7 +270,7 @@ int isInList(int n, int count, ...)
 }
 
 int parseDuration(char* str, time_t* t) {
-	if (regexec(&durationPattern, str, 0, NULL, 0)) {return -1;}
+	if (!isDuration(str)) {return -1;}
 	char* part2;
 	double quantity = strtod(str, &part2);
 	while (*part2 == ' ') ++part2;

@@ -533,17 +533,9 @@ static void typeFinalValues(querySpecs &q, unique_ptr<node> &n, int finaltype){
 
 //do all typing
 void applyTypes(querySpecs &q){
-	cerr << "typing initial nodes:\n";
 	typeInitialValue(q, q.tree);
-	cerr << "initial type tree:\n";
-	printTree(q.tree, 0);
-	cerr << "typing inner nodes:\n";
-	typeInnerNodes(q, q.tree);
-	cerr << "inner type tree:\n";
-	printTree(q.tree, 0);
 	//put func here to type trivial expressions as text
 	//put func here to add type-conversion nodes for inflexible subtrees
-	cerr << "typing final types:\n";
 	typeFinalValues(q, q.tree, -1);
 	cerr << "final type tree:\n";
 	printTree(q.tree, 0);
