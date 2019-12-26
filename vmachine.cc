@@ -59,34 +59,41 @@ void vmachine::run(){
 case PUT:
 	torow[op.p1] = stack[s1];
 	--s1;
+	++ip;
 	break;
 //put data from filereader directly into torow
 case LDPUT:
 	torow[op.p1].u.s = files[op.p3]->line[op.p2];
 	torow[op.p1].z = files[op.p3]->sizes[op.p2];
 	torow[op.p1].b = T;
+	++ip;
 	break;
 
 //load data from filereader to the stack - need to check for nulls
 case LDDUR:
+	++ip;
 	break;
 case LDDATE:
+	++ip;
 	break;
 case LDTEXT:
 	++s1;
 	stack[s1].u.s = files[op.p1]->line[op.p2];
 	stack[s1].z = files[op.p1]->sizes[op.p2];
 	stack[s1].b = T;
+	++ip;
 	break;
 case LDFLOAT:
 	++s1;
 	stack[s1].u.f = atof(files[op.p1]->line[op.p2]);
 	stack[s1].b = F;
+	++ip;
 	break;
 case LDINT:
 	++s1;
 	stack[s1].u.i = atoi(files[op.p1]->line[op.p2]);
 	stack[s1].b = I;
+	++ip;
 	break;
 
 //read a new line from a file
@@ -95,6 +102,7 @@ case RDLINE:
 	++ip;
 	break;
 case RDLINEAT:
+	++ip;
 	//need to add random access feature to filereader
 	break;
 
@@ -117,6 +125,7 @@ case TADD:
 	++ip;
 	break;
 case DADD:
+	++ip;
 	break;
 case ISUB:
 	if (ISNULL(stack[s1]) || ISNULL(stack[s1-1])) stack[s1-1].b |= NIL;
@@ -131,6 +140,7 @@ case FSUB:
 	++ip;
 	break;
 case DSUB:
+	++ip;
 	break;
 case IMULT:
 	if (ISNULL(stack[s1]) || ISNULL(stack[s1-1])) stack[s1-1].b |= NIL;
@@ -180,6 +190,7 @@ case PRINT:
 	for (auto &d : torow)
 		d.print();
 	cout << endl;
+	++ip;
 	break;
 
 		} //end big switch
