@@ -28,6 +28,7 @@ int main(int argc, char** argv){
 		openfiles(q, q.tree);
 		applyTypes(q);
 		analyzeTree(q);
+		codeGen(q);
 	} catch (const invalid_argument& ia) {
 		cerr << "Error: " << ia.what() << '\n';
 	}

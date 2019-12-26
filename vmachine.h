@@ -10,13 +10,27 @@ extern int MAIN, VARS_NORM, VARS_AGG, SEL_NORM, SEL_AGG, WHERE, HAVING, ORDER;
 enum codes : unsigned char {
 	IADD, FADD, TADD, DADD,
 	ISUB, FSUB, DSUB,
-	IMULT, FMULT, DRMULT,
+	IMULT, FMULT, DMULT,
 	IDIV, FDIV, DDIV,
+	INEG, FNEG, DNEG,
+	IMOD,
+	IEXP, FEXP,
 	JMP, JMPCOND,
 	RDLINE, RDLINEAT,
 	PRINT, RAWROW, PUT, LDPUT,
-	LDINT, LDFLOAT, LDTEXT, LDDATE, LDDUR
-	};
+	LDINT, LDFLOAT, LDTEXT, LDDATE, LDDUR, LDVAR
+};
+
+//2d array for ops indexed by operation and type
+enum typeOperators { OPADD, OPSUB, OPMULT, OPDIV, OPEXP, OPNEG };
+static int ops[6][6] = {
+	{ 0, IADD, FADD, DADD, DADD, TADD },
+	{ 0, ISUB, FSUB, DSUB, DSUB, 0 },
+	{ 0, IMULT, FMULT, 0, DMULT, 0 },
+	{ 0, IDIV, FDIV, 0, DDIV, 0 },
+	{ 0, IEXP, FEXP, 0, 0, 0 },
+	{ 0, INEG, FNEG, 0, DNEG, 0 }
+};
 
 
 //8 bit array
@@ -71,6 +85,9 @@ class vmachine {
 	querySpecs* q;
 	vector<shared_ptr<fileReader>> files;
 	vector<opcode> ops;
+	vector<dat> torow;
+	vector<dat> stack;
+	vector<dat> vars;
 	void run();
 	vmachine(querySpecs*);
 };
