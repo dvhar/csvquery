@@ -375,7 +375,7 @@ static unique_ptr<node> parseExprCase(querySpecs &q) {
 	return n;
 }
 
-//tok1 is [value, column, function name]
+//tok1 is [value, column, function name, variable name]
 //tok2.id is FUNCTION if function
 //node1 is function expression if doing that
 //later stages:

@@ -62,8 +62,29 @@ static ktype keepSubtreeTypes(int t1, int t2, int op) {
 	return {0, false};
 }
 
+//see if a node involves operation that requires specific type
+static bool stillTrivial(unique_ptr<node> &n){
+	switch (n->label){
+	case N_EXPRADD:
+	case N_EXPRMULT:
+	case N_EXPRNEG:
+		if (n->tok1.id != 0)
+			return false;
+		break;
+	case N_EXPRCASE:
+		if (n->tok1.id != WORD)
+			return false;
+		break;
+	case N_VALUE:
+		if (n->tok2.id != COLUMN && n->tok2.id != LITERAL)
+			return false;
+		break;
+	}
+	return true;
+}
+
 //give value nodes their initial type and look out for variables
-static void typeInitialValue(querySpecs &q, unique_ptr<node> &n){
+static void typeInitialValue(querySpecs &q, unique_ptr<node> &n, bool trivial){
 	if (n == nullptr)
 		return;
 
@@ -165,13 +186,19 @@ static void typeInitialValue(querySpecs &q, unique_ptr<node> &n){
 	cerr << "typed " << n->tok1.val << " as " << n->datatype << endl;
 	}
 
-	typeInitialValue(q, n->node1);
+	//see if selecting trivial value (just column or literal)
+	if (n->label == N_SELECTIONS)       trivial = true;
+	if (trivial && !stillTrivial(n))    trivial = false;
+	if (trivial && n->label == N_VALUE) n->datatype = T_STRING;
+
+	typeInitialValue(q, n->node1, trivial);
 	//record variable after typing var leafnodes to avoid recursive definition
-	if (n->label == N_VARS)
-		q.addVar(thisVar);
-	typeInitialValue(q, n->node2);
-	typeInitialValue(q, n->node3);
-	typeInitialValue(q, n->node4);
+	if (n->label == N_VARS)             q.addVar(thisVar);
+	//reset trivial indicator for next selection
+	if (n->label == N_SELECTIONS)       trivial = false;
+	typeInitialValue(q, n->node2, trivial);
+	typeInitialValue(q, n->node3, trivial);
+	typeInitialValue(q, n->node4, trivial);
 
 }
 
@@ -533,8 +560,8 @@ static void typeFinalValues(querySpecs &q, unique_ptr<node> &n, int finaltype){
 
 //do all typing
 void applyTypes(querySpecs &q){
-	typeInitialValue(q, q.tree);
-	//put func here to type trivial expressions as text
+	typeInitialValue(q, q.tree, false);
+	typeInnerNodes(q, q.tree);
 	//put func here to add type-conversion nodes for inflexible subtrees
 	typeFinalValues(q, q.tree, -1);
 	cerr << "final type tree:\n";
