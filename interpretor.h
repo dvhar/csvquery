@@ -254,5 +254,6 @@ void openfiles(querySpecs &q, unique_ptr<node> &n);
 void applyTypes(querySpecs &q);
 void analyzeTree(querySpecs &q);
 void codeGen(querySpecs &q);
+int getVarIdx(string lkup, querySpecs &q);
 
 #endif
