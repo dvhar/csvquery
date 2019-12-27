@@ -306,3 +306,11 @@ int getNarrowestType(char* value, int startType) {
 	} else                                         { startType = T_STRING; }
 	return startType;
 }
+
+int getVarIdx(string lkup, querySpecs &q){
+	for (int i=0; i<q.vars.size(); i++)
+		if (lkup == q.vars[i].name)
+			return i;
+	error("variable not found");
+	return 0;
+}

@@ -17,19 +17,22 @@ enum codes : unsigned char {
 	IEXP, FEXP,
 	JMP, JMPCOND,
 	RDLINE, RDLINEAT,
-	PRINT, RAWROW, PUT, LDPUT,
-	LDINT, LDFLOAT, LDTEXT, LDDATE, LDDUR, LDVAR
+	PRINT, RAWROW, PUT, LDPUT, PUTVAR, LDVAR,
+	LDINT, LDFLOAT, LDTEXT, LDDATE, LDDUR
 };
 
 //2d array for ops indexed by operation and type
-enum typeOperators { OPADD, OPSUB, OPMULT, OPDIV, OPEXP, OPNEG };
-static int ops[6][6] = {
+enum typeOperators {
+	OPADD, OPSUB, OPMULT, OPDIV, OPEXP, OPNEG, OPLD
+};
+static int ops[][6] = {
 	{ 0, IADD, FADD, DADD, DADD, TADD },
 	{ 0, ISUB, FSUB, DSUB, DSUB, 0 },
 	{ 0, IMULT, FMULT, 0, DMULT, 0 },
 	{ 0, IDIV, FDIV, 0, DDIV, 0 },
 	{ 0, IEXP, FEXP, 0, 0, 0 },
-	{ 0, INEG, FNEG, 0, DNEG, 0 }
+	{ 0, INEG, FNEG, 0, DNEG, 0 },
+	{ 0, LDINT, LDFLOAT, LDDATE, LDDUR, LDTEXT },
 };
 
 

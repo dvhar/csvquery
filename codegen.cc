@@ -32,6 +32,8 @@ static void addop(vector<opcode> &v, byte code, int p1){
 }
 
 static void determinePath(querySpecs &q){
+	vector<opcode> bytecode;
+
 	if (q.sorting && !q.grouping && q.joining) {
         //order join
     } else if (q.sorting && !q.grouping) {
@@ -53,6 +55,7 @@ static void determinePath(querySpecs &q){
     } else if (q.joining) {
         //normal join and grouping
     } else {
+		genNormalQuery(q.tree, bytecode, q);
         //normal plain and grouping
 
 		// 1 read line
@@ -110,19 +113,17 @@ static void genNormalQuery(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q
 }
 
 static void genVars(unique_ptr<node> &n, vector<opcode> &vec, querySpecs &q, int filter){
-	variable var;
+	int i;
 	switch (n->label){
 	case N_PRESELECT: //currently only has 'with' branch
 	case N_WITH:
 		genVars(n->node1, vec, q, filter);
 		break;
 	case N_VARS:
-		for (int i=0; i<q.vars.size(); i++){
-			var = q.vars[i];
-			if (var.name == n->tok1.val && var.filter == filter){
-				genExprAll(n->node1, vec, q);
-				addop(vec, LDVAR, i);
-			}
+		i = getVarIdx(n->tok1.val, q);
+		if (q.vars[i].filter == filter){
+			genExprAll(n->node1, vec, q);
+			addop(vec, PUTVAR, i);
 		}
 		genVars(n->node2, vec, q, filter);
 		break;
@@ -169,6 +170,23 @@ static void genExprNeg(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
 	addop(v, ops[OPNEG][n->datatype]);
 }
 
+static void genValue(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
+	switch (n->tok2.id){
+	case COLUMN:
+		addop(v, ops[OPLD][n->datatype], n->tok1.id);
+		break;
+	case LITERAL:
+		//parse values here
+		break;
+	case VARIABLE:
+		addop(v, PUTVAR, getVarIdx(n->tok1.val, q));
+		break;
+	case FUNCTION:
+		genFunction(n->node1, v, q);
+		break;
+	}
+}
+
 static void genExprList(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
 }
 
@@ -191,9 +209,6 @@ static void genPredicates(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q)
 }
 
 static void genPredCompare(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
-}
-
-static void genValue(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
 }
 
 static void genFunction(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){

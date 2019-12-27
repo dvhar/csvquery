@@ -67,8 +67,13 @@ case LDPUT:
 	break;
 
 //put variable from stack into var vector
-case LDVAR:
+case PUTVAR:
 	vars[op.p1] = stack[s1--];
+	++ip;
+	break;
+//put variable from var vector into stack
+case LDVAR:
+	stack[++s1] = vars[op.p1];
 	++ip;
 	break;
 
