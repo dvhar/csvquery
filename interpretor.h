@@ -102,7 +102,7 @@ class placeHolders {
 	map<int, int> places;
 	int uniqueKey;
 	public:
-	int newPlace() { return --uniqueKey; };
+	int newPlaceholder() { return --uniqueKey; };
 	void setPlace(int k, int v) { places[k] = v; };
 	void updateBytecode(vector<opcode> &vec);
 	placeHolders() { uniqueKey = -1; };

@@ -425,8 +425,10 @@ static void typeCaseFinalNodes(querySpecs &q, unique_ptr<node> &n, int finaltype
 			typeFinalValues(q, n->node2, finaltype);
 			typeFinalValues(q, n->node3, finaltype);
 			node* list = n->node2.get();
-			for (auto nn=list; nn; nn=nn->node2.get())
+			for (auto nn=list; nn; nn=nn->node2.get()){
+				nn->node1->tok1.id = comptype;
 				typeFinalValues(q, nn->node1->node1, comptype);
+			}
 			break;
 		}
 		break;

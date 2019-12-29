@@ -25,7 +25,7 @@ map<int, string> opMap = {
 	{IEXP,   "IEXP"},
 	{FEXP,   "FEXP"},
 	{JMP,   "JMP"},
-	{JMPCOND,   "JMPCOND"},
+	{JMPTRUE,   "JMPTRUE"},
 	{RDLINE,   "RDLINE"},
 	{RDLINEAT,   "RDLINEAT"},
 	{PRINT,   "PRINT"},
@@ -144,6 +144,11 @@ case LDINT:
 	stack[s1].b = I;
 	++ip;
 	break;
+case LDNULL:
+	++s1;
+	stack[s1].b = NIL;
+	++ip;
+	break;
 
 //read a new line from a file
 case RDLINE:
@@ -235,69 +240,85 @@ case FNEG:
 	break;
 
 //comparisions - p1 determines how far down the stack to leave the result
+//need to revisit stack placement 
 case IEQ:
 	t1 = ISNULL(stack[s1]);
 	t2 = ISNULL(stack[s1-1]);
 	if (t1 ^ t2) stack[s1-op.p1].u.p = false;
-	else if (t1 && t2) stack[s1-op.p1].u.p = false;
+	else if (t1 & t2) stack[s1-op.p1].u.p = true;
 	else stack[s1-op.p1].u.p = stack[s1-1].u.i == stack[s1].u.i;
+	++ip;
 	break;
 case FEQ:
 	t1 = ISNULL(stack[s1]);
 	t2 = ISNULL(stack[s1-1]);
 	if (t1 ^ t2) stack[s1-op.p1].u.p = false;
-	else if (t1 && t2) stack[s1-op.p1].u.p = false;
+	else if (t1 & t2) stack[s1-op.p1].u.p = true;
 	else stack[s1-op.p1].u.p = stack[s1-1].u.f == stack[s1].u.f;
+	++ip;
 	break;
 case DEQ:
+	++ip;
 	break;
 case TEQ:
 	t1 = ISNULL(stack[s1]);
 	t2 = ISNULL(stack[s1-1]);
 	if (t1 ^ t2) stack[s1-op.p1].u.p = false;
-	else if (t1 && t2) stack[s1-op.p1].u.p = false;
+	else if (t1 & t2) stack[s1-op.p1].u.p = true;
 	else stack[s1-op.p1].u.p = scomp(stack[s1-1].u.s, stack[s1].u.s) == 0;
+	++ip;
 	break;
 case ILEQ:
 	if (ISNULL(stack[s1]) || ISNULL(stack[s1-1])) stack[s1-op.p1].u.p = false;
 	else stack[s1-op.p1].u.p = stack[s1-1].u.i <= stack[s1].u.i;
+	++ip;
 	break;
 case FLEQ:
 	if (ISNULL(stack[s1]) || ISNULL(stack[s1-1])) stack[s1-op.p1].u.p = false;
 	else stack[s1-op.p1].u.p = stack[s1-1].u.f <= stack[s1].u.f;
+	++ip;
 	break;
 case DLEQ:
+	++ip;
 	break;
 case TLEQ:
 	if (ISNULL(stack[s1]) || ISNULL(stack[s1-1])) stack[s1-op.p1].u.p = false;
 	else stack[s1-op.p1].u.p = scomp(stack[s1-1].u.s, stack[s1].u.s) <= 0;
+	++ip;
 	break;
 case ILT:
 	if (ISNULL(stack[s1]) || ISNULL(stack[s1-1])) stack[s1-op.p1].u.p = false;
 	else stack[s1-op.p1].u.p = stack[s1-1].u.i < stack[s1].u.i;
+	++ip;
 	break;
 case FLT:
 	if (ISNULL(stack[s1]) || ISNULL(stack[s1-1])) stack[s1-op.p1].u.p = false;
 	else stack[s1-op.p1].u.p = stack[s1-1].u.f < stack[s1].u.f;
+	++ip;
 	break;
 case DLT:
+	++ip;
 	break;
 case TLT:
 	if (ISNULL(stack[s1]) || ISNULL(stack[s1-1])) stack[s1-op.p1].u.p = false;
 	else stack[s1-op.p1].u.p = scomp(stack[s1-1].u.s, stack[s1].u.s) < 0;
+	++ip;
 	break;
 
-//compare to null
-case NEQ:
-	stack[s1].u.p = ISNULL(stack[s1]);
+case POP:
+	s1 -= op.p1;
+	++ip;
 	break;
-
 //jump instructions
 case JMP:
 	ip = op.p1;
 	break;
-
-case JMPCOND:
+case JMPFALSE:
+	if (!stack[s1].u.p)
+		ip = op.p1;
+	--s1;
+	break;
+case JMPTRUE:
 	if (stack[s1].u.p)
 		ip = op.p1;
 	--s1;
