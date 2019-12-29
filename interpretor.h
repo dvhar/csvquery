@@ -19,7 +19,6 @@
 #define str2(A,B) fmt::format("{}{}",A,B)
 #define str3(A,B,C) fmt::format("{}{}{}",A,B,C)
 
-
 using namespace std;
 
 enum nodetypes { N_QUERY, N_PRESELECT, N_WITH, N_VARS, N_SELECT, N_SELECTIONS, N_FROM, N_AFTERFROM, N_JOINCHAIN, N_JOIN, N_WHERE, N_HAVING, N_ORDER, N_EXPRADD, N_EXPRMULT, N_EXPRNEG, N_EXPRCASE, N_CPREDLIST, N_CPRED, N_CWEXPRLIST, N_CWEXPR, N_PREDICATES, N_PREDCOMP, N_VALUE, N_FUNCTION, N_GROUPBY, N_EXPRESSIONS, N_DEXPRESSIONS, N_TYPECONV };
@@ -89,15 +88,36 @@ class fileReader {
 	fileReader(string);
 };
 
-//general query stuff
+class opcode {
+	public:
+	byte code;
+	int p1;
+	int p2;
+	int p3;
+	void print();
+};
+
+//placeholder for jmp positions that can't be determined until later
+class placeHolders {
+	map<int, int> places;
+	int uniqueKey;
+	public:
+	int newPlace() { return --uniqueKey; };
+	void setPlace(int k, int v) { places[k] = v; };
+	void updateBytecode(vector<opcode> &vec);
+	placeHolders() { uniqueKey = -1; };
+};
+
 class querySpecs {
 	public:
 	string queryString;
 	string password;
 	vector<token> tokArray;
 	vector<variable> vars;
+	vector<opcode> bytecode;
 	map<string, shared_ptr<fileReader>> files;
 	unique_ptr<node> tree;
+	placeHolders places;
 	int numFiles;
 	int tokIdx;
 	int options;
@@ -124,6 +144,7 @@ class singleQueryResult {
 	vector<vector<char*>> values;
 	string query;
 };
+
 
 const int T_NULL = 0;
 const int T_INT = 1;

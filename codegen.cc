@@ -24,19 +24,28 @@ static void genPredCompare(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q
 static void genValue(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q);
 static void genFunction(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q);
 
+void placeHolders::updateBytecode(vector<opcode> &vec) {
+	for (auto &v : vec)
+		if ((v.code == JMP || v.code == JMPCOND) && v.p1 < 0)
+			v.p1 = places[v.p1];
+};
+
 static void addop(vector<opcode> &v, byte code){
+	cerr << "adding op " << opMap[code] << endl;
 	v.push_back({code, 0});
 }
 static void addop(vector<opcode> &v, byte code, int p1){
+	cerr << "adding op " << opMap[code] << "  p1 " << p1 << endl;
 	v.push_back({code, p1});
 }
 
 static void determinePath(querySpecs &q){
-	vector<opcode> bytecode;
 
 	if (q.sorting && !q.grouping && q.joining) {
+		cerr << "ordered join\n";
         //order join
     } else if (q.sorting && !q.grouping) {
+		cerr << "ordered plain\n";
         //ordered plain
 
 		// 1 read line
@@ -53,9 +62,11 @@ static void determinePath(querySpecs &q){
 
 
     } else if (q.joining) {
+		cerr << "normal join\n";
         //normal join and grouping
     } else {
-		genNormalQuery(q.tree, bytecode, q);
+		cerr << "normal plain\n";
+		genNormalQuery(q.tree, q.bytecode, q);
         //normal plain and grouping
 
 		// 1 read line
@@ -74,10 +85,13 @@ static void determinePath(querySpecs &q){
 
 void codeGen(querySpecs &q){
 	determinePath(q);
+	for (auto c : q.bytecode)
+		c.print();
 }
 
 //generate bytecode for any node in an expression
 static void genExprAll(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
+	cerr << "calling gen func for node " << treeMap[n->label] << endl;
 	switch (n->label){
 	case N_DEXPRESSIONS:
 	case N_EXPRESSIONS:     genExprList    (n, v, q); break;
@@ -94,6 +108,7 @@ static void genExprAll(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
 	case N_VALUE:           genValue       (n, v, q); break;
 	case N_FUNCTION:        genFunction    (n, v, q); break;
 	}
+	cerr << "call completed for node " << treeMap[n->label] << endl;
 }
 
 //given q.tree as node param
@@ -113,6 +128,7 @@ static void genNormalQuery(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q
 }
 
 static void genVars(unique_ptr<node> &n, vector<opcode> &vec, querySpecs &q, int filter){
+	if (n == nullptr) return;
 	int i;
 	switch (n->label){
 	case N_PRESELECT: //currently only has 'with' branch
@@ -131,6 +147,7 @@ static void genVars(unique_ptr<node> &n, vector<opcode> &vec, querySpecs &q, int
 }
 
 static void genExprAdd(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
+	if (n == nullptr) return;
 	genExprAll(n->node1, v, q);
 	if (!n->tok1.id) return;
 	genExprAll(n->node2, v, q);
@@ -145,6 +162,7 @@ static void genExprAdd(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
 }
 
 static void genExprMult(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
+	if (n == nullptr) return;
 	genExprAll(n->node1, v, q);
 	if (!n->tok1.id) return;
 	genExprAll(n->node2, v, q);
@@ -165,12 +183,14 @@ static void genExprMult(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
 }
 
 static void genExprNeg(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
+	if (n == nullptr) return;
 	genExprAll(n->node1, v, q);
 	if (!n->tok1.id) return;
 	addop(v, ops[OPNEG][n->datatype]);
 }
 
 static void genValue(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
+	if (n == nullptr) return;
 	switch (n->tok2.id){
 	case COLUMN:
 		addop(v, ops[OPLD][n->datatype], n->tok1.id);
@@ -179,58 +199,90 @@ static void genValue(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
 		//parse values here
 		break;
 	case VARIABLE:
-		addop(v, PUTVAR, getVarIdx(n->tok1.val, q));
+		addop(v, LDVAR, getVarIdx(n->tok1.val, q));
 		break;
 	case FUNCTION:
-		genFunction(n->node1, v, q);
+		genExprAll(n->node1, v, q);
 		break;
 	}
 }
 
-static void genExprList(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
+static void genExprCase(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
+	if (n == nullptr) return;
+	switch (n->tok1.id){
+	case KW_CASE:
+		switch (n->tok2.id){
+		//when predicates are true
+		case KW_WHEN:
+			break;
+		//expression matches expression list
+		case WORD:
+		case SP_LPAREN:
+			genExprAll(n->node1, v, q);
+			break;
+		}
+		break;
+	case SP_LPAREN:
+	case WORD:
+		genExprAll(n->node1, v, q);
+	}
 }
 
-static void genExprCase(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
+static void genExprList(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
+	if (n == nullptr) return;
 }
 
 static void genCPredList(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
+	if (n == nullptr) return;
 }
 
 static void genCWExprList(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
+	if (n == nullptr) return;
 }
 
 static void genCPred(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
+	if (n == nullptr) return;
 }
 
 static void genCWExpr(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
+	if (n == nullptr) return;
 }
 
 static void genPredicates(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
+	if (n == nullptr) return;
 }
 
 static void genPredCompare(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
+	if (n == nullptr) return;
 }
 
 static void genFunction(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
+	if (n == nullptr) return;
 }
 
 static void genWhere(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
+	if (n == nullptr) return;
 }
 
 static void genDistinct(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
+	if (n == nullptr) return;
 }
 
 static void genGroupOrNewRow(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
+	if (n == nullptr) return;
 }
 
 static void genSelect(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
+	if (n == nullptr) return;
 }
 
 static void genPrint(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
+	if (n == nullptr) return;
 }
 
 static void genRepeatPhase1(vector<opcode> &v, querySpecs &q, int restart){
 }
 
 static void genReturnGroups(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
+	if (n == nullptr) return;
 }

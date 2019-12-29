@@ -4,6 +4,42 @@
 //subroutine labels
 int MAIN, VARS_NORM, VARS_AGG, SEL_NORM, SEL_AGG, WHERE, HAVING, ORDER;
 
+map<int, string> opMap = {
+	{IADD,   "IADD"},
+	{FADD,   "FADD"},
+	{TADD,   "TADD"},
+	{DADD,   "DADD"},
+	{ISUB,   "ISUB"},
+	{FSUB,   "FSUB"},
+	{DSUB,   "DSUB"},
+	{IMULT,   "IMULT"},
+	{FMULT,   "FMULT"},
+	{DMULT,   "DMULT"},
+	{IDIV,   "IDIV"},
+	{FDIV,   "FDIV"},
+	{DDIV,   "DDIV"},
+	{INEG,   "INEG"},
+	{FNEG,   "FNEG"},
+	{DNEG,   "DNEG"},
+	{IMOD,   "IMOD"},
+	{IEXP,   "IEXP"},
+	{FEXP,   "FEXP"},
+	{JMP,   "JMP"},
+	{JMPCOND,   "JMPCOND"},
+	{RDLINE,   "RDLINE"},
+	{RDLINEAT,   "RDLINEAT"},
+	{PRINT,   "PRINT"},
+	{RAWROW,   "RAWROW"},
+	{PUT,   "PUT"},
+	{LDPUT,   "LDPUT"},
+	{PUTVAR,   "PUTVAR"},
+	{LDVAR,   "LDVAR"},
+	{LDINT,   "LDINT"},
+	{LDFLOAT,   "LDFLOAT"},
+	{LDTEXT,   "LDTEXT"},
+	{LDDATE,   "LDDATE"},
+	{LDDUR,   "LDDUR"}
+};
 void dat::print(){
 	if (b & NIL) return;
 	switch ( b & 0b00011111 ) {
@@ -13,6 +49,10 @@ void dat::print(){
 	case DR: cout << u.dr << ","; break; //need to format durations
 	case T: cout << u.s << ","; break;
 	}
+}
+
+void opcode::print(){
+	cerr << fmt::format("code: {}  p1: {}  p2:  {}  p3: {}\n", opMap[code], p1, p2, p3);
 }
 
 vmachine::vmachine(querySpecs* qs){
@@ -44,6 +84,7 @@ void strplus(dat &s1, dat &s2){
 void vmachine::run(){
 	
 	int s1 = 0; //stack top index
+	int t1, t2; //temporary values
 	int ip = MAIN;
 	opcode op;
 
@@ -191,6 +232,64 @@ case FNEG:
 	if (ISNULL(stack[s1])) stack[s1].b |= NIL;
 	else stack[s1].u.f *= -1;
 	++ip;
+	break;
+
+//comparisions - p1 determines how far down the stack to leave the result
+case IEQ:
+	t1 = ISNULL(stack[s1]);
+	t2 = ISNULL(stack[s1-1]);
+	if (t1 ^ t2) stack[s1-op.p1].u.p = false;
+	else if (t1 && t2) stack[s1-op.p1].u.p = false;
+	else stack[s1-op.p1].u.p = stack[s1-1].u.i == stack[s1].u.i;
+	break;
+case FEQ:
+	t1 = ISNULL(stack[s1]);
+	t2 = ISNULL(stack[s1-1]);
+	if (t1 ^ t2) stack[s1-op.p1].u.p = false;
+	else if (t1 && t2) stack[s1-op.p1].u.p = false;
+	else stack[s1-op.p1].u.p = stack[s1-1].u.f == stack[s1].u.f;
+	break;
+case DEQ:
+	break;
+case TEQ:
+	t1 = ISNULL(stack[s1]);
+	t2 = ISNULL(stack[s1-1]);
+	if (t1 ^ t2) stack[s1-op.p1].u.p = false;
+	else if (t1 && t2) stack[s1-op.p1].u.p = false;
+	else stack[s1-op.p1].u.p = scomp(stack[s1-1].u.s, stack[s1].u.s) == 0;
+	break;
+case ILEQ:
+	if (ISNULL(stack[s1]) || ISNULL(stack[s1-1])) stack[s1-op.p1].u.p = false;
+	else stack[s1-op.p1].u.p = stack[s1-1].u.i <= stack[s1].u.i;
+	break;
+case FLEQ:
+	if (ISNULL(stack[s1]) || ISNULL(stack[s1-1])) stack[s1-op.p1].u.p = false;
+	else stack[s1-op.p1].u.p = stack[s1-1].u.f <= stack[s1].u.f;
+	break;
+case DLEQ:
+	break;
+case TLEQ:
+	if (ISNULL(stack[s1]) || ISNULL(stack[s1-1])) stack[s1-op.p1].u.p = false;
+	else stack[s1-op.p1].u.p = scomp(stack[s1-1].u.s, stack[s1].u.s) <= 0;
+	break;
+case ILT:
+	if (ISNULL(stack[s1]) || ISNULL(stack[s1-1])) stack[s1-op.p1].u.p = false;
+	else stack[s1-op.p1].u.p = stack[s1-1].u.i < stack[s1].u.i;
+	break;
+case FLT:
+	if (ISNULL(stack[s1]) || ISNULL(stack[s1-1])) stack[s1-op.p1].u.p = false;
+	else stack[s1-op.p1].u.p = stack[s1-1].u.f < stack[s1].u.f;
+	break;
+case DLT:
+	break;
+case TLT:
+	if (ISNULL(stack[s1]) || ISNULL(stack[s1-1])) stack[s1-op.p1].u.p = false;
+	else stack[s1-op.p1].u.p = scomp(stack[s1-1].u.s, stack[s1].u.s) < 0;
+	break;
+
+//compare to null
+case NEQ:
+	stack[s1].u.p = ISNULL(stack[s1]);
 	break;
 
 //jump instructions
