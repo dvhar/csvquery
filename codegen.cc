@@ -23,8 +23,10 @@ static void genPredicates(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q)
 static void genPredCompare(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q);
 static void genValue(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q);
 static void genFunction(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q);
+static void genSelectAll(vector<opcode> &v, querySpecs &q);
+static void genSelections(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q);
 
-void placeHolders::updateBytecode(vector<opcode> &vec) {
+void jumpPositions::updateBytecode(vector<opcode> &vec) {
 	for (auto &v : vec)
 		if ((v.code == JMP || v.code == JMPFALSE || v.code == JMPTRUE) && v.p1 < 0)
 			v.p1 = places[v.p1];
@@ -245,10 +247,32 @@ static void genCWExpr(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q, int
 	genExprAll(n->node1, v, q); //evaluate comparision expression
 	addop(v, ops[OPEQ][n->tok1.id], 0); //leave '=' result where this comp value was
 	addop(v, JMPFALSE, next);
-	addop(v, POP, 2); //don't need comparison values anymore
+	addop(v, POP, 1); //don't need comparison value anymore
 	genExprAll(n->node2, v, q); //result value if eq
 	addop(v, JMP, end);
 	q.places.setPlace(next, v.size()); //jump here for next try
+}
+
+static void genSelect(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
+	if (n->node1->label != N_SELECTIONS)
+		genSelectAll(v, q);
+	else
+		genSelections(n->node1, v, q);
+}
+
+static void genSelections(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
+	if (n == nullptr) return;
+}
+
+static void genSelectAll(vector<opcode> &v, querySpecs &q){
+}
+
+static void genGroupOrNewRow(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
+	if (n == nullptr) return;
+}
+
+static void genWhere(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
+	if (n == nullptr) return;
 }
 
 static void genExprList(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
@@ -275,19 +299,7 @@ static void genFunction(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
 	if (n == nullptr) return;
 }
 
-static void genWhere(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
-	if (n == nullptr) return;
-}
-
 static void genDistinct(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
-	if (n == nullptr) return;
-}
-
-static void genGroupOrNewRow(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
-	if (n == nullptr) return;
-}
-
-static void genSelect(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
 	if (n == nullptr) return;
 }
 

@@ -240,13 +240,14 @@ case FNEG:
 	break;
 
 //comparisions - p1 determines how far down the stack to leave the result
-//need to revisit stack placement 
+//may want to combine with jmp
 case IEQ:
 	t1 = ISNULL(stack[s1]);
 	t2 = ISNULL(stack[s1-1]);
 	if (t1 ^ t2) stack[s1-op.p1].u.p = false;
 	else if (t1 & t2) stack[s1-op.p1].u.p = true;
 	else stack[s1-op.p1].u.p = stack[s1-1].u.i == stack[s1].u.i;
+	s1 -= op.p1;
 	++ip;
 	break;
 case FEQ:
@@ -255,6 +256,7 @@ case FEQ:
 	if (t1 ^ t2) stack[s1-op.p1].u.p = false;
 	else if (t1 & t2) stack[s1-op.p1].u.p = true;
 	else stack[s1-op.p1].u.p = stack[s1-1].u.f == stack[s1].u.f;
+	s1 -= op.p1;
 	++ip;
 	break;
 case DEQ:
@@ -266,16 +268,19 @@ case TEQ:
 	if (t1 ^ t2) stack[s1-op.p1].u.p = false;
 	else if (t1 & t2) stack[s1-op.p1].u.p = true;
 	else stack[s1-op.p1].u.p = scomp(stack[s1-1].u.s, stack[s1].u.s) == 0;
+	s1 -= op.p1;
 	++ip;
 	break;
 case ILEQ:
 	if (ISNULL(stack[s1]) || ISNULL(stack[s1-1])) stack[s1-op.p1].u.p = false;
 	else stack[s1-op.p1].u.p = stack[s1-1].u.i <= stack[s1].u.i;
+	s1 -= op.p1;
 	++ip;
 	break;
 case FLEQ:
 	if (ISNULL(stack[s1]) || ISNULL(stack[s1-1])) stack[s1-op.p1].u.p = false;
 	else stack[s1-op.p1].u.p = stack[s1-1].u.f <= stack[s1].u.f;
+	s1 -= op.p1;
 	++ip;
 	break;
 case DLEQ:
@@ -284,16 +289,19 @@ case DLEQ:
 case TLEQ:
 	if (ISNULL(stack[s1]) || ISNULL(stack[s1-1])) stack[s1-op.p1].u.p = false;
 	else stack[s1-op.p1].u.p = scomp(stack[s1-1].u.s, stack[s1].u.s) <= 0;
+	s1 -= op.p1;
 	++ip;
 	break;
 case ILT:
 	if (ISNULL(stack[s1]) || ISNULL(stack[s1-1])) stack[s1-op.p1].u.p = false;
 	else stack[s1-op.p1].u.p = stack[s1-1].u.i < stack[s1].u.i;
+	s1 -= op.p1;
 	++ip;
 	break;
 case FLT:
 	if (ISNULL(stack[s1]) || ISNULL(stack[s1-1])) stack[s1-op.p1].u.p = false;
 	else stack[s1-op.p1].u.p = stack[s1-1].u.f < stack[s1].u.f;
+	s1 -= op.p1;
 	++ip;
 	break;
 case DLT:
@@ -302,6 +310,7 @@ case DLT:
 case TLT:
 	if (ISNULL(stack[s1]) || ISNULL(stack[s1-1])) stack[s1-op.p1].u.p = false;
 	else stack[s1-op.p1].u.p = scomp(stack[s1-1].u.s, stack[s1].u.s) < 0;
+	s1 -= op.p1;
 	++ip;
 	break;
 
@@ -309,6 +318,7 @@ case POP:
 	s1 -= op.p1;
 	++ip;
 	break;
+
 //jump instructions
 case JMP:
 	ip = op.p1;

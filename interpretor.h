@@ -66,7 +66,7 @@ class fileReader {
 	vector<int> types;
 	vector<int> sizes;
 	vector<char*> line;
-	int widestField;
+	int widestField; //get rid of this
 	int fieldsFound;
 	char* pos1;
 	char* pos2;
@@ -98,14 +98,21 @@ class opcode {
 };
 
 //placeholder for jmp positions that can't be determined until later
-class placeHolders {
+class jumpPositions {
 	map<int, int> places;
 	int uniqueKey;
 	public:
 	int newPlaceholder() { return --uniqueKey; };
 	void setPlace(int k, int v) { places[k] = v; };
 	void updateBytecode(vector<opcode> &vec);
-	placeHolders() { uniqueKey = -1; };
+	jumpPositions() { uniqueKey = -1; };
+};
+
+class resultSpecs {
+	public:
+	int count;
+	vector<int> types;
+	vector<string> colnames;
 };
 
 class querySpecs {
@@ -117,7 +124,8 @@ class querySpecs {
 	vector<opcode> bytecode;
 	map<string, shared_ptr<fileReader>> files;
 	unique_ptr<node> tree;
-	placeHolders places;
+	jumpPositions places;
+	resultSpecs colspec;
 	int numFiles;
 	int tokIdx;
 	int options;
@@ -139,7 +147,7 @@ class singleQueryResult {
 	public:
 	int numrows;
 	int numcols;
-	vector<int> typs;
+	vector<int> types;
 	vector<string> colnames;
 	vector<vector<char*>> values;
 	string query;
