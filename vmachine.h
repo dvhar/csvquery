@@ -18,12 +18,16 @@ enum codes : unsigned char {
 	JMP, JMPCOND,
 	RDLINE, RDLINEAT,
 	PRINT, RAWROW, PUT, LDPUT, PUTVAR, LDVAR,
-	LDINT, LDFLOAT, LDTEXT, LDDATE, LDDUR
+	LDINT, LDFLOAT, LDTEXT, LDDATE, LDDUR,
+	IEQ, FEQ, DEQ, TEQ, NEQ,
+	ILEQ, FLEQ, DLEQ, TLEQ,
+	ILT, FLT, DLT, TLT
 };
+extern map<int, string> opMap;
 
-//2d array for ops indexed by operation and type
+//2d array for ops indexed by operation and datatype
 enum typeOperators {
-	OPADD, OPSUB, OPMULT, OPDIV, OPEXP, OPNEG, OPLD
+	OPADD, OPSUB, OPMULT, OPDIV, OPEXP, OPNEG, OPLD, OPEQ
 };
 static int ops[][6] = {
 	{ 0, IADD, FADD, DADD, DADD, TADD },
@@ -33,8 +37,10 @@ static int ops[][6] = {
 	{ 0, IEXP, FEXP, 0, 0, 0 },
 	{ 0, INEG, FNEG, 0, DNEG, 0 },
 	{ 0, LDINT, LDFLOAT, LDDATE, LDDUR, LDTEXT },
+	{ 0, IEQ, FEQ, DEQ, DEQ, TEQ },
+	{ 0, ILEQ, FLEQ, DLEQ, DLEQ, TLEQ },
+	{ 0, ILT, FLT, DLT, DLT, TLT }
 };
-
 
 //8 bit array
 const byte I = 1;
@@ -52,16 +58,8 @@ const byte MAL = 64; //malloced
 #define ISNULL(X) ( X.b & NIL )
 #define ISMAL(X) ( X.b & MAL )
 
-//compact data type
-union datunion2 {
-	int64 i;
-	double f;
-	time_t dt;
-	time_t dr;
-	char* s;
-};
 //data during processing
-union datunion1 {
+union datunion {
 	int64 i;
 	double f;
 	char* s;
@@ -71,19 +69,11 @@ union datunion1 {
 };
 class dat {
 	public:
-	union datunion1 u;
+	union datunion u;
 	byte b; // bits for data about value
 	short z; // string size
 	void print();
 };
-class opcode {
-	public:
-	byte code;
-	int p1;
-	int p2;
-	int p3;
-};
-
 class vmachine {
 	querySpecs* q;
 	vector<shared_ptr<fileReader>> files;
