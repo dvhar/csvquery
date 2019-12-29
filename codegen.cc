@@ -16,9 +16,9 @@ static void genExprNeg(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q);
 static void genExprList(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q);
 static void genExprCase(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q);
 static void genCPredList(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q);
-static void genCWExprList(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q);
+static void genCWExprList(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q, int end);
 static void genCPred(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q);
-static void genCWExpr(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q);
+static void genCWExpr(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q, int end);
 static void genPredicates(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q);
 static void genPredCompare(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q);
 static void genValue(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q);
@@ -26,7 +26,7 @@ static void genFunction(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q);
 
 void placeHolders::updateBytecode(vector<opcode> &vec) {
 	for (auto &v : vec)
-		if ((v.code == JMP || v.code == JMPCOND) && v.p1 < 0)
+		if ((v.code == JMP || v.code == JMPFALSE || v.code == JMPTRUE) && v.p1 < 0)
 			v.p1 = places[v.p1];
 };
 
@@ -100,9 +100,7 @@ static void genExprAll(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
 	case N_EXPRMULT:        genExprMult    (n, v, q); break;
 	case N_EXPRCASE:        genExprCase    (n, v, q); break;
 	case N_CPREDLIST:       genCPredList   (n, v, q); break;
-	case N_CWEXPRLIST:      genCWExprList  (n, v, q); break;
 	case N_CPRED:           genCPred       (n, v, q); break;
-	case N_CWEXPR:          genCWExpr      (n, v, q); break;
 	case N_PREDICATES:      genPredicates  (n, v, q); break;
 	case N_PREDCOMP:        genPredCompare (n, v, q); break;
 	case N_VALUE:           genValue       (n, v, q); break;
@@ -209,6 +207,7 @@ static void genValue(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
 
 static void genExprCase(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
 	if (n == nullptr) return;
+	int caseEnd;
 	switch (n->tok1.id){
 	case KW_CASE:
 		switch (n->tok2.id){
@@ -218,7 +217,13 @@ static void genExprCase(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
 		//expression matches expression list
 		case WORD:
 		case SP_LPAREN:
+			caseEnd = q.places.newPlaceholder();
 			genExprAll(n->node1, v, q);
+			genCWExprList(n->node2, v, q, caseEnd);
+			genExprAll(n->node3, v, q);
+			if (n->node3 == nullptr)
+				addop(v, LDNULL);
+			q.places.setPlace(caseEnd, v.size());
 			break;
 		}
 		break;
@@ -226,6 +231,24 @@ static void genExprCase(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
 	case WORD:
 		genExprAll(n->node1, v, q);
 	}
+}
+
+static void genCWExprList(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q, int end){
+	if (n == nullptr) return;
+	genCWExpr(n->node1, v, q, end);
+	genCWExprList(n->node2, v, q, end);
+}
+
+static void genCWExpr(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q, int end){
+	if (n == nullptr) return;
+	int next = q.places.newPlaceholder(); //get jump pos for next try
+	genExprAll(n->node1, v, q); //evaluate comparision expression
+	addop(v, ops[OPEQ][n->tok1.id], 0); //leave '=' result where this comp value was
+	addop(v, JMPFALSE, next);
+	addop(v, POP, 2); //don't need comparison values anymore
+	genExprAll(n->node2, v, q); //result value if eq
+	addop(v, JMP, end);
+	q.places.setPlace(next, v.size()); //jump here for next try
 }
 
 static void genExprList(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
@@ -236,15 +259,7 @@ static void genCPredList(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
 	if (n == nullptr) return;
 }
 
-static void genCWExprList(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
-	if (n == nullptr) return;
-}
-
 static void genCPred(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
-	if (n == nullptr) return;
-}
-
-static void genCWExpr(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
 	if (n == nullptr) return;
 }
 

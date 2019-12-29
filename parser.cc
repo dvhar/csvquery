@@ -552,6 +552,7 @@ static unique_ptr<node> parseCaseWhenExprList(querySpecs &q) {
 
 //node1 is comparison expression
 //node2 is result expression
+//tok1.id will be comparision datatype
 static unique_ptr<node> parseCaseWhenExpr(querySpecs &q) {
 	t = q.tok();
 	e("casewhenexpr");
