@@ -55,10 +55,11 @@ static void recordResultColumns(unique_ptr<node> &n, querySpecs &q){
 			return;
 		else if (t1 == "*"){
 			selectAll(q);
-		} else
+		} else {
 			q.colspec.count++;
 			q.colspec.colnames.push_back(n->tok2.val);
 			q.colspec.types.push_back(n->datatype);
+		}
 		break;
 	case N_FROM:
 		if (q.colspec.count == 0)

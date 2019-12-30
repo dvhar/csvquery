@@ -23,8 +23,45 @@ static void genPredicates(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q)
 static void genPredCompare(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q);
 static void genValue(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q);
 static void genFunction(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q);
-static void genSelectAll(vector<opcode> &v, querySpecs &q);
+static void genSelectAll(vector<opcode> &v, querySpecs &q, int &count);
 static void genSelections(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q);
+
+static bool isTrivial(unique_ptr<node> &n){
+	if (n == nullptr) return false;
+	if (n->label == N_VALUE && n->tok3.id)
+		return true;
+	return isTrivial(n->node1);
+}
+static dat parseIntDat(const char* s){
+	char* end;
+	dat idat = { { .i = strtol(s, &end, 10) }, I };
+	if (end != 0) idat.b |= NIL;
+	return idat;
+}
+static dat parseFloatDat(const char* s){
+	char* end;
+	dat fdat = { { .f = strtof(s, &end) }, F };
+	if (end != 0) fdat.b |= NIL;
+	return fdat;
+}
+static dat parseDurationDat(const char* s) {
+	time_t t;
+	int err = parseDuration((char*)s, &t);
+	dat ddat = { { .dr = t }, DR };
+	if (err) ddat.b |= NIL;
+	return ddat;
+}
+static dat parseDateDat(const char* s) { //need to finish dateparse library
+	dat ddat = { { .dt = 0 }, DR };
+	ddat.b |= NIL;
+	return ddat;
+}
+static dat parseStringDat(const char* s) {
+	//may want to malloc
+	dat ddat = { { .s = (char*)s }, DR, strlen(s) };
+	return ddat;
+}
+
 
 void jumpPositions::updateBytecode(vector<opcode> &vec) {
 	for (auto &v : vec)
@@ -34,11 +71,20 @@ void jumpPositions::updateBytecode(vector<opcode> &vec) {
 
 static void addop(vector<opcode> &v, byte code){
 	cerr << "adding op " << opMap[code] << endl;
-	v.push_back({code, 0});
+	v.push_back({code});
 }
 static void addop(vector<opcode> &v, byte code, int p1){
 	cerr << "adding op " << opMap[code] << "  p1 " << p1 << endl;
 	v.push_back({code, p1});
+}
+static void addop(vector<opcode> &v, byte code, int p1, int p2){
+	cerr << "adding op " << opMap[code] << "  p1 " << p1 << "  p2 " << p2 << endl;
+	v.push_back({code, p1, p2});
+}
+static void addop(vector<opcode> &v, byte code, int p1, int p2, int p3){
+	cerr << "adding op " << opMap[code]
+		<< "  p1 " << p1 << "  p2 " << p2 << "  p3 " << p3 << endl;
+	v.push_back({code, p1, p2});
 }
 
 static void determinePath(querySpecs &q){
@@ -117,10 +163,10 @@ static void genNormalQuery(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q
 	addop(v, RDLINE);
 	genVars(n->node1, v, q, 1);
 	genWhere(n->node4, v, q);
-	genDistinct(n->node4, v, q);
+	genDistinct(n->node2, v, q);
 	genVars(n->node1, v, q, 0);
 	genGroupOrNewRow(n->node4, v, q);
-	genSelect(n->node4, v, q);
+	genSelect(n->node2, v, q);
 	if (!q.grouping)
 		genPrint(n->node4, v, q);
 	genRepeatPhase1(v, q, ip1);
@@ -190,13 +236,23 @@ static void genExprNeg(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
 }
 
 static void genValue(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
+	dat lit;
 	if (n == nullptr) return;
 	switch (n->tok2.id){
 	case COLUMN:
-		addop(v, ops[OPLD][n->datatype], n->tok1.id);
+		addop(v, ops[OPLD][n->datatype], getFileNo(n->tok3.val, q), n->tok1.id);
 		break;
 	case LITERAL:
 		//parse values here
+		switch (n->datatype){
+		case T_INT:      lit = parseIntDat(n->tok1.val.c_str());      break;
+		case T_FLOAT:    lit = parseFloatDat(n->tok1.val.c_str());    break;
+		case T_DATE:     lit = parseDateDat(n->tok1.val.c_str());     break;
+		case T_DURATION: lit = parseDurationDat(n->tok1.val.c_str()); break;
+		case T_STRING:   lit = parseStringDat(n->tok1.val.c_str());   break;
+		}
+		addop(v, LDLIT, q.literals.size());
+		q.literals.push_back(lit);
 		break;
 	case VARIABLE:
 		addop(v, LDVAR, getVarIdx(n->tok1.val, q));
@@ -254,17 +310,42 @@ static void genCWExpr(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q, int
 }
 
 static void genSelect(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
-	if (n->node1->label != N_SELECTIONS)
-		genSelectAll(v, q);
-	else
-		genSelections(n->node1, v, q);
+	genSelections(n->node1, v, q);
 }
 
 static void genSelections(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
 	if (n == nullptr) return;
+	static int count = 0;
+	string t1 = n->tok1.lower();
+	switch (n->label){
+	case N_SELECTIONS:
+		if (t1 == "hidden") {
+		} else if (t1 == "distinct") {
+			count++; //retrieve value from earlier
+		} else if (t1 == "*") {
+			genSelectAll(v, q, count);
+		} else if (isTrivial(n)) {
+			cerr << "found trivial\n";
+			for (auto nn = n.get(); nn; nn = nn->node1.get()) if (nn->label == N_VALUE){
+				addop(v, LDPUT, count, nn->tok1.id, getFileNo(nn->tok3.val, q));
+				break;
+			}
+			count++;
+		} else {
+			cerr << "found normal expression\n";
+			genExprAll(n->node1, v, q);
+			addop(v, PUT, count);
+			count++;
+		}
+		break;
+	default:
+		if (!count)
+			genSelectAll(v, q, count);
+	}
+	genSelections(n->node2, v, q);
 }
 
-static void genSelectAll(vector<opcode> &v, querySpecs &q){
+static void genSelectAll(vector<opcode> &v, querySpecs &q, int &count){
 }
 
 static void genGroupOrNewRow(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){

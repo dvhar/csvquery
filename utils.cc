@@ -216,8 +216,8 @@ void querySpecs::addVar(string name) {
 }
 void querySpecs::init(string s){
 	queryString = s;
-	tokIdx = options = quantityLimit = 0;
-	joining = grouping = false;
+	tokIdx = options = quantityLimit = numFiles = 0;
+	joining = grouping = sorting = false;
 }
 bool querySpecs::numIsCol() { return (options & O_C) != 0; }
 
@@ -314,3 +314,12 @@ int getVarIdx(string lkup, querySpecs &q){
 	error("variable not found");
 	return 0;
 }
+
+int getFileNo(string s, querySpecs &q){
+	for (int i=1; i<=q.numFiles; ++i)
+		if (q.files[str2("_f", i)]->id == q.files[s]->id)
+			return i;
+	error("file number not founde");
+	return -1;
+}
+
