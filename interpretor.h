@@ -101,7 +101,7 @@ union datunion {
 	int64 i;
 	double f;
 	char* s;
-	time_t dt;
+	time_t dt; //probably want to change these to int64
 	time_t dr;
 	bool p;
 };
