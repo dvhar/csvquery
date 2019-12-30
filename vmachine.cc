@@ -83,9 +83,14 @@ void strplus(dat &s1, dat &s2){
 }
 
 void vmachine::run(){
-	
+
+	//temporary values
+	int i1, i2;
+	char* c1;
+	byte b1;
+	dat d1;
+
 	int s1 = 0; //stack top index
-	int t1, t2; //temporary values
 	int ip = MAIN;
 	opcode op;
 
@@ -119,8 +124,12 @@ case LDVAR:
 	++ip;
 	break;
 
-//load data from filereader to the stack - need to check for nulls
+//load data from filereader to the stack
 case LDDUR:
+	++s1;
+	i1 = parseDuration(files[op.p1]->line[op.p2], (time_t*)&i2);
+	stack[s1].u.dr = i2;
+	if (i1) b1 |= NIL;
 	++ip;
 	break;
 case LDDATE:
@@ -135,19 +144,28 @@ case LDTEXT:
 	break;
 case LDFLOAT:
 	++s1;
-	stack[s1].u.f = atof(files[op.p1]->line[op.p2]);
-	stack[s1].b = F;
+	stack[s1].u.f = strtof(files[op.p1]->line[op.p2], &c1);
+	b1 = F;
+	if (c1) b1 |= NIL;
+	stack[s1].b = b1;
 	++ip;
 	break;
 case LDINT:
 	++s1;
-	stack[s1].u.i = atoi(files[op.p1]->line[op.p2]);
-	stack[s1].b = I;
+	stack[s1].u.i = strtol(files[op.p1]->line[op.p2], &c1, 10);
+	b1 = I;
+	if (c1) b1 |= NIL;
+	stack[s1].b = b1;
 	++ip;
 	break;
 case LDNULL:
 	++s1;
 	stack[s1].b = NIL;
+	++ip;
+	break;
+case LDLIT:
+	++s1;
+	stack[s1] = q->literals[op.p1];
 	++ip;
 	break;
 
@@ -243,19 +261,19 @@ case FNEG:
 //comparisions - p1 determines how far down the stack to leave the result
 //may want to combine with jmp
 case IEQ:
-	t1 = ISNULL(stack[s1]);
-	t2 = ISNULL(stack[s1-1]);
-	if (t1 ^ t2) stack[s1-op.p1].u.p = false;
-	else if (t1 & t2) stack[s1-op.p1].u.p = true;
+	i1 = ISNULL(stack[s1]);
+	i2 = ISNULL(stack[s1-1]);
+	if (i1 ^ i2) stack[s1-op.p1].u.p = false;
+	else if (i1 & i2) stack[s1-op.p1].u.p = true;
 	else stack[s1-op.p1].u.p = stack[s1-1].u.i == stack[s1].u.i;
 	s1 -= op.p1;
 	++ip;
 	break;
 case FEQ:
-	t1 = ISNULL(stack[s1]);
-	t2 = ISNULL(stack[s1-1]);
-	if (t1 ^ t2) stack[s1-op.p1].u.p = false;
-	else if (t1 & t2) stack[s1-op.p1].u.p = true;
+	i1 = ISNULL(stack[s1]);
+	i2 = ISNULL(stack[s1-1]);
+	if (i1 ^ i2) stack[s1-op.p1].u.p = false;
+	else if (i1 & i2) stack[s1-op.p1].u.p = true;
 	else stack[s1-op.p1].u.p = stack[s1-1].u.f == stack[s1].u.f;
 	s1 -= op.p1;
 	++ip;
@@ -264,10 +282,10 @@ case DEQ:
 	++ip;
 	break;
 case TEQ:
-	t1 = ISNULL(stack[s1]);
-	t2 = ISNULL(stack[s1-1]);
-	if (t1 ^ t2) stack[s1-op.p1].u.p = false;
-	else if (t1 & t2) stack[s1-op.p1].u.p = true;
+	i1 = ISNULL(stack[s1]);
+	i2 = ISNULL(stack[s1-1]);
+	if (i1 ^ i2) stack[s1-op.p1].u.p = false;
+	else if (i1 & i2) stack[s1-op.p1].u.p = true;
 	else stack[s1-op.p1].u.p = scomp(stack[s1-1].u.s, stack[s1].u.s) == 0;
 	s1 -= op.p1;
 	++ip;

@@ -58,7 +58,7 @@ static dat parseDateDat(const char* s) { //need to finish dateparse library
 }
 static dat parseStringDat(const char* s) {
 	//may want to malloc
-	dat ddat = { { .s = (char*)s }, DR, strlen(s) };
+	dat ddat = { { .s = (char*)s }, DR, (short)strlen(s) };
 	return ddat;
 }
 
@@ -243,7 +243,6 @@ static void genValue(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
 		addop(v, ops[OPLD][n->datatype], getFileNo(n->tok3.val, q), n->tok1.id);
 		break;
 	case LITERAL:
-		//parse values here
 		switch (n->datatype){
 		case T_INT:      lit = parseIntDat(n->tok1.val.c_str());      break;
 		case T_FLOAT:    lit = parseFloatDat(n->tok1.val.c_str());    break;
