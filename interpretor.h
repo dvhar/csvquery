@@ -96,6 +96,22 @@ class opcode {
 	int p3;
 	void print();
 };
+//data during processing
+union datunion {
+	int64 i;
+	double f;
+	char* s;
+	time_t dt;
+	time_t dr;
+	bool p;
+};
+class dat {
+	public:
+	union datunion u;
+	byte b; // bits for data about value
+	short z; // string size
+	void print();
+};
 
 //placeholder for jmp positions that can't be determined until later
 class jumpPositions {
@@ -121,6 +137,7 @@ class querySpecs {
 	string password;
 	vector<token> tokArray;
 	vector<variable> vars;
+	vector<dat> literals;
 	vector<opcode> bytecode;
 	map<string, shared_ptr<fileReader>> files;
 	unique_ptr<node> tree;
@@ -133,7 +150,6 @@ class querySpecs {
 	bool joining;
 	bool grouping;
 	bool sorting;
-	bool varsNeededForFilter;
 	token tok();
 	token nextTok();
 	token peekTok();
@@ -284,5 +300,6 @@ void applyTypes(querySpecs &q);
 void analyzeTree(querySpecs &q);
 void codeGen(querySpecs &q);
 int getVarIdx(string lkup, querySpecs &q);
+int getFileNo(string s, querySpecs &q);
 
 #endif

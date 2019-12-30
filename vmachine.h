@@ -17,8 +17,9 @@ enum codes : unsigned char {
 	IEXP, FEXP,
 	JMP, JMPTRUE, JMPFALSE, POP,
 	RDLINE, RDLINEAT,
-	PRINT, RAWROW, PUT, LDPUT, PUTVAR, LDVAR,
-	LDINT, LDFLOAT, LDTEXT, LDDATE, LDDUR, LDNULL,
+	PRINT, RAWROW, PUT, LDPUT, PUTVAR,
+	LDINT, LDFLOAT, LDTEXT, LDDATE, LDDUR,
+	LDNULL, LDLIT, LDVAR,
 	IEQ, FEQ, DEQ, TEQ, NEQ,
 	ILEQ, FLEQ, DLEQ, TLEQ,
 	ILT, FLT, DLT, TLT
@@ -58,22 +59,6 @@ const byte MAL = 64; //malloced
 #define ISNULL(X) ( X.b & NIL )
 #define ISMAL(X) ( X.b & MAL )
 
-//data during processing
-union datunion {
-	int64 i;
-	double f;
-	char* s;
-	time_t dt;
-	time_t dr;
-	bool p;
-};
-class dat {
-	public:
-	union datunion u;
-	byte b; // bits for data about value
-	short z; // string size
-	void print();
-};
 class vmachine {
 	querySpecs* q;
 	vector<shared_ptr<fileReader>> files;

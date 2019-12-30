@@ -189,7 +189,10 @@ static void typeInitialValue(querySpecs &q, unique_ptr<node> &n, bool trivial){
 	//see if selecting trivial value (just column or literal)
 	if (n->label == N_SELECTIONS)       trivial = true;
 	if (trivial && !stillTrivial(n))    trivial = false;
-	if (trivial && n->label == N_VALUE) n->datatype = T_STRING;
+	if (trivial && n->label == N_VALUE && n->tok2.id == COLUMN) {
+		n->datatype = T_STRING;
+		n->tok3.id = 1;
+	}
 
 	typeInitialValue(q, n->node1, trivial);
 	//record variable after typing var leafnodes to avoid recursive definition

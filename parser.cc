@@ -382,6 +382,7 @@ static unique_ptr<node> parseExprCase(querySpecs &q) {
 //  tok1.id is colIdx
 //  tok2.id is type [literal, column, variable, function] enum
 //  tok3.val is source file alias
+//  tok3.id is trivial indicator
 static unique_ptr<node> parseValue(querySpecs &q) {
 	t = q.tok();
 	e("value");
