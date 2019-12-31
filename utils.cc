@@ -318,7 +318,7 @@ int getVarIdx(string lkup, querySpecs &q){
 int getFileNo(string s, querySpecs &q){
 	for (int i=1; i<=q.numFiles; ++i)
 		if (q.files[str2("_f", i)]->id == q.files[s]->id)
-			return i;
+			return i-1;
 	error("file number not founde");
 	return -1;
 }

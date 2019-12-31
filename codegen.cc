@@ -52,13 +52,13 @@ static dat parseDurationDat(const char* s) {
 	return ddat;
 }
 static dat parseDateDat(const char* s) { //need to finish dateparse library
-	dat ddat = { { .dt = 0 }, DR };
+	dat ddat = { { .dt = 0 }, DT };
 	ddat.b |= NIL;
 	return ddat;
 }
 static dat parseStringDat(const char* s) {
 	//may want to malloc
-	dat ddat = { { .s = (char*)s }, DR, (short)strlen(s) };
+	dat ddat = { { .s = (char*)s }, T, (short)strlen(s) };
 	return ddat;
 }
 
@@ -84,17 +84,17 @@ static void addop(vector<opcode> &v, byte code, int p1, int p2){
 static void addop(vector<opcode> &v, byte code, int p1, int p2, int p3){
 	cerr << "adding op " << opMap[code]
 		<< "  p1 " << p1 << "  p2 " << p2 << "  p3 " << p3 << endl;
-	v.push_back({code, p1, p2});
+	v.push_back({code, p1, p2, p3});
 }
 
 static void determinePath(querySpecs &q){
 
 	if (q.sorting && !q.grouping && q.joining) {
 		cerr << "ordered join\n";
-        //order join
-    } else if (q.sorting && !q.grouping) {
+		//order join
+	} else if (q.sorting && !q.grouping) {
 		cerr << "ordered plain\n";
-        //ordered plain
+		//ordered plain
 
 		// 1 read line
 		// 2 check where
@@ -109,13 +109,13 @@ static void determinePath(querySpecs &q){
 		//11 if not done, goto 6
 
 
-    } else if (q.joining) {
+	} else if (q.joining) {
 		cerr << "normal join\n";
-        //normal join and grouping
-    } else {
+		//normal join and grouping
+	} else {
 		cerr << "normal plain\n";
 		genNormalQuery(q.tree, q.bytecode, q);
-        //normal plain and grouping
+		//normal plain and grouping
 
 		// 1 read line
 		// 2 eval vars used for filter
@@ -126,8 +126,8 @@ static void determinePath(querySpecs &q){
 		// 7 print/append if not grouping
 		// 8 if not done, goto 1
 		// 9 return grouped rows
-		//     select (phase 2)
-    }
+		//	 select (phase 2)
+	}
 	q.places.updateBytecode(q.bytecode);
 
 }
@@ -136,7 +136,7 @@ void codeGen(querySpecs &q){
 	determinePath(q);
 	int i = 0;
 	for (auto c : q.bytecode){
-		cerr << "ip: " << i++ << "  ";
+		cerr << "ip: " << left << setw(4) << i++;
 		c.print();
 	}
 }
@@ -343,6 +343,7 @@ static void genSelections(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q)
 	default:
 		if (!count)
 			genSelectAll(v, q, count);
+		return;
 	}
 	genSelections(n->node2, v, q);
 }
