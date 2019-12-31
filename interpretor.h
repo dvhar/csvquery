@@ -64,7 +64,7 @@ class fileReader {
 	public:
 	vector<string> colnames;
 	vector<int> types;
-	vector<int> sizes;
+	vector<int> sizes; //need to put all attributes in single class vector
 	vector<char*> line;
 	int widestField; //get rid of this
 	int fieldsFound;

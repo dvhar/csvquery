@@ -5,42 +5,59 @@
 int MAIN, VARS_NORM, VARS_AGG, SEL_NORM, SEL_AGG, WHERE, HAVING, ORDER;
 
 map<int, string> opMap = {
-	{IADD,   "IADD"},
-	{FADD,   "FADD"},
-	{TADD,   "TADD"},
-	{DADD,   "DADD"},
-	{ISUB,   "ISUB"},
-	{FSUB,   "FSUB"},
-	{DSUB,   "DSUB"},
-	{IMULT,   "IMULT"},
-	{FMULT,   "FMULT"},
-	{DMULT,   "DMULT"},
-	{IDIV,   "IDIV"},
-	{FDIV,   "FDIV"},
-	{DDIV,   "DDIV"},
-	{INEG,   "INEG"},
-	{FNEG,   "FNEG"},
-	{DNEG,   "DNEG"},
-	{IMOD,   "IMOD"},
-	{IEXP,   "IEXP"},
-	{FEXP,   "FEXP"},
-	{JMP,   "JMP"},
-	{JMPTRUE,   "JMPTRUE"},
-	{RDLINE,   "RDLINE"},
-	{RDLINEAT,   "RDLINEAT"},
-	{PRINT,   "PRINT"},
-	{RAWROW,   "RAWROW"},
-	{PUT,   "PUT"},
-	{LDPUT,   "LDPUT"},
-	{PUTVAR,   "PUTVAR"},
-	{LDVAR,   "LDVAR"},
-	{LDINT,   "LDINT"},
-	{LDFLOAT,   "LDFLOAT"},
-	{LDTEXT,   "LDTEXT"},
-	{LDDATE,   "LDDATE"},
-	{LDDUR,   "LDDUR"},
-	{LDLIT,   "LDLIT"}
+	{IADD,"IADD"},
+	{FADD,"FADD"},
+	{TADD,"TADD"},
+	{DADD,"DADD"},
+	{ISUB,"ISUB"},
+	{FSUB,"FSUB"},
+	{DSUB,"DSUB"},
+	{IMULT,"IMULT"},
+	{FMULT,"FMULT"},
+	{DMULT,"DMULT"},
+	{IDIV,"IDIV"},
+	{FDIV,"FDIV"},
+	{DDIV,"DDIV"},
+	{INEG,"INEG"},
+	{FNEG,"FNEG"},
+	{DNEG,"DNEG"},
+	{IMOD,"IMOD"},
+	{IEXP,"IEXP"},
+	{FEXP,"FEXP"},
+	{JMP,"JMP"},
+	{JMPTRUE,"JMPTRUE"},
+	{JMPFALSE,"JMPFALSE"},
+	{POP,"POP"},
+	{RDLINE,"RDLINE"},
+	{RDLINEAT,"RDLINEAT"},
+	{PRINT,"PRINT"},
+	{RAWROW,"RAWROW"},
+	{PUT,"PUT"},
+	{LDPUT,"LDPUT"},
+	{PUTVAR,"PUTVAR"},
+	{LDINT,"LDINT"},
+	{LDFLOAT,"LDFLOAT"},
+	{LDTEXT,"LDTEXT"},
+	{LDDATE,"LDDATE"},
+	{LDDUR,"LDDUR"},
+	{LDNULL,"LDNULL"},
+	{LDLIT,"LDLIT"},
+	{LDVAR,"LDVAR"},
+	{IEQ,"IEQ"},
+	{FEQ,"FEQ"},
+	{DEQ,"DEQ"},
+	{TEQ,"TEQ"},
+	{NEQ,"NEQ"},
+	{ILEQ,"ILEQ"},
+	{FLEQ,"FLEQ"},
+	{DLEQ,"DLEQ"},
+	{TLEQ,"TLEQ"},
+	{ILT,"ILT"},
+	{FLT,"FLT"},
+	{DLT,"DLT"},
+	{TLT,"TLT"}
 };
+
 void dat::print(){
 	if (b & NIL) return;
 	switch ( b & 0b00011111 ) {
@@ -146,7 +163,7 @@ case LDFLOAT:
 	++s1;
 	stack[s1].u.f = strtof(files[op.p1]->line[op.p2], &c1);
 	b1 = F;
-	if (c1) b1 |= NIL;
+	if (c1) b1 |= NIL; //need to also check for blank strings
 	stack[s1].b = b1;
 	++ip;
 	break;
