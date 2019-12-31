@@ -70,7 +70,7 @@ void dat::print(){
 }
 
 void opcode::print(){
-	cerr << fmt::format("code: {}  p1: {}  p2:  {}  p3: {}\n", opMap[code], p1, p2, p3);
+	cerr << fmt::format("code: {: <9}  [{: <2}  {: <2}  {: <2}]\n", opMap[code], p1, p2, p3);
 }
 
 vmachine::vmachine(querySpecs* qs){
@@ -198,13 +198,13 @@ case RDLINEAT:
 
 //math operations
 case IADD:
-	if (ISNULL(stack[s1]) || ISNULL(stack[s1-1])) stack[s1-1].b |= NIL;
+	if (ISNULL(stack[s1]) | ISNULL(stack[s1-1])) stack[s1-1].b |= NIL;
 	else stack[s1-1].u.i += stack[s1].u.i;
 	--s1;
 	++ip;
 	break;
 case FADD:
-	if (ISNULL(stack[s1]) || ISNULL(stack[s1-1])) stack[s1-1].b |= NIL;
+	if (ISNULL(stack[s1]) | ISNULL(stack[s1-1])) stack[s1-1].b |= NIL;
 	else stack[s1-1].u.f += stack[s1].u.f;
 	--s1;
 	++ip;
@@ -218,13 +218,13 @@ case DADD:
 	++ip;
 	break;
 case ISUB:
-	if (ISNULL(stack[s1]) || ISNULL(stack[s1-1])) stack[s1-1].b |= NIL;
+	if (ISNULL(stack[s1]) | ISNULL(stack[s1-1])) stack[s1-1].b |= NIL;
 	else stack[s1-1].u.i -= stack[s1].u.i;
 	--s1;
 	++ip;
 	break;
 case FSUB:
-	if (ISNULL(stack[s1]) || ISNULL(stack[s1-1])) stack[s1-1].b |= NIL;
+	if (ISNULL(stack[s1]) | ISNULL(stack[s1-1])) stack[s1-1].b |= NIL;
 	else stack[s1-1].u.f -= stack[s1].u.f;
 	--s1;
 	++ip;
@@ -233,13 +233,13 @@ case DSUB:
 	++ip;
 	break;
 case IMULT:
-	if (ISNULL(stack[s1]) || ISNULL(stack[s1-1])) stack[s1-1].b |= NIL;
+	if (ISNULL(stack[s1]) | ISNULL(stack[s1-1])) stack[s1-1].b |= NIL;
 	else stack[s1-1].u.i *= stack[s1].u.i;
 	--s1;
 	++ip;
 	break;
 case FMULT:
-	if (ISNULL(stack[s1]) || ISNULL(stack[s1-1])) stack[s1-1].b |= NIL;
+	if (ISNULL(stack[s1]) | ISNULL(stack[s1-1])) stack[s1-1].b |= NIL;
 	else stack[s1-1].u.f *= stack[s1].u.f;
 	--s1;
 	++ip;
@@ -247,19 +247,19 @@ case FMULT:
 case DMULT:
 	break;
 case IDIV:
-	if (ISNULL(stack[s1]) || ISNULL(stack[s1-1]) || stack[s1].u.i==0) stack[s1-1].b |= NIL;
+	if (ISNULL(stack[s1]) | ISNULL(stack[s1-1]) || stack[s1].u.i==0) stack[s1-1].b |= NIL;
 	else stack[s1-1].u.i /= stack[s1].u.i;
 	--s1;
 	++ip;
 	break;
 case FDIV:
-	if (ISNULL(stack[s1]) || ISNULL(stack[s1-1]) || stack[s1].u.f==0) stack[s1-1].b |= NIL;
+	if (ISNULL(stack[s1]) | ISNULL(stack[s1-1]) || stack[s1].u.f==0) stack[s1-1].b |= NIL;
 	else stack[s1-1].u.f /= stack[s1].u.f;
 	--s1;
 	++ip;
 	break;
 case DDIV:
-	if (ISNULL(stack[s1]) || ISNULL(stack[s1-1]) || stack[s1].u.f==0) stack[s1-1].b |= NIL;
+	if (ISNULL(stack[s1]) | ISNULL(stack[s1-1]) || stack[s1].u.f==0) stack[s1-1].b |= NIL;
 	else stack[s1-1].u.dr /= stack[s1].u.f; //make sure duration/num num is float
 	--s1;
 	++ip;
@@ -308,13 +308,13 @@ case TEQ:
 	++ip;
 	break;
 case ILEQ:
-	if (ISNULL(stack[s1]) || ISNULL(stack[s1-1])) stack[s1-op.p1].u.p = false;
+	if (ISNULL(stack[s1]) | ISNULL(stack[s1-1])) stack[s1-op.p1].u.p = false;
 	else stack[s1-op.p1].u.p = stack[s1-1].u.i <= stack[s1].u.i;
 	s1 -= op.p1;
 	++ip;
 	break;
 case FLEQ:
-	if (ISNULL(stack[s1]) || ISNULL(stack[s1-1])) stack[s1-op.p1].u.p = false;
+	if (ISNULL(stack[s1]) | ISNULL(stack[s1-1])) stack[s1-op.p1].u.p = false;
 	else stack[s1-op.p1].u.p = stack[s1-1].u.f <= stack[s1].u.f;
 	s1 -= op.p1;
 	++ip;
@@ -323,19 +323,19 @@ case DLEQ:
 	++ip;
 	break;
 case TLEQ:
-	if (ISNULL(stack[s1]) || ISNULL(stack[s1-1])) stack[s1-op.p1].u.p = false;
+	if (ISNULL(stack[s1]) | ISNULL(stack[s1-1])) stack[s1-op.p1].u.p = false;
 	else stack[s1-op.p1].u.p = scomp(stack[s1-1].u.s, stack[s1].u.s) <= 0;
 	s1 -= op.p1;
 	++ip;
 	break;
 case ILT:
-	if (ISNULL(stack[s1]) || ISNULL(stack[s1-1])) stack[s1-op.p1].u.p = false;
+	if (ISNULL(stack[s1]) | ISNULL(stack[s1-1])) stack[s1-op.p1].u.p = false;
 	else stack[s1-op.p1].u.p = stack[s1-1].u.i < stack[s1].u.i;
 	s1 -= op.p1;
 	++ip;
 	break;
 case FLT:
-	if (ISNULL(stack[s1]) || ISNULL(stack[s1-1])) stack[s1-op.p1].u.p = false;
+	if (ISNULL(stack[s1]) | ISNULL(stack[s1-1])) stack[s1-op.p1].u.p = false;
 	else stack[s1-op.p1].u.p = stack[s1-1].u.f < stack[s1].u.f;
 	s1 -= op.p1;
 	++ip;
@@ -344,7 +344,7 @@ case DLT:
 	++ip;
 	break;
 case TLT:
-	if (ISNULL(stack[s1]) || ISNULL(stack[s1-1])) stack[s1-op.p1].u.p = false;
+	if (ISNULL(stack[s1]) | ISNULL(stack[s1-1])) stack[s1-op.p1].u.p = false;
 	else stack[s1-op.p1].u.p = scomp(stack[s1-1].u.s, stack[s1].u.s) < 0;
 	s1 -= op.p1;
 	++ip;
