@@ -108,6 +108,7 @@ void fileReader::inferTypes() {
 	readline();
 	auto startData = pos;
 	//get col names and initialize blank types
+	cerr << " noheader: " << noheader << endl;
 	for (int i=0; i<line.size(); ++i) {
 		if (noheader)
 			colnames.push_back(str2("col",i+1));
@@ -165,7 +166,7 @@ void openfiles(querySpecs &q, unique_ptr<node> &n){
 			fr->noheader = false;
 		if (n->tok3.id){
 			string s = n->tok3.lower();
-			if (s == "n" || s == "noheader")
+			if (s == "nh" || s == "noheader")
 				fr->noheader = true;
 			if (s == "h" || s == "header")
 				fr->noheader = false;

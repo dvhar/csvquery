@@ -128,13 +128,17 @@ static void determinePath(querySpecs &q){
 		// 9 return grouped rows
 		//     select (phase 2)
     }
+	q.places.updateBytecode(q.bytecode);
 
 }
 
 void codeGen(querySpecs &q){
 	determinePath(q);
-	for (auto c : q.bytecode)
+	int i = 0;
+	for (auto c : q.bytecode){
+		cerr << "ip: " << i++ << "  ";
 		c.print();
+	}
 }
 
 //generate bytecode for any node in an expression
@@ -277,6 +281,7 @@ static void genExprCase(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
 			caseEnd = q.places.newPlaceholder();
 			genExprAll(n->node1, v, q);
 			genCWExprList(n->node2, v, q, caseEnd);
+			addop(v, POP, 1); //don't need comparison value anymore
 			genExprAll(n->node3, v, q);
 			if (n->node3 == nullptr)
 				addop(v, LDNULL);
@@ -324,14 +329,12 @@ static void genSelections(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q)
 		} else if (t1 == "*") {
 			genSelectAll(v, q, count);
 		} else if (isTrivial(n)) {
-			cerr << "found trivial\n";
 			for (auto nn = n.get(); nn; nn = nn->node1.get()) if (nn->label == N_VALUE){
 				addop(v, LDPUT, count, nn->tok1.id, getFileNo(nn->tok3.val, q));
 				break;
 			}
 			count++;
 		} else {
-			cerr << "found normal expression\n";
 			genExprAll(n->node1, v, q);
 			addop(v, PUT, count);
 			count++;

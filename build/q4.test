@@ -1,0 +1,7 @@
+select
+case c4
+when "Caribbean" then 1.2
+when "Southern Europe" then 89
+else 100.23
+end
+from 'test/country.csv' nh r
