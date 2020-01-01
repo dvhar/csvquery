@@ -205,7 +205,6 @@ token querySpecs::peekTok() {
 	return tokArray[tokIdx];
 }
 token querySpecs::tok() { return tokArray[tokIdx]; }
-void querySpecs::reset() { tokIdx = 0; }
 void querySpecs::addVar(string name) {
 	variable var;
 	var.name = name;
@@ -247,12 +246,6 @@ int scomp(const char* s1, const char*s2){
 //same but lowercase
 int slcomp(const char* s1, const char*s2){
 	while (*s1 && tolower(*s1)==*s2) { ++s1; ++s2; }
-	return *s1 - *s2;
-}
-//same but lowercase and limit length
-int slncomp(const char* s1, const char*s2, const int n){
-	int i=0;
-	while (*s1 && i<n && tolower(*s1)==*s2) { ++s1; ++s2; ++i; }
 	return *s1 - *s2;
 }
 int isInList(int n, int count, ...)

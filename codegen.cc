@@ -32,23 +32,25 @@ static bool isTrivial(unique_ptr<node> &n){
 		return true;
 	return isTrivial(n->node1);
 }
+
+//parse literals and check for errors
 static dat parseIntDat(const char* s){
-	char* end;
+	char* end = NULL;
 	dat idat = { { .i = strtol(s, &end, 10) }, I };
-	if (end != 0) idat.b |= NIL;
+	if (*end != 0) error(str3("Could not parse ", s, " as integer."));
 	return idat;
 }
 static dat parseFloatDat(const char* s){
-	char* end;
+	char* end = NULL;
 	dat fdat = { { .f = strtof(s, &end) }, F };
-	if (end != 0) fdat.b |= NIL;
+	if (*end != 0) error(str3("Could not parse ", s, " as floating point number."));
 	return fdat;
 }
 static dat parseDurationDat(const char* s) {
 	time_t t;
 	int err = parseDuration((char*)s, &t);
 	dat ddat = { { .dr = t }, DR };
-	if (err) ddat.b |= NIL;
+	if (err) error(str3("Could not parse ", s, " as duration."));
 	return ddat;
 }
 static dat parseDateDat(const char* s) { //need to finish dateparse library
@@ -66,7 +68,7 @@ static dat parseStringDat(const char* s) {
 void jumpPositions::updateBytecode(vector<opcode> &vec) {
 	for (auto &v : vec)
 		if ((v.code == JMP || v.code == JMPFALSE || v.code == JMPTRUE) && v.p1 < 0)
-			v.p1 = places[v.p1];
+			v.p1 = jumps[v.p1];
 };
 
 static void addop(vector<opcode> &v, byte code){
@@ -128,7 +130,7 @@ static void determinePath(querySpecs &q){
 		// 9 return grouped rows
 		//	 select (phase 2)
 	}
-	q.places.updateBytecode(q.bytecode);
+	q.jumps.updateBytecode(q.bytecode);
 
 }
 
@@ -278,14 +280,14 @@ static void genExprCase(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
 		//expression matches expression list
 		case WORD:
 		case SP_LPAREN:
-			caseEnd = q.places.newPlaceholder();
+			caseEnd = q.jumps.newPlaceholder();
 			genExprAll(n->node1, v, q);
 			genCWExprList(n->node2, v, q, caseEnd);
 			addop(v, POP, 1); //don't need comparison value anymore
 			genExprAll(n->node3, v, q);
 			if (n->node3 == nullptr)
 				addop(v, LDNULL);
-			q.places.setPlace(caseEnd, v.size());
+			q.jumps.setPlace(caseEnd, v.size());
 			break;
 		}
 		break;
@@ -303,14 +305,14 @@ static void genCWExprList(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q,
 
 static void genCWExpr(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q, int end){
 	if (n == nullptr) return;
-	int next = q.places.newPlaceholder(); //get jump pos for next try
+	int next = q.jumps.newPlaceholder(); //get jump pos for next try
 	genExprAll(n->node1, v, q); //evaluate comparision expression
 	addop(v, ops[OPEQ][n->tok1.id], 0); //leave '=' result where this comp value was
 	addop(v, JMPFALSE, next);
 	addop(v, POP, 1); //don't need comparison value anymore
 	genExprAll(n->node2, v, q); //result value if eq
 	addop(v, JMP, end);
-	q.places.setPlace(next, v.size()); //jump here for next try
+	q.jumps.setPlace(next, v.size()); //jump here for next try
 }
 
 static void genSelect(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
@@ -349,6 +351,9 @@ static void genSelections(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q)
 }
 
 static void genSelectAll(vector<opcode> &v, querySpecs &q, int &count){
+	addop(v, LDPUTALL, count);
+	for (int i=1; i<=q.numFiles; ++i)
+		count += q.files[str2("_f", i)]->numFields;
 }
 
 static void genGroupOrNewRow(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
