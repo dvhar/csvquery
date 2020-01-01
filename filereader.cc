@@ -6,21 +6,20 @@
 
 
 fileReader::fileReader(string fname){
-	numFields = widestField = 0;
+	numFields = 0;
 	fs = ifstream(fname);	
 	pos = fs.tellg();
 }
 void fileReader::print(){
-	for (auto &l : line){
-		cerr << "[" << l << "]";
+	for (auto &e : entries){
+		cerr << "[" << e.val << "]";
 	}
 	cerr << endl;
 }
 int fileReader::readline(){
 	pos = fs.tellg();
 	fs.getline(buf, BUFSIZE);
-	line.clear();
-	sizes.clear();
+	entries.clear();
 	fieldsFound = 0;
 	pos1 = pos2 = buf;
 	while (1){
@@ -42,7 +41,7 @@ int fileReader::readline(){
 				terminator = pos2;
 				getField();
 				++fieldsFound;
-				if (getWidth())
+				if (checkWidth())
 					return -1;
 				return 0;
 			}
@@ -70,7 +69,7 @@ int fileReader::readline(){
 				terminator = pos2-1;
 				getField();
 				++fieldsFound;
-				if (getWidth())
+				if (checkWidth())
 					return -1;
 				return 0;
 			}
@@ -79,28 +78,20 @@ int fileReader::readline(){
 	}
 	return 0;
 }
-int fileReader::getWidth(){
-	int width = pos2 - buf;
-	if (width > widestField){
-		//numfields is 0 until first line is done
-		if (numFields == 0)
-			numFields = line.size();
-		widestField = width;
-	}
-	if (fieldsFound != numFields){
-		stringstream e;
-		e << "should have " << numFields << " fields, found " << fieldsFound;
-		err = e.str();
-		return -1;
-	}
+int fileReader::checkWidth(){
+	//numfields is 0 until first line is done
+	if (numFields == 0)
+		numFields = entries.size();
+	if (fieldsFound != numFields)
+		//error(fmt::format("should have {} fields, found {}", numFields, fieldsFound));
+		return 1;
 	return 0;
 }
 int fileReader::getField(){
 	//trim trailing whitespace and push pointer
 	while (isblank(*(terminator-1))) --terminator;
 	*terminator = '\0';
-	line.push_back(pos1);
-	sizes.push_back(terminator-pos1);
+	entries.push_back({pos1, (int)(terminator-pos1)});
 	return 0;
 }
 
@@ -109,11 +100,11 @@ void fileReader::inferTypes() {
 	auto startData = pos;
 	//get col names and initialize blank types
 	cerr << " noheader: " << noheader << endl;
-	for (int i=0; i<line.size(); ++i) {
+	for (int i=0; i<entries.size(); ++i) {
 		if (noheader)
 			colnames.push_back(str2("col",i+1));
 		else
-			colnames.push_back(string(line[i]));
+			colnames.push_back(string(entries[i].val));
 		types.push_back(0);
 	}
 	//get samples and infer types from them
@@ -122,8 +113,8 @@ void fileReader::inferTypes() {
 		startData = pos;
 	}
 	for (int j=0; j<10000; ++j) {
-		for (int i=0; i<line.size(); ++i)
-			types[i] = getNarrowestType(line[i], types[i]);
+		for (int i=0; i<entries.size(); ++i)
+			types[i] = getNarrowestType(entries[i].val, types[i]);
 		if (readline()){
 			break;
 		}
@@ -150,7 +141,6 @@ void openfiles(querySpecs &q, unique_ptr<node> &n){
 		string id = str2("_f",q.numFiles);
 		shared_ptr<fileReader> fr(new fileReader(path));
 		fr->id = id;
-		fr->fileIdx = q.numFiles - 1;
 		q.files[id] = fr;
 		if (n->tok4.id)
 			q.files[n->tok4.val] = fr;

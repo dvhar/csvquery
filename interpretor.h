@@ -60,28 +60,29 @@ class variable {
 	int filter;
 };
 
-//file stuff
-class fileReader {
+class csvEntry {
 	public:
-	vector<string> colnames;
-	vector<int> types;
-	vector<int> sizes; //need to put all attributes in single class vector
-	vector<char*> line;
-	int widestField; //get rid of this
+	char* val;
+	int size;
+};
+
+class fileReader {
 	int fieldsFound;
 	char* pos1;
 	char* pos2;
 	char* terminator;
 	char buf[BUFSIZE];
-	int getField();
-	int getWidth();
-	int numFields;
-	int fileIdx;
-	bool noheader;
 	streampos pos;
 	ifstream fs;
-	string id;
-	string err;
+	public:
+		vector<string> colnames;
+		vector<int> types;
+		vector<csvEntry> entries;
+		bool noheader;
+		string id;
+		int numFields;
+	int getField();
+	int checkWidth();
 	void inferTypes();
 	void print();
 	int getColIdx(string);
@@ -109,18 +110,18 @@ union datunion {
 class dat {
 	public:
 	union datunion u;
-	byte b; // bits for data about value
+	byte b; // metadata bit array
 	short z; // string size
 	void print();
 };
 
 //placeholder for jmp positions that can't be determined until later
 class jumpPositions {
-	map<int, int> places;
+	map<int, int> jumps;
 	int uniqueKey;
 	public:
 	int newPlaceholder() { return --uniqueKey; };
-	void setPlace(int k, int v) { places[k] = v; };
+	void setPlace(int k, int v) { jumps[k] = v; };
 	void updateBytecode(vector<opcode> &vec);
 	jumpPositions() { uniqueKey = -1; };
 };
@@ -142,7 +143,7 @@ class querySpecs {
 	vector<opcode> bytecode;
 	map<string, shared_ptr<fileReader>> files;
 	unique_ptr<node> tree;
-	jumpPositions places;
+	jumpPositions jumps;
 	resultSpecs colspec;
 	int numFiles;
 	int tokIdx;
@@ -155,7 +156,6 @@ class querySpecs {
 	token nextTok();
 	token peekTok();
 	bool numIsCol();
-	void reset();
 	void init(string);
 	void addVar(string);
 };
@@ -281,13 +281,11 @@ extern regex cInt;
 extern regex posInt;
 extern regex colNum;
 
-//function headers
 void scanTokens(querySpecs &q);
 void parseQuery(querySpecs &q);
 void error(const string &err);
 bool is_number(const std::string& s);
 void printTree(unique_ptr<node> &n, int ident);
-string lower(string);
 int scomp(const char*, const char*);
 int slcomp(const char*, const char*);
 int isInt(const char*);

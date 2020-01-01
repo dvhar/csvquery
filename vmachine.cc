@@ -104,6 +104,7 @@ void vmachine::run(){
 	//temporary values
 	int i1, i2;
 	char* c1;
+	csvEntry cv;
 	byte b1;
 	dat d1;
 
@@ -124,10 +125,15 @@ case PUT:
 	break;
 //put data from filereader directly into torow
 case LDPUT:
-	torow[op.p1].u.s = files[op.p3]->line[op.p2];
-	torow[op.p1].z = files[op.p3]->sizes[op.p2];
-	torow[op.p1].b = T;
+	cv = files[op.p3]->entries[op.p2];
+	torow[op.p1] = { { .s = cv.val }, T, (short) cv.size };
 	++ip;
+	break;
+case LDPUTALL:
+	i1 = op.p1;
+	for (auto &f : files)
+		for (auto &e : f->entries)
+			torow[i1++] = { { .s = e.val }, T, (short) e.size };
 	break;
 
 //put variable from stack into var vector
@@ -141,10 +147,10 @@ case LDVAR:
 	++ip;
 	break;
 
-//load data from filereader to the stack
+//load data from filereader to the stack - need to check for nulls
 case LDDUR:
 	++s1;
-	i1 = parseDuration(files[op.p1]->line[op.p2], (time_t*)&i2);
+	i1 = parseDuration(files[op.p1]->entries[op.p2].val, (time_t*)&i2);
 	stack[s1].u.dr = i2;
 	if (i1) b1 |= NIL;
 	++ip;
@@ -154,14 +160,13 @@ case LDDATE:
 	break;
 case LDTEXT:
 	++s1;
-	stack[s1].u.s = files[op.p1]->line[op.p2];
-	stack[s1].z = files[op.p1]->sizes[op.p2];
-	stack[s1].b = T;
+	cv = files[op.p1]->entries[op.p2];
+	stack[s1] = { { .s = cv.val }, T, (short) cv.size };
 	++ip;
 	break;
 case LDFLOAT:
 	++s1;
-	stack[s1].u.f = strtof(files[op.p1]->line[op.p2], &c1);
+	stack[s1].u.f = strtof(files[op.p1]->entries[op.p2].val, &c1);
 	b1 = F;
 	if (c1) b1 |= NIL; //need to also check for blank strings
 	stack[s1].b = b1;
@@ -169,7 +174,7 @@ case LDFLOAT:
 	break;
 case LDINT:
 	++s1;
-	stack[s1].u.i = strtol(files[op.p1]->line[op.p2], &c1, 10);
+	stack[s1].u.i = strtol(files[op.p1]->entries[op.p2].val, &c1, 10);
 	b1 = I;
 	if (c1) b1 |= NIL;
 	stack[s1].b = b1;
