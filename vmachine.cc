@@ -77,7 +77,16 @@ vmachine::vmachine(querySpecs* qs){
 	q = qs;
 	for (int i=1; i<q->numFiles; ++i)
 		files.push_back(q->files[str2("_f", i)]);
-
+	if (q->grouping){
+		//initialize midrow and point torow to it
+	} else {
+		destrow.resize(q->colspec.count);
+		torow = destrow.data();
+		torowSize = destrow.size();
+	}
+	vars.resize(q->vars.size());
+	//eventually set stack size based on syntax tree
+	stack.resize(50);
 }
 
 //add s2 to s1
@@ -365,19 +374,17 @@ case JMP:
 	ip = op.p1;
 	break;
 case JMPFALSE:
-	if (!stack[s1].u.p)
-		ip = op.p1;
-	--s1;
+	ip = !stack[s1].u.p ? op.p1 : ip+1;
+	s1-=op.p2;
 	break;
 case JMPTRUE:
-	if (stack[s1].u.p)
-		ip = op.p1;
-	--s1;
+	ip = stack[s1].u.p ? op.p1 : ip+1;
+	s1-=op.p2;
 	break;
 
 case PRINT:
-	for (auto &d : torow)
-		d.print();
+	for (int i=0; i<torowSize; ++i)
+		torow[i].print();
 	cout << endl;
 	++ip;
 	break;

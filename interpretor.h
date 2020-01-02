@@ -19,6 +19,8 @@
 #define str1(A) fmt::format("{}",A)
 #define str2(A,B) fmt::format("{}{}",A,B)
 #define str3(A,B,C) fmt::format("{}{}{}",A,B,C)
+#define error(A) throw invalid_argument(A)
+
 
 using namespace std;
 
@@ -283,7 +285,6 @@ extern regex colNum;
 
 void scanTokens(querySpecs &q);
 void parseQuery(querySpecs &q);
-void error(const string &err);
 bool is_number(const std::string& s);
 void printTree(unique_ptr<node> &n, int ident);
 int scomp(const char*, const char*);
