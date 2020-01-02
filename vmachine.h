@@ -63,7 +63,10 @@ class vmachine {
 	querySpecs* q;
 	vector<shared_ptr<fileReader>> files;
 	vector<opcode> ops;
-	vector<dat> torow;
+	dat* torow;
+	int torowSize;
+	vector<dat> destrow;
+	vector<dat> midrow;
 	vector<dat> stack;
 	vector<dat> vars;
 	void run();

@@ -9,11 +9,6 @@
 //placeholder - real function under construction in its own library
 int dateParse(const char* datestr, struct timeval* tv){ return -1; }
 
-string lower(string s){
-	boost::to_lower(s);
-	return s;
-}
-
 regex_t leadingZeroString;
 regex_t durationPattern;
 regex_t intType;
@@ -192,10 +187,6 @@ bool is_number(const std::string& s)
         s.end(), [](char c) { return !std::isdigit(c); }) == s.end();
 }
 
-void error(const string &err){
-	throw invalid_argument(err);
-}
-
 token querySpecs::nextTok() {
 	if (tokIdx < tokArray.size()-1) tokIdx++;
 	return tokArray[tokIdx];
@@ -226,11 +217,13 @@ void printTree(unique_ptr<node> &n, int ident){
 	string s = "";
 	for (int i=0;i<ident;i++) s += "  ";
 	cout << s << treeMap[n->label] << endl
-		<< s << n->tok1.val << "  "
-		<< n->tok2.val << "  "
-		<< n->tok3.val << "  "
-		<< n->tok4.val << "  "
-		<< n->tok5.val << "  "
+		<< s 
+		<< fmt::format("[{} {} {} {} {}]"
+		,n->tok1.val
+		,n->tok2.val
+		,n->tok3.val
+		,n->tok4.val
+		,n->tok5.val)
 		<< n->datatype << endl;
 	printTree(n->node1,ident);
 	printTree(n->node2,ident);

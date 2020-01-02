@@ -15,9 +15,9 @@ static void genExprMult(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q);
 static void genExprNeg(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q);
 static void genExprList(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q);
 static void genExprCase(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q);
-static void genCPredList(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q);
+static void genCPredList(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q, int end);
 static void genCWExprList(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q, int end);
-static void genCPred(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q);
+static void genCPred(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q, int end);
 static void genCWExpr(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q, int end);
 static void genPredicates(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q);
 static void genPredCompare(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q);
@@ -143,8 +143,9 @@ void codeGen(querySpecs &q){
 	}
 }
 
-//generate bytecode for any node in an expression
+//generate bytecode for expression nodes
 static void genExprAll(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
+	if (n == nullptr) return;
 	cerr << "calling gen func for node " << treeMap[n->label] << endl;
 	switch (n->label){
 	case N_DEXPRESSIONS:
@@ -153,8 +154,6 @@ static void genExprAll(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
 	case N_EXPRADD:         genExprAdd     (n, v, q); break;
 	case N_EXPRMULT:        genExprMult    (n, v, q); break;
 	case N_EXPRCASE:        genExprCase    (n, v, q); break;
-	case N_CPREDLIST:       genCPredList   (n, v, q); break;
-	case N_CPRED:           genCPred       (n, v, q); break;
 	case N_PREDICATES:      genPredicates  (n, v, q); break;
 	case N_PREDCOMP:        genPredCompare (n, v, q); break;
 	case N_VALUE:           genValue       (n, v, q); break;
@@ -270,17 +269,23 @@ static void genValue(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
 
 static void genExprCase(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
 	if (n == nullptr) return;
-	int caseEnd;
+	int caseEnd = q.jumps.newPlaceholder();
 	switch (n->tok1.id){
 	case KW_CASE:
 		switch (n->tok2.id){
 		//when predicates are true
 		case KW_WHEN:
+			cerr << "case pred expression\n";
+			genCPredList(n->node1, v, q, caseEnd);
+			cerr << "case pred list done\n";
+			genExprAll(n->node3, v, q);
+			if (n->node3 == nullptr)
+				addop(v, LDNULL);
+			q.jumps.setPlace(caseEnd, v.size());
 			break;
 		//expression matches expression list
 		case WORD:
 		case SP_LPAREN:
-			caseEnd = q.jumps.newPlaceholder();
 			genExprAll(n->node1, v, q);
 			genCWExprList(n->node2, v, q, caseEnd);
 			addop(v, POP, 1); //don't need comparison value anymore
@@ -308,9 +313,27 @@ static void genCWExpr(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q, int
 	int next = q.jumps.newPlaceholder(); //get jump pos for next try
 	genExprAll(n->node1, v, q); //evaluate comparision expression
 	addop(v, ops[OPEQ][n->tok1.id], 0); //leave '=' result where this comp value was
-	addop(v, JMPFALSE, next);
+	addop(v, JMPFALSE, next, 1);
 	addop(v, POP, 1); //don't need comparison value anymore
 	genExprAll(n->node2, v, q); //result value if eq
+	addop(v, JMP, end);
+	q.jumps.setPlace(next, v.size()); //jump here for next try
+}
+
+static void genCPredList(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q, int end){
+	if (n == nullptr) return;
+	cerr << "case pred list\n";
+	genCPred(n->node1, v, q, end);
+	genCPredList(n->node2, v, q, end);
+}
+
+static void genCPred(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q, int end){
+	if (n == nullptr) return;
+	cerr << "case pred\n";
+	int next = q.jumps.newPlaceholder(); //get jump pos for next try
+	genPredicates(n->node1, v, q);
+	addop(v, JMPFALSE, next, 1);
+	genExprAll(n->node2, v, q); //result value if true
 	addop(v, JMP, end);
 	q.jumps.setPlace(next, v.size()); //jump here for next try
 }
@@ -365,14 +388,6 @@ static void genWhere(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
 }
 
 static void genExprList(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
-	if (n == nullptr) return;
-}
-
-static void genCPredList(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
-	if (n == nullptr) return;
-}
-
-static void genCPred(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
 	if (n == nullptr) return;
 }
 
