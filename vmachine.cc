@@ -290,13 +290,14 @@ case FNEG:
 	break;
 
 //comparisions - p1 determines how far down the stack to leave the result
+// p2 is negator
 //may want to combine with jmp
 case IEQ:
 	i1 = ISNULL(stack[s1]);
 	i2 = ISNULL(stack[s1-1]);
 	if (i1 ^ i2) stack[s1-op.p1].u.p = false;
 	else if (i1 & i2) stack[s1-op.p1].u.p = true;
-	else stack[s1-op.p1].u.p = stack[s1-1].u.i == stack[s1].u.i;
+	else stack[s1-op.p1].u.p = (stack[s1-1].u.i == stack[s1].u.i)^op.p2;
 	s1 -= op.p1;
 	++ip;
 	break;
@@ -305,7 +306,7 @@ case FEQ:
 	i2 = ISNULL(stack[s1-1]);
 	if (i1 ^ i2) stack[s1-op.p1].u.p = false;
 	else if (i1 & i2) stack[s1-op.p1].u.p = true;
-	else stack[s1-op.p1].u.p = stack[s1-1].u.f == stack[s1].u.f;
+	else stack[s1-op.p1].u.p = (stack[s1-1].u.f == stack[s1].u.f)^op.p2;
 	s1 -= op.p1;
 	++ip;
 	break;
@@ -317,19 +318,19 @@ case TEQ:
 	i2 = ISNULL(stack[s1-1]);
 	if (i1 ^ i2) stack[s1-op.p1].u.p = false;
 	else if (i1 & i2) stack[s1-op.p1].u.p = true;
-	else stack[s1-op.p1].u.p = scomp(stack[s1-1].u.s, stack[s1].u.s) == 0;
+	else stack[s1-op.p1].u.p = (scomp(stack[s1-1].u.s, stack[s1].u.s) == 0)^op.p2;
 	s1 -= op.p1;
 	++ip;
 	break;
 case ILEQ:
-	if (ISNULL(stack[s1]) | ISNULL(stack[s1-1])) stack[s1-op.p1].u.p = false;
-	else stack[s1-op.p1].u.p = stack[s1-1].u.i <= stack[s1].u.i;
+	if (ISNULL(stack[s1]) || ISNULL(stack[s1-1])) stack[s1-op.p1].u.p = false;
+	else stack[s1-op.p1].u.p = (stack[s1-1].u.i <= stack[s1].u.i)^op.p2;
 	s1 -= op.p1;
 	++ip;
 	break;
 case FLEQ:
-	if (ISNULL(stack[s1]) | ISNULL(stack[s1-1])) stack[s1-op.p1].u.p = false;
-	else stack[s1-op.p1].u.p = stack[s1-1].u.f <= stack[s1].u.f;
+	if (ISNULL(stack[s1]) || ISNULL(stack[s1-1])) stack[s1-op.p1].u.p = false;
+	else stack[s1-op.p1].u.p = (stack[s1-1].u.f <= stack[s1].u.f)^op.p2;
 	s1 -= op.p1;
 	++ip;
 	break;
@@ -337,20 +338,20 @@ case DLEQ:
 	++ip;
 	break;
 case TLEQ:
-	if (ISNULL(stack[s1]) | ISNULL(stack[s1-1])) stack[s1-op.p1].u.p = false;
-	else stack[s1-op.p1].u.p = scomp(stack[s1-1].u.s, stack[s1].u.s) <= 0;
+	if (ISNULL(stack[s1]) || ISNULL(stack[s1-1])) stack[s1-op.p1].u.p = false;
+	else stack[s1-op.p1].u.p = (scomp(stack[s1-1].u.s, stack[s1].u.s) <= 0)^op.p2;
 	s1 -= op.p1;
 	++ip;
 	break;
 case ILT:
-	if (ISNULL(stack[s1]) | ISNULL(stack[s1-1])) stack[s1-op.p1].u.p = false;
-	else stack[s1-op.p1].u.p = stack[s1-1].u.i < stack[s1].u.i;
+	if (ISNULL(stack[s1]) || ISNULL(stack[s1-1])) stack[s1-op.p1].u.p = false;
+	else stack[s1-op.p1].u.p = (stack[s1-1].u.i < stack[s1].u.i)^op.p2;
 	s1 -= op.p1;
 	++ip;
 	break;
 case FLT:
-	if (ISNULL(stack[s1]) | ISNULL(stack[s1-1])) stack[s1-op.p1].u.p = false;
-	else stack[s1-op.p1].u.p = stack[s1-1].u.f < stack[s1].u.f;
+	if (ISNULL(stack[s1]) || ISNULL(stack[s1-1])) stack[s1-op.p1].u.p = false;
+	else stack[s1-op.p1].u.p = (stack[s1-1].u.f < stack[s1].u.f)^op.p2;
 	s1 -= op.p1;
 	++ip;
 	break;
@@ -358,8 +359,8 @@ case DLT:
 	++ip;
 	break;
 case TLT:
-	if (ISNULL(stack[s1]) | ISNULL(stack[s1-1])) stack[s1-op.p1].u.p = false;
-	else stack[s1-op.p1].u.p = scomp(stack[s1-1].u.s, stack[s1].u.s) < 0;
+	if (ISNULL(stack[s1]) || ISNULL(stack[s1-1])) stack[s1-op.p1].u.p = false;
+	else stack[s1-op.p1].u.p = (scomp(stack[s1-1].u.s, stack[s1].u.s) < 0)^op.p2;
 	s1 -= op.p1;
 	++ip;
 	break;

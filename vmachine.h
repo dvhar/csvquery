@@ -28,7 +28,7 @@ extern map<int, string> opMap;
 
 //2d array for ops indexed by operation and datatype
 enum typeOperators {
-	OPADD, OPSUB, OPMULT, OPDIV, OPEXP, OPNEG, OPLD, OPEQ
+	OPADD, OPSUB, OPMULT, OPDIV, OPEXP, OPNEG, OPLD, OPEQ, OPLEQ, OPLT
 };
 static int ops[][6] = {
 	{ 0, IADD, FADD, DADD, DADD, TADD },
