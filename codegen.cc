@@ -275,9 +275,7 @@ static void genExprCase(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
 		switch (n->tok2.id){
 		//when predicates are true
 		case KW_WHEN:
-			cerr << "case pred expression\n";
 			genCPredList(n->node1, v, q, caseEnd);
-			cerr << "case pred list done\n";
 			genExprAll(n->node3, v, q);
 			if (n->node3 == nullptr)
 				addop(v, LDNULL);
@@ -322,14 +320,12 @@ static void genCWExpr(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q, int
 
 static void genCPredList(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q, int end){
 	if (n == nullptr) return;
-	cerr << "case pred list\n";
 	genCPred(n->node1, v, q, end);
 	genCPredList(n->node2, v, q, end);
 }
 
 static void genCPred(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q, int end){
 	if (n == nullptr) return;
-	cerr << "case pred\n";
 	int next = q.jumps.newPlaceholder(); //get jump pos for next try
 	genPredicates(n->node1, v, q);
 	addop(v, JMPFALSE, next, 1);
@@ -373,6 +369,56 @@ static void genSelections(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q)
 	genSelections(n->node2, v, q);
 }
 
+static void genPredicates(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
+	if (n == nullptr) return;
+	genPredCompare(n->node1, v, q);
+	int done = q.jumps.newPlaceholder();
+	switch (n->tok1.id){
+	case KW_AND:
+		addop(v, JMPFALSE, done, 0);
+		addop(v, POP, 1); //don't need old result
+		genPredCompare(n->node1, v, q);
+		break;
+	case KW_OR:
+		addop(v, JMPTRUE, done, 0);
+		addop(v, POP, 1); //don't need old result
+		genPredCompare(n->node1, v, q);
+		break;
+	case KW_XOR:
+		break;
+	}
+	q.jumps.setPlace(done, v.size()+1); // find a way to get rid of this +1
+}
+
+static void genPredCompare(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
+	if (n == nullptr) return;
+	int negation = 0;
+	genExprAll(n->node1, v, q);
+	switch (n->tok1.id){
+	case SP_NOEQ: negation = 1;
+	case SP_EQ:
+		genExprAll(n->node2, v, q);
+		addop(v, ops[OPEQ][n->datatype], 2, negation ^ n->tok2.id);
+		break;
+	case SP_GREATEQ: negation = 1;
+	case SP_LESS:
+		genExprAll(n->node2, v, q);
+		addop(v, ops[OPLT][n->datatype], 2, negation ^ n->tok2.id);
+		break;
+	case SP_GREAT: negation = 1;
+	case SP_LESSEQ:
+		genExprAll(n->node2, v, q);
+		addop(v, ops[OPLEQ][n->datatype], 2, negation ^ n->tok2.id);
+		break;
+	case KW_LIKE:
+		break;
+	case KW_IN:
+		break;
+	case KW_BETWEEN:
+		break;
+	}
+}
+
 static void genSelectAll(vector<opcode> &v, querySpecs &q, int &count){
 	addop(v, LDPUTALL, count);
 	for (int i=1; i<=q.numFiles; ++i)
@@ -388,14 +434,6 @@ static void genWhere(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
 }
 
 static void genExprList(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
-	if (n == nullptr) return;
-}
-
-static void genPredicates(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
-	if (n == nullptr) return;
-}
-
-static void genPredCompare(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
 	if (n == nullptr) return;
 }
 
