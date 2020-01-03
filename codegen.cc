@@ -7,8 +7,7 @@ static void genWhere(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q);
 static void genDistinct(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q);
 static void genGroupOrNewRow(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q);
 static void genSelect(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q);
-static void genPrint(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q);
-static void genRepeatPhase1(vector<opcode> &v, querySpecs &q, int);
+static void genPrint(vector<opcode> &v, querySpecs &q);
 static void genReturnGroups(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q);
 static void genExprAdd(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q);
 static void genExprMult(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q);
@@ -25,6 +24,9 @@ static void genValue(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q);
 static void genFunction(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q);
 static void genSelectAll(vector<opcode> &v, querySpecs &q, int &count);
 static void genSelections(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q);
+
+//global bytecode position
+static int NORMAL_READ;
 
 static bool isTrivial(unique_ptr<node> &n){
 	if (n == nullptr) return false;
@@ -67,25 +69,26 @@ static dat parseStringDat(const char* s) {
 
 void jumpPositions::updateBytecode(vector<opcode> &vec) {
 	for (auto &v : vec)
-		if ((v.code == JMP || v.code == JMPFALSE || v.code == JMPTRUE) && v.p1 < 0)
+		if ((v.code == JMP || v.code == JMPFALSE ||
+			v.code == JMPTRUE || v.code == RDLINE) && v.p1 < 0)
 			v.p1 = jumps[v.p1];
 };
 
 static void addop(vector<opcode> &v, byte code){
-	cerr << "adding op " << opMap[code] << endl;
+	//cerr << "adding op " << opMap[code] << endl;
 	v.push_back({code});
 }
 static void addop(vector<opcode> &v, byte code, int p1){
-	cerr << "adding op " << opMap[code] << "  p1 " << p1 << endl;
+	//cerr << "adding op " << opMap[code] << "  p1 " << p1 << endl;
 	v.push_back({code, p1});
 }
 static void addop(vector<opcode> &v, byte code, int p1, int p2){
-	cerr << "adding op " << opMap[code] << "  p1 " << p1 << "  p2 " << p2 << endl;
+	//cerr << "adding op " << opMap[code] << "  p1 " << p1 << "  p2 " << p2 << endl;
 	v.push_back({code, p1, p2});
 }
 static void addop(vector<opcode> &v, byte code, int p1, int p2, int p3){
-	cerr << "adding op " << opMap[code]
-		<< "  p1 " << p1 << "  p2 " << p2 << "  p3 " << p3 << endl;
+	//cerr << "adding op " << opMap[code]
+		//<< "  p1 " << p1 << "  p2 " << p2 << "  p3 " << p3 << endl;
 	v.push_back({code, p1, p2, p3});
 }
 
@@ -146,7 +149,6 @@ void codeGen(querySpecs &q){
 //generate bytecode for expression nodes
 static void genExprAll(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
 	if (n == nullptr) return;
-	cerr << "calling gen func for node " << treeMap[n->label] << endl;
 	switch (n->label){
 	case N_DEXPRESSIONS:
 	case N_EXPRESSIONS:     genExprList    (n, v, q); break;
@@ -159,13 +161,13 @@ static void genExprAll(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
 	case N_VALUE:           genValue       (n, v, q); break;
 	case N_FUNCTION:        genFunction    (n, v, q); break;
 	}
-	cerr << "call completed for node " << treeMap[n->label] << endl;
 }
 
 //given q.tree as node param
 static void genNormalQuery(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
-	int ip1 = v.size();
-	addop(v, RDLINE);
+	NORMAL_READ = v.size();
+	int endfile = q.jumps.newPlaceholder(); //where to jump when done reading file
+	addop(v, RDLINE, endfile, 0);
 	genVars(n->node1, v, q, 1);
 	genWhere(n->node4, v, q);
 	genDistinct(n->node2, v, q);
@@ -173,9 +175,11 @@ static void genNormalQuery(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q
 	genGroupOrNewRow(n->node4, v, q);
 	genSelect(n->node2, v, q);
 	if (!q.grouping)
-		genPrint(n->node4, v, q);
-	genRepeatPhase1(v, q, ip1);
+		genPrint(v, q);
+	addop(v, JMP, NORMAL_READ);
+	q.jumps.setPlace(endfile, v.size());
 	genReturnGroups(n->node4, v, q); //more selecting/printing if grouping
+	addop(v, ENDRUN);
 }
 
 static void genVars(unique_ptr<node> &n, vector<opcode> &vec, querySpecs &q, int filter){
@@ -339,8 +343,12 @@ static void genSelect(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
 }
 
 static void genSelections(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
-	if (n == nullptr) return;
 	static int count = 0;
+	if (n == nullptr) {
+		//reached end of selections section of query
+		if (!count) genSelectAll(v, q, count);
+		return;
+	}
 	string t1 = n->tok1.lower();
 	switch (n->label){
 	case N_SELECTIONS:
@@ -362,8 +370,7 @@ static void genSelections(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q)
 		}
 		break;
 	default:
-		if (!count)
-			genSelectAll(v, q, count);
+		error("selections generator error");
 		return;
 	}
 	genSelections(n->node2, v, q);
@@ -377,17 +384,17 @@ static void genPredicates(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q)
 	case KW_AND:
 		addop(v, JMPFALSE, done, 0);
 		addop(v, POP, 1); //don't need old result
-		genPredCompare(n->node1, v, q);
+		genPredicates(n->node2, v, q);
 		break;
 	case KW_OR:
 		addop(v, JMPTRUE, done, 0);
 		addop(v, POP, 1); //don't need old result
-		genPredCompare(n->node1, v, q);
+		genPredicates(n->node2, v, q);
 		break;
 	case KW_XOR:
 		break;
 	}
-	q.jumps.setPlace(done, v.size()+1); // find a way to get rid of this +1
+	q.jumps.setPlace(done, v.size());
 }
 
 static void genPredCompare(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
@@ -398,17 +405,17 @@ static void genPredCompare(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q
 	case SP_NOEQ: negation = 1;
 	case SP_EQ:
 		genExprAll(n->node2, v, q);
-		addop(v, ops[OPEQ][n->datatype], 2, negation ^ n->tok2.id);
+		addop(v, ops[OPEQ][n->datatype], 1, negation ^ n->tok2.id);
 		break;
 	case SP_GREATEQ: negation = 1;
 	case SP_LESS:
 		genExprAll(n->node2, v, q);
-		addop(v, ops[OPLT][n->datatype], 2, negation ^ n->tok2.id);
+		addop(v, ops[OPLT][n->datatype], 1, negation ^ n->tok2.id);
 		break;
 	case SP_GREAT: negation = 1;
 	case SP_LESSEQ:
 		genExprAll(n->node2, v, q);
-		addop(v, ops[OPLEQ][n->datatype], 2, negation ^ n->tok2.id);
+		addop(v, ops[OPLEQ][n->datatype], 1, negation ^ n->tok2.id);
 		break;
 	case KW_LIKE:
 		break;
@@ -425,12 +432,15 @@ static void genSelectAll(vector<opcode> &v, querySpecs &q, int &count){
 		count += q.files[str2("_f", i)]->numFields;
 }
 
-static void genGroupOrNewRow(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
-	if (n == nullptr) return;
-}
-
 static void genWhere(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
 	if (n == nullptr) return;
+	switch (n->label){
+	case N_QUERY:     genWhere(n->node4, v, q); break;
+	case N_AFTERFROM: genWhere(n->node1, v, q); break;
+	case N_WHERE:
+		genPredicates(n->node1, v, q);
+		addop(v, JMPFALSE, NORMAL_READ, 1);
+	}
 }
 
 static void genExprList(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
@@ -445,13 +455,14 @@ static void genDistinct(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
 	if (n == nullptr) return;
 }
 
-static void genPrint(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
-	if (n == nullptr) return;
-}
-
-static void genRepeatPhase1(vector<opcode> &v, querySpecs &q, int restart){
+static void genPrint(vector<opcode> &v, querySpecs &q){
+	addop(v, PRINT);
 }
 
 static void genReturnGroups(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
+	if (n == nullptr) return;
+}
+
+static void genGroupOrNewRow(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
 	if (n == nullptr) return;
 }

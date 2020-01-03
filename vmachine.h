@@ -2,10 +2,6 @@
 #ifndef VMACH_H
 #define VMACH_H
 
-//virtual machine stuff
-//labels of subroutine instruction number
-extern int MAIN, VARS_NORM, VARS_AGG, SEL_NORM, SEL_AGG, WHERE, HAVING, ORDER;
-
 //code prefixes are for Int Float Text Date/Duration
 enum codes : unsigned char {
 	IADD, FADD, TADD, DADD,
@@ -22,7 +18,8 @@ enum codes : unsigned char {
 	LDNULL, LDLIT, LDVAR,
 	IEQ, FEQ, DEQ, TEQ, NEQ,
 	ILEQ, FLEQ, DLEQ, TLEQ,
-	ILT, FLT, DLT, TLT
+	ILT, FLT, DLT, TLT,
+	ENDRUN
 };
 extern map<int, string> opMap;
 
@@ -69,8 +66,9 @@ class vmachine {
 	vector<dat> midrow;
 	vector<dat> stack;
 	vector<dat> vars;
+	public:
 	void run();
-	vmachine(querySpecs*);
+	vmachine(querySpecs &q);
 };
 
 #endif

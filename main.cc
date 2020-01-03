@@ -29,6 +29,7 @@ int main(int argc, char** argv){
 		applyTypes(q);
 		analyzeTree(q);
 		codeGen(q);
+		runquery(q);
 	} catch (const invalid_argument& ia) {
 		cerr << "Error: " << ia.what() << '\n';
 	}

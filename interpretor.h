@@ -154,6 +154,8 @@ class querySpecs {
 	bool joining;
 	bool grouping;
 	bool sorting;
+	bool whereFiltering;
+	bool havingFiltering;
 	token tok();
 	token nextTok();
 	token peekTok();
@@ -299,6 +301,7 @@ void openfiles(querySpecs &q, unique_ptr<node> &n);
 void applyTypes(querySpecs &q);
 void analyzeTree(querySpecs &q);
 void codeGen(querySpecs &q);
+void runquery(querySpecs &q);
 int getVarIdx(string lkup, querySpecs &q);
 int getFileNo(string s, querySpecs &q);
 
