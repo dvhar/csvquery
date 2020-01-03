@@ -1,9 +1,6 @@
 #include "interpretor.h"
 #include "vmachine.h"
 
-//subroutine labels
-int MAIN, VARS_NORM, VARS_AGG, SEL_NORM, SEL_AGG, WHERE, HAVING, ORDER;
-
 map<int, string> opMap = {
 	{IADD,"IADD"},
 	{FADD,"FADD"},
@@ -55,7 +52,8 @@ map<int, string> opMap = {
 	{ILT,"ILT"},
 	{FLT,"FLT"},
 	{DLT,"DLT"},
-	{TLT,"TLT"}
+	{TLT,"TLT"},
+	{ENDRUN,"ENDRUN"}
 };
 
 void dat::print(){
@@ -73,10 +71,13 @@ void opcode::print(){
 	cerr << fmt::format("code: {: <9}  [{: <2}  {: <2}  {: <2}]\n", opMap[code], p1, p2, p3);
 }
 
-vmachine::vmachine(querySpecs* qs){
-	q = qs;
-	for (int i=1; i<q->numFiles; ++i)
+vmachine::vmachine(querySpecs &qs){
+	q = &qs;
+
+	for (int i=1; i<=q->numFiles; ++i){
 		files.push_back(q->files[str2("_f", i)]);
+	}
+
 	if (q->grouping){
 		//initialize midrow and point torow to it
 	} else {
@@ -87,9 +88,11 @@ vmachine::vmachine(querySpecs* qs){
 	vars.resize(q->vars.size());
 	//eventually set stack size based on syntax tree
 	stack.resize(50);
+	ops = q->bytecode;
 }
 
 //add s2 to s1
+//need to make this much safer
 void strplus(dat &s1, dat &s2){
 	if (ISNULL(s1)) { s1 = s2; return; }
 	if (ISNULL(s2)) return;
@@ -109,7 +112,6 @@ void strplus(dat &s1, dat &s2){
 }
 
 void vmachine::run(){
-
 	//temporary values
 	int i1, i2;
 	char* c1;
@@ -118,16 +120,18 @@ void vmachine::run(){
 	dat d1;
 
 	int s1 = 0; //stack top index
-	int ip = MAIN;
+	int ip = 0;
 	opcode op;
 
 	for (;;){
 		//big switch is flush-left instead of using normal indentation
 		op = ops[ip];
+		//cerr << fmt::format("ip {} opcode {} with [{} {} {}]\n", ip, opMap[op.code], op.p1, op.p2, op.p3);
 		switch(op.code){
 
 //put data from stack into torow
 case PUT:
+	if (ISMAL(torow[op.p1])) free(torow[op.p1].u.s);
 	torow[op.p1] = stack[s1];
 	--s1;
 	++ip;
@@ -135,14 +139,14 @@ case PUT:
 //put data from filereader directly into torow
 case LDPUT:
 	cv = files[op.p3]->entries[op.p2];
-	torow[op.p1] = { { .s = cv.val }, T, (short) cv.size };
+	torow[op.p1] = dat{ { .s = cv.val }, T, (short) cv.size };
 	++ip;
 	break;
 case LDPUTALL:
 	i1 = op.p1;
 	for (auto &f : files)
 		for (auto &e : f->entries)
-			torow[i1++] = { { .s = e.val }, T, (short) e.size };
+			torow[i1++] = dat{ { .s = e.val }, T, (short) e.size };
 	break;
 
 //put variable from stack into var vector
@@ -170,7 +174,7 @@ case LDDATE:
 case LDTEXT:
 	++s1;
 	cv = files[op.p1]->entries[op.p2];
-	stack[s1] = { { .s = cv.val }, T, (short) cv.size };
+	stack[s1] = dat{ { .s = cv.val }, T, (short) cv.size };
 	++ip;
 	break;
 case LDFLOAT:
@@ -202,8 +206,7 @@ case LDLIT:
 
 //read a new line from a file
 case RDLINE:
-	files[op.p1]->readline();
-	++ip;
+	ip = files[op.p2]->readline() ? op.p1 : ip+1;
 	break;
 case RDLINEAT:
 	++ip;
@@ -212,13 +215,13 @@ case RDLINEAT:
 
 //math operations
 case IADD:
-	if (ISNULL(stack[s1]) | ISNULL(stack[s1-1])) stack[s1-1].b |= NIL;
+	if (ISNULL(stack[s1]) || ISNULL(stack[s1-1])) stack[s1-1].b |= NIL;
 	else stack[s1-1].u.i += stack[s1].u.i;
 	--s1;
 	++ip;
 	break;
 case FADD:
-	if (ISNULL(stack[s1]) | ISNULL(stack[s1-1])) stack[s1-1].b |= NIL;
+	if (ISNULL(stack[s1]) || ISNULL(stack[s1-1])) stack[s1-1].b |= NIL;
 	else stack[s1-1].u.f += stack[s1].u.f;
 	--s1;
 	++ip;
@@ -232,13 +235,13 @@ case DADD:
 	++ip;
 	break;
 case ISUB:
-	if (ISNULL(stack[s1]) | ISNULL(stack[s1-1])) stack[s1-1].b |= NIL;
+	if (ISNULL(stack[s1]) || ISNULL(stack[s1-1])) stack[s1-1].b |= NIL;
 	else stack[s1-1].u.i -= stack[s1].u.i;
 	--s1;
 	++ip;
 	break;
 case FSUB:
-	if (ISNULL(stack[s1]) | ISNULL(stack[s1-1])) stack[s1-1].b |= NIL;
+	if (ISNULL(stack[s1]) || ISNULL(stack[s1-1])) stack[s1-1].b |= NIL;
 	else stack[s1-1].u.f -= stack[s1].u.f;
 	--s1;
 	++ip;
@@ -247,13 +250,13 @@ case DSUB:
 	++ip;
 	break;
 case IMULT:
-	if (ISNULL(stack[s1]) | ISNULL(stack[s1-1])) stack[s1-1].b |= NIL;
+	if (ISNULL(stack[s1]) || ISNULL(stack[s1-1])) stack[s1-1].b |= NIL;
 	else stack[s1-1].u.i *= stack[s1].u.i;
 	--s1;
 	++ip;
 	break;
 case FMULT:
-	if (ISNULL(stack[s1]) | ISNULL(stack[s1-1])) stack[s1-1].b |= NIL;
+	if (ISNULL(stack[s1]) || ISNULL(stack[s1-1])) stack[s1-1].b |= NIL;
 	else stack[s1-1].u.f *= stack[s1].u.f;
 	--s1;
 	++ip;
@@ -261,19 +264,19 @@ case FMULT:
 case DMULT:
 	break;
 case IDIV:
-	if (ISNULL(stack[s1]) | ISNULL(stack[s1-1]) || stack[s1].u.i==0) stack[s1-1].b |= NIL;
+	if (ISNULL(stack[s1]) || ISNULL(stack[s1-1]) || stack[s1].u.i==0) stack[s1-1].b |= NIL;
 	else stack[s1-1].u.i /= stack[s1].u.i;
 	--s1;
 	++ip;
 	break;
 case FDIV:
-	if (ISNULL(stack[s1]) | ISNULL(stack[s1-1]) || stack[s1].u.f==0) stack[s1-1].b |= NIL;
+	if (ISNULL(stack[s1]) || ISNULL(stack[s1-1]) || stack[s1].u.f==0) stack[s1-1].b |= NIL;
 	else stack[s1-1].u.f /= stack[s1].u.f;
 	--s1;
 	++ip;
 	break;
 case DDIV:
-	if (ISNULL(stack[s1]) | ISNULL(stack[s1-1]) || stack[s1].u.f==0) stack[s1-1].b |= NIL;
+	if (ISNULL(stack[s1]) || ISNULL(stack[s1-1]) || stack[s1].u.f==0) stack[s1-1].b |= NIL;
 	else stack[s1-1].u.dr /= stack[s1].u.f; //make sure duration/num num is float
 	--s1;
 	++ip;
@@ -390,6 +393,17 @@ case PRINT:
 	++ip;
 	break;
 
+case ENDRUN:
+	goto endloop;
+
 		} //end big switch
-	}
+	} //end loop
+	endloop:
+	return;
+}
+
+
+void runquery(querySpecs &q){
+	vmachine vm(q);
+	vm.run();
 }

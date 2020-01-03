@@ -207,7 +207,7 @@ void querySpecs::addVar(string name) {
 void querySpecs::init(string s){
 	queryString = s;
 	tokIdx = options = quantityLimit = numFiles = 0;
-	joining = grouping = sorting = false;
+	whereFiltering = havingFiltering = joining = grouping = sorting = false;
 }
 bool querySpecs::numIsCol() { return (options & O_C) != 0; }
 
