@@ -31,6 +31,7 @@ map<int, string> opMap = {
 	{RAWROW,"RAWROW"},
 	{PUT,"PUT"},
 	{LDPUT,"LDPUT"},
+	{LDPUTALL,"LDPUTALL"},
 	{PUTVAR,"PUTVAR"},
 	{LDINT,"LDINT"},
 	{LDFLOAT,"LDFLOAT"},
@@ -59,11 +60,11 @@ map<int, string> opMap = {
 void dat::print(){
 	if (b & NIL) return;
 	switch ( b & 0b00011111 ) {
-	case I: cout << u.i << ","; break;
-	case F: cout << u.f << ","; break;
-	case DT: cout << u.dt << ","; break; //need to format dates
-	case DR: cout << u.dr << ","; break; //need to format durations
-	case T: cout << u.s << ","; break;
+	case I: cout << u.i; break;
+	case F: cout << u.f; break;
+	case DT: cout << u.dt; break; //need to format dates
+	case DR: cout << u.dr; break; //need to format durations
+	case T: cout << u.s; break;
 	}
 }
 
@@ -84,19 +85,25 @@ vmachine::vmachine(querySpecs &qs){
 		destrow.resize(q->colspec.count);
 		torow = destrow.data();
 		torowSize = destrow.size();
+		cerr << "torow size: " << torowSize << endl;
 	}
 	vars.resize(q->vars.size());
 	//eventually set stack size based on syntax tree
 	stack.resize(50);
 	ops = q->bytecode;
+
+	for (auto &d : stack)   memset(&d, 0, sizeof(dat));
+	for (auto &d : vars)    memset(&d, 0, sizeof(dat));
+	for (auto &d : destrow) memset(&d, 0, sizeof(dat));
+	for (auto &d : midrow)  memset(&d, 0, sizeof(dat));
 }
 
 //add s2 to s1
 //need to make this much safer
 void strplus(dat &s1, dat &s2){
-	if (ISNULL(s1)) { s1 = s2; return; }
+	if (ISNULL(s1)) { s1 = s2; DISOWN(s2); return; }
 	if (ISNULL(s2)) return;
-	int newlen = s1.z+s2.z-1;
+	int newlen = s1.z+s2.z+1;
 	if (ISMAL(s1)){
 		s1.u.s = (char*) realloc(s1.u.s, newlen);
 		strcat(s1.u.s+s1.z-1, s2.u.s);
@@ -106,7 +113,7 @@ void strplus(dat &s1, dat &s2){
 		strcat(ns+s1.z-1, s2.u.s);
 		s1.u.s = ns;
 	}
-	if (ISMAL(s2)) free(s2.u.s);
+	FREE(s2);
 	s1.b |= MAL;
 	s1.z = newlen;
 }
@@ -115,6 +122,7 @@ void vmachine::run(){
 	//temporary values
 	int i1, i2;
 	char* c1;
+	bool bl1;
 	csvEntry cv;
 	byte b1;
 	dat d1;
@@ -131,32 +139,41 @@ void vmachine::run(){
 
 //put data from stack into torow
 case PUT:
-	if (ISMAL(torow[op.p1])) free(torow[op.p1].u.s);
+	FREE(torow[op.p1]);
 	torow[op.p1] = stack[s1];
+	DISOWN(stack[s1]);
 	--s1;
 	++ip;
 	break;
 //put data from filereader directly into torow
 case LDPUT:
 	cv = files[op.p3]->entries[op.p2];
+	FREE(torow[op.p1]);
 	torow[op.p1] = dat{ { .s = cv.val }, T, (short) cv.size };
 	++ip;
 	break;
 case LDPUTALL:
 	i1 = op.p1;
 	for (auto &f : files)
-		for (auto &e : f->entries)
+		for (auto &e : f->entries){
+			FREE(torow[i1]);
 			torow[i1++] = dat{ { .s = e.val }, T, (short) e.size };
+		}
+	++ip;
 	break;
 
 //put variable from stack into var vector
 case PUTVAR:
-	vars[op.p1] = stack[s1--];
+	FREE(vars[op.p1]);
+	vars[op.p1] = stack[s1];
+	DISOWN(stack[s1]);
+	--s1;
 	++ip;
 	break;
 //put variable from var vector into stack
 case LDVAR:
 	stack[++s1] = vars[op.p1];
+	DISOWN(stack[s1]); //var vector still owns c string
 	++ip;
 	break;
 
@@ -174,32 +191,38 @@ case LDDATE:
 case LDTEXT:
 	++s1;
 	cv = files[op.p1]->entries[op.p2];
+	FREE(stack[s1]);
 	stack[s1] = dat{ { .s = cv.val }, T, (short) cv.size };
+	if (!cv.size) stack[s1].b |= NIL;
 	++ip;
 	break;
 case LDFLOAT:
 	++s1;
-	stack[s1].u.f = strtof(files[op.p1]->entries[op.p2].val, &c1);
+	cv = files[op.p1]->entries[op.p2];
+	stack[s1].u.f = strtof(cv.val, &c1);
 	b1 = F;
-	if (c1) b1 |= NIL; //need to also check for blank strings
+	if (!cv.size || c1) b1 |= NIL;
 	stack[s1].b = b1;
 	++ip;
 	break;
 case LDINT:
 	++s1;
-	stack[s1].u.i = strtol(files[op.p1]->entries[op.p2].val, &c1, 10);
+	cv = files[op.p1]->entries[op.p2];
+	stack[s1].u.i = strtol(cv.val, &c1, 10);
 	b1 = I;
-	if (c1) b1 |= NIL;
+	if (!cv.size || c1) b1 |= NIL;
 	stack[s1].b = b1;
 	++ip;
 	break;
 case LDNULL:
 	++s1;
+	FREE(stack[s1]);
 	stack[s1].b = NIL;
 	++ip;
 	break;
 case LDLIT:
 	++s1;
+	FREE(stack[s1]);
 	stack[s1] = q->literals[op.p1];
 	++ip;
 	break;
@@ -319,9 +342,18 @@ case DEQ:
 case TEQ:
 	i1 = ISNULL(stack[s1]);
 	i2 = ISNULL(stack[s1-1]);
-	if (i1 ^ i2) stack[s1-op.p1].u.p = false;
-	else if (i1 & i2) stack[s1-op.p1].u.p = true;
-	else stack[s1-op.p1].u.p = (scomp(stack[s1-1].u.s, stack[s1].u.s) == 0)^op.p2;
+	if (!(i1|i2)){ //none null
+		bl1 = (scomp(stack[s1-1].u.s, stack[s1].u.s) == 0)^op.p2;
+		FREE(stack[s1]);
+		FREE(stack[s1-op.p1]);
+		stack[s1-op.p1].u.p = bl1;
+	} else if (i1 & i2) { //both null
+		stack[s1-op.p1].u.p = true;
+	} else { //one null
+		FREE(stack[s1]);
+		FREE(stack[s1-op.p1]);
+		stack[s1-op.p1].u.p = false;
+	}
 	s1 -= op.p1;
 	++ip;
 	break;
@@ -369,6 +401,7 @@ case TLT:
 	break;
 
 case POP:
+	FREE(stack[s1]); //add more if ever pop more than one
 	s1 -= op.p1;
 	++ip;
 	break;
@@ -379,16 +412,31 @@ case JMP:
 	break;
 case JMPFALSE:
 	ip = !stack[s1].u.p ? op.p1 : ip+1;
+	if (op.p1 == 1) {
+		FREE(stack[s1]);
+	} else if (op.p1 == 2){
+		FREE(stack[s1]);
+		FREE(stack[s1-1]);
+	}
 	s1-=op.p2;
 	break;
 case JMPTRUE:
 	ip = stack[s1].u.p ? op.p1 : ip+1;
+	if (op.p1 == 1) {
+		FREE(stack[s1]);
+	} else if (op.p1 == 2){
+		FREE(stack[s1]);
+		FREE(stack[s1-1]);
+	}
 	s1-=op.p2;
 	break;
 
 case PRINT:
-	for (int i=0; i<torowSize; ++i)
+	for (int i=0; i<torowSize; ++i){
 		torow[i].print();
+		FREE(torow[i]);
+		if (i < torowSize-1) cout << ",";
+	}
 	cout << endl;
 	++ip;
 	break;

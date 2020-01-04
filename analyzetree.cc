@@ -37,7 +37,7 @@ static void varUsedInWhere(unique_ptr<node> &n, querySpecs &q){
 }
 
 static void selectAll(querySpecs &q){
-	for (int i=0; i<q.numFiles; ++i){
+	for (int i=1; i<=q.numFiles; ++i){
 		auto f = q.files[str2("_f", i)];
 		for (auto &c : f->types){
 			q.colspec.colnames.push_back(str2("col",++q.colspec.count));
@@ -60,6 +60,7 @@ static void recordResultColumns(unique_ptr<node> &n, querySpecs &q){
 			q.colspec.colnames.push_back(n->tok2.val);
 			q.colspec.types.push_back(n->datatype);
 		}
+		recordResultColumns(n->node2, q);
 		break;
 	case N_FROM:
 		if (q.colspec.count == 0)
