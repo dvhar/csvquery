@@ -9,10 +9,16 @@
 #include <memory>
 #include <sys/time.h>
 #include <regex>
-#include <tre/regex.h>
 #include <stdarg.h>
 #include <boost/algorithm/string.hpp>
 #include <fmt/format.h>
+
+#ifdef __APPLE__ //change this to only use tre on windows
+#include <regex.h>
+#else
+#include <tre/regex.h>
+#endif
+
 #define BUFSIZE  1024*1024
 #define int64 long long
 #define byte unsigned char

@@ -39,6 +39,7 @@ static int ops[][6] = {
 	{ 0, ILEQ, FLEQ, DLEQ, DLEQ, TLEQ },
 	{ 0, ILT, FLT, DLT, DLT, TLT }
 };
+static dat* datp;
 
 //8 bit array
 const byte I = 1;
@@ -47,7 +48,7 @@ const byte DT = 4;
 const byte DR = 8;
 const byte T = 16;
 const byte NIL = 32;
-const byte MAL = 64; //malloced
+const byte MAL = 64; //malloced and responsible for freeing c string
 #define ISINT(X) ( X.b & I )
 #define ISFLOAT(X) ( X.b & F )
 #define ISDATE(X) ( X.b & DT )
@@ -55,6 +56,14 @@ const byte MAL = 64; //malloced
 #define ISTEXT(X) ( X.b & T )
 #define ISNULL(X) ( X.b & NIL )
 #define ISMAL(X) ( X.b & MAL )
+
+#define FREE(X) datp = &X;  \
+	if ( datp->b & MAL ) \
+		free(datp->u.s); \
+	datp->b &=(~MAL); \
+
+//passed free() responsibility to another dat
+#define DISOWN(X) X.b &=(~MAL)
 
 class vmachine {
 	querySpecs* q;
