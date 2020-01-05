@@ -83,7 +83,7 @@ int fileReader::checkWidth(){
 	if (numFields == 0)
 		numFields = entries.size();
 	if (fieldsFound != numFields)
-		//error(fmt::format("should have {} fields, found {}", numFields, fieldsFound));
+		//error(ft("should have {} fields, found {}", numFields, fieldsFound));
 		return 1;
 	return 0;
 }

@@ -275,11 +275,11 @@ static void genValue(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
 		break;
 	case VARIABLE:
 		addop(v, LDVAR, getVarIdx(n->tok1.val, q));
-		//variable may be different type than needed
+		//variable may be used in operations with different types
 		vtype = getVarType(n->tok1.val, q);
 		op = typeConv[vtype][n->datatype];
 		if (op == CVER)
-			error(fmt::format("Error converting variable of type {} to new type {}", vtype, n->datatype));
+			error(ft("Error converting variable of type {} to new type {}", vtype, n->datatype));
 		if (op != CVNO)
 			addop(v, op, vtype, n->datatype);
 		break;
