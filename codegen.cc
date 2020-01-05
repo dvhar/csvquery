@@ -28,6 +28,16 @@ static void genSelections(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q)
 //global bytecode position
 static int NORMAL_READ;
 
+//type conversion opcodes - date and duration will be represented by int64
+static int typeConv[6][6] = {
+	{0, 0,  0,  0,  0,  0 },
+	{0, CVNO, CVIF, CVNO, CVNO, CVIS },
+	{0, CVFI, CVNO, CVFI, CVFI, CVFS },
+	{0, CVNO, CVIF, CVNO, CVER, CVDRS},
+	{0, CVNO, CVIF, CVER, CVNO, CVDTS},
+	{0, CVSI, CVSF, CVSDT,CVSDR,CVNO},
+};
+
 static bool isTrivial(unique_ptr<node> &n){
 	if (n == nullptr) return false;
 	if (n->label == N_VALUE && n->tok3.id)
@@ -246,6 +256,7 @@ static void genExprNeg(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
 
 static void genValue(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
 	dat lit;
+	int vtype, op;
 	if (n == nullptr) return;
 	switch (n->tok2.id){
 	case COLUMN:
@@ -264,6 +275,13 @@ static void genValue(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
 		break;
 	case VARIABLE:
 		addop(v, LDVAR, getVarIdx(n->tok1.val, q));
+		//variable may be different type than needed
+		vtype = getVarType(n->tok1.val, q);
+		op = typeConv[vtype][n->datatype];
+		if (op == CVER)
+			error(fmt::format("Error converting variable of type {} to new type {}", vtype, n->datatype));
+		if (op != CVNO)
+			addop(v, op, vtype, n->datatype);
 		break;
 	case FUNCTION:
 		genExprAll(n->node1, v, q);

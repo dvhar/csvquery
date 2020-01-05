@@ -310,6 +310,7 @@ void analyzeTree(querySpecs &q);
 void codeGen(querySpecs &q);
 void runquery(querySpecs &q);
 int getVarIdx(string lkup, querySpecs &q);
+int getVarType(string lkup, querySpecs &q);
 int getFileNo(string s, querySpecs &q);
 
 #endif

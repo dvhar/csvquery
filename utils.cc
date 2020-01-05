@@ -300,6 +300,13 @@ int getVarIdx(string lkup, querySpecs &q){
 	error("variable not found");
 	return 0;
 }
+int getVarType(string lkup, querySpecs &q){
+	for (auto &v : q.vars)
+		if (lkup == v.name)
+			return v.type;
+	error("variable not found");
+	return 0;
+}
 
 int getFileNo(string s, querySpecs &q){
 	for (int i=1; i<=q.numFiles; ++i)

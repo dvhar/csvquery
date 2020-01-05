@@ -4,6 +4,9 @@
 
 //code prefixes are for Int Float Text Date/Duration
 enum codes : unsigned char {
+	CVNO, CVER,
+	CVIF, CVIS, CVFI, CVFS, CVDRS, CVDRF, CVDTS,
+	CVSI, CVSF, CVSDR, CVSDT,
 	IADD, FADD, TADD, DADD,
 	ISUB, FSUB, DSUB,
 	IMULT, FMULT, DMULT,
