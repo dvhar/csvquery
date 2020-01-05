@@ -8,14 +8,34 @@ int main(int argc, char** argv){
 
 	FILE *fp;
 	string qs;
-	char c[1];
-    if (argc == 2)
-        fp = fopen(argv[1], "r");
-    else
-		fp = stdin;
-	while (!feof(fp)){
-		fread(c, 1, 1, fp);
-		qs.push_back(*c);
+	int whatdo = 0;;
+	char cc[1], c;
+
+	while((c = getopt(argc, argv, "c:h")) != -1)
+		switch(c){
+		//run query from command line argument
+		case 'c':
+			qs = string(optarg);
+			whatdo = 1;
+			break;
+		//help
+		case 'h':
+			cerr << "\n" << argv[0] << " <file>\n\tRun query from file\n\n"
+				<< argv[0] << " -c \"select from 'data.csv'\"\n\tRun query from command line argument\n\n"
+				<< argv[0] << "\n\tRun query from stdin. Later this will be changed to run gui server\n\n";
+			exit(0);
+			break;
+		}
+
+	if (whatdo != 1){
+		if (argc == 2)
+			fp = fopen(argv[1], "r");
+		else
+			fp = stdin;
+		while (!feof(fp)){
+			fread(cc, 1, 1, fp);
+			qs.push_back(*cc);
+		}
 	}
 
 
