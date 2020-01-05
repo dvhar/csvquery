@@ -218,7 +218,7 @@ void printTree(unique_ptr<node> &n, int ident){
 	for (int i=0;i<ident;i++) s += "  ";
 	cout << s << treeMap[n->label] << endl
 		<< s 
-		<< fmt::format("[{} {} {} {} {}]"
+		<< ft("[{} {} {} {} {}]"
 		,n->tok1.val
 		,n->tok2.val
 		,n->tok3.val

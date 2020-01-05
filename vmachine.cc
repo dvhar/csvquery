@@ -1,79 +1,14 @@
 #include "interpretor.h"
 #include "vmachine.h"
 
-map<int, string> opMap = {
-	{CVNO,"CVNO"},
-	{CVER,"CVER"},
-	{CVIF,"CVIF"},
-	{CVIS,"CVIS"},
-	{CVFI,"CVFI"},
-	{CVFS,"CVFS"},
-	{CVDRS,"CVDRS"},
-	{CVDTS,"CVDTS"},
-	{CVSI,"CVSI"},
-	{CVSF,"CVSF"},
-	{CVSDT,"CVSDT"},
-	{CVSDR,"CVSDR"},
-	{IADD,"IADD"},
-	{FADD,"FADD"},
-	{TADD,"TADD"},
-	{DADD,"DADD"},
-	{ISUB,"ISUB"},
-	{FSUB,"FSUB"},
-	{DSUB,"DSUB"},
-	{IMULT,"IMULT"},
-	{FMULT,"FMULT"},
-	{DMULT,"DMULT"},
-	{IDIV,"IDIV"},
-	{FDIV,"FDIV"},
-	{DDIV,"DDIV"},
-	{INEG,"INEG"},
-	{FNEG,"FNEG"},
-	{DNEG,"DNEG"},
-	{IMOD,"IMOD"},
-	{IEXP,"IEXP"},
-	{FEXP,"FEXP"},
-	{JMP,"JMP"},
-	{JMPTRUE,"JMPTRUE"},
-	{JMPFALSE,"JMPFALSE"},
-	{POP,"POP"},
-	{RDLINE,"RDLINE"},
-	{RDLINEAT,"RDLINEAT"},
-	{PRINT,"PRINT"},
-	{RAWROW,"RAWROW"},
-	{PUT,"PUT"},
-	{LDPUT,"LDPUT"},
-	{LDPUTALL,"LDPUTALL"},
-	{PUTVAR,"PUTVAR"},
-	{LDINT,"LDINT"},
-	{LDFLOAT,"LDFLOAT"},
-	{LDTEXT,"LDTEXT"},
-	{LDDATE,"LDDATE"},
-	{LDDUR,"LDDUR"},
-	{LDNULL,"LDNULL"},
-	{LDLIT,"LDLIT"},
-	{LDVAR,"LDVAR"},
-	{IEQ,"IEQ"},
-	{FEQ,"FEQ"},
-	{DEQ,"DEQ"},
-	{TEQ,"TEQ"},
-	{NEQ,"NEQ"},
-	{ILEQ,"ILEQ"},
-	{FLEQ,"FLEQ"},
-	{DLEQ,"DLEQ"},
-	{TLEQ,"TLEQ"},
-	{ILT,"ILT"},
-	{FLT,"FLT"},
-	{DLT,"DLT"},
-	{TLT,"TLT"},
-	{ENDRUN,"ENDRUN"}
+map<int, string> opMap = { {CVNO,"CVNO"}, {CVER,"CVER"}, {CVIF,"CVIF"}, {CVIS,"CVIS"}, {CVFI,"CVFI"}, {CVFS,"CVFS"}, {CVDRS,"CVDRS"}, {CVDTS,"CVDTS"}, {CVSI,"CVSI"}, {CVSF,"CVSF"}, {CVSDT,"CVSDT"}, {CVSDR,"CVSDR"}, {IADD,"IADD"}, {FADD,"FADD"}, {TADD,"TADD"}, {DADD,"DADD"}, {ISUB,"ISUB"}, {FSUB,"FSUB"}, {DSUB,"DSUB"}, {IMULT,"IMULT"}, {FMULT,"FMULT"}, {DMULT,"DMULT"}, {IDIV,"IDIV"}, {FDIV,"FDIV"}, {DDIV,"DDIV"}, {INEG,"INEG"}, {FNEG,"FNEG"}, {DNEG,"DNEG"}, {IMOD,"IMOD"}, {IEXP,"IEXP"}, {FEXP,"FEXP"}, {JMP,"JMP"}, {JMPTRUE,"JMPTRUE"}, {JMPFALSE,"JMPFALSE"}, {POP,"POP"}, {RDLINE,"RDLINE"}, {RDLINEAT,"RDLINEAT"}, {PRINT,"PRINT"}, {RAWROW,"RAWROW"}, {PUT,"PUT"}, {LDPUT,"LDPUT"}, {LDPUTALL,"LDPUTALL"}, {PUTVAR,"PUTVAR"}, {LDINT,"LDINT"}, {LDFLOAT,"LDFLOAT"}, {LDTEXT,"LDTEXT"}, {LDDATE,"LDDATE"}, {LDDUR,"LDDUR"}, {LDNULL,"LDNULL"}, {LDLIT,"LDLIT"}, {LDVAR,"LDVAR"}, {IEQ,"IEQ"}, {FEQ,"FEQ"}, {DEQ,"DEQ"}, {TEQ,"TEQ"}, {NEQ,"NEQ"}, {ILEQ,"ILEQ"}, {FLEQ,"FLEQ"}, {DLEQ,"DLEQ"}, {TLEQ,"TLEQ"}, {ILT,"ILT"}, {FLT,"FLT"}, {DLT,"DLT"}, {TLT,"TLT"}, {ENDRUN,"ENDRUN"}
 };
 
 void dat::print(){
 	if (b & NIL) return;
 	switch ( b & 0b00011111 ) {
 	case I:  fmt::print("{}",u.i); break;
-	case F:  fmt::print("{}",u.f); break;
+	case F:  fmt::print("{:.10g}",u.f); break;
 	case DT: fmt::print("{}",u.dt); break; //need to format dates
 	case DR: fmt::print("{}",u.dr); break; //need to format durations
 	case T:  fmt::print("{}",u.s); break;
@@ -81,7 +16,7 @@ void dat::print(){
 }
 
 void opcode::print(){
-	cerr << fmt::format("code: {: <9}  [{: <2}  {: <2}  {: <2}]\n", opMap[code], p1, p2, p3);
+	cerr << ft("code: {: <9}  [{: <2}  {: <2}  {: <2}]\n", opMap[code], p1, p2, p3);
 }
 
 vmachine::vmachine(querySpecs &qs){
@@ -139,7 +74,7 @@ void vmachine::run(){
 	bool bl1;
 	csvEntry cv;
 	byte b1;
-	dat d1, *d2;
+	dat *d1;
 
 	int s1 = 0; //stack top index
 	int ip = 0;
@@ -148,7 +83,7 @@ void vmachine::run(){
 	for (;;){
 		//big switch is flush-left instead of using normal indentation
 		op = ops[ip];
-		//cerr << fmt::format("ip {} opcode {} with [{} {} {}]\n", ip, opMap[op.code], op.p1, op.p2, op.p3);
+		//cerr << ft("ip {} opcode {} with [{} {} {}]\n", ip, opMap[op.code], op.p1, op.p2, op.p3);
 		switch(op.code){
 
 //put data from stack into torow
@@ -422,13 +357,21 @@ case POP:
 
 //type conversions
 case CVIS:
-case CVFS:
-	d2 = &stack[s1];
-	st1 = str1(d2->u.i);
+	d1 = &stack[s1];
+	st1 = str1(d1->u.i);
 	i1 = st1.size()+1;
-	d2->u.s = (char*) malloc(i1);
-	memcpy((void*) st1.c_str(), d2->u.s, i1);
-	d2->b = T|MAL;
+	d1->u.s = (char*) malloc(i1);
+	memcpy((void*) st1.c_str(), d1->u.s, i1);
+	d1->b = T|MAL;
+	++ip;
+	break;
+case CVFS:
+	d1 = &stack[s1];
+	st1 = ft("{:.10g}",d1->u.f);
+	i1 = st1.size()+1;
+	d1->u.s = (char*) malloc(i1);
+	memcpy(d1->u.s, (void*) st1.c_str(), i1);
+	d1->b = T|MAL;
 	++ip;
 	break;
 case CVFI:
@@ -440,23 +383,23 @@ case CVIF:
 	++ip;
 	break;
 case CVSI:
-	d2 = &stack[s1];
-	i1 = strtol(d2->u.s, &c1, 10);
-	FREE((*d2));
+	d1 = &stack[s1];
+	i1 = strtol(d1->u.s, &c1, 10);
+	FREE((*d1));
 	b1 = F;
 	if (*c1){ b1 |= NIL; }
-	d2->b = b1;
-	d2->u.i = i1;
+	d1->b = b1;
+	d1->u.i = i1;
 	++ip;
 	break;
 case CVSF:
-	d2 = &stack[s1];
-	f1 = strtof(d2->u.s, &c1);
-	FREE((*d2));
+	d1 = &stack[s1];
+	f1 = strtof(d1->u.s, &c1);
+	FREE((*d1));
 	b1 = F;
 	if (*c1){ b1 |= NIL; }
-	d2->b = b1;
-	d2->u.f = f1;
+	d1->b = b1;
+	d1->u.f = f1;
 	++ip;
 	break;
 case CVSDT:
@@ -500,10 +443,9 @@ case JMPTRUE:
 case PRINT:
 	for (int i=0; i<torowSize; ++i){
 		torow[i].print();
-		FREE(torow[i]);
-		if (i < torowSize-1) cout << ",";
+		if (i < torowSize-1) fmt::print(",");
 	}
-	cout << endl;
+	fmt::print("\n");
 	++ip;
 	break;
 

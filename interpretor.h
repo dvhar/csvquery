@@ -22,9 +22,10 @@
 #define BUFSIZE  1024*1024
 #define int64 long long
 #define byte unsigned char
-#define str1(A) fmt::format("{}",A)
-#define str2(A,B) fmt::format("{}{}",A,B)
-#define str3(A,B,C) fmt::format("{}{}{}",A,B,C)
+#define ft fmt::format
+#define str1(A) ft("{}",A)
+#define str2(A,B) ft("{}{}",A,B)
+#define str3(A,B,C) ft("{}{}{}",A,B,C)
 #define error(A) throw invalid_argument(A)
 #define printasm(S, L) asm("syscall\n\t"::"a"(1), "D"(1), "S"(S), "d"(L));
 
