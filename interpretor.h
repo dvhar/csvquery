@@ -26,6 +26,7 @@
 #define str2(A,B) fmt::format("{}{}",A,B)
 #define str3(A,B,C) fmt::format("{}{}{}",A,B,C)
 #define error(A) throw invalid_argument(A)
+#define printasm(S, L) asm("syscall\n\t"::"a"(1), "D"(1), "S"(S), "d"(L));
 
 
 using namespace std;
