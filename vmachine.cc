@@ -2,6 +2,18 @@
 #include "vmachine.h"
 
 map<int, string> opMap = {
+	{CVNO,"CVNO"},
+	{CVER,"CVER"},
+	{CVIF,"CVIF"},
+	{CVIS,"CVIS"},
+	{CVFI,"CVFI"},
+	{CVFS,"CVFS"},
+	{CVDRS,"CVDRS"},
+	{CVDTS,"CVDTS"},
+	{CVSI,"CVSI"},
+	{CVSF,"CVSF"},
+	{CVSDT,"CVSDT"},
+	{CVSDR,"CVSDR"},
 	{IADD,"IADD"},
 	{FADD,"FADD"},
 	{TADD,"TADD"},
@@ -60,11 +72,11 @@ map<int, string> opMap = {
 void dat::print(){
 	if (b & NIL) return;
 	switch ( b & 0b00011111 ) {
-	case I: cout << u.i; break;
-	case F: cout << u.f; break;
-	case DT: cout << u.dt; break; //need to format dates
-	case DR: cout << u.dr; break; //need to format durations
-	case T: cout << u.s; break;
+	case I:  fmt::print("{}",u.i); break;
+	case F:  fmt::print("{}",u.f); break;
+	case DT: fmt::print("{}",u.dt); break; //need to format dates
+	case DR: fmt::print("{}",u.dr); break; //need to format durations
+	case T:  fmt::print("{}",u.s); break;
 	}
 }
 
@@ -121,11 +133,13 @@ void strplus(dat &s1, dat &s2){
 void vmachine::run(){
 	//temporary values
 	int i1, i2;
+	double f1;
 	char* c1;
+	string st1;
 	bool bl1;
 	csvEntry cv;
 	byte b1;
-	dat d1;
+	dat d1, *d2;
 
 	int s1 = 0; //stack top index
 	int ip = 0;
@@ -201,7 +215,7 @@ case LDFLOAT:
 	cv = files[op.p1]->entries[op.p2];
 	stack[s1].u.f = strtof(cv.val, &c1);
 	b1 = F;
-	if (!cv.size || c1) b1 |= NIL;
+	if (!cv.size || *c1){ b1 |= NIL; }
 	stack[s1].b = b1;
 	++ip;
 	break;
@@ -210,7 +224,7 @@ case LDINT:
 	cv = files[op.p1]->entries[op.p2];
 	stack[s1].u.i = strtol(cv.val, &c1, 10);
 	b1 = I;
-	if (!cv.size || c1) b1 |= NIL;
+	if (!cv.size || *c1) b1 |= NIL;
 	stack[s1].b = b1;
 	++ip;
 	break;
@@ -403,6 +417,58 @@ case TLT:
 case POP:
 	FREE(stack[s1]); //add more if ever pop more than one
 	s1 -= op.p1;
+	++ip;
+	break;
+
+//type conversions
+case CVIS:
+case CVFS:
+	d2 = &stack[s1];
+	st1 = str1(d2->u.i);
+	i1 = st1.size()+1;
+	d2->u.s = (char*) malloc(i1);
+	memcpy((void*) st1.c_str(), d2->u.s, i1);
+	d2->b = T|MAL;
+	++ip;
+	break;
+case CVFI:
+	stack[s1].u.i = stack[s1].u.f;
+	++ip;
+	break;
+case CVIF:
+	stack[s1].u.f = stack[s1].u.i;
+	++ip;
+	break;
+case CVSI:
+	d2 = &stack[s1];
+	i1 = strtol(d2->u.s, &c1, 10);
+	FREE((*d2));
+	b1 = F;
+	if (*c1){ b1 |= NIL; }
+	d2->b = b1;
+	d2->u.i = i1;
+	++ip;
+	break;
+case CVSF:
+	d2 = &stack[s1];
+	f1 = strtof(d2->u.s, &c1);
+	FREE((*d2));
+	b1 = F;
+	if (*c1){ b1 |= NIL; }
+	d2->b = b1;
+	d2->u.f = f1;
+	++ip;
+	break;
+case CVSDT:
+	++ip;
+	break;
+case CVSDR:
+	++ip;
+	break;
+case CVDRS:
+	++ip;
+	break;
+case CVDTS:
 	++ip;
 	break;
 
