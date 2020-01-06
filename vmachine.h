@@ -14,7 +14,7 @@ enum codes : unsigned char {
 	INEG, FNEG, DNEG,
 	IMOD,
 	IEXP, FEXP,
-	JMP, JMPTRUE, JMPFALSE, POP,
+	JMP, JMPCNT, JMPTRUE, JMPFALSE, POP,
 	RDLINE, RDLINEAT,
 	PRINT, RAWROW, PUT, LDPUT, LDPUTALL, PUTVAR,
 	LDINT, LDFLOAT, LDTEXT, LDDATE, LDDUR,
@@ -74,6 +74,7 @@ class vmachine {
 	vector<opcode> ops;
 	dat* torow;
 	int torowSize;
+	int quantityLimit;
 	vector<dat> destrow;
 	vector<dat> midrow;
 	vector<dat> stack;

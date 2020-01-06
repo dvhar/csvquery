@@ -186,7 +186,7 @@ static void genNormalQuery(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q
 	genSelect(n->node2, v, q);
 	if (!q.grouping)
 		genPrint(v, q);
-	addop(v, JMP, NORMAL_READ);
+	addop(v, (q.quantityLimit > 0 ? (q.grouping? JMP:JMPCNT) :JMP), NORMAL_READ);
 	q.jumps.setPlace(endfile, v.size());
 	genReturnGroups(n->node4, v, q); //more selecting/printing if grouping
 	addop(v, ENDRUN);
