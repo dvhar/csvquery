@@ -1,7 +1,7 @@
 #include "interpretor.h"
 #include "vmachine.h"
 
-map<int, string> opMap = { {CVNO,"CVNO"}, {CVER,"CVER"}, {CVIF,"CVIF"}, {CVIS,"CVIS"}, {CVFI,"CVFI"}, {CVFS,"CVFS"}, {CVDRS,"CVDRS"}, {CVDTS,"CVDTS"}, {CVSI,"CVSI"}, {CVSF,"CVSF"}, {CVSDT,"CVSDT"}, {CVSDR,"CVSDR"}, {IADD,"IADD"}, {FADD,"FADD"}, {TADD,"TADD"}, {DADD,"DADD"}, {ISUB,"ISUB"}, {FSUB,"FSUB"}, {DSUB,"DSUB"}, {IMULT,"IMULT"}, {FMULT,"FMULT"}, {DMULT,"DMULT"}, {IDIV,"IDIV"}, {FDIV,"FDIV"}, {DDIV,"DDIV"}, {INEG,"INEG"}, {FNEG,"FNEG"}, {DNEG,"DNEG"}, {IMOD,"IMOD"}, {IEXP,"IEXP"}, {FEXP,"FEXP"}, {JMP,"JMP"}, {JMPTRUE,"JMPTRUE"}, {JMPFALSE,"JMPFALSE"}, {POP,"POP"}, {RDLINE,"RDLINE"}, {RDLINEAT,"RDLINEAT"}, {PRINT,"PRINT"}, {RAWROW,"RAWROW"}, {PUT,"PUT"}, {LDPUT,"LDPUT"}, {LDPUTALL,"LDPUTALL"}, {PUTVAR,"PUTVAR"}, {LDINT,"LDINT"}, {LDFLOAT,"LDFLOAT"}, {LDTEXT,"LDTEXT"}, {LDDATE,"LDDATE"}, {LDDUR,"LDDUR"}, {LDNULL,"LDNULL"}, {LDLIT,"LDLIT"}, {LDVAR,"LDVAR"}, {IEQ,"IEQ"}, {FEQ,"FEQ"}, {DEQ,"DEQ"}, {TEQ,"TEQ"}, {NEQ,"NEQ"}, {ILEQ,"ILEQ"}, {FLEQ,"FLEQ"}, {DLEQ,"DLEQ"}, {TLEQ,"TLEQ"}, {ILT,"ILT"}, {FLT,"FLT"}, {DLT,"DLT"}, {TLT,"TLT"}, {ENDRUN,"ENDRUN"}
+map<int, string> opMap = { {CVNO,"CVNO"}, {CVER,"CVER"}, {CVIF,"CVIF"}, {CVIS,"CVIS"}, {CVFI,"CVFI"}, {CVFS,"CVFS"}, {CVDRS,"CVDRS"}, {CVDTS,"CVDTS"}, {CVSI,"CVSI"}, {CVSF,"CVSF"}, {CVSDT,"CVSDT"}, {CVSDR,"CVSDR"}, {IADD,"IADD"}, {FADD,"FADD"}, {TADD,"TADD"}, {DADD,"DADD"}, {ISUB,"ISUB"}, {FSUB,"FSUB"}, {DSUB,"DSUB"}, {IMULT,"IMULT"}, {FMULT,"FMULT"}, {DMULT,"DMULT"}, {IDIV,"IDIV"}, {FDIV,"FDIV"}, {DDIV,"DDIV"}, {INEG,"INEG"}, {FNEG,"FNEG"}, {DNEG,"DNEG"}, {IMOD,"IMOD"}, {IEXP,"IEXP"}, {FEXP,"FEXP"}, {JMP,"JMP"}, {JMPCNT,"JMPCNT"}, {JMPTRUE,"JMPTRUE"}, {JMPFALSE,"JMPFALSE"}, {POP,"POP"}, {RDLINE,"RDLINE"}, {RDLINEAT,"RDLINEAT"}, {PRINT,"PRINT"}, {RAWROW,"RAWROW"}, {PUT,"PUT"}, {LDPUT,"LDPUT"}, {LDPUTALL,"LDPUTALL"}, {PUTVAR,"PUTVAR"}, {LDINT,"LDINT"}, {LDFLOAT,"LDFLOAT"}, {LDTEXT,"LDTEXT"}, {LDDATE,"LDDATE"}, {LDDUR,"LDDUR"}, {LDNULL,"LDNULL"}, {LDLIT,"LDLIT"}, {LDVAR,"LDVAR"}, {IEQ,"IEQ"}, {FEQ,"FEQ"}, {DEQ,"DEQ"}, {TEQ,"TEQ"}, {NEQ,"NEQ"}, {ILEQ,"ILEQ"}, {FLEQ,"FLEQ"}, {DLEQ,"DLEQ"}, {TLEQ,"TLEQ"}, {ILT,"ILT"}, {FLT,"FLT"}, {DLT,"DLT"}, {TLT,"TLT"}, {ENDRUN,"ENDRUN"}
 };
 
 void dat::print(){
@@ -38,6 +38,7 @@ vmachine::vmachine(querySpecs &qs){
 	//eventually set stack size based on syntax tree
 	stack.resize(50);
 	ops = q->bytecode;
+	quantityLimit = q->quantityLimit;
 
 	for (auto &d : stack)   memset(&d, 0, sizeof(dat));
 	for (auto &d : vars)    memset(&d, 0, sizeof(dat));
@@ -76,6 +77,7 @@ void vmachine::run(){
 	byte b1;
 	dat *d1;
 
+	int numPrinted = 0;
 	int s1 = 0; //stack top index
 	int ip = 0;
 	opcode op;
@@ -419,25 +421,22 @@ case CVDTS:
 case JMP:
 	ip = op.p1;
 	break;
+case JMPCNT:
+	ip = (numPrinted < quantityLimit) ? ip = op.p1 : ip+1;
+	break;
 case JMPFALSE:
 	ip = !stack[s1].u.p ? op.p1 : ip+1;
-	if (op.p1 == 1) {
+	if (op.p2 == 1){
 		FREE(stack[s1]);
-	} else if (op.p1 == 2){
-		FREE(stack[s1]);
-		FREE(stack[s1-1]);
+		--s1;
 	}
-	s1-=op.p2;
 	break;
 case JMPTRUE:
 	ip = stack[s1].u.p ? op.p1 : ip+1;
-	if (op.p1 == 1) {
+	if (op.p2 == 1){
 		FREE(stack[s1]);
-	} else if (op.p1 == 2){
-		FREE(stack[s1]);
-		FREE(stack[s1-1]);
+		--s1;
 	}
-	s1-=op.p2;
 	break;
 
 case PRINT:
@@ -446,6 +445,7 @@ case PRINT:
 		if (i < torowSize-1) fmt::print(",");
 	}
 	fmt::print("\n");
+	++numPrinted;
 	++ip;
 	break;
 
