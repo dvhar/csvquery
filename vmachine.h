@@ -60,10 +60,16 @@ const byte MAL = 64; //malloced and responsible for freeing c string
 #define ISNULL(X) ( X.b & NIL )
 #define ISMAL(X) ( X.b & MAL )
 
-#define FREE(X) datp = &X;  \
+//free cstring in array with one indexing operation
+#define FREE1(X) datp = &X;  \
 	if ( datp->b & MAL ) \
 		free(datp->u.s); \
 	datp->b &=(~MAL); \
+//free cstring with fewer steps if arg has no array indexing
+#define FREE2(X) \
+	if ( X.b & MAL ) \
+		free(X.u.s); \
+	X.b &=(~MAL); \
 
 //passed free() responsibility to another dat
 #define DISOWN(X) X.b &=(~MAL)
