@@ -7,10 +7,10 @@ enum codes : unsigned char {
 	CVNO, CVER,
 	CVIF, CVIS, CVFI, CVFS, CVDRS, CVDRF, CVDTS,
 	CVSI, CVSF, CVSDR, CVSDT,
-	IADD, FADD, TADD, DADD,
-	ISUB, FSUB, DSUB,
-	IMULT, FMULT, DMULT,
-	IDIV, FDIV, DDIV,
+	IADD, FADD, TADD, DTADD, DRADD,
+	ISUB, FSUB, DTSUB, DRSUB,
+	IMULT, FMULT, DRMULT,
+	IDIV, FDIV, DRDIV,
 	INEG, FNEG, DNEG,
 	IMOD,
 	IEXP, FEXP,
@@ -19,9 +19,9 @@ enum codes : unsigned char {
 	PUT, LDPUT, LDPUTALL, PUTVAR,
 	LDINT, LDFLOAT, LDTEXT, LDDATE, LDDUR,
 	LDNULL, LDLIT, LDVAR,
-	IEQ, FEQ, DEQ, TEQ, NEQ,
-	ILEQ, FLEQ, DLEQ, TLEQ,
-	ILT, FLT, DLT, TLT,
+	IEQ, FEQ, TEQ, NEQ,
+	ILEQ, FLEQ, TLEQ,
+	ILT, FLT, TLT,
 	PRINT, POP, ENDRUN
 };
 extern map<int, string> opMap;
@@ -31,16 +31,16 @@ enum typeOperators {
 	OPADD, OPSUB, OPMULT, OPDIV, OPEXP, OPNEG, OPLD, OPEQ, OPLEQ, OPLT
 };
 static int ops[][6] = {
-	{ 0, IADD, FADD, DADD, DADD, TADD },
-	{ 0, ISUB, FSUB, DSUB, DSUB, 0 },
-	{ 0, IMULT, FMULT, 0, DMULT, 0 },
-	{ 0, IDIV, FDIV, 0, DDIV, 0 },
+	{ 0, IADD, FADD, DTADD, DRADD, TADD },
+	{ 0, ISUB, FSUB, DTSUB, DRSUB, 0 },
+	{ 0, IMULT, FMULT, 0, DRMULT, 0 },
+	{ 0, IDIV, FDIV, 0, DRDIV, 0 },
 	{ 0, IEXP, FEXP, 0, 0, 0 },
 	{ 0, INEG, FNEG, 0, DNEG, 0 },
 	{ 0, LDINT, LDFLOAT, LDDATE, LDDUR, LDTEXT },
-	{ 0, IEQ, FEQ, DEQ, DEQ, TEQ },
-	{ 0, ILEQ, FLEQ, DLEQ, DLEQ, TLEQ },
-	{ 0, ILT, FLT, DLT, DLT, TLT }
+	{ 0, IEQ, FEQ, IEQ, IEQ, TEQ }, //date and duration comparision uses int operators
+	{ 0, ILEQ, FLEQ, ILEQ, ILEQ, TLEQ },
+	{ 0, ILT, FLT, ILT, ILT, TLT }
 };
 static dat* datp;
 
