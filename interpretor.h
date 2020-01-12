@@ -12,6 +12,7 @@
 #include <stdarg.h>
 #include <boost/algorithm/string.hpp>
 #include <fmt/format.h>
+#include "deps/dateparse/dateparse.h"
 
 #ifdef __APPLE__ //change this to only use tre on windows
 #include <regex.h>
@@ -110,11 +111,9 @@ class opcode {
 };
 //data during processing
 union datunion {
-	int64 i;
+	int64 i; //also used for date and duration
 	double f;
 	char* s;
-	time_t dt; //probably want to change these to int64
-	time_t dr;
 	bool p;
 };
 class dat {
@@ -302,7 +301,7 @@ int slcomp(const char*, const char*);
 int isInt(const char*);
 int isFloat(const char*);
 int dateParse(const char*, struct timeval*);
-int parseDuration(char*, time_t*);
+int parseDuration(char*, date_t*);
 int getNarrowestType(char* value, int startType);
 int isInList(int n, int count, ...);
 void openfiles(querySpecs &q, unique_ptr<node> &n);

@@ -14,15 +14,15 @@ enum codes : unsigned char {
 	INEG, FNEG, DNEG,
 	IMOD,
 	IEXP, FEXP,
-	JMP, JMPCNT, JMPTRUE, JMPFALSE, POP,
+	JMP, JMPCNT, JMPTRUE, JMPFALSE,
 	RDLINE, RDLINEAT,
-	PRINT, RAWROW, PUT, LDPUT, LDPUTALL, PUTVAR,
+	PUT, LDPUT, LDPUTALL, PUTVAR,
 	LDINT, LDFLOAT, LDTEXT, LDDATE, LDDUR,
 	LDNULL, LDLIT, LDVAR,
 	IEQ, FEQ, DEQ, TEQ, NEQ,
 	ILEQ, FLEQ, DLEQ, TLEQ,
 	ILT, FLT, DLT, TLT,
-	ENDRUN
+	PRINT, POP, ENDRUN
 };
 extern map<int, string> opMap;
 
@@ -60,16 +60,18 @@ const byte MAL = 64; //malloced and responsible for freeing c string
 #define ISNULL(X) ( X.b & NIL )
 #define ISMAL(X) ( X.b & MAL )
 
-//free cstring in array with one indexing operation
+//free cstring when arg is array[index] and only index it once
 #define FREE1(X) datp = &X;  \
-	if ( datp->b & MAL ) \
+	if ( datp->b & MAL ){ \
 		free(datp->u.s); \
-	datp->b &=(~MAL); \
+		datp->b &=(~MAL);\
+	}
 //free cstring with fewer steps if arg has no array indexing
 #define FREE2(X) \
-	if ( X.b & MAL ) \
+	if ( X.b & MAL ){ \
 		free(X.u.s); \
-	X.b &=(~MAL); \
+		X.b &=(~MAL); \
+	}
 
 //passed free() responsibility to another dat
 #define DISOWN(X) X.b &=(~MAL)
@@ -77,7 +79,7 @@ const byte MAL = 64; //malloced and responsible for freeing c string
 class vmachine {
 	querySpecs* q;
 	vector<shared_ptr<fileReader>> files;
-	vector<opcode> ops;
+	opcode* ops;
 	dat* torow;
 	int torowSize;
 	int quantityLimit;
