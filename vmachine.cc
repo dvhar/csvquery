@@ -7,7 +7,7 @@
 #define stkp1 (*(stacktop-op->p1))
 
 //map for printing opcodes
-map<int, string> opMap = { {CVNO,"CVNO"}, {CVER,"CVER"}, {CVIF,"CVIF"}, {CVIS,"CVIS"}, {CVFI,"CVFI"}, {CVFS,"CVFS"}, {CVDRS,"CVDRS"}, {CVDTS,"CVDTS"}, {CVSI,"CVSI"}, {CVSF,"CVSF"}, {CVSDT,"CVSDT"}, {CVSDR,"CVSDR"}, {IADD,"IADD"}, {FADD,"FADD"}, {TADD,"TADD"}, {DADD,"DADD"}, {ISUB,"ISUB"}, {FSUB,"FSUB"}, {DSUB,"DSUB"}, {IMULT,"IMULT"}, {FMULT,"FMULT"}, {DMULT,"DMULT"}, {IDIV,"IDIV"}, {FDIV,"FDIV"}, {DDIV,"DDIV"}, {INEG,"INEG"}, {FNEG,"FNEG"}, {DNEG,"DNEG"}, {IMOD,"IMOD"}, {IEXP,"IEXP"}, {FEXP,"FEXP"}, {JMP,"JMP"}, {JMPCNT,"JMPCNT"}, {JMPTRUE,"JMPTRUE"}, {JMPFALSE,"JMPFALSE"}, {POP,"POP"}, {RDLINE,"RDLINE"}, {RDLINEAT,"RDLINEAT"}, {PRINT,"PRINT"}, {PUT,"PUT"}, {LDPUT,"LDPUT"}, {LDPUTALL,"LDPUTALL"}, {PUTVAR,"PUTVAR"}, {LDINT,"LDINT"}, {LDFLOAT,"LDFLOAT"}, {LDTEXT,"LDTEXT"}, {LDDATE,"LDDATE"}, {LDDUR,"LDDUR"}, {LDNULL,"LDNULL"}, {LDLIT,"LDLIT"}, {LDVAR,"LDVAR"}, {IEQ,"IEQ"}, {FEQ,"FEQ"}, {DEQ,"DEQ"}, {TEQ,"TEQ"}, {NEQ,"NEQ"}, {ILEQ,"ILEQ"}, {FLEQ,"FLEQ"}, {DLEQ,"DLEQ"}, {TLEQ,"TLEQ"}, {ILT,"ILT"}, {FLT,"FLT"}, {DLT,"DLT"}, {TLT,"TLT"}, {ENDRUN,"ENDRUN"}
+map<int, string> opMap = { {CVNO,"CVNO"}, {CVER,"CVER"}, {CVIF,"CVIF"}, {CVIS,"CVIS"}, {CVFI,"CVFI"}, {CVFS,"CVFS"}, {CVDRS,"CVDRS"}, {CVDTS,"CVDTS"}, {CVSI,"CVSI"}, {CVSF,"CVSF"}, {CVSDT,"CVSDT"}, {CVSDR,"CVSDR"}, {IADD,"IADD"}, {FADD,"FADD"}, {TADD,"TADD"}, {DTADD,"DTADD"}, {DRADD,"DRADD"}, {ISUB,"ISUB"}, {FSUB,"FSUB"}, {DRSUB,"DRSUB"}, {DTSUB,"DTSUB"}, {IMULT,"IMULT"}, {FMULT,"FMULT"}, {DRMULT,"DRMULT"}, {IDIV,"IDIV"}, {FDIV,"FDIV"}, {DRDIV,"DRDIV"}, {INEG,"INEG"}, {FNEG,"FNEG"}, {DNEG,"DNEG"}, {IMOD,"IMOD"}, {IEXP,"IEXP"}, {FEXP,"FEXP"}, {JMP,"JMP"}, {JMPCNT,"JMPCNT"}, {JMPTRUE,"JMPTRUE"}, {JMPFALSE,"JMPFALSE"}, {POP,"POP"}, {RDLINE,"RDLINE"}, {RDLINEAT,"RDLINEAT"}, {PRINT,"PRINT"}, {PUT,"PUT"}, {LDPUT,"LDPUT"}, {LDPUTALL,"LDPUTALL"}, {PUTVAR,"PUTVAR"}, {LDINT,"LDINT"}, {LDFLOAT,"LDFLOAT"}, {LDTEXT,"LDTEXT"}, {LDDATE,"LDDATE"}, {LDDUR,"LDDUR"}, {LDNULL,"LDNULL"}, {LDLIT,"LDLIT"}, {LDVAR,"LDVAR"}, {IEQ,"IEQ"}, {FEQ,"FEQ"}, {TEQ,"TEQ"}, {NEQ,"NEQ"}, {ILEQ,"ILEQ"}, {FLEQ,"FLEQ"}, {TLEQ,"TLEQ"}, {ILT,"ILT"}, {FLT,"FLT"}, {TLT,"TLT"}, {ENDRUN,"ENDRUN"}
 };
 void opcode::print(){
 	cerr << ft("code: {: <9}  [{: <2}  {: <2}  {: <2}]\n", opMap[code], p1, p2, p3);
@@ -211,7 +211,16 @@ case TADD:
 	--stacktop;
 	++ip;
 	break;
-case DADD:
+case DRADD:
+	if (ISNULL(stk0) || ISNULL(stk1)) stk1.b |= NIL;
+	else { stk1.u.i += stk0.u.i; stk1.b = DR; }
+	--stacktop;
+	++ip;
+	break;
+case DTADD:
+	if (ISNULL(stk0) || ISNULL(stk1)) stk1.b |= NIL;
+	else { stk1.u.i += stk0.u.i; stk1.b = DT; }
+	--stacktop;
 	++ip;
 	break;
 case ISUB:
@@ -226,7 +235,16 @@ case FSUB:
 	--stacktop;
 	++ip;
 	break;
-case DSUB:
+case DTSUB:
+	if (ISNULL(stk0) || ISNULL(stk1)) stk1.b |= NIL;
+	else { stk1.u.i -= stk0.u.i; stk1.b = DT; }
+	--stacktop;
+	++ip;
+	break;
+case DRSUB:
+	if (ISNULL(stk0) || ISNULL(stk1)) stk1.b |= NIL;
+	else { stk1.u.i -= stk0.u.i; stk1.b = DR; }
+	--stacktop;
 	++ip;
 	break;
 case IMULT:
@@ -241,7 +259,27 @@ case FMULT:
 	--stacktop;
 	++ip;
 	break;
-case DMULT:
+case DRMULT:
+	if (ISNULL(stk0) || ISNULL(stk1)) stk1.b |= NIL;
+	else {
+		i1 = stk0.b; i2 = stk1.b;
+		if (i1 == T_DATE){
+			if (i2 == T_INT){ // date * int
+				stk1.u.i = stk1.u.i * stk0.u.i;
+			} else { // date * float
+				stk1.u.i = stk1.u.i * stk0.u.f;
+			}
+		} else {
+			if (i2 == T_INT){ // int * date
+				stk1.u.i = stk1.u.i * stk0.u.i;
+			} else { // float * date
+				stk1.u.i = stk1.u.f * stk0.u.i;
+			}
+			stk1.b = DR;
+		}
+	}
+	--stacktop;
+	++ip;
 	break;
 case IDIV:
 	if (ISNULL(stk0) || ISNULL(stk1) || stk0.u.i==0) stk1.b |= NIL;
@@ -255,9 +293,14 @@ case FDIV:
 	--stacktop;
 	++ip;
 	break;
-case DDIV:
+case DRDIV:
 	if (ISNULL(stk0) || ISNULL(stk1) || stk0.u.f==0) stk1.b |= NIL;
-	else stk1.u.i /= stk0.u.f; //not sure about typs here
+	else {
+		if (stk0.b == I)
+			stk1.u.i /= stk0.u.i;
+		else
+			stk1.u.i /= stk0.u.f;
+	}
 	--stacktop;
 	++ip;
 	break;
@@ -293,9 +336,6 @@ case FEQ:
 	stacktop -= op->p1;
 	++ip;
 	break;
-case DEQ:
-	++ip;
-	break;
 case TEQ:
 	i1 = ISNULL(stk0);
 	i2 = ISNULL(stk1);
@@ -326,9 +366,6 @@ case FLEQ:
 	stacktop -= op->p1;
 	++ip;
 	break;
-case DLEQ:
-	++ip;
-	break;
 case TLEQ:
 	//needs all the mem stuff from TEQ
 	if (ISNULL(stk0) || ISNULL(stk1)) stkp1.u.p = false;
@@ -346,9 +383,6 @@ case FLT:
 	if (ISNULL(stk0) || ISNULL(stk1)) stkp1.u.p = false;
 	else stkp1.u.p = (stk1.u.f < stk0.u.f)^op->p2;
 	stacktop -= op->p1;
-	++ip;
-	break;
-case DLT:
 	++ip;
 	break;
 case TLT:
@@ -408,9 +442,19 @@ case CVSF:
 	++ip;
 	break;
 case CVSDT:
+	i1 = dateparse64(stk0.u.s, &ll1, stk0.z);
+	FREE2(stk0);
+	stk0.u.i = ll1;
+	stk0.b = DT;
+	if (i1) stk0.b |= NIL;
 	++ip;
 	break;
 case CVSDR:
+	i1 = parseDuration(stk0.u.s, &ll1);
+	FREE2(stk0);
+	stk0.u.i = ll1;
+	stk0.b = DR;
+	if (i1) stk0.b |= NIL;
 	++ip;
 	break;
 case CVDRS:
