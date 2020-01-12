@@ -49,24 +49,29 @@ static bool isTrivial(unique_ptr<node> &n){
 static dat parseIntDat(const char* s){
 	char* end = NULL;
 	dat idat = { { .i = strtol(s, &end, 10) }, I };
-	if (*end != 0) error(str3("Could not parse ", s, " as integer."));
+	if (*end != 0)
+		error(str3("Could not parse ", s, " as integer."));
 	return idat;
 }
 static dat parseFloatDat(const char* s){
 	char* end = NULL;
 	dat fdat = { { .f = strtof(s, &end) }, F };
-	if (*end != 0) error(str3("Could not parse ", s, " as floating point number."));
+	if (*end != 0)
+		error(str3("Could not parse ", s, " as floating point number."));
 	return fdat;
 }
 static dat parseDurationDat(const char* s) {
-	time_t t;
-	int err = parseDuration((char*)s, &t);
-	dat ddat = { { .dr = t }, DR };
-	if (err) error(str3("Could not parse ", s, " as duration."));
+	date_t t;
+	if (parseDuration((char*)s, &t))
+		error(str3("Could not parse ", s, " as duration."));
+	dat ddat = { { .i = t }, DR };
 	return ddat;
 }
 static dat parseDateDat(const char* s) { //need to finish dateparse library
-	dat ddat = { { .dt = 0 }, DT };
+	date_t date;
+	if (dateparse64_2(s, &date))
+		error(str3("Could not parse ", s, " as date"));
+	dat ddat = { { .i = date }, DT };
 	ddat.b |= NIL;
 	return ddat;
 }
@@ -186,7 +191,7 @@ static void genNormalQuery(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q
 	genSelect(n->node2, v, q);
 	if (!q.grouping)
 		genPrint(v, q);
-	addop(v, (q.quantityLimit > 0 ? (q.grouping? JMP:JMPCNT) :JMP), NORMAL_READ);
+	addop(v, (q.quantityLimit > 0 && !q.grouping ? JMPCNT : JMP), NORMAL_READ);
 	q.jumps.setPlace(endfile, v.size());
 	genReturnGroups(n->node4, v, q); //more selecting/printing if grouping
 	addop(v, ENDRUN);

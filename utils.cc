@@ -6,9 +6,6 @@
 #define isFloat(A) !regexec(&floatType, A, 0, NULL, 0)
 #define isDuration(A) !regexec(&durationPattern, A, 0, NULL, 0)
 
-//placeholder - real function under construction in its own library
-int dateParse(const char* datestr, struct timeval* tv){ return -1; }
-
 regex_t leadingZeroString;
 regex_t durationPattern;
 regex_t intType;
@@ -255,7 +252,7 @@ int isInList(int n, int count, ...)
     return 0;
 }
 
-int parseDuration(char* str, time_t* t) {
+int parseDuration(char* str, date_t* t) {
 	if (!isDuration(str)) {return -1;}
 	char* part2;
 	double quantity = strtod(str, &part2);
@@ -273,19 +270,19 @@ int parseDuration(char* str, time_t* t) {
 	else if (slcomp(part2,"s") || slcomp(part2,"second") || slcomp(part2,"seconds"))
 		{}
 	else return -1;
-	*t = quantity;
+	*t = quantity * 1E6;
 	return 0;
 }
 
 int getNarrowestType(char* value, int startType) {
-	time_t t;
+	date_t t;
 	struct timeval tv;
 	if (!slcomp(value,"null") || !scomp(value,"NA") || value[0] == '\0') {
 	  startType = max(T_NULL, startType);
 	} else if (!regexec(&leadingZeroString, value, 0, NULL, 0)){ startType = T_STRING;
 	} else if (isInt(value))                       { startType = max(T_INT, startType);
 	} else if (isFloat(value))                     { startType = max(T_FLOAT, startType);
-	} else if (!dateParse(value, &tv))             { startType = max(T_DATE, startType);
+	} else if (!dateparse_2(value, &tv))             { startType = max(T_DATE, startType);
 	  //in case duration gets mistaken for a date
 	   if (!parseDuration(value, &t))              { startType = max(T_DURATION, startType); }
 	} else if (!parseDuration(value, &t))          { startType = max(T_DURATION, startType);

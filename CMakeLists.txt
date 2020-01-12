@@ -12,6 +12,7 @@ set_target_properties(tre PROPERTIES IMPORTED_LOCATION /home/dave/gits/vcpkg/ins
 set_target_properties(tre PROPERTIES INTERFACE_INCLUDE_DIRECTORIES /home/dave/gits/vcpkg/installed/x64-linux/include/tre)
 
 file(GLOB CQL_SOURCE "*.cc")
+set(CQL_SOURCE ${CQL_SOURCE} deps/dateparse/dateparse.c)
 
 add_executable(cql ${CQL_SOURCE})
 
