@@ -4,7 +4,7 @@
 //syntactic sugar for stack dereferencing
 #define stk0 (*stacktop)
 #define stk1 (*(stacktop-1))
-#define stkp1 (*(stacktop-op->p1))
+#define stkp(N) (*(stacktop-N))
 
 //map for printing opcodes
 map<int, string> opMap = { {CVNO,"CVNO"}, {CVER,"CVER"}, {CVIF,"CVIF"}, {CVIS,"CVIS"}, {CVFI,"CVFI"}, {CVFS,"CVFS"}, {CVDRS,"CVDRS"}, {CVDTS,"CVDTS"}, {CVSI,"CVSI"}, {CVSF,"CVSF"}, {CVSDT,"CVSDT"}, {CVSDR,"CVSDR"}, {IADD,"IADD"}, {FADD,"FADD"}, {TADD,"TADD"}, {DTADD,"DTADD"}, {DRADD,"DRADD"}, {ISUB,"ISUB"}, {FSUB,"FSUB"}, {DRSUB,"DRSUB"}, {DTSUB,"DTSUB"}, {IMULT,"IMULT"}, {FMULT,"FMULT"}, {DRMULT,"DRMULT"}, {IDIV,"IDIV"}, {FDIV,"FDIV"}, {DRDIV,"DRDIV"}, {INEG,"INEG"}, {FNEG,"FNEG"}, {DNEG,"DNEG"}, {IMOD,"IMOD"}, {IEXP,"IEXP"}, {FEXP,"FEXP"}, {JMP,"JMP"}, {JMPCNT,"JMPCNT"}, {JMPTRUE,"JMPTRUE"}, {JMPFALSE,"JMPFALSE"}, {POP,"POP"}, {RDLINE,"RDLINE"}, {RDLINEAT,"RDLINEAT"}, {PRINT,"PRINT"}, {PUT,"PUT"}, {LDPUT,"LDPUT"}, {LDPUTALL,"LDPUTALL"}, {PUTVAR,"PUTVAR"}, {LDINT,"LDINT"}, {LDFLOAT,"LDFLOAT"}, {LDTEXT,"LDTEXT"}, {LDDATE,"LDDATE"}, {LDDUR,"LDDUR"}, {LDNULL,"LDNULL"}, {LDLIT,"LDLIT"}, {LDVAR,"LDVAR"}, {IEQ,"IEQ"}, {FEQ,"FEQ"}, {TEQ,"TEQ"}, {NEQ,"NEQ"}, {ILEQ,"ILEQ"}, {FLEQ,"FLEQ"}, {TLEQ,"TLEQ"}, {ILT,"ILT"}, {FLT,"FLT"}, {TLT,"TLT"}, {ENDRUN,"ENDRUN"}
@@ -18,7 +18,7 @@ void dat::print(){
 	switch ( b & 0b00011111 ) {
 	case I:  fmt::print("{}",u.i); break;
 	case F:  fmt::print("{:.10g}",u.f); break;
-	case DT: fmt::print("{}",u.i); break; //need to format dates
+	case DT: fmt::print("{}",datestring64(u.i)); break;
 	case DR: fmt::print("{}",u.i); break; //need to format durations
 	case T:  fmt::print("{}",u.s); break;
 	}
@@ -92,6 +92,7 @@ void vmachine::run(){
 		switch(op->code){
 
 //put data from stack into torow
+//should make a version of this that prints directly rather than using torow
 case PUT:
 	FREE1(torow[op->p1]);
 	torow[op->p1] = stk0;
@@ -321,18 +322,18 @@ case FNEG:
 case IEQ:
 	i1 = ISNULL(stk0);
 	i2 = ISNULL(stk1);
-	if (i1 ^ i2) stkp1.u.p = false;
-	else if (i1 & i2) stkp1.u.p = true;
-	else stkp1.u.p = (stk1.u.i == stk0.u.i)^op->p2;
+	if (i1 ^ i2) stkp(op->p1).u.p = false;
+	else if (i1 & i2) stkp(op->p1).u.p = true;
+	else stkp(op->p1).u.p = (stk1.u.i == stk0.u.i)^op->p2;
 	stacktop -= op->p1;
 	++ip;
 	break;
 case FEQ:
 	i1 = ISNULL(stk0);
 	i2 = ISNULL(stk1);
-	if (i1 ^ i2) stkp1.u.p = false;
-	else if (i1 & i2) stkp1.u.p = true;
-	else stkp1.u.p = (stk1.u.f == stk0.u.f)^op->p2;
+	if (i1 ^ i2) stkp(op->p1).u.p = false;
+	else if (i1 & i2) stkp(op->p1).u.p = true;
+	else stkp(op->p1).u.p = (stk1.u.f == stk0.u.f)^op->p2;
 	stacktop -= op->p1;
 	++ip;
 	break;
@@ -342,53 +343,53 @@ case TEQ:
 	if (!(i1|i2)){ //none null
 		bl1 = (scomp(stk1.u.s, stk0.u.s) == 0)^op->p2;
 		FREE2(stk0);
-		FREE2(stkp1);
-		stkp1.u.p = bl1;
+		FREE2(stkp(op->p1));
+		stkp(op->p1).u.p = bl1;
 	} else if (i1 & i2) { //both null
-		stkp1.u.p = true;
+		stkp(op->p1).u.p = true;
 	} else { //one null
 		FREE2(stk0);
-		FREE2(stkp1);
-		stkp1.u.p = false;
+		FREE2(stkp(op->p1));
+		stkp(op->p1).u.p = false;
 	}
 	stacktop -= op->p1;
 	++ip;
 	break;
 case ILEQ:
-	if (ISNULL(stk0) || ISNULL(stk1)) stkp1.u.p = false;
-	else stkp1.u.p = (stk1.u.i <= stk0.u.i)^op->p2;
+	if (ISNULL(stk0) || ISNULL(stk1)) stkp(op->p1).u.p = false;
+	else stkp(op->p1).u.p = (stk1.u.i <= stk0.u.i)^op->p2;
 	stacktop -= op->p1;
 	++ip;
 	break;
 case FLEQ:
-	if (ISNULL(stk0) || ISNULL(stk1)) stkp1.u.p = false;
-	else stkp1.u.p = (stk1.u.f <= stk0.u.f)^op->p2;
+	if (ISNULL(stk0) || ISNULL(stk1)) stkp(op->p1).u.p = false;
+	else stkp(op->p1).u.p = (stk1.u.f <= stk0.u.f)^op->p2;
 	stacktop -= op->p1;
 	++ip;
 	break;
 case TLEQ:
 	//needs all the mem stuff from TEQ
-	if (ISNULL(stk0) || ISNULL(stk1)) stkp1.u.p = false;
-	else stkp1.u.p = (scomp(stk1.u.s, stk0.u.s) <= 0)^op->p2;
+	if (ISNULL(stk0) || ISNULL(stk1)) stkp(op->p1).u.p = false;
+	else stkp(op->p1).u.p = (scomp(stk1.u.s, stk0.u.s) <= 0)^op->p2;
 	stacktop -= op->p1;
 	++ip;
 	break;
 case ILT:
-	if (ISNULL(stk0) || ISNULL(stk1)) stkp1.u.p = false;
-	else stkp1.u.p = (stk1.u.i < stk0.u.i)^op->p2;
+	if (ISNULL(stk0) || ISNULL(stk1)) stkp(op->p1).u.p = false;
+	else stkp(op->p1).u.p = (stk1.u.i < stk0.u.i)^op->p2;
 	stacktop -= op->p1;
 	++ip;
 	break;
 case FLT:
-	if (ISNULL(stk0) || ISNULL(stk1)) stkp1.u.p = false;
-	else stkp1.u.p = (stk1.u.f < stk0.u.f)^op->p2;
+	if (ISNULL(stk0) || ISNULL(stk1)) stkp(op->p1).u.p = false;
+	else stkp(op->p1).u.p = (stk1.u.f < stk0.u.f)^op->p2;
 	stacktop -= op->p1;
 	++ip;
 	break;
 case TLT:
 	//needs all the mem stuff from TEQ
-	if (ISNULL(stk0) || ISNULL(stk1)) stkp1.u.p = false;
-	else stkp1.u.p = (scomp(stk1.u.s, stk0.u.s) < 0)^op->p2;
+	if (ISNULL(stk0) || ISNULL(stk1)) stkp(op->p1).u.p = false;
+	else stkp(op->p1).u.p = (scomp(stk1.u.s, stk0.u.s) < 0)^op->p2;
 	stacktop -= op->p1;
 	++ip;
 	break;
@@ -498,6 +499,8 @@ case PRINT:
 
 case ENDRUN:
 	goto endloop;
+case 0:
+	error("Invalid opcode");
 
 		} //end big switch
 	} //end loop
