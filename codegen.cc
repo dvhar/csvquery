@@ -72,7 +72,6 @@ static dat parseDateDat(const char* s) { //need to finish dateparse library
 	if (dateparse64_2(s, &date))
 		error(str3("Could not parse ", s, " as date"));
 	dat ddat = { { .i = date }, DT };
-	ddat.b |= NIL;
 	return ddat;
 }
 static dat parseStringDat(const char* s) {
