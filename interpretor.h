@@ -14,10 +14,11 @@
 #include <fmt/format.h>
 #include "deps/dateparse/dateparse.h"
 
-#ifdef __APPLE__ //change this to only use tre on windows
-#include <regex.h>
-#else
+#ifdef __MINGW32__
+#include <getopt.h>
 #include <tre/regex.h>
+#else
+#include <regex.h>
 #endif
 
 #define BUFSIZE  1024*1024
