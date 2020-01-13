@@ -24,6 +24,7 @@
 #define int64 long long
 #define byte unsigned char
 #define ft fmt::format
+#define pt fmt::print
 #define str1(A) ft("{}",A)
 #define str2(A,B) ft("{}{}",A,B)
 #define str3(A,B,C) ft("{}{}{}",A,B,C)
