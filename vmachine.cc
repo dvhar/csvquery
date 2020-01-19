@@ -19,7 +19,7 @@ void dat::print(){
 	case I:  fmt::print("{}",u.i); break;
 	case F:  fmt::print("{:.10g}",u.f); break;
 	case DT: fmt::print("{}",datestring64(u.i)); break;
-	case DR: fmt::print("{}",u.i); break; //need to format durations
+	case DR: fmt::print("{}",durstring(u.i, nullptr)); break; //need to format durations
 	case T:  fmt::print("{}",u.s); break;
 	}
 }
@@ -72,6 +72,7 @@ void strplus(dat &s1, dat &s2){
 
 void vmachine::run(){
 	//temporary values
+	short sh1;
 	date_t ll1;
 	int i1, i2;
 	double f1;
@@ -143,8 +144,8 @@ case LDDUR:
 case LDDATE:
 	++stacktop;
 	cv = files[op->p1]->entries[op->p2];
-	i1 = dateparse64(cv.val, &ll1, cv.size);
-	stk0 = dat{ { .i = ll1}, DT};
+	i1 = dateparse64(cv.val, &ll1, &sh1, cv.size);
+	stk0 = dat{ { .i = ll1}, DT, sh1 };
 	if (i1) stk0.b |= NIL;
 	++ip;
 	break;
@@ -368,9 +369,13 @@ case FLEQ:
 	++ip;
 	break;
 case TLEQ:
-	//needs all the mem stuff from TEQ
 	if (ISNULL(stk0) || ISNULL(stk1)) stkp(op->p1).u.p = false;
-	else stkp(op->p1).u.p = (scomp(stk1.u.s, stk0.u.s) <= 0)^op->p2;
+	else {
+		bl1 = (scomp(stk1.u.s, stk0.u.s) <= 0)^op->p2;
+		FREE2(stk0);
+		FREE2(stkp(op->p1));
+		stkp(op->p1).u.p = bl1;
+	}
 	stacktop -= op->p1;
 	++ip;
 	break;
@@ -387,9 +392,13 @@ case FLT:
 	++ip;
 	break;
 case TLT:
-	//needs all the mem stuff from TEQ
 	if (ISNULL(stk0) || ISNULL(stk1)) stkp(op->p1).u.p = false;
-	else stkp(op->p1).u.p = (scomp(stk1.u.s, stk0.u.s) < 0)^op->p2;
+	else {
+		bl1 = (scomp(stk1.u.s, stk0.u.s) < 0)^op->p2;
+		FREE2(stk0);
+		FREE2(stkp(op->p1));
+		stkp(op->p1).u.p = bl1;
+	}
 	stacktop -= op->p1;
 	++ip;
 	break;
@@ -443,10 +452,11 @@ case CVSF:
 	++ip;
 	break;
 case CVSDT:
-	i1 = dateparse64(stk0.u.s, &ll1, stk0.z);
+	i1 = dateparse64(stk0.u.s, &ll1, &sh1, stk0.z);
 	FREE2(stk0);
 	stk0.u.i = ll1;
 	stk0.b = DT;
+	stk0.z = sh1;
 	if (i1) stk0.b |= NIL;
 	++ip;
 	break;
@@ -459,9 +469,19 @@ case CVSDR:
 	++ip;
 	break;
 case CVDRS:
+	stk0.u.s = (char*) malloc(24);
+	durstring(stk0.u.i, stk0.u.s);
+	stk0.b = T|MAL;
+	stk0.z = strlen(stk0.u.s);
 	++ip;
 	break;
 case CVDTS:
+	//make version of datestring that writes directly to arg buf
+	c1 = datestring64(stk0.u.i);
+	stk0.u.s = (char*) malloc(20);
+	strncpy(stk0.u.s, c1, 19);
+	stk0.b = T|MAL;
+	stk0.z = 19;
 	++ip;
 	break;
 

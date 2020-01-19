@@ -28,7 +28,7 @@ static void genSelections(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q)
 //global bytecode position
 static int NORMAL_READ;
 
-//type conversion opcodes - date and duration will be represented by int64
+//type conversion opcodes - [from][to]
 static int typeConv[6][6] = {
 	{0, 0,  0,  0,  0,  0 },
 	{0, CVNO, CVIF, CVNO, CVNO, CVIS },
@@ -50,27 +50,27 @@ static dat parseIntDat(const char* s){
 	char* end = NULL;
 	dat idat = { { .i = strtol(s, &end, 10) }, I };
 	if (*end != 0)
-		error(str3("Could not parse ", s, " as integer."));
+		error(str3("Could not parse ", s, " as a number."));
 	return idat;
 }
 static dat parseFloatDat(const char* s){
 	char* end = NULL;
 	dat fdat = { { .f = strtof(s, &end) }, F };
 	if (*end != 0)
-		error(str3("Could not parse ", s, " as floating point number."));
+		error(str3("Could not parse ", s, " as a number."));
 	return fdat;
 }
 static dat parseDurationDat(const char* s) {
-	date_t t;
-	if (parseDuration((char*)s, &t))
+	date_t dur;
+	if (parseDuration((char*)s, &dur))
 		error(str3("Could not parse ", s, " as duration."));
-	dat ddat = { { .i = t }, DR };
+	dat ddat = { { .i = dur }, DR };
 	return ddat;
 }
 static dat parseDateDat(const char* s) { //need to finish dateparse library
 	date_t date;
 	if (dateparse64_2(s, &date))
-		error(str3("Could not parse ", s, " as date"));
+		error(str3("Could not parse ", s, " as date."));
 	dat ddat = { { .i = date }, DT };
 	return ddat;
 }

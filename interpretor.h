@@ -23,6 +23,7 @@
 
 #define BUFSIZE  1024*1024
 #define int64 long long
+#define dur_t long long
 #define byte unsigned char
 #define ft fmt::format
 #define pt fmt::print
@@ -314,5 +315,6 @@ void runquery(querySpecs &q);
 int getVarIdx(string lkup, querySpecs &q);
 int getVarType(string lkup, querySpecs &q);
 int getFileNo(string s, querySpecs &q);
+char* durstring(dur_t dur, char* str);
 
 #endif
