@@ -314,3 +314,50 @@ int getFileNo(string s, querySpecs &q){
 	return -1;
 }
 
+//use static buf if null arg, otherwise make sure size 24
+char* durstring(dur_t dur, char* str){
+	static char durbuf[24];
+	static char* formats[2][2] = {
+		{ (char*)"%lld:%lld:%lld", (char*)"%lld:%lld:%lld.%lld" },
+		{ (char*)"_%lld:%lld:%lld", (char*)"_%lld:%lld:%lld.%lld"}
+	};
+	if (dur < 0)
+		dur *= -1;
+	dur_t mics = dur % 1000000;
+	dur_t secs = (dur % 60000000) / 1000000;
+	dur_t mins = (dur % 3600000000) / 60000000;
+	dur_t hours = (dur % 86400000000) / 3600000000;
+	dur_t days = dur / 86400000000;
+	int f1=0, f2=0;
+	char *dest;
+	char *s;
+	if (str == nullptr)
+		dest = durbuf;
+	else
+		dest = str;
+	if (dur == 0){
+		strcpy(dest, "0d");
+		return dest;
+	}
+	s = dest;
+	memset(s, 0, 24);
+	if (days){
+		sprintf(s, "%lldd", days);
+		f1 = 1;
+	}
+	if (mics){
+		f2 = 1;
+	}
+	if (hours || mins || secs){
+		while(*s) ++s;
+		sprintf(s, formats[f1][f2], hours, mins, secs, mics);
+	} else {
+		while(*s) ++s;
+		if (mics < 1000){
+			sprintf(s, "%lldms", mics/1000);
+		} else {
+			sprintf(s, "%lldmcs", mics);
+		}
+	}
+	return dest;
+}
