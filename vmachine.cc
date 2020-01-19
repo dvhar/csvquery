@@ -7,19 +7,30 @@
 #define stkp(N) (*(stacktop-N))
 
 //map for printing opcodes
-map<int, string> opMap = { {CVNO,"CVNO"}, {CVER,"CVER"}, {CVIF,"CVIF"}, {CVIS,"CVIS"}, {CVFI,"CVFI"}, {CVFS,"CVFS"}, {CVDRS,"CVDRS"}, {CVDTS,"CVDTS"}, {CVSI,"CVSI"}, {CVSF,"CVSF"}, {CVSDT,"CVSDT"}, {CVSDR,"CVSDR"}, {IADD,"IADD"}, {FADD,"FADD"}, {TADD,"TADD"}, {DTADD,"DTADD"}, {DRADD,"DRADD"}, {ISUB,"ISUB"}, {FSUB,"FSUB"}, {DRSUB,"DRSUB"}, {DTSUB,"DTSUB"}, {IMULT,"IMULT"}, {FMULT,"FMULT"}, {DRMULT,"DRMULT"}, {IDIV,"IDIV"}, {FDIV,"FDIV"}, {DRDIV,"DRDIV"}, {INEG,"INEG"}, {FNEG,"FNEG"}, {DNEG,"DNEG"}, {IMOD,"IMOD"}, {IEXP,"IEXP"}, {FEXP,"FEXP"}, {JMP,"JMP"}, {JMPCNT,"JMPCNT"}, {JMPTRUE,"JMPTRUE"}, {JMPFALSE,"JMPFALSE"}, {POP,"POP"}, {RDLINE,"RDLINE"}, {RDLINEAT,"RDLINEAT"}, {PRINT,"PRINT"}, {PUT,"PUT"}, {LDPUT,"LDPUT"}, {LDPUTALL,"LDPUTALL"}, {PUTVAR,"PUTVAR"}, {LDINT,"LDINT"}, {LDFLOAT,"LDFLOAT"}, {LDTEXT,"LDTEXT"}, {LDDATE,"LDDATE"}, {LDDUR,"LDDUR"}, {LDNULL,"LDNULL"}, {LDLIT,"LDLIT"}, {LDVAR,"LDVAR"}, {IEQ,"IEQ"}, {FEQ,"FEQ"}, {TEQ,"TEQ"}, {NEQ,"NEQ"}, {ILEQ,"ILEQ"}, {FLEQ,"FLEQ"}, {TLEQ,"TLEQ"}, {ILT,"ILT"}, {FLT,"FLT"}, {TLT,"TLT"}, {ENDRUN,"ENDRUN"}
+map<int, string> opMap = { {CVNO,"CVNO"}, {CVER,"CVER"}, {CVIF,"CVIF"}, {CVIS,"CVIS"}, {CVFI,"CVFI"}, {CVFS,"CVFS"}, {CVDRS,"CVDRS"}, {CVDTS,"CVDTS"}, {CVSI,"CVSI"}, {CVSF,"CVSF"}, {CVSDT,"CVSDT"}, {CVSDR,"CVSDR"}, {IADD,"IADD"}, {FADD,"FADD"}, {TADD,"TADD"}, {DTADD,"DTADD"}, {DRADD,"DRADD"}, {ISUB,"ISUB"}, {FSUB,"FSUB"}, {DRSUB,"DRSUB"}, {DTSUB,"DTSUB"}, {IMULT,"IMULT"}, {FMULT,"FMULT"}, {DRMULT,"DRMULT"}, {IDIV,"IDIV"}, {FDIV,"FDIV"}, {DRDIV,"DRDIV"}, {INEG,"INEG"}, {FNEG,"FNEG"}, {DNEG,"DNEG"}, {IMOD,"IMOD"}, {IEXP,"IEXP"}, {FEXP,"FEXP"}, {JMP,"JMP"}, {JMPCNT,"JMPCNT"}, {JMPTRUE,"JMPTRUE"}, {JMPFALSE,"JMPFALSE"}, {POP,"POP"}, {RDLINE,"RDLINE"}, {RDLINEAT,"RDLINEAT"}, {PRINT,"PRINT"}, {PUT,"PUT"}, {LDPUT,"LDPUT"}, {LDPUTALL,"LDPUTALL"}, {PUTVAR,"PUTVAR"}, {LDINT,"LDINT"}, {LDFLOAT,"LDFLOAT"}, {LDTEXT,"LDTEXT"}, {LDDATE,"LDDATE"}, {LDDUR,"LDDUR"}, {LDNULL,"LDNULL"}, {LDLIT,"LDLIT"}, {LDVAR,"LDVAR"}, {IEQ,"IEQ"}, {FEQ,"FEQ"}, {TEQ,"TEQ"}, {NEQ,"NEQ"}, {ILEQ,"ILEQ"}, {FLEQ,"FLEQ"}, {TLEQ,"TLEQ"}, {ILT,"ILT"}, {FLT,"FLT"}, {TLT,"TLT"}, {ENDRUN,"ENDRUN"}, {NULFALSE1,"NULFALSE1"}, {NULFALSE2,"NULFALSE2"}
 };
 void opcode::print(){
 	cerr << ft("code: {: <9}  [{: <2}  {: <2}  {: <2}]\n", opMap[code], p1, p2, p3);
 }
 
+string dat::tostring(){
+	if (b & NIL) return "";
+	switch ( b & 0b00011111 ) {
+	case I:  return ft("{}",u.i); break;
+	case F:  return ft("{:.10g}",u.f); break;
+	case DT: return ft("{}",datestring64(u.i)); break;
+	case DR: return ft("{}",durstring(u.i, nullptr)); break;
+	case T:  return ft("{}",u.s); break;
+	}
+	return "";
+}
 void dat::print(){
 	if (b & NIL) return;
 	switch ( b & 0b00011111 ) {
 	case I:  fmt::print("{}",u.i); break;
 	case F:  fmt::print("{:.10g}",u.f); break;
 	case DT: fmt::print("{}",datestring64(u.i)); break;
-	case DR: fmt::print("{}",durstring(u.i, nullptr)); break; //need to format durations
+	case DR: fmt::print("{}",durstring(u.i, nullptr)); break;
 	case T:  fmt::print("{}",u.s); break;
 	}
 }
@@ -50,6 +61,14 @@ vmachine::vmachine(querySpecs &qs){
 	for (auto &d : destrow) memset(&d, 0, sizeof(dat));
 	for (auto &d : midrow)  memset(&d, 0, sizeof(dat));
 }
+
+vmachine::~vmachine(){
+	for (auto &d : stack)   FREE2(d);
+	for (auto &d : vars)    FREE2(d);
+	for (auto &d : destrow) FREE2(d);
+	for (auto &d : midrow)  FREE2(d);
+}
+
 
 //add s2 to s1
 void strplus(dat &s1, dat &s2){
@@ -87,9 +106,9 @@ void vmachine::run(){
 	opcode *op;
 
 	for (;;){
-		//big switch is flush-left instead of using normal indentation
 		op = ops + ip;
 		//cerr << ft("ip {} opcode {} with [{} {} {}]\n", ip, opMap[op->code], op->p1, op->p2, op->p3);
+		//big switch is flush-left instead of using normal indentation
 		switch(op->code){
 
 //put data from stack into torow
@@ -247,6 +266,7 @@ case DRSUB:
 	if (ISNULL(stk0) || ISNULL(stk1)) stk1.b |= NIL;
 	else { stk1.u.i -= stk0.u.i; stk1.b = DR; }
 	--stacktop;
+	if (stk0.u.i < 0) stk0.u.i *= -1;
 	++ip;
 	break;
 case IMULT:
@@ -404,9 +424,25 @@ case TLT:
 	break;
 
 case POP:
-	FREE2(stk0); //add more if ever pop more than one
-	stacktop -= op->p1;
+	FREE2(stk0);
+	--stacktop;
 	++ip;
+	break;
+case NULFALSE1:
+	if (ISNULL(stk0)){
+		FREE2(stk0);
+		stk0.u.p = false;
+		ip = op->p1;
+	} else ++ip;
+	break;
+case NULFALSE2:
+	if (ISNULL(stk0)){
+		FREE2(stk0);
+		--stacktop;
+		FREE2(stk0);
+		stk0.u.p = false;
+		ip = op->p1;
+	} else ++ip;
 	break;
 
 //type conversions
@@ -524,6 +560,7 @@ case 0:
 
 		} //end big switch
 	} //end loop
+
 	endloop:
 	return;
 }

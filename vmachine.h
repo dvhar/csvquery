@@ -22,7 +22,7 @@ enum codes : unsigned char {
 	IEQ, FEQ, TEQ, NEQ,
 	ILEQ, FLEQ, TLEQ,
 	ILT, FLT, TLT,
-	PRINT, POP, ENDRUN
+	PRINT, POP, ENDRUN, NULFALSE1, NULFALSE2
 };
 extern map<int, string> opMap;
 
@@ -90,6 +90,7 @@ class vmachine {
 	public:
 	void run();
 	vmachine(querySpecs &q);
+	~vmachine();
 };
 
 #endif

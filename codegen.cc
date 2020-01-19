@@ -64,6 +64,7 @@ static dat parseDurationDat(const char* s) {
 	date_t dur;
 	if (parseDuration((char*)s, &dur))
 		error(str3("Could not parse ", s, " as duration."));
+	if (dur < 0) dur *= -1;
 	dat ddat = { { .i = dur }, DR };
 	return ddat;
 }
@@ -83,9 +84,16 @@ static dat parseStringDat(const char* s) {
 
 void jumpPositions::updateBytecode(vector<opcode> &vec) {
 	for (auto &v : vec)
-		if ((v.code == JMP || v.code == JMPFALSE ||
-			v.code == JMPTRUE || v.code == RDLINE) && v.p1 < 0)
-			v.p1 = jumps[v.p1];
+		switch (v.code){
+		case JMP:
+		case JMPTRUE:
+		case JMPFALSE:
+		case RDLINE:
+		case NULFALSE1:
+		case NULFALSE2:
+			if (v.p1 < 0)
+				v.p1 = jumps[v.p1];
+		}
 };
 
 static void addop(vector<opcode> &v, byte code){
@@ -312,7 +320,7 @@ static void genExprCase(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
 		case SP_LPAREN:
 			genExprAll(n->node1, v, q);
 			genCWExprList(n->node2, v, q, caseEnd);
-			addop(v, POP, 1); //don't need comparison value anymore
+			addop(v, POP); //don't need comparison value anymore
 			genExprAll(n->node3, v, q);
 			if (n->node3 == nullptr)
 				addop(v, LDNULL);
@@ -338,7 +346,7 @@ static void genCWExpr(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q, int
 	genExprAll(n->node1, v, q); //evaluate comparision expression
 	addop(v, ops[OPEQ][n->tok1.id], 0); //leave '=' result where this comp value was
 	addop(v, JMPFALSE, next, 1);
-	addop(v, POP, 1); //don't need comparison value anymore
+	addop(v, POP); //don't need comparison value anymore
 	genExprAll(n->node2, v, q); //result value if eq
 	addop(v, JMP, end);
 	q.jumps.setPlace(next, v.size()); //jump here for next try
@@ -405,12 +413,12 @@ static void genPredicates(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q)
 	switch (n->tok1.id){
 	case KW_AND:
 		addop(v, JMPFALSE, done, 0);
-		addop(v, POP, 1); //don't need old result
+		addop(v, POP); //don't need old result
 		genPredicates(n->node2, v, q);
 		break;
 	case KW_OR:
 		addop(v, JMPTRUE, done, 0);
-		addop(v, POP, 1); //don't need old result
+		addop(v, POP); //don't need old result
 		genPredicates(n->node2, v, q);
 		break;
 	case KW_XOR:
@@ -422,6 +430,7 @@ static void genPredicates(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q)
 static void genPredCompare(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
 	if (n == nullptr) return;
 	int negation = 0;
+	int endcomp, greaterThanExpr3;
 	genExprAll(n->node1, v, q);
 	switch (n->tok1.id){
 	case SP_NOEQ: negation = 1;
@@ -439,11 +448,33 @@ static void genPredCompare(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q
 		genExprAll(n->node2, v, q);
 		addop(v, ops[OPLEQ][n->datatype], 1, negation ^ n->tok2.id);
 		break;
+	case KW_BETWEEN:
+		endcomp = q.jumps.newPlaceholder();
+		greaterThanExpr3 = q.jumps.newPlaceholder();
+		addop(v, NULFALSE1, endcomp);
+		genExprAll(n->node2, v, q);
+		addop(v, NULFALSE2, endcomp);
+		//if exp1 >= exp2 (
+			addop(v, ops[OPLT][n->datatype], 0, 1); //check how the stack is arranged here
+			addop(v, JMPFALSE, greaterThanExpr3, 1);
+		// ) {
+			genExprAll(n->node3, v, q);
+			addop(v, NULFALSE2, endcomp);
+			// true if exp1 < exp3
+			addop(v, ops[OPLT][n->datatype], 1, 0);
+			addop(v, JMP, endcomp);
+		// } else {
+			q.jumps.setPlace(greaterThanExpr3, v.size());
+			genExprAll(n->node3, v, q);
+			addop(v, NULFALSE2, endcomp);
+			//true if exp1 >= exp3
+			addop(v, ops[OPLT][n->datatype], 1, 1);
+		// }
+		q.jumps.setPlace(endcomp, v.size());
+		break;
 	case KW_LIKE:
 		break;
 	case KW_IN:
-		break;
-	case KW_BETWEEN:
 		break;
 	}
 }

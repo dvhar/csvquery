@@ -125,6 +125,7 @@ class dat {
 	byte b; // metadata bit array
 	short z; // string size
 	void print();
+	string tostring();
 };
 
 //placeholder for jmp positions that can't be determined until later
