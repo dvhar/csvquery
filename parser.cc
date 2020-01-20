@@ -103,7 +103,6 @@ static unique_ptr<node> parseAfterFrom(querySpecs &q) {
 	unique_ptr<node> n = newNode(N_AFTERFROM);
 	for (;;){
 		t = q.tok();
-		e("switching afterfrom");
 		switch (t.id){
 		case KW_WHERE:
 			n->node1 = parseWhere(q);
@@ -122,7 +121,6 @@ static unique_ptr<node> parseAfterFrom(querySpecs &q) {
 		}
 	}
 	done1:
-	e("done afterfrom");
 	return n;
 }
 
@@ -197,19 +195,16 @@ static unique_ptr<node> parseSelections(querySpecs &q) {
 	t = q.tok();
 	e("selections");
 	if (t.lower() == "from"){
-		e("found from");
 		return nullptr;
 	}
 	unique_ptr<node> n = newNode(N_SELECTIONS);
 	if (t.id == SP_COMMA) t = q.nextTok();
 	switch (t.id) {
 	case SP_STAR:
-		e("selections star");
 		n->tok1 = t;
 		q.nextTok();
 		return n;
 	case KW_DISTINCT:
-		e("selections distinct");
 		n->tok1 = t;
 		t = q.nextTok();
 		if (t.lower() == "hidden" && !t.quoted) { n->tok1 = t; t = q.nextTok(); }
@@ -218,7 +213,6 @@ static unique_ptr<node> parseSelections(querySpecs &q) {
 	case WORD:
 	case SP_MINUS:
 	case SP_LPAREN:
-		e("selections expression");
 		//alias = expression
 		if (q.peekTok().id == SP_EQ) {
 			if (t.id != WORD) error("Alias must be a word. Found "+t.val);
@@ -228,7 +222,6 @@ static unique_ptr<node> parseSelections(querySpecs &q) {
 			n->node1 = parseExprAdd(q);
 		//expression
 		} else {
-			e("selections to expradd");
 			n->node1 = parseExprAdd(q);
 			t = q.tok();
 			if (t.lower() == "as") {
@@ -237,11 +230,9 @@ static unique_ptr<node> parseSelections(querySpecs &q) {
 				q.nextTok();
 			}
 		}
-		e("next selections");
 		n->node2 = parseSelections(q);
 		return n;
 	default:
-		e("selections default");
 		error("Expected a new selection or 'from' clause. Found "+t.val);
 	}
 	return nullptr;
@@ -262,10 +253,8 @@ static unique_ptr<node> parseExprAdd(querySpecs &q) {
 	case SP_PLUS:
 		n->tok1 = t;
 		q.nextTok();
-		e("adding expradd");
 		n->node2 = parseExprAdd(q);
 	}
-	e("done expradd");
 	return n;
 }
 
@@ -288,7 +277,6 @@ static unique_ptr<node> parseExprMult(querySpecs &q) {
 		q.nextTok();
 		n->node2 = parseExprMult(q);
 	}
-	e("done exprmult");
 	return n;
 }
 
@@ -303,7 +291,6 @@ static unique_ptr<node> parseExprNeg(querySpecs &q) {
 		q.nextTok();
 	}
 	n->node1 = parseExprCase(q);
-	e("done exprneg");
 	return n;
 }
 
@@ -371,7 +358,6 @@ static unique_ptr<node> parseExprCase(querySpecs &q) {
 		break;
 	default: error("Expected case, value, or expression. Found "+q.tok().val);
 	}
-	e("done exprcase");
 	return n;
 }
 
@@ -396,7 +382,6 @@ static unique_ptr<node> parseValue(querySpecs &q) {
 	} else {
 		q.nextTok();
 	}
-	e("done value");
 	return n;
 }
 
@@ -411,7 +396,6 @@ static unique_ptr<node> parseCaseWhenPredList(querySpecs &q) {
 	if (t.lower() == "when") {
 		n->node2 = parseCaseWhenPredList(q);
 	}
-	e("done casewhenpredlist");
 	return n;
 }
 
@@ -477,6 +461,7 @@ static unique_ptr<node> parseJoinPredCompare(querySpecs &q) {
 
 //tok1 is [relop, paren] for comparison or more predicates
 //tok2 is negation
+//tok3 is 'like' expression
 //node1 is [expr, predicates]
 //node2 is second expr
 //node3 is third expr for betweens
@@ -520,7 +505,7 @@ static unique_ptr<node> parsePredCompare(querySpecs &q) {
 	n->tok1 = t;
 	t = q.nextTok();
 	if (n->tok1.id == KW_LIKE) {
-		n->node2 = newNode(N_VALUE,  t);
+		n->tok3 = t;
 		t = q.nextTok();
 	} else if (n->tok1.id == KW_IN) {
 		if (t.id != SP_LPAREN) error("Expected opening parenthesis for expression list. Found: "+t.val);
@@ -816,7 +801,6 @@ static unique_ptr<node> parseFunction(querySpecs &q) {
 	q.nextTok();
 	//groupby if aggregate function
 	if ((n->tok1.id & AGG_BIT) != 0) { q.grouping = true; }
-	e("done func");
 	return n;
 }
 

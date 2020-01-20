@@ -201,7 +201,7 @@ void querySpecs::addVar(string name) {
 	var.filter = 0;
 	vars.push_back(var);
 }
-void querySpecs::init(string s){
+querySpecs::querySpecs(string &s){
 	queryString = s;
 	tokIdx = options = quantityLimit = numFiles = colspec.count = 0;
 	whereFiltering = havingFiltering = joining = grouping = sorting = false;

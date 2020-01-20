@@ -118,6 +118,7 @@ union datunion {
 	double f;
 	char* s;
 	bool p;
+	regex_t* r;
 };
 class dat {
 	public:
@@ -173,6 +174,8 @@ class querySpecs {
 	bool numIsCol();
 	void init(string);
 	void addVar(string);
+	~querySpecs();
+	querySpecs(string &s);
 };
 
 class singleQueryResult {

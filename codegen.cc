@@ -12,7 +12,6 @@ static void genReturnGroups(unique_ptr<node> &n, vector<opcode> &v, querySpecs &
 static void genExprAdd(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q);
 static void genExprMult(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q);
 static void genExprNeg(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q);
-static void genExprList(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q);
 static void genExprCase(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q);
 static void genCPredList(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q, int end);
 static void genCWExprList(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q, int end);
@@ -33,7 +32,7 @@ static int ident = 0;
 	cerr << A << endl; ident++; \
 	shared_ptr<void> _(nullptr, [](...){ \
 	ident--; for (int i=0; i< ident; i++) cerr << "    "; \
-	cout << "done " << A << endl; });
+	cerr << "done " << A << endl; });
 #endif
 
 //global bytecode position
@@ -44,8 +43,8 @@ static int typeConv[6][6] = {
 	{0, 0,  0,  0,  0,  0 },
 	{0, CVNO, CVIF, CVNO, CVNO, CVIS },
 	{0, CVFI, CVNO, CVFI, CVFI, CVFS },
-	{0, CVNO, CVIF, CVNO, CVER, CVDRS},
-	{0, CVNO, CVIF, CVER, CVNO, CVDTS},
+	{0, CVNO, CVIF, CVNO, CVER, CVDTS},
+	{0, CVNO, CVIF, CVER, CVNO, CVDRS},
 	{0, CVSI, CVSF, CVSDT,CVSDR,CVNO},
 };
 
@@ -180,7 +179,6 @@ static void genExprAll(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
 	if (n == nullptr) return;
 	switch (n->label){
 	case N_DEXPRESSIONS:
-	case N_EXPRESSIONS:     genExprList    (n, v, q); break;
 	case N_EXPRNEG:         genExprNeg     (n, v, q); break;
 	case N_EXPRADD:         genExprAdd     (n, v, q); break;
 	case N_EXPRMULT:        genExprMult    (n, v, q); break;
@@ -450,6 +448,7 @@ static void genPredicates(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q)
 static void genPredCompare(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
 	if (n == nullptr) return;
 	e("gen pred compare");
+	dat reg;
 	int negation = n->tok2.id;
 	int endcomp, greaterThanExpr3;
 	genExprAll(n->node1, v, q);
@@ -475,29 +474,23 @@ static void genPredCompare(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q
 		addop(v, NULFALSE1, endcomp);
 		genExprAll(n->node2, v, q);
 		addop(v, NULFALSE2, endcomp);
-		//if exp1 >= exp2 (
-			addop(v, ops[OPLT][n->datatype], 0, 1);
-			addop(v, JMPFALSE, greaterThanExpr3, 1);
-		// ) {
-			genExprAll(n->node3, v, q);
-			addop(v, NULFALSE2, endcomp);
-			// true if exp1 < exp3
-			addop(v, ops[OPLT][n->datatype], 1, negation);
-			addop(v, JMP, endcomp);
-		// } else {
-			q.jumps.setPlace(greaterThanExpr3, v.size());
-			genExprAll(n->node3, v, q);
-			addop(v, NULFALSE2, endcomp);
-			//true if exp1 >= exp3
-			addop(v, ops[OPLT][n->datatype], 1, negation^1);
-		// }
+		addop(v, ops[OPLT][n->datatype], 0, 1);
+		addop(v, JMPFALSE, greaterThanExpr3, 1);
+		genExprAll(n->node3, v, q);
+		addop(v, NULFALSE2, endcomp);
+		addop(v, ops[OPLT][n->datatype], 1, negation);
+		addop(v, JMP, endcomp);
+		q.jumps.setPlace(greaterThanExpr3, v.size());
+		genExprAll(n->node3, v, q);
+		addop(v, NULFALSE2, endcomp);
+		addop(v, ops[OPLT][n->datatype], 1, negation^1);
 		q.jumps.setPlace(endcomp, v.size());
 		break;
 	case KW_IN:
 		endcomp = q.jumps.newPlaceholder();
 		for (auto nn=n->node2.get(); nn; nn=nn->node2.get()){
 			genExprAll(nn->node1, v, q);
-			addop(v, ops[OPEQ][n->node1->datatype], 0); //leave '=' result where this comp value was
+			addop(v, ops[OPEQ][n->node1->datatype], 0);
 			addop(v, JMPTRUE, endcomp, 0);
 			if (nn->node2.get())
 				addop(v, POP);
@@ -505,8 +498,17 @@ static void genPredCompare(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q
 		q.jumps.setPlace(endcomp, v.size());
 		if (negation)
 			addop(v, PNEG);
+		addop(v, POPCPY); //put result where 1st expr was
 		break;
 	case KW_LIKE:
+		addop(v, LIKE, q.literals.size(), negation);
+		reg.u.r = new regex_t;
+		reg.b = R|RMAL;
+		boost::replace_all(n->tok3.val, "_", ".");
+		boost::replace_all(n->tok3.val, "%", ".*");
+		if (regcomp(reg.u.r, ("^"+n->tok3.val+"$").c_str(), REG_EXTENDED|REG_ICASE))
+			error("Could not parse 'like' pattern");
+		q.literals.push_back(reg);
 		break;
 	}
 }
@@ -527,10 +529,6 @@ static void genWhere(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
 		genPredicates(n->node1, v, q);
 		addop(v, JMPFALSE, NORMAL_READ, 1);
 	}
-}
-
-static void genExprList(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
-	if (n == nullptr) return;
 }
 
 static void genFunction(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){

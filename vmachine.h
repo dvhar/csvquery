@@ -19,10 +19,10 @@ enum codes : unsigned char {
 	PUT, LDPUT, LDPUTALL, PUTVAR,
 	LDINT, LDFLOAT, LDTEXT, LDDATE, LDDUR,
 	LDNULL, LDLIT, LDVAR,
-	IEQ, FEQ, TEQ, NEQ,
+	IEQ, FEQ, TEQ, NEQ, LIKE,
 	ILEQ, FLEQ, TLEQ,
 	ILT, FLT, TLT,
-	PRINT, POP, ENDRUN, NULFALSE1, NULFALSE2
+	PRINT, POP, POPCPY, ENDRUN, NULFALSE1, NULFALSE2
 };
 extern map<int, string> opMap;
 
@@ -47,11 +47,13 @@ static dat* datp;
 //8 bit array
 const byte I = 1;
 const byte F = 2;
-const byte DT = 4;
-const byte DR = 8;
-const byte T = 16;
+const byte DT = 3;
+const byte DR = 4;
+const byte T = 6;
+const byte R = 7;
+const byte RMAL = 8; //regex needs regfree() (literals vector only)
+const byte MAL = 16; //malloced and responsible for freeing c string
 const byte NIL = 32;
-const byte MAL = 64; //malloced and responsible for freeing c string
 #define ISINT(X) ( X.b & I )
 #define ISFLOAT(X) ( X.b & F )
 #define ISDATE(X) ( X.b & DT )
