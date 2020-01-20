@@ -73,8 +73,10 @@ vmachine::~vmachine(){
 querySpecs::~querySpecs(){
 	for (auto &d : literals){
 		FREE2(d);
-		if (d.b & RMAL)
+		if (d.b & RMAL){
 			regfree(d.u.r);
+			delete d.u.r;
+		}
 	}
 }
 

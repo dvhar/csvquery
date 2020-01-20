@@ -252,25 +252,33 @@ int isInList(int n, int count, ...)
     return 0;
 }
 
+//fix this
 int parseDuration(char* str, date_t* t) {
 	if (!isDuration(str)) {return -1;}
 	char* part2;
 	double quantity = strtod(str, &part2);
 	while (*part2 == ' ') ++part2;
-	//make this faster
-	if (slcomp(part2,"y") || slcomp(part2,"year") || slcomp(part2,"years"))
+	switch (part2[0]){
+	case 'y':
 		quantity *= 31536000;
-	else if (slcomp(part2,"w") || slcomp(part2,"week") || slcomp(part2,"weeks"))
+		break;
+	case 'w':
 		quantity *= 604800;
-	else if (slcomp(part2,"d") || slcomp(part2,"day") || slcomp(part2,"days"))
+		break;
+	case 'd':
 		quantity *= 86400;
-	else if (slcomp(part2,"h") || slcomp(part2,"hour") || slcomp(part2,"hours"))
+		break;
+	case 'h':
 		quantity *= 3600;
-	else if (slcomp(part2,"m") || slcomp(part2,"minute") || slcomp(part2,"minutes"))
+		break;
+	case 'm':
 		quantity *= 60;
-	else if (slcomp(part2,"s") || slcomp(part2,"second") || slcomp(part2,"seconds"))
-		{}
-	else return -1;
+		break;
+	case 's':
+		break;
+	default:
+		return -1;
+	}
 	*t = quantity * 1E6;
 	return 0;
 }
