@@ -40,8 +40,7 @@ int main(int argc, char** argv){
 
 
 	init();
-	querySpecs q;
-	q.init(qs);
+	querySpecs q(qs);
 	try {
 		scanTokens(q);
 		parseQuery(q);

@@ -7,7 +7,7 @@
 #define stkp(N) (*(stacktop-N))
 
 //map for printing opcodes
-map<int, string> opMap = { {CVNO,"CVNO"}, {CVER,"CVER"}, {CVIF,"CVIF"}, {CVIS,"CVIS"}, {CVFI,"CVFI"}, {CVFS,"CVFS"}, {CVDRS,"CVDRS"}, {CVDTS,"CVDTS"}, {CVSI,"CVSI"}, {CVSF,"CVSF"}, {CVSDT,"CVSDT"}, {CVSDR,"CVSDR"}, {IADD,"IADD"}, {FADD,"FADD"}, {TADD,"TADD"}, {DTADD,"DTADD"}, {DRADD,"DRADD"}, {ISUB,"ISUB"}, {FSUB,"FSUB"}, {DRSUB,"DRSUB"}, {DTSUB,"DTSUB"}, {IMULT,"IMULT"}, {FMULT,"FMULT"}, {DRMULT,"DRMULT"}, {IDIV,"IDIV"}, {FDIV,"FDIV"}, {DRDIV,"DRDIV"}, {INEG,"INEG"}, {FNEG,"FNEG"}, {DNEG,"DNEG"}, {IMOD,"IMOD"}, {IEXP,"IEXP"}, {FEXP,"FEXP"}, {JMP,"JMP"}, {JMPCNT,"JMPCNT"}, {JMPTRUE,"JMPTRUE"}, {JMPFALSE,"JMPFALSE"}, {POP,"POP"}, {RDLINE,"RDLINE"}, {RDLINEAT,"RDLINEAT"}, {PRINT,"PRINT"}, {PUT,"PUT"}, {LDPUT,"LDPUT"}, {LDPUTALL,"LDPUTALL"}, {PUTVAR,"PUTVAR"}, {LDINT,"LDINT"}, {LDFLOAT,"LDFLOAT"}, {LDTEXT,"LDTEXT"}, {LDDATE,"LDDATE"}, {LDDUR,"LDDUR"}, {LDNULL,"LDNULL"}, {LDLIT,"LDLIT"}, {LDVAR,"LDVAR"}, {IEQ,"IEQ"}, {FEQ,"FEQ"}, {TEQ,"TEQ"}, {NEQ,"NEQ"}, {ILEQ,"ILEQ"}, {FLEQ,"FLEQ"}, {TLEQ,"TLEQ"}, {ILT,"ILT"}, {FLT,"FLT"}, {TLT,"TLT"}, {ENDRUN,"ENDRUN"}, {NULFALSE1,"NULFALSE1"}, {NULFALSE2,"NULFALSE2"}
+map<int, string> opMap = { {CVNO,"CVNO"}, {CVER,"CVER"}, {CVIF,"CVIF"}, {CVIS,"CVIS"}, {CVFI,"CVFI"}, {CVFS,"CVFS"}, {CVDRS,"CVDRS"}, {CVDTS,"CVDTS"}, {CVSI,"CVSI"}, {CVSF,"CVSF"}, {CVSDT,"CVSDT"}, {CVSDR,"CVSDR"}, {IADD,"IADD"}, {FADD,"FADD"}, {TADD,"TADD"}, {DTADD,"DTADD"}, {DRADD,"DRADD"}, {ISUB,"ISUB"}, {FSUB,"FSUB"}, {DRSUB,"DRSUB"}, {DTSUB,"DTSUB"}, {IMULT,"IMULT"}, {FMULT,"FMULT"}, {DRMULT,"DRMULT"}, {IDIV,"IDIV"}, {FDIV,"FDIV"}, {DRDIV,"DRDIV"}, {INEG,"INEG"}, {FNEG,"FNEG"}, {DNEG,"DNEG"}, {IMOD,"IMOD"}, {IEXP,"IEXP"}, {FEXP,"FEXP"}, {JMP,"JMP"}, {JMPCNT,"JMPCNT"}, {JMPTRUE,"JMPTRUE"}, {JMPFALSE,"JMPFALSE"}, {POP,"POP"}, {RDLINE,"RDLINE"}, {RDLINEAT,"RDLINEAT"}, {PRINT,"PRINT"}, {PUT,"PUT"}, {LDPUT,"LDPUT"}, {LDPUTALL,"LDPUTALL"}, {PUTVAR,"PUTVAR"}, {LDINT,"LDINT"}, {LDFLOAT,"LDFLOAT"}, {LDTEXT,"LDTEXT"}, {LDDATE,"LDDATE"}, {LDDUR,"LDDUR"}, {LDNULL,"LDNULL"}, {LDLIT,"LDLIT"}, {LDVAR,"LDVAR"}, {IEQ,"IEQ"}, {FEQ,"FEQ"}, {TEQ,"TEQ"}, {NEQ,"NEQ"}, {ILEQ,"ILEQ"}, {FLEQ,"FLEQ"}, {TLEQ,"TLEQ"}, {ILT,"ILT"}, {FLT,"FLT"}, {TLT,"TLT"}, {ENDRUN,"ENDRUN"}, {NULFALSE1,"NULFALSE1"}, {NULFALSE2,"NULFALSE2"}, {POPCPY,"POPCPY"}, {LIKE,"LIKE"}
 };
 void opcode::print(){
 	cerr << ft("code: {: <9}  [{: <2}  {: <2}  {: <2}]\n", opMap[code], p1, p2, p3);
@@ -15,23 +15,25 @@ void opcode::print(){
 
 string dat::tostring(){
 	if (b & NIL) return "";
-	switch ( b & 0b00011111 ) {
+	switch ( b & 0b00000111 ) {
 	case I:  return ft("{}",u.i); break;
 	case F:  return ft("{:.10g}",u.f); break;
 	case DT: return ft("{}",datestring64(u.i)); break;
 	case DR: return ft("{}",durstring(u.i, nullptr)); break;
 	case T:  return ft("{}",u.s); break;
+	case R:  return ft("regex"); break;
 	}
 	return "";
 }
 void dat::print(){
 	if (b & NIL) return;
-	switch ( b & 0b00011111 ) {
+	switch ( b & 0b00000111 ) {
 	case I:  fmt::print("{}",u.i); break;
 	case F:  fmt::print("{:.10g}",u.f); break;
 	case DT: fmt::print("{}",datestring64(u.i)); break;
 	case DR: fmt::print("{}",durstring(u.i, nullptr)); break;
 	case T:  fmt::print("{}",u.s); break;
+	case R:  fmt::print("regex"); break;
 	}
 }
 
@@ -67,6 +69,13 @@ vmachine::~vmachine(){
 	for (auto &d : vars)    FREE2(d);
 	for (auto &d : destrow) FREE2(d);
 	for (auto &d : midrow)  FREE2(d);
+}
+querySpecs::~querySpecs(){
+	for (auto &d : literals){
+		FREE2(d);
+		if (d.b & RMAL)
+			regfree(d.u.r);
+	}
 }
 
 
@@ -426,9 +435,21 @@ case TLT:
 	stacktop -= op->p1;
 	++ip;
 	break;
+case LIKE:
+	i1 = !regexec(q->literals[op->p1].u.r, stk0.u.s, 0, 0, 0)^op->p2;
+	FREE2(stk0);
+	stk0.u.p = i1;
+	++ip;
+	break;
 
 case POP:
 	FREE2(stk0);
+	--stacktop;
+	++ip;
+	break;
+case POPCPY: //currently only used for bools
+	FREE2(stk1);
+	stk1 = stk0;
 	--stacktop;
 	++ip;
 	break;
