@@ -336,6 +336,10 @@ case FNEG:
 	else stk0.u.f *= -1;
 	++ip;
 	break;
+case PNEG:
+	stk0.u.p ^= true;
+	++ip;
+	break;
 
 //comparisions - p1 determines how far down the stack to leave the result
 // p2 is negator
