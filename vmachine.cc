@@ -18,7 +18,7 @@ string dat::tostring(){
 	switch ( b & 0b00000111 ) {
 	case I:  return ft("{}",u.i); break;
 	case F:  return ft("{:.10g}",u.f); break;
-	case DT: return ft("{}",datestring64(u.i)); break;
+	case DT: return ft("{}",datestring(u.i)); break;
 	case DR: return ft("{}",durstring(u.i, nullptr)); break;
 	case T:  return ft("{}",u.s); break;
 	case R:  return ft("regex"); break;
@@ -30,7 +30,7 @@ void dat::print(){
 	switch ( b & 0b00000111 ) {
 	case I:  fmt::print("{}",u.i); break;
 	case F:  fmt::print("{:.10g}",u.f); break;
-	case DT: fmt::print("{}",datestring64(u.i)); break;
+	case DT: fmt::print("{}",datestring(u.i)); break;
 	case DR: fmt::print("{}",durstring(u.i, nullptr)); break;
 	case T:  fmt::print("{}",u.s); break;
 	case R:  fmt::print("regex"); break;
@@ -174,7 +174,7 @@ case LDDUR:
 case LDDATE:
 	++stacktop;
 	cv = files[op->p1]->entries[op->p2];
-	i1 = dateparse64(cv.val, &ll1, &sh1, cv.size);
+	i1 = dateparse(cv.val, &ll1, &sh1, cv.size);
 	stk0 = dat{ { .i = ll1}, DT, sh1 };
 	if (i1) stk0.b |= NIL;
 	++ip;
@@ -515,7 +515,7 @@ case CVSF:
 	++ip;
 	break;
 case CVSDT:
-	i1 = dateparse64(stk0.u.s, &ll1, &sh1, stk0.z);
+	i1 = dateparse(stk0.u.s, &ll1, &sh1, stk0.z);
 	FREE2(stk0);
 	stk0.u.i = ll1;
 	stk0.b = DT;
@@ -540,7 +540,7 @@ case CVDRS:
 	break;
 case CVDTS:
 	//make version of datestring that writes directly to arg buf
-	c1 = datestring64(stk0.u.i);
+	c1 = datestring(stk0.u.i);
 	stk0.u.s = (char*) malloc(20);
 	strncpy(stk0.u.s, c1, 19);
 	stk0.b = T|MAL;
