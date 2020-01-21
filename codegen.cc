@@ -78,9 +78,9 @@ static dat parseDurationDat(const char* s) {
 	dat ddat = { { .i = dur }, DR };
 	return ddat;
 }
-static dat parseDateDat(const char* s) { //need to finish dateparse library
+static dat parseDateDat(const char* s) {
 	date_t date;
-	if (dateparse64_2(s, &date))
+	if (dateparse_2(s, &date))
 		error(str3("Could not parse ", s, " as date."));
 	dat ddat = { { .i = date }, DT };
 	return ddat;

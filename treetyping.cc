@@ -53,6 +53,7 @@ static ktype keepSubtreeTypes(int t1, int t2, int op) {
 		   break;
 	case SP_MINUS:
 		if (t1 == T_DATE && t2 == T_DATE) return { T_DURATION, true };
+		if (t1 == T_DATE && t2 == T_DURATION) return { T_DATE, true };
 		break;
 	case SP_PLUS:
 		if ((t1 == T_DURATION && t2 == T_DATE) ||
