@@ -20,3 +20,9 @@ how to add uninstalled libraries on specific systems:
 		set_target_properties(tre PROPERTIES INTERFACE_INCLUDE_DIRECTORIES /home/dave/gits/vcpkg/installed/x64-linux/include/tre)
 	endif  (LINUX)
 
+
+embed website:
+	create source file:
+		find webgui/build -regextype posix-egrep -regex ".*(js|css|map|json|png|txt)" -type f -exec mbin {} \; >> embed.c
+	list byte array names:
+		find webgui/build -regextype posix-egrep -regex ".*(js|css|map|json|png|txt)" -type f -exec mbin -n {} \;

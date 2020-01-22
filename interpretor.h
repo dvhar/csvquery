@@ -123,8 +123,9 @@ union datunion {
 class dat {
 	public:
 	union datunion u;
-	byte b; // metadata bit array
-	short z; // string size
+	short b; // metadata bit array
+	int z; // string size
+	short a; // unused but comes at no cost because of class padding
 	void print();
 	string tostring();
 };

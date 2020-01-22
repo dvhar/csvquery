@@ -135,7 +135,7 @@ case PUT:
 case LDPUT:
 	cv = files[op->p3]->entries[op->p2];
 	FREE1(torow[op->p1]);
-	torow[op->p1] = dat{ { .s = cv.val }, T, (short) cv.size };
+	torow[op->p1] = dat{ { .s = cv.val }, T, cv.size };
 	++ip;
 	break;
 case LDPUTALL:
@@ -143,7 +143,7 @@ case LDPUTALL:
 	for (auto &f : files)
 		for (auto &e : f->entries){
 			FREE1(torow[i1]);
-			torow[i1++] = dat{ { .s = e.val }, T, (short) e.size };
+			torow[i1++] = dat{ { .s = e.val }, T, e.size };
 		}
 	++ip;
 	break;
@@ -183,7 +183,7 @@ case LDTEXT:
 	++stacktop;
 	cv = files[op->p1]->entries[op->p2];
 	FREE2(stk0);
-	stk0 = dat{ { .s = cv.val }, T, (short) cv.size };
+	stk0 = dat{ { .s = cv.val }, T, cv.size };
 	if (!cv.size) stk0.b |= NIL;
 	++ip;
 	break;
