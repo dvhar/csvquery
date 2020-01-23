@@ -23,5 +23,5 @@ target_link_libraries(cql PRIVATE fmt::fmt tre C:/msys64/home/dog/vcpkg/installe
 elseif (APPLE)
 target_link_libraries(cql PRIVATE fmt::fmt -ltbb -static-libstdc++)
 elseif(UNIX)
-target_link_libraries(cql PRIVATE fmt::fmt -ltbb -static-libgcc -static-libstdc++)
+target_link_libraries(cql PRIVATE fmt::fmt -ltbb -static-libgcc -static-libstdc++ -lpthread)
 endif()
