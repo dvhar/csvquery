@@ -4,6 +4,7 @@
 #include <map>
 #include <set>
 #include <iostream>
+#include <thread>
 #include <iomanip>
 #include <fstream>
 #include <memory>
@@ -321,5 +322,6 @@ int getVarIdx(string lkup, querySpecs &q);
 int getVarType(string lkup, querySpecs &q);
 int getFileNo(string s, querySpecs &q);
 char* durstring(dur_t dur, char* str);
+void runServer();
 
 #endif
