@@ -328,7 +328,7 @@ static void genExprCase(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
 			q.jumps.setPlace(caseEnd, v.size());
 			break;
 		//expression matches expression list
-		case WORD:
+		case WORD_TK:
 		case SP_LPAREN:
 			genExprAll(n->node1, v, q);
 			genCWExprList(n->node2, v, q, caseEnd);
@@ -341,7 +341,7 @@ static void genExprCase(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
 		}
 		break;
 	case SP_LPAREN:
-	case WORD:
+	case WORD_TK:
 		genExprAll(n->node1, v, q);
 	}
 }

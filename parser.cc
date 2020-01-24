@@ -163,7 +163,7 @@ static unique_ptr<node> parseVars(querySpecs &q) {
 	t = q.tok();
 	if (t.lower() != "as") error("Expected 'as' after expression. Found "+t.val);
 	t = q.nextTok();
-	if (t.id != WORD) error("Expected variable name. Found "+t.val);
+	if (t.id != WORD_TK) error("Expected variable name. Found "+t.val);
 	n->tok1 = t;
 	t = q.nextTok();
 	if (t.lower() == "and") {
@@ -210,12 +210,12 @@ static unique_ptr<node> parseSelections(querySpecs &q) {
 		if (t.lower() == "hidden" && !t.quoted) { n->tok1 = t; t = q.nextTok(); }
 	//expression
 	case KW_CASE:
-	case WORD:
+	case WORD_TK:
 	case SP_MINUS:
 	case SP_LPAREN:
 		//alias = expression
 		if (q.peekTok().id == SP_EQ) {
-			if (t.id != WORD) error("Alias must be a word. Found "+t.val);
+			if (t.id != WORD_TK) error("Alias must be a word. Found "+t.val);
 			n->tok2 = t;
 			q.nextTok();
 			q.nextTok();
@@ -318,7 +318,7 @@ static unique_ptr<node> parseExprCase(querySpecs &q) {
 			n->node1 = parseCaseWhenPredList(q);
 			break;
 		//expression matches expression list
-		case WORD:
+		case WORD_TK:
 		case SP_LPAREN:
 			n->tok2 = t2;
 			n->node1 = parseExprAdd(q);
@@ -344,7 +344,7 @@ static unique_ptr<node> parseExprCase(querySpecs &q) {
 		}
 		break;
 
-	case WORD:
+	case WORD_TK:
 		n->tok1 = t;
 		n->node1 = parseValue(q);
 		break;
@@ -597,8 +597,8 @@ static unique_ptr<node> parseFrom(querySpecs &q) {
 	switch (t.id) {
 	case KW_AS:
 		t = q.nextTok();
-		if (t.id != WORD) error("Expected alias after as. Found: "+t.val);
-	case WORD:
+		if (t.id != WORD_TK) error("Expected alias after as. Found: "+t.val);
+	case WORD_TK:
 		if (joinMap.count(t.lower())) break;
 		n->tok4 = t;
 		q.nextTok();
@@ -664,8 +664,8 @@ static unique_ptr<node> parseJoin(querySpecs &q) {
 	switch (t.id) {
 	case KW_AS:
 		t = q.nextTok();
-		if (t.id != WORD || t.lower() == "on") error("Expected alias after as. Found: "+t.val);
-	case WORD:
+		if (t.id != WORD_TK || t.lower() == "on") error("Expected alias after as. Found: "+t.val);
+	case WORD_TK:
 		if (t.lower() == "on") break;
 		n->tok4 = t;
 		t = q.nextTok();
@@ -831,7 +831,7 @@ static unique_ptr<node> parseExpressionList(querySpecs &q, bool interdependant) 
 	case SP_COMMA: q.nextTok();
 	case SP_LPAREN:
 	case KW_CASE:
-	case WORD: break;
+	case WORD_TK: break;
 	default: return n;
 	}
 	n->node2 = parseExpressionList(q, interdependant);

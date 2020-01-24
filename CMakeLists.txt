@@ -19,7 +19,7 @@ set(CQL_SOURCE ${CQL_SOURCE} deps/dateparse/dateparse.c)
 add_executable(cql ${CQL_SOURCE})
 
 if (WIN32)
-target_link_libraries(cql PRIVATE fmt::fmt tre C:/msys64/home/dog/vcpkg/installed/x86-windows/lib/getopt.lib -ltre -ltbb -static-libgcc -static-libstdc++)
+target_link_libraries(cql PRIVATE fmt::fmt tre C:/msys64/home/dog/vcpkg/installed/x86-windows/lib/getopt.lib -ltre -ltbb -static-libgcc -static-libstdc++ wsock32 ws2_32)
 elseif (APPLE)
 target_link_libraries(cql PRIVATE fmt::fmt -ltbb -static-libstdc++)
 elseif(UNIX)
