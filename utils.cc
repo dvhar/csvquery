@@ -16,12 +16,12 @@ regex colNum("^c?\\d+$");
 
 map<int, string> enumMap = {
 	{EOS ,           "EOS"},
-	{ERROR ,         "ERROR"},
+	{ERROR_STATE ,         "ERROR_STATE"},
 	{FINAL ,         "FINAL"},
 	{KEYBIT ,        "KEYBIT"},
 	{LOGOP ,         "LOGOP"},
 	{RELOP ,         "RELOP"},
-	{WORD ,          "WORD"},
+	{WORD_TK ,       "WORD"},
 	{NUMBER ,        "NUMBER"},
 	{KEYWORD ,       "KEYWORD"},
 	{KW_AND ,        "KW_AND"},

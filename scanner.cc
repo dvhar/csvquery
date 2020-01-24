@@ -29,7 +29,7 @@ void initable(){
 	//initialize table to errr
 	int i,j;
 	for (i=0; i<NUM_STATES; i++) {
-		for (j=0; j<255; j++) { table[i][j] = ERROR; }
+		for (j=0; j<255; j++) { table[i][j] = ERROR_STATE; }
 	}
 	//next state from initial
 	for (i=0; i<len(others); i++) { table[0][others[i]] = STATE_WORD; }
@@ -67,13 +67,13 @@ void initable(){
 	for (i='0'; i<='9'; i++) { table[STATE_MBSPECIAL][i] = SPECIAL; }
 	for (i=0; i<len(others); i++) { table[STATE_MBSPECIAL][others[i]] = SPECIAL; }
 	//next state from word
-	for (i=0; i<len(specials); i++) { table[STATE_WORD][specials[i]] = WORD; }
+	for (i=0; i<len(specials); i++) { table[STATE_WORD][specials[i]] = WORD_TK; }
 	for (i=0; i<len(others); i++) { table[STATE_WORD][others[i]] = STATE_WORD; }
-	table[STATE_WORD][' '] =  WORD;
-	table[STATE_WORD]['\n'] = WORD;
-	table[STATE_WORD]['\t'] = WORD;
-	table[STATE_WORD][';'] =  WORD;
-	table[STATE_WORD][EOS] =  WORD;
+	table[STATE_WORD][' '] =  WORD_TK;
+	table[STATE_WORD]['\n'] = WORD_TK;
+	table[STATE_WORD]['\t'] = WORD_TK;
+	table[STATE_WORD][';'] =  WORD_TK;
+	table[STATE_WORD][EOS] =  WORD_TK;
 	for (i='a'; i<='z'; i++) { table[STATE_WORD][i] = STATE_WORD; }
 	for (i='A'; i<='Z'; i++) { table[STATE_WORD][i] = STATE_WORD; }
 	for (i='0'; i<='9'; i++) { table[STATE_WORD][i] = STATE_WORD; }
@@ -117,16 +117,16 @@ token scanner(StringLookahead &s) {
 
 	while ( (state & FINAL) == 0 && state < NUM_STATES ) {
 		nextState = table[state][s.peek()];
-		if ((nextState & ERROR) != 0) {
+		if ((nextState & ERROR_STATE) != 0) {
 		//end of string
 			if (state == 255) return { 255, "END", lineNo, colNo, false };
 			stringstream e;
 			e << "line: " << lineNo << ", col: " << colNo << ", char: " << (char) s.peek();
-			return { ERROR, e.str(), lineNo, colNo, false };
+			return { ERROR_STATE, e.str(), lineNo, colNo, false };
 		}
 		if ((nextState & FINAL) != 0) {
 			//see if keyword or regular word
-			if (nextState == WORD) {
+			if (nextState == WORD_TK) {
 				string s = S;
 				boost::to_lower(s);
 				if (keywordMap.count(s) && waitForQuote == 0) {
@@ -151,7 +151,7 @@ token scanner(StringLookahead &s) {
 				} else {
 					stringstream e;
 					e << "line: " << lineNo << ", col: " << colNo << ", char: " << (char) s.peek();
-					return { ERROR, e.str(), lineNo, colNo, false };
+					return { ERROR_STATE, e.str(), lineNo, colNo, false };
 				}
 			} else {
 				return { nextState, S, lineNo, colNo, false };
@@ -189,14 +189,14 @@ void scanTokens(querySpecs &q) {
 			int quote = t.id;
 			string S = "";
 			for (token t = scanner(input); t.id != quote && t.id != EOS ; t = scanner(input)) {
-				if (t.id == ERROR) error("scanner error: "+t.val);
+				if (t.id == ERROR_STATE) error("scanner error: "+t.val);
 				S += t.val;
 			}
 			if (t.id != quote)  error("Quote was not terminated");
-			t = {WORD,S,t.line,t.col,true};
+			t = {WORD_TK,S,t.line,t.col,true};
 		}
 		q.tokArray.push_back(t);
-		if (t.id == ERROR) error("scanner error: "+t.val);
+		if (t.id == ERROR_STATE) error("scanner error: "+t.val);
 		if (t.id == EOS) break;
 	}
 }

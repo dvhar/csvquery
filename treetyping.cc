@@ -73,7 +73,7 @@ static bool stillTrivial(unique_ptr<node> &n){
 			return false;
 		break;
 	case N_EXPRCASE:
-		if (n->tok1.id != WORD)
+		if (n->tok1.id != WORD_TK)
 			return false;
 		break;
 	case N_VALUE:
@@ -220,7 +220,7 @@ static typer typeCaseInnerNodes(querySpecs &q, unique_ptr<node> &n){
 			innerType = typeCompute(thenExpr, elseExpr);
 			return innerType;
 		//expression matches expression list
-		case WORD:
+		case WORD_TK:
 		case SP_LPAREN:
 			compExpr  = typeInnerNodes(q, n->node1);
 			thenExpr  = typeInnerNodes(q, n->node2);
@@ -237,7 +237,7 @@ static typer typeCaseInnerNodes(querySpecs &q, unique_ptr<node> &n){
 		}
 		break;
 	//expression
-	case WORD:
+	case WORD_TK:
 	case SP_LPAREN:
 		return typeInnerNodes(q,n->node1);
 	}
@@ -422,7 +422,7 @@ static void typeCaseFinalNodes(querySpecs &q, unique_ptr<node> &n, int finaltype
 			typeFinalValues(q, n->node3, finaltype);
 			break;
 		//expression matches expression list
-		case WORD:
+		case WORD_TK:
 		case SP_LPAREN:
 			comptype = n->tok3.id;
 			typeFinalValues(q, n->node1, comptype);
@@ -437,7 +437,7 @@ static void typeCaseFinalNodes(querySpecs &q, unique_ptr<node> &n, int finaltype
 		}
 		break;
 	//expression
-	case WORD:
+	case WORD_TK:
 	case SP_LPAREN:
 		typeFinalValues(q, n->node1, finaltype);
 	}
