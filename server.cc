@@ -9,6 +9,7 @@ void runServer(){
 	server.resource["^/test$"]["GET"] = [](shared_ptr<HttpServer::Response> response, shared_ptr<HttpServer::Request> request){
 		response->write("testing http server");
 	};
+#include "embed_site.h"
 	cerr << "starting http server\n";
 	server.start();
 }

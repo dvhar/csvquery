@@ -4,9 +4,24 @@
 #include <assert.h>
 #include <string.h>
 
-unsigned char *ok = "{}[]()',.+=_-*&^$#@!~`<>?|;: \t";
-int oklen;
-int escape(unsigned char);
+unsigned char ok[] = "{}[]()',.+=_-*&^$#@!~`<>?|;: \t";
+unsigned char notok[] = "/.-\\ ";
+
+int escapeChar(unsigned char c){
+	if (!isalnum(c)){
+		for (int i=0; i<sizeof(ok); ++i)
+			if (c == ok[i])
+				return 0;
+		return 1;
+	}
+	return 0;
+}
+int escapeId(unsigned char c){
+	for (int i=0; i<sizeof(notok); ++i)
+		if (c == notok[i])
+			return 1;
+	return 0;
+}
 
 int main(int argc, char** argv) {
 	int debug = 0, shift = 0, names = 0;
@@ -31,21 +46,20 @@ int main(int argc, char** argv) {
 	FILE* f = fopen(fn, "r");
 	int n = 0;
 	for (n=0; fn[n] != 0; ++n)
-		if (fn[n] == '.' || fn[n] == '/')
+		if (escapeId(fn[n]))
 			fn[n] = '_';
 	if (names) {
 		printf("b2c_%s\n", fn);
 		return(0);
 	} else {
-		printf("const unsigned char *b2c_%s = \"", fn);
+		printf("static const char *b2c_%s = \"", fn);
 	}
 	n = 0;
 	unsigned char c;
-	oklen = strlen(ok);
 	int lastx = 0;
 	while(!feof(f)) {
 		if(fread(&c, 1, 1, f) == 0) break;
-		if (escape(c)){
+		if (escapeChar(c)){
 			if (c == '"' || c == '\\')
 				printf("\\%c", c);
 			else
@@ -63,13 +77,4 @@ int main(int argc, char** argv) {
 	printf("\";\n");
 	printf("int b2c_%s_len = %d;\n", fn, n);
 	if (debug) printf("write(1,b2c_%s,b2c_%s_len);}\n", fn, fn);
-}
-int escape(unsigned char c){
-	if (!isalnum(c)){
-		for (int i=0; i<oklen; ++i)
-			if (c == ok[i])
-				return 0;
-		return 1;
-	}
-	return 0;
 }
