@@ -594,6 +594,16 @@ case 0:
 
 
 void runquery(querySpecs &q){
+	//testing btree library
+	btree::btree_set<dat> bt;
+	cout << bt.insert(dat{.u = {.i=100}}).second;
+	cout << bt.insert(dat{.u = {.i=100}}).second;
+	cout << bt.insert(dat{.u = {.i=200}}).second;
+	cout << (*bt.find(dat{.u = {.i=100}})).u.i << endl;
+	cout << (bt.find(dat{.u = {.i=101}}) == bt.cend()) << endl;;
+	cout << (bt.find(dat{.u = {.i=100}}) == bt.cend()) << endl;;
+
+
 	vmachine vm(q);
 	vm.run();
 }

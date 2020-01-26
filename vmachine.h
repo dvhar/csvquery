@@ -1,4 +1,5 @@
 #include "interpretor.h"
+#include "deps/btree/btree_set.h"
 #ifndef VMACH_H
 #define VMACH_H
 

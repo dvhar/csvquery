@@ -1,0 +1,767 @@
+!_TAG_FILE_FORMAT	2	/extended format; --format=1 will not append ;" to lines/
+!_TAG_FILE_SORTED	1	/0=unsorted, 1=sorted, 2=foldcase/
+!_TAG_PROGRAM_AUTHOR	Darren Hiebert	/dhiebert@users.sourceforge.net/
+!_TAG_PROGRAM_NAME	Exuberant Ctags	//
+!_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
+!_TAG_PROGRAM_VERSION	5.9~svn20110310	//
+BtreeAllocatorTest	btree_test.h	/^void BtreeAllocatorTest() {$/;"	f	namespace:btree
+BtreeMapTest	btree_test.h	/^void BtreeMapTest() {$/;"	f	namespace:btree
+BtreeMultiMapTest	btree_test.h	/^void BtreeMultiMapTest() {$/;"	f	namespace:btree
+BtreeMultiTest	btree_test.h	/^void BtreeMultiTest() {$/;"	f	namespace:btree
+BtreeTest	btree_test.h	/^void BtreeTest() {$/;"	f	namespace:btree
+COMPILE_ASSERT	btree.h	152;"	d
+ConstTest	btree_test.h	/^void ConstTest() {$/;"	f	namespace:btree
+DoTest	btree_test.h	/^void DoTest(const char *name, T *b, const std::vector<V> &values) {$/;"	f	namespace:btree
+GenerateDigits	btree_test.h	/^char* GenerateDigits(char buf[16], int val, int maxval) {$/;"	f	namespace:btree
+GenerateNumbers	btree_test.h	/^const std::vector<int>& GenerateNumbers(int n, int maxval) {$/;"	f	namespace:btree
+GenerateValues	btree_test.h	/^std::vector<V> GenerateValues(int n) {$/;"	f	namespace:btree
+Generator	btree_test.h	/^  Generator(int m)$/;"	f	struct:btree::Generator
+Generator	btree_test.h	/^struct Generator {$/;"	s	namespace:btree
+Generator	btree_test.h	/^struct Generator<std::pair<T, U> > {$/;"	s	namespace:btree
+Generator	btree_test.h	/^struct Generator<std::string> {$/;"	s	namespace:btree
+KeyOfValue	btree_test.h	/^struct KeyOfValue {$/;"	s	namespace:btree
+KeyOfValue	btree_test.h	/^struct KeyOfValue<K, K> {$/;"	s	namespace:btree
+TestAllocator	btree_test.h	/^  TestAllocator() : bytes_used_(NULL) { }$/;"	f	class:btree::TestAllocator
+TestAllocator	btree_test.h	/^  TestAllocator(const TestAllocator<U>& x)$/;"	f	class:btree::TestAllocator
+TestAllocator	btree_test.h	/^  TestAllocator(int64_t *bytes_used) : bytes_used_(bytes_used) { }$/;"	f	class:btree::TestAllocator
+TestAllocator	btree_test.h	/^class TestAllocator : public Alloc {$/;"	c	namespace:btree
+UTIL_BTREE_BTREE_CONTAINER_H__	btree_container.h	16;"	d
+UTIL_BTREE_BTREE_H__	btree.h	101;"	d
+UTIL_BTREE_BTREE_MAP_H__	btree_map.h	23;"	d
+UTIL_BTREE_BTREE_SET_H__	btree_set.h	21;"	d
+UTIL_BTREE_BTREE_TEST_H__	btree_test.h	16;"	d
+UTIL_BTREE_SAFE_BTREE_H__	safe_btree.h	29;"	d
+UTIL_BTREE_SAFE_BTREE_MAP_H__	safe_btree_map.h	30;"	d
+UTIL_BTREE_SAFE_BTREE_SET_H__	safe_btree_set.h	31;"	d
+allocate	btree_test.h	/^  pointer allocate(size_type n, std::allocator<void>::const_pointer hint = 0) {$/;"	f	class:btree::TestAllocator
+allocator_type	btree.h	/^  typedef Alloc allocator_type;$/;"	t	struct:btree::btree_common_params
+allocator_type	btree.h	/^  typedef typename Params::allocator_type allocator_type;$/;"	t	class:btree::btree
+allocator_type	btree_container.h	/^  typedef typename Tree::allocator_type allocator_type;$/;"	t	class:btree::btree_container
+allocator_type	btree_container.h	/^  typedef typename Tree::allocator_type allocator_type;$/;"	t	class:btree::btree_map_container
+allocator_type	btree_container.h	/^  typedef typename Tree::allocator_type allocator_type;$/;"	t	class:btree::btree_multi_container
+allocator_type	btree_container.h	/^  typedef typename Tree::allocator_type allocator_type;$/;"	t	class:btree::btree_unique_container
+allocator_type	btree_map.h	/^  typedef typename btree_type::allocator_type allocator_type;$/;"	t	class:btree::btree_map
+allocator_type	btree_map.h	/^  typedef typename btree_type::allocator_type allocator_type;$/;"	t	class:btree::btree_multimap
+allocator_type	btree_set.h	/^  typedef typename btree_type::allocator_type allocator_type;$/;"	t	class:btree::btree_multiset
+allocator_type	btree_set.h	/^  typedef typename btree_type::allocator_type allocator_type;$/;"	t	class:btree::btree_set
+allocator_type	safe_btree.h	/^  typedef typename btree_type::allocator_type allocator_type;$/;"	t	class:btree::safe_btree
+allocator_type	safe_btree_map.h	/^  typedef typename btree_type::allocator_type allocator_type;$/;"	t	class:btree::safe_btree_map
+allocator_type	safe_btree_set.h	/^  typedef typename btree_type::allocator_type allocator_type;$/;"	t	class:btree::safe_btree_set
+average_bytes_per_value	btree.h	/^  static double average_bytes_per_value() {$/;"	f	class:btree::btree
+average_bytes_per_value	btree_container.h	/^  static double average_bytes_per_value() {$/;"	f	class:btree::btree_container
+average_bytes_per_value	safe_btree.h	/^  static double average_bytes_per_value() {$/;"	f	class:btree::safe_btree
+base_checker	btree_test.h	/^  base_checker()$/;"	f	class:btree::base_checker
+base_checker	btree_test.h	/^  base_checker(InputIterator b, InputIterator e)$/;"	f	class:btree::base_checker
+base_checker	btree_test.h	/^  base_checker(const self_type &x)$/;"	f	class:btree::base_checker
+base_checker	btree_test.h	/^class base_checker {$/;"	c	namespace:btree
+base_fields	btree.h	/^  struct base_fields {$/;"	s	class:btree::btree_node
+base_fields	btree.h	/^  typedef typename node_type::base_fields base_fields;$/;"	t	class:btree::btree
+begin	btree.h	/^  const_iterator begin() const {$/;"	f	class:btree::btree
+begin	btree.h	/^  iterator begin() {$/;"	f	class:btree::btree
+begin	btree_container.h	/^  const_iterator begin() const { return tree_.begin(); }$/;"	f	class:btree::btree_container
+begin	btree_container.h	/^  iterator begin() { return tree_.begin(); }$/;"	f	class:btree::btree_container
+begin	btree_test.h	/^  const_iterator begin() const { return tree_.begin(); }$/;"	f	class:btree::base_checker
+begin	btree_test.h	/^  iterator begin() { return tree_.begin(); }$/;"	f	class:btree::base_checker
+begin	safe_btree.h	/^  const_iterator begin() const {$/;"	f	class:btree::safe_btree
+begin	safe_btree.h	/^  iterator begin() {$/;"	f	class:btree::safe_btree
+benchmark_values	btree_test.h	/^DECLARE_int32(benchmark_values);$/;"	v
+big_	btree.h	/^struct big_ {$/;"	s	namespace:btree
+binary_search_compare_to	btree.h	/^  int binary_search_compare_to($/;"	f	class:btree::btree_node
+binary_search_compare_to_type	btree.h	/^    key_type, self_type, key_compare> binary_search_compare_to_type;$/;"	t	class:btree::btree_node
+binary_search_plain_compare	btree.h	/^  int binary_search_plain_compare($/;"	f	class:btree::btree_node
+binary_search_plain_compare_type	btree.h	/^    key_type, self_type, key_compare> binary_search_plain_compare_type;$/;"	t	class:btree::btree_node
+binary_search_type	btree.h	/^    binary_search_plain_compare_type>::type binary_search_type;$/;"	t	class:btree::btree_node
+bool_compare	btree.h	/^  static bool bool_compare(const Compare &comp, const Key &x, const Key &y) {$/;"	f	struct:btree::btree_key_comparer
+btree	btree.h	/^class btree : public Params::key_compare {$/;"	c	namespace:btree
+btree	btree.h	/^namespace btree {$/;"	n
+btree	btree_container.h	/^namespace btree {$/;"	n
+btree	btree_map.h	/^namespace btree {$/;"	n
+btree	btree_set.h	/^namespace btree {$/;"	n
+btree	btree_test.h	/^namespace btree {$/;"	n
+btree	safe_btree.h	/^namespace btree {$/;"	n
+btree	safe_btree_map.h	/^namespace btree {$/;"	n
+btree	safe_btree_set.h	/^namespace btree {$/;"	n
+btree_binary_search_compare_to	btree.h	/^struct btree_binary_search_compare_to {$/;"	s	namespace:btree
+btree_binary_search_plain_compare	btree.h	/^struct btree_binary_search_plain_compare {$/;"	s	namespace:btree
+btree_common_params	btree.h	/^struct btree_common_params {$/;"	s	namespace:btree
+btree_compare_keys	btree.h	/^static bool btree_compare_keys($/;"	f	namespace:btree
+btree_container	btree_container.h	/^  btree_container(const key_compare &comp, const allocator_type &alloc)$/;"	f	class:btree::btree_container
+btree_container	btree_container.h	/^  btree_container(const self_type &x)$/;"	f	class:btree::btree_container
+btree_container	btree_container.h	/^class btree_container {$/;"	c	namespace:btree
+btree_internal_locate_compare_to	btree.h	/^struct btree_internal_locate_compare_to {$/;"	s	namespace:btree
+btree_internal_locate_plain_compare	btree.h	/^struct btree_internal_locate_plain_compare {$/;"	s	namespace:btree
+btree_is_key_compare_to	btree.h	/^struct btree_is_key_compare_to$/;"	s	namespace:btree
+btree_iterator	btree.h	/^  btree_iterator()$/;"	f	struct:btree::btree_iterator
+btree_iterator	btree.h	/^  btree_iterator(Node *n, int p)$/;"	f	struct:btree::btree_iterator
+btree_iterator	btree.h	/^  btree_iterator(const iterator &x)$/;"	f	struct:btree::btree_iterator
+btree_iterator	btree.h	/^struct btree_iterator {$/;"	s	namespace:btree
+btree_key_compare_to_adapter	btree.h	/^  btree_key_compare_to_adapter($/;"	f	struct:btree::btree_key_compare_to_adapter
+btree_key_compare_to_adapter	btree.h	/^  btree_key_compare_to_adapter() { }$/;"	f	struct:btree::btree_key_compare_to_adapter
+btree_key_compare_to_adapter	btree.h	/^  btree_key_compare_to_adapter() {}$/;"	f	struct:btree::btree_key_compare_to_adapter
+btree_key_compare_to_adapter	btree.h	/^  btree_key_compare_to_adapter(const Compare &c) : Compare(c) { }$/;"	f	struct:btree::btree_key_compare_to_adapter
+btree_key_compare_to_adapter	btree.h	/^  btree_key_compare_to_adapter(const btree_key_compare_to_adapter<Compare> &c)$/;"	f	struct:btree::btree_key_compare_to_adapter
+btree_key_compare_to_adapter	btree.h	/^  btree_key_compare_to_adapter(const std::greater<std::string>&) {}$/;"	f	struct:btree::btree_key_compare_to_adapter
+btree_key_compare_to_adapter	btree.h	/^  btree_key_compare_to_adapter(const std::less<std::string>&) {}$/;"	f	struct:btree::btree_key_compare_to_adapter
+btree_key_compare_to_adapter	btree.h	/^struct btree_key_compare_to_adapter : Compare {$/;"	s	namespace:btree
+btree_key_compare_to_adapter	btree.h	/^struct btree_key_compare_to_adapter<std::greater<std::string> >$/;"	s	namespace:btree
+btree_key_compare_to_adapter	btree.h	/^struct btree_key_compare_to_adapter<std::less<std::string> >$/;"	s	namespace:btree
+btree_key_compare_to_tag	btree.h	/^struct btree_key_compare_to_tag {$/;"	s	namespace:btree
+btree_key_comparer	btree.h	/^  btree_key_comparer() {}$/;"	f	struct:btree::btree_key_comparer
+btree_key_comparer	btree.h	/^  btree_key_comparer(Compare c) : comp(c) {}$/;"	f	struct:btree::btree_key_comparer
+btree_key_comparer	btree.h	/^struct btree_key_comparer {$/;"	s	namespace:btree
+btree_key_comparer	btree.h	/^struct btree_key_comparer<Key, Compare, true> {$/;"	s	namespace:btree
+btree_linear_search_compare_to	btree.h	/^struct btree_linear_search_compare_to {$/;"	s	namespace:btree
+btree_linear_search_plain_compare	btree.h	/^struct btree_linear_search_plain_compare {$/;"	s	namespace:btree
+btree_map	btree_map.h	/^  btree_map(InputIterator b, InputIterator e,$/;"	f	class:btree::btree_map
+btree_map	btree_map.h	/^  btree_map(const key_compare &comp = key_compare(),$/;"	f	class:btree::btree_map
+btree_map	btree_map.h	/^  btree_map(const self_type &x)$/;"	f	class:btree::btree_map
+btree_map	btree_map.h	/^  btree_map(self_type &&x)$/;"	f	class:btree::btree_map
+btree_map	btree_map.h	/^class btree_map : public btree_map_container<$/;"	c	namespace:btree
+btree_map_container	btree_container.h	/^  btree_map_container(InputIterator b, InputIterator e,$/;"	f	class:btree::btree_map_container
+btree_map_container	btree_container.h	/^  btree_map_container(const key_compare &comp = key_compare(),$/;"	f	class:btree::btree_map_container
+btree_map_container	btree_container.h	/^  btree_map_container(const self_type &x)$/;"	f	class:btree::btree_map_container
+btree_map_container	btree_container.h	/^class btree_map_container : public btree_unique_container<Tree> {$/;"	c	namespace:btree
+btree_map_params	btree.h	/^struct btree_map_params$/;"	s	namespace:btree
+btree_multi_container	btree_container.h	/^  btree_multi_container(InputIterator b, InputIterator e,$/;"	f	class:btree::btree_multi_container
+btree_multi_container	btree_container.h	/^  btree_multi_container(const key_compare &comp = key_compare(),$/;"	f	class:btree::btree_multi_container
+btree_multi_container	btree_container.h	/^  btree_multi_container(const self_type &x)$/;"	f	class:btree::btree_multi_container
+btree_multi_container	btree_container.h	/^class btree_multi_container : public btree_container<Tree> {$/;"	c	namespace:btree
+btree_multimap	btree_map.h	/^  btree_multimap(InputIterator b, InputIterator e,$/;"	f	class:btree::btree_multimap
+btree_multimap	btree_map.h	/^  btree_multimap(const key_compare &comp = key_compare(),$/;"	f	class:btree::btree_multimap
+btree_multimap	btree_map.h	/^  btree_multimap(const self_type &x)$/;"	f	class:btree::btree_multimap
+btree_multimap	btree_map.h	/^  btree_multimap(self_type &&x)$/;"	f	class:btree::btree_multimap
+btree_multimap	btree_map.h	/^class btree_multimap : public btree_multi_container<$/;"	c	namespace:btree
+btree_multiset	btree_set.h	/^  btree_multiset(InputIterator b, InputIterator e,$/;"	f	class:btree::btree_multiset
+btree_multiset	btree_set.h	/^  btree_multiset(const key_compare &comp = key_compare(),$/;"	f	class:btree::btree_multiset
+btree_multiset	btree_set.h	/^  btree_multiset(const self_type &x)$/;"	f	class:btree::btree_multiset
+btree_multiset	btree_set.h	/^  btree_multiset(self_type &&x)$/;"	f	class:btree::btree_multiset
+btree_multiset	btree_set.h	/^class btree_multiset : public btree_multi_container<$/;"	c	namespace:btree
+btree_node	btree.h	/^class btree_node {$/;"	c	namespace:btree
+btree_set	btree_set.h	/^  btree_set(InputIterator b, InputIterator e,$/;"	f	class:btree::btree_set
+btree_set	btree_set.h	/^  btree_set(const key_compare &comp = key_compare(),$/;"	f	class:btree::btree_set
+btree_set	btree_set.h	/^  btree_set(const self_type &x)$/;"	f	class:btree::btree_set
+btree_set	btree_set.h	/^  btree_set(self_type &&x)$/;"	f	class:btree::btree_set
+btree_set	btree_set.h	/^class btree_set : public btree_unique_container<$/;"	c	namespace:btree
+btree_set_params	btree.h	/^struct btree_set_params$/;"	s	namespace:btree
+btree_swap_helper	btree.h	/^inline void btree_swap_helper(T &a, T &b) {$/;"	f	namespace:btree
+btree_type	btree_map.h	/^  typedef btree<params_type> btree_type;$/;"	t	class:btree::btree_map
+btree_type	btree_map.h	/^  typedef btree<params_type> btree_type;$/;"	t	class:btree::btree_multimap
+btree_type	btree_set.h	/^  typedef btree<params_type> btree_type;$/;"	t	class:btree::btree_multiset
+btree_type	btree_set.h	/^  typedef btree<params_type> btree_type;$/;"	t	class:btree::btree_set
+btree_type	safe_btree.h	/^  typedef btree<Params> btree_type;$/;"	t	class:btree::safe_btree
+btree_type	safe_btree_map.h	/^  typedef safe_btree<params_type> btree_type;$/;"	t	class:btree::safe_btree_map
+btree_type	safe_btree_set.h	/^  typedef safe_btree<params_type> btree_type;$/;"	t	class:btree::safe_btree_set
+btree_unique_container	btree_container.h	/^  btree_unique_container(InputIterator b, InputIterator e,$/;"	f	class:btree::btree_unique_container
+btree_unique_container	btree_container.h	/^  btree_unique_container(const key_compare &comp = key_compare(),$/;"	f	class:btree::btree_unique_container
+btree_unique_container	btree_container.h	/^  btree_unique_container(const self_type &x)$/;"	f	class:btree::btree_unique_container
+btree_unique_container	btree_container.h	/^class btree_unique_container : public btree_container<Tree> {$/;"	c	namespace:btree
+btree_upper_bound_adapter	btree.h	/^  btree_upper_bound_adapter(Compare c) : Compare(c) {}$/;"	f	struct:btree::btree_upper_bound_adapter
+btree_upper_bound_adapter	btree.h	/^struct btree_upper_bound_adapter : public Compare {$/;"	s	namespace:btree
+btree_upper_bound_compare_to_adapter	btree.h	/^  btree_upper_bound_compare_to_adapter(CompareTo c) : CompareTo(c) {}$/;"	f	struct:btree::btree_upper_bound_compare_to_adapter
+btree_upper_bound_compare_to_adapter	btree.h	/^struct btree_upper_bound_compare_to_adapter : public CompareTo {$/;"	s	namespace:btree
+bytes_used	btree.h	/^  size_type bytes_used() const {$/;"	f	class:btree::btree
+bytes_used	btree_container.h	/^  size_type bytes_used() const { return tree_.bytes_used(); }$/;"	f	class:btree::btree_container
+bytes_used	btree_test.h	/^  int64_t* bytes_used() const { return bytes_used_; }$/;"	f	class:btree::TestAllocator
+bytes_used	btree_test.h	/^  size_type bytes_used() const { return tree_.bytes_used(); }$/;"	f	class:btree::base_checker
+bytes_used	safe_btree.h	/^  size_type bytes_used() const { return tree_.bytes_used(); }$/;"	f	class:btree::safe_btree
+bytes_used_	btree_test.h	/^  int64_t *bytes_used_;$/;"	m	class:btree::TestAllocator
+cbegin	btree_container.h	/^  const_iterator cbegin() const { return begin(); }$/;"	f	class:btree::btree_container
+cend	btree_container.h	/^  const_iterator cend() const { return end(); }$/;"	f	class:btree::btree_container
+checker_	btree_test.h	/^  CheckerType checker_;$/;"	m	class:btree::base_checker
+child	btree.h	/^  btree_node* child(int i) const { return fields_.children[i]; }$/;"	f	class:btree::btree_node
+children	btree.h	/^    btree_node *children[kNodeValues + 1];$/;"	m	struct:btree::btree_node::internal_fields
+clear	btree_container.h	/^  void clear() {$/;"	f	class:btree::btree_container
+clear	btree_test.h	/^  void clear() {$/;"	f	class:btree::base_checker
+clear	safe_btree.h	/^  void clear() {$/;"	f	class:btree::safe_btree
+comp	btree.h	/^  Compare comp;$/;"	m	struct:btree::btree_key_comparer
+compare_keys	btree.h	/^  bool compare_keys(const key_type &x, const key_type &y) const {$/;"	f	class:btree::btree
+const_iterator	btree.h	/^    const_node, const_reference, const_pointer> const_iterator;$/;"	t	struct:btree::btree_iterator
+const_iterator	btree.h	/^  typedef typename iterator::const_iterator const_iterator;$/;"	t	class:btree::btree
+const_iterator	btree_container.h	/^  typedef typename Tree::const_iterator const_iterator;$/;"	t	class:btree::btree_container
+const_iterator	btree_container.h	/^  typedef typename Tree::const_iterator const_iterator;$/;"	t	class:btree::btree_multi_container
+const_iterator	btree_container.h	/^  typedef typename Tree::const_iterator const_iterator;$/;"	t	class:btree::btree_unique_container
+const_iterator	btree_test.h	/^  typedef typename TreeType::const_iterator const_iterator;$/;"	t	class:btree::base_checker
+const_iterator	safe_btree.h	/^    const self_type, tree_const_iterator> const_iterator;$/;"	t	class:btree::safe_btree
+const_iterator	safe_btree.h	/^  typedef typename Tree::const_iterator const_iterator;$/;"	t	class:btree::safe_btree_iterator
+const_node	btree.h	/^  typedef const Node const_node;$/;"	t	struct:btree::btree_iterator
+const_pointer	btree.h	/^  typedef const value_type* const_pointer;$/;"	t	struct:btree::btree_map_params
+const_pointer	btree.h	/^  typedef const value_type* const_pointer;$/;"	t	struct:btree::btree_set_params
+const_pointer	btree.h	/^  typedef typename Params::const_pointer const_pointer;$/;"	t	class:btree::btree
+const_pointer	btree.h	/^  typedef typename Params::const_pointer const_pointer;$/;"	t	class:btree::btree_node
+const_pointer	btree.h	/^  typedef typename params_type::const_pointer const_pointer;$/;"	t	struct:btree::btree_iterator
+const_pointer	btree_container.h	/^  typedef typename Tree::const_pointer const_pointer;$/;"	t	class:btree::btree_container
+const_pointer	btree_test.h	/^  typedef typename TreeType::const_pointer const_pointer;$/;"	t	class:btree::base_checker
+const_pointer	safe_btree.h	/^  typedef typename Iterator::const_pointer const_pointer;$/;"	t	class:btree::safe_btree_iterator
+const_pointer	safe_btree.h	/^  typedef typename btree_type::const_pointer const_pointer;$/;"	t	class:btree::safe_btree
+const_reference	btree.h	/^  typedef const value_type& const_reference;$/;"	t	struct:btree::btree_map_params
+const_reference	btree.h	/^  typedef const value_type& const_reference;$/;"	t	struct:btree::btree_set_params
+const_reference	btree.h	/^  typedef typename Params::const_reference const_reference;$/;"	t	class:btree::btree
+const_reference	btree.h	/^  typedef typename Params::const_reference const_reference;$/;"	t	class:btree::btree_node
+const_reference	btree.h	/^  typedef typename params_type::const_reference const_reference;$/;"	t	struct:btree::btree_iterator
+const_reference	btree_container.h	/^  typedef typename Tree::const_reference const_reference;$/;"	t	class:btree::btree_container
+const_reference	btree_test.h	/^  typedef typename TreeType::const_reference const_reference;$/;"	t	class:btree::base_checker
+const_reference	safe_btree.h	/^  typedef typename Iterator::const_reference const_reference;$/;"	t	class:btree::safe_btree_iterator
+const_reference	safe_btree.h	/^  typedef typename btree_type::const_reference const_reference;$/;"	t	class:btree::safe_btree
+const_reverse_iterator	btree.h	/^  typedef std::reverse_iterator<const_iterator> const_reverse_iterator;$/;"	t	class:btree::btree
+const_reverse_iterator	btree_container.h	/^  typedef typename Tree::const_reverse_iterator const_reverse_iterator;$/;"	t	class:btree::btree_container
+const_reverse_iterator	btree_test.h	/^  typedef typename TreeType::const_reverse_iterator const_reverse_iterator;$/;"	t	class:btree::base_checker
+const_reverse_iterator	safe_btree.h	/^  typedef std::reverse_iterator<const_iterator> const_reverse_iterator;$/;"	t	class:btree::safe_btree
+const_tree_	btree_test.h	/^  const TreeType &const_tree_;$/;"	m	class:btree::base_checker
+count	btree.h	/^    field_type count;$/;"	m	struct:btree::btree_node::base_fields
+count	btree.h	/^  int count() const { return fields_.count; }$/;"	f	class:btree::btree_node
+count	btree_container.h	/^  size_type count(const key_type &key) const {$/;"	f	class:btree::btree_multi_container
+count	btree_container.h	/^  size_type count(const key_type &key) const {$/;"	f	class:btree::btree_unique_container
+count	btree_test.h	/^  size_type count(const key_type &key) const {$/;"	f	class:btree::base_checker
+count_multi	btree.h	/^  size_type count_multi(const key_type &key) const {$/;"	f	class:btree::btree
+count_multi	safe_btree.h	/^  size_type count_multi(const key_type &key) const {$/;"	f	class:btree::safe_btree
+count_unique	btree.h	/^  size_type count_unique(const key_type &key) const {$/;"	f	class:btree::btree
+count_unique	safe_btree.h	/^  size_type count_unique(const key_type &key) const {$/;"	f	class:btree::safe_btree
+crbegin	btree_container.h	/^  const_reverse_iterator crbegin() const { return rbegin(); }$/;"	f	class:btree::btree_container
+crend	btree_container.h	/^  const_reverse_iterator crend() const { return rend(); }$/;"	f	class:btree::btree_container
+data	btree.h	/^    Data data;$/;"	m	struct:btree::btree::empty_base_handle
+data_type	btree.h	/^  typedef Data data_type;$/;"	t	struct:btree::btree_map_params
+data_type	btree.h	/^  typedef std::false_type data_type;$/;"	t	struct:btree::btree_set_params
+data_type	btree.h	/^  typedef typename Params::data_type data_type;$/;"	t	class:btree::btree
+data_type	btree.h	/^  typedef typename Params::data_type data_type;$/;"	t	class:btree::btree_node
+data_type	btree_container.h	/^  typedef typename Tree::data_type data_type;$/;"	t	class:btree::btree_map_container
+data_type	btree_map.h	/^  typedef typename btree_type::data_type data_type;$/;"	t	class:btree::btree_multimap
+data_type	safe_btree.h	/^  typedef typename btree_type::data_type data_type;$/;"	t	class:btree::safe_btree
+deallocate	btree_test.h	/^  void deallocate(pointer p, size_type n) {$/;"	f	class:btree::TestAllocator
+decrement	btree.h	/^  void decrement() {$/;"	f	struct:btree::btree_iterator
+delete_internal_node	btree.h	/^  void delete_internal_node(node_type *node) {$/;"	f	class:btree::btree
+delete_internal_root_node	btree.h	/^  void delete_internal_root_node() {$/;"	f	class:btree::btree
+delete_leaf_node	btree.h	/^  void delete_leaf_node(node_type *node) {$/;"	f	class:btree::btree
+destroy	btree.h	/^  void destroy() {$/;"	f	class:btree::btree_node
+difference_type	btree.h	/^  typedef ptrdiff_t difference_type;$/;"	t	struct:btree::btree_common_params
+difference_type	btree.h	/^  typedef typename Node::difference_type difference_type;$/;"	t	struct:btree::btree_iterator
+difference_type	btree.h	/^  typedef typename Params::difference_type difference_type;$/;"	t	class:btree::btree
+difference_type	btree.h	/^  typedef typename Params::difference_type difference_type;$/;"	t	class:btree::btree_node
+difference_type	btree_container.h	/^  typedef typename Tree::difference_type difference_type;$/;"	t	class:btree::btree_container
+difference_type	btree_test.h	/^  typedef typename TreeType::difference_type difference_type;$/;"	t	class:btree::base_checker
+difference_type	safe_btree.h	/^  typedef typename Iterator::difference_type difference_type;$/;"	t	class:btree::safe_btree_iterator
+difference_type	safe_btree.h	/^  typedef typename btree_type::difference_type difference_type;$/;"	t	class:btree::safe_btree
+dispatch	btree.h	/^  static std::pair<Iter, int> dispatch(const K &k, const T &t, Iter iter) {$/;"	f	struct:btree::btree_internal_locate_compare_to
+dispatch	btree.h	/^  static std::pair<Iter, int> dispatch(const K &k, const T &t, Iter iter) {$/;"	f	struct:btree::btree_internal_locate_plain_compare
+dummy	btree.h	/^  char dummy[2];$/;"	m	struct:btree::big_
+dump	btree.h	/^  void dump(std::ostream &os) const {$/;"	f	class:btree::btree
+dump	btree_container.h	/^  void dump(std::ostream &os) const {$/;"	f	class:btree::btree_container
+dump	safe_btree.h	/^  void dump(std::ostream &os) const {$/;"	f	class:btree::safe_btree
+empty	btree.h	/^  bool empty() const { return root() == NULL; }$/;"	f	class:btree::btree
+empty	btree_container.h	/^  bool empty() const { return tree_.empty(); }$/;"	f	class:btree::btree_container
+empty	btree_test.h	/^  bool empty() const {$/;"	f	class:btree::base_checker
+empty	safe_btree.h	/^  bool empty() const { return tree_.empty(); }$/;"	f	class:btree::safe_btree
+empty_base_handle	btree.h	/^    empty_base_handle(const Base &b, const Data &d)$/;"	f	struct:btree::btree::empty_base_handle
+empty_base_handle	btree.h	/^  struct empty_base_handle : public Base {$/;"	s	class:btree::btree
+end	btree.h	/^  const_iterator end() const {$/;"	f	class:btree::btree
+end	btree.h	/^  iterator end() {$/;"	f	class:btree::btree
+end	btree_container.h	/^  const_iterator end() const { return tree_.end(); }$/;"	f	class:btree::btree_container
+end	btree_container.h	/^  iterator end() { return tree_.end(); }$/;"	f	class:btree::btree_container
+end	btree_test.h	/^  const_iterator end() const { return tree_.end(); }$/;"	f	class:btree::base_checker
+end	btree_test.h	/^  iterator end() { return tree_.end(); }$/;"	f	class:btree::base_checker
+end	safe_btree.h	/^  const_iterator end() const {$/;"	f	class:btree::safe_btree
+end	safe_btree.h	/^  iterator end() {$/;"	f	class:btree::safe_btree
+equal_range	btree.h	/^  std::pair<const_iterator,const_iterator> equal_range(const key_type &key) const {$/;"	f	class:btree::btree
+equal_range	btree.h	/^  std::pair<iterator,iterator> equal_range(const key_type &key) {$/;"	f	class:btree::btree
+equal_range	btree_container.h	/^  std::pair<const_iterator,const_iterator> equal_range(const key_type &key) const {$/;"	f	class:btree::btree_container
+equal_range	btree_container.h	/^  std::pair<iterator,iterator> equal_range(const key_type &key) {$/;"	f	class:btree::btree_container
+equal_range	btree_test.h	/^  std::pair<const_iterator,const_iterator> equal_range(const key_type &key) const {$/;"	f	class:btree::base_checker
+equal_range	btree_test.h	/^  std::pair<iterator,iterator> equal_range(const key_type &key) {$/;"	f	class:btree::base_checker
+equal_range	safe_btree.h	/^  std::pair<const_iterator, const_iterator> equal_range(const key_type &key) const {$/;"	f	class:btree::safe_btree
+equal_range	safe_btree.h	/^  std::pair<iterator, iterator> equal_range(const key_type &key) {$/;"	f	class:btree::safe_btree
+erase	btree_container.h	/^  int erase(const key_type &key) {$/;"	f	class:btree::btree_multi_container
+erase	btree_container.h	/^  int erase(const key_type &key) {$/;"	f	class:btree::btree_unique_container
+erase	btree_container.h	/^  iterator erase(const iterator &iter) {$/;"	f	class:btree::btree_multi_container
+erase	btree_container.h	/^  iterator erase(const iterator &iter) {$/;"	f	class:btree::btree_unique_container
+erase	btree_container.h	/^  void erase(const iterator &first, const iterator &last) {$/;"	f	class:btree::btree_multi_container
+erase	btree_container.h	/^  void erase(const iterator &first, const iterator &last) {$/;"	f	class:btree::btree_unique_container
+erase	btree_test.h	/^  int erase(const key_type &key) {$/;"	f	class:btree::base_checker
+erase	btree_test.h	/^  iterator erase(iterator iter) {$/;"	f	class:btree::base_checker
+erase	btree_test.h	/^  void erase(iterator begin, iterator end) {$/;"	f	class:btree::base_checker
+erase	safe_btree.h	/^  iterator erase(iterator iter) {$/;"	f	class:btree::safe_btree
+erase	safe_btree.h	/^  void erase(const iterator &begin, const iterator &end) {$/;"	f	class:btree::safe_btree
+erase_check	btree_test.h	/^  void erase_check(const key_type &key) {$/;"	f	class:btree::base_checker
+erase_multi	safe_btree.h	/^  int erase_multi(const key_type &key) {$/;"	f	class:btree::safe_btree
+erase_unique	safe_btree.h	/^  int erase_unique(const key_type &key) {$/;"	f	class:btree::safe_btree
+field_type	btree.h	/^    typedef typename Params::node_count_type field_type;$/;"	t	struct:btree::btree_node::base_fields
+fields_	btree.h	/^  root_fields fields_;$/;"	m	class:btree::btree_node
+find	btree_container.h	/^  const_iterator find(const key_type &key) const {$/;"	f	class:btree::btree_multi_container
+find	btree_container.h	/^  const_iterator find(const key_type &key) const {$/;"	f	class:btree::btree_unique_container
+find	btree_container.h	/^  iterator find(const key_type &key) {$/;"	f	class:btree::btree_multi_container
+find	btree_container.h	/^  iterator find(const key_type &key) {$/;"	f	class:btree::btree_unique_container
+find	btree_test.h	/^  const_iterator find(const key_type &key) const {$/;"	f	class:btree::base_checker
+find	btree_test.h	/^  iterator find(const key_type &key) {$/;"	f	class:btree::base_checker
+find_multi	btree.h	/^  const_iterator find_multi(const key_type &key) const {$/;"	f	class:btree::btree
+find_multi	btree.h	/^  iterator find_multi(const key_type &key) {$/;"	f	class:btree::btree
+find_multi	safe_btree.h	/^  const_iterator find_multi(const key_type &key) const {$/;"	f	class:btree::safe_btree
+find_multi	safe_btree.h	/^  iterator find_multi(const key_type &key) {$/;"	f	class:btree::safe_btree
+find_unique	btree.h	/^  const_iterator find_unique(const key_type &key) const {$/;"	f	class:btree::btree
+find_unique	btree.h	/^  iterator find_unique(const key_type &key) {$/;"	f	class:btree::btree
+find_unique	safe_btree.h	/^  const_iterator find_unique(const key_type &key) const {$/;"	f	class:btree::safe_btree
+find_unique	safe_btree.h	/^  iterator find_unique(const key_type &key) {$/;"	f	class:btree::safe_btree
+fullness	btree.h	/^  double fullness() const {$/;"	f	class:btree::btree
+fullness	btree_container.h	/^  double fullness() const { return tree_.fullness(); }$/;"	f	class:btree::btree_container
+fullness	btree_test.h	/^  double fullness() const { return tree_.fullness(); }$/;"	f	class:btree::base_checker
+fullness	safe_btree.h	/^  double fullness() const { return tree_.fullness(); }$/;"	f	class:btree::safe_btree
+generate_value	btree_container.h	/^    generate_value(const key_type &k)$/;"	f	struct:btree::btree_map_container::generate_value
+generate_value	btree_container.h	/^  struct generate_value {$/;"	s	class:btree::btree_map_container
+generation	safe_btree.h	/^  int64_t generation() const { return generation_; }$/;"	f	class:btree::safe_btree_iterator
+generation	safe_btree.h	/^  int64_t generation() const {$/;"	f	class:btree::safe_btree
+generation_	safe_btree.h	/^  int64_t generation_;$/;"	m	class:btree::safe_btree
+generation_	safe_btree.h	/^  mutable int64_t generation_;$/;"	m	class:btree::safe_btree_iterator
+height	btree.h	/^  size_type height() const {$/;"	f	class:btree::btree
+height	btree_container.h	/^  size_type height() const { return tree_.height(); }$/;"	f	class:btree::btree_container
+height	btree_test.h	/^  size_type height() const { return tree_.height(); }$/;"	f	class:btree::base_checker
+height	safe_btree.h	/^  size_type height() const { return tree_.height(); }$/;"	f	class:btree::safe_btree
+i	btree.h	/^    *mutable_child(i) = NULL;$/;"	m	namespace:btree	typeref:class:btree::btree
+identity	btree_test.h	/^struct identity {$/;"	s	namespace:btree
+if_	btree.h	/^  typedef typename if_<$/;"	t	struct:btree::btree_common_params
+if_	btree.h	/^struct if_<false, A, B> {$/;"	s	namespace:btree
+if_	btree.h	/^struct if_{$/;"	s	namespace:btree
+increment	btree.h	/^  void increment() {$/;"	f	struct:btree::btree_iterator
+init_internal	btree.h	/^  static btree_node* init_internal(internal_fields *f, btree_node *parent) {$/;"	f	class:btree::btree_node
+init_leaf	btree.h	/^  static btree_node* init_leaf($/;"	f	class:btree::btree_node
+init_root	btree.h	/^  static btree_node* init_root(root_fields *f, btree_node *parent) {$/;"	f	class:btree::btree_node
+insert	btree_container.h	/^  iterator insert(const value_type &x) {$/;"	f	class:btree::btree_multi_container
+insert	btree_container.h	/^  iterator insert(iterator position, const value_type &x) {$/;"	f	class:btree::btree_multi_container
+insert	btree_container.h	/^  iterator insert(iterator position, const value_type &x) {$/;"	f	class:btree::btree_unique_container
+insert	btree_container.h	/^  std::pair<iterator,bool> insert(const value_type &x) {$/;"	f	class:btree::btree_unique_container
+insert	btree_container.h	/^  void insert(InputIterator b, InputIterator e) {$/;"	f	class:btree::btree_multi_container
+insert	btree_container.h	/^  void insert(InputIterator b, InputIterator e) {$/;"	f	class:btree::btree_unique_container
+insert	btree_test.h	/^  iterator insert(const value_type &x) {$/;"	f	class:btree::multi_checker
+insert	btree_test.h	/^  iterator insert(iterator position, const value_type &x) {$/;"	f	class:btree::multi_checker
+insert	btree_test.h	/^  iterator insert(iterator position, const value_type &x) {$/;"	f	class:btree::unique_checker
+insert	btree_test.h	/^  std::pair<iterator,bool> insert(const value_type &x) {$/;"	f	class:btree::unique_checker
+insert	btree_test.h	/^  void insert(InputIterator b, InputIterator e) {$/;"	f	class:btree::multi_checker
+insert	btree_test.h	/^  void insert(InputIterator b, InputIterator e) {$/;"	f	class:btree::unique_checker
+insert_multi	btree.h	/^  iterator insert_multi(const value_type &v) {$/;"	f	class:btree::btree
+insert_multi	safe_btree.h	/^  iterator insert_multi(const value_type &v) {$/;"	f	class:btree::safe_btree
+insert_multi	safe_btree.h	/^  iterator insert_multi(iterator position, const value_type &v) {$/;"	f	class:btree::safe_btree
+insert_multi	safe_btree.h	/^  void insert_multi(InputIterator b, InputIterator e) {$/;"	f	class:btree::safe_btree
+insert_unique	btree.h	/^  std::pair<iterator,bool> insert_unique(const value_type &v) {$/;"	f	class:btree::btree
+insert_unique	safe_btree.h	/^  iterator insert_unique(iterator position, const value_type &v) {$/;"	f	class:btree::safe_btree
+insert_unique	safe_btree.h	/^  std::pair<iterator, bool> insert_unique(const key_type &key, ValuePointer value) {$/;"	f	class:btree::safe_btree
+insert_unique	safe_btree.h	/^  std::pair<iterator, bool> insert_unique(const value_type &v) {$/;"	f	class:btree::safe_btree
+insert_unique	safe_btree.h	/^  void insert_unique(InputIterator b, InputIterator e) {$/;"	f	class:btree::safe_btree
+internal_allocator	btree.h	/^  const internal_allocator_type& internal_allocator() const {$/;"	f	class:btree::btree
+internal_allocator_type	btree.h	/^    internal_allocator_type;$/;"	t	class:btree::btree
+internal_btree	safe_btree.h	/^  btree_type* internal_btree() { return &tree_; }$/;"	f	class:btree::safe_btree
+internal_btree	safe_btree.h	/^  const btree_type* internal_btree() const { return &tree_; }$/;"	f	class:btree::safe_btree
+internal_end	btree.h	/^  const_iterator internal_end(const_iterator iter) const {$/;"	f	class:btree::btree
+internal_end	btree.h	/^  iterator internal_end(iterator iter) {$/;"	f	class:btree::btree
+internal_fields	btree.h	/^  struct internal_fields : public leaf_fields {$/;"	s	class:btree::btree_node
+internal_fields	btree.h	/^  typedef typename node_type::internal_fields internal_fields;$/;"	t	class:btree::btree
+internal_locate_type	btree.h	/^    btree_internal_locate_plain_compare>::type internal_locate_type;$/;"	t	class:btree::btree
+internal_nodes	btree.h	/^    size_t internal_nodes;$/;"	m	struct:btree::btree::node_stats
+internal_nodes	btree.h	/^  size_type internal_nodes() const {$/;"	f	class:btree::btree
+internal_nodes	btree_container.h	/^  size_type internal_nodes() const { return tree_.internal_nodes(); }$/;"	f	class:btree::btree_container
+internal_nodes	btree_test.h	/^  size_type internal_nodes() const { return tree_.internal_nodes(); }$/;"	f	class:btree::base_checker
+internal_nodes	safe_btree.h	/^  size_type internal_nodes() const { return tree_.internal_nodes(); }$/;"	f	class:btree::safe_btree
+internal_stats	btree.h	/^  node_stats internal_stats(const node_type *node) const {$/;"	f	class:btree::btree
+is_key_compare_to	btree.h	/^  typedef btree_is_key_compare_to<key_compare> is_key_compare_to;$/;"	t	struct:btree::btree_common_params
+is_key_compare_to	btree.h	/^  typedef typename Params::is_key_compare_to is_key_compare_to;$/;"	t	class:btree::btree
+is_root	btree.h	/^  bool is_root() const { return parent()->leaf(); }$/;"	f	class:btree::btree_node
+iter	safe_btree.h	/^  const Iterator& iter() const {$/;"	f	class:btree::safe_btree_iterator
+iter_	safe_btree.h	/^  mutable Iterator iter_;$/;"	m	class:btree::safe_btree_iterator
+iter_check	btree_test.h	/^  IterType iter_check($/;"	f	class:btree::base_checker
+iterator	btree.h	/^    normal_node, normal_reference, normal_pointer> iterator;$/;"	t	struct:btree::btree_iterator
+iterator	btree.h	/^  typedef btree_iterator<node_type, reference, pointer> iterator;$/;"	t	class:btree::btree
+iterator	btree_container.h	/^  typedef typename Tree::iterator iterator;$/;"	t	class:btree::btree_container
+iterator	btree_container.h	/^  typedef typename Tree::iterator iterator;$/;"	t	class:btree::btree_multi_container
+iterator	btree_container.h	/^  typedef typename Tree::iterator iterator;$/;"	t	class:btree::btree_unique_container
+iterator	btree_test.h	/^  typedef typename TreeType::iterator iterator;$/;"	t	class:btree::base_checker
+iterator	btree_test.h	/^  typedef typename super_type::iterator iterator;$/;"	t	class:btree::multi_checker
+iterator	btree_test.h	/^  typedef typename super_type::iterator iterator;$/;"	t	class:btree::unique_checker
+iterator	safe_btree.h	/^  typedef safe_btree_iterator<self_type, tree_iterator> iterator;$/;"	t	class:btree::safe_btree
+iterator	safe_btree.h	/^  typedef typename Tree::iterator iterator;$/;"	t	class:btree::safe_btree_iterator
+iterator_category	btree.h	/^  typedef std::bidirectional_iterator_tag iterator_category;$/;"	t	struct:btree::btree_iterator
+iterator_category	safe_btree.h	/^  typedef typename Iterator::iterator_category iterator_category;$/;"	t	class:btree::safe_btree_iterator
+kExactMatch	btree.h	/^    kExactMatch = 1 << 30,$/;"	e	enum:btree::btree_node::__anon9
+kExactMatch	btree.h	/^    kExactMatch = node_type::kExactMatch,$/;"	e	enum:btree::btree::__anon10
+kMatchMask	btree.h	/^    kMatchMask = kExactMatch - 1,$/;"	e	enum:btree::btree_node::__anon9
+kMatchMask	btree.h	/^    kMatchMask = node_type::kMatchMask,$/;"	e	enum:btree::btree::__anon10
+kMinNodeValues	btree.h	/^    kMinNodeValues = kNodeValues \/ 2,$/;"	e	enum:btree::btree::__anon10
+kNodeTargetValues	btree.h	/^    kNodeTargetValues = (kTargetNodeSize - sizeof(base_fields)) \/ kValueSize,$/;"	e	enum:btree::btree_node::__anon9
+kNodeValueSpace	btree.h	/^    kNodeValueSpace = TargetNodeSize - 2 * sizeof(void*),$/;"	e	enum:btree::btree_common_params::__anon6
+kNodeValues	btree.h	/^    kNodeValues = kNodeTargetValues >= 3 ? kNodeTargetValues : 3,$/;"	e	enum:btree::btree_node::__anon9
+kNodeValues	btree.h	/^    kNodeValues = node_type::kNodeValues,$/;"	e	enum:btree::btree::__anon10
+kTargetNodeSize	btree.h	/^    kTargetNodeSize = TargetNodeSize,$/;"	e	enum:btree::btree_common_params::__anon6
+kTargetNodeSize	btree.h	/^    kTargetNodeSize = params_type::kTargetNodeSize,$/;"	e	enum:btree::btree_node::__anon9
+kValueSize	btree.h	/^    kValueSize = node_type::kValueSize,$/;"	e	enum:btree::btree::__anon10
+kValueSize	btree.h	/^    kValueSize = params_type::kValueSize,$/;"	e	enum:btree::btree_node::__anon9
+kValueSize	btree.h	/^    kValueSize = sizeof(Key) + sizeof(data_type),$/;"	e	enum:btree::btree_map_params::__anon7
+kValueSize	btree.h	/^    kValueSize = sizeof(Key),$/;"	e	enum:btree::btree_set_params::__anon8
+key	btree.h	/^  const key_type& key() const {$/;"	f	struct:btree::btree_iterator
+key	btree.h	/^  const key_type& key(int i) const {$/;"	f	class:btree::btree_node
+key	btree.h	/^  static const Key& key(const mutable_value_type &x) { return x.first; }$/;"	f	struct:btree::btree_map_params
+key	btree.h	/^  static const Key& key(const value_type &x) { return x.first; }$/;"	f	struct:btree::btree_map_params
+key	btree.h	/^  static const Key& key(const value_type &x) { return x; }$/;"	f	struct:btree::btree_set_params
+key	btree_container.h	/^    const key_type &key;$/;"	m	struct:btree::btree_map_container::generate_value
+key	safe_btree.h	/^  const key_type& key() const {$/;"	f	class:btree::safe_btree_iterator
+key_	safe_btree.h	/^  mutable key_type key_;$/;"	m	class:btree::safe_btree_iterator
+key_comp	btree.h	/^  const key_compare& key_comp() const {$/;"	f	class:btree::btree
+key_comp	btree_container.h	/^  key_compare key_comp() const { return tree_.key_comp(); }$/;"	f	class:btree::btree_container
+key_comp	safe_btree.h	/^  key_compare key_comp() const { return tree_.key_comp(); }$/;"	f	class:btree::safe_btree
+key_compare	btree.h	/^    Compare, btree_key_compare_to_adapter<Compare> >::type key_compare;$/;"	t	struct:btree::btree_common_params
+key_compare	btree.h	/^  typedef typename Params::key_compare key_compare;$/;"	t	class:btree::btree
+key_compare	btree.h	/^  typedef typename Params::key_compare key_compare;$/;"	t	class:btree::btree_node
+key_compare	btree_container.h	/^  typedef typename Tree::key_compare key_compare;$/;"	t	class:btree::btree_container
+key_compare	btree_container.h	/^  typedef typename Tree::key_compare key_compare;$/;"	t	class:btree::btree_map_container
+key_compare	btree_container.h	/^  typedef typename Tree::key_compare key_compare;$/;"	t	class:btree::btree_multi_container
+key_compare	btree_container.h	/^  typedef typename Tree::key_compare key_compare;$/;"	t	class:btree::btree_unique_container
+key_compare	btree_map.h	/^  typedef typename btree_type::key_compare key_compare;$/;"	t	class:btree::btree_map
+key_compare	btree_map.h	/^  typedef typename btree_type::key_compare key_compare;$/;"	t	class:btree::btree_multimap
+key_compare	btree_set.h	/^  typedef typename btree_type::key_compare key_compare;$/;"	t	class:btree::btree_multiset
+key_compare	btree_set.h	/^  typedef typename btree_type::key_compare key_compare;$/;"	t	class:btree::btree_set
+key_compare	btree_test.h	/^  typedef typename TreeType::key_compare key_compare;$/;"	t	class:btree::base_checker
+key_compare	safe_btree.h	/^  typedef typename btree_type::key_compare key_compare;$/;"	t	class:btree::safe_btree
+key_compare	safe_btree_map.h	/^  typedef typename btree_type::key_compare key_compare;$/;"	t	class:btree::safe_btree_map
+key_compare	safe_btree_set.h	/^  typedef typename btree_type::key_compare key_compare;$/;"	t	class:btree::safe_btree_set
+key_comparison_function_must_return_bool	btree.h	/^      key_comparison_function_must_return_bool);$/;"	m	class:btree::btree
+key_type	btree.h	/^  typedef Key key_type;$/;"	t	struct:btree::btree_common_params
+key_type	btree.h	/^  typedef typename Node::key_type key_type;$/;"	t	struct:btree::btree_iterator
+key_type	btree.h	/^  typedef typename Params::key_type key_type;$/;"	t	class:btree::btree
+key_type	btree.h	/^  typedef typename Params::key_type key_type;$/;"	t	class:btree::btree_node
+key_type	btree_container.h	/^  typedef typename Tree::key_type key_type;$/;"	t	class:btree::btree_container
+key_type	btree_container.h	/^  typedef typename Tree::key_type key_type;$/;"	t	class:btree::btree_map_container
+key_type	btree_container.h	/^  typedef typename Tree::key_type key_type;$/;"	t	class:btree::btree_multi_container
+key_type	btree_container.h	/^  typedef typename Tree::key_type key_type;$/;"	t	class:btree::btree_unique_container
+key_type	btree_test.h	/^  typedef typename TreeType::key_type key_type;$/;"	t	class:btree::base_checker
+key_type	safe_btree.h	/^  typedef typename Iterator::key_type key_type;$/;"	t	class:btree::safe_btree_iterator
+key_type	safe_btree.h	/^  typedef typename btree_type::key_type key_type;$/;"	t	class:btree::safe_btree
+leaf	btree.h	/^    bool leaf;$/;"	m	struct:btree::btree_node::base_fields
+leaf	btree.h	/^  bool leaf() const { return fields_.leaf; }$/;"	f	class:btree::btree_node
+leaf_fields	btree.h	/^  struct leaf_fields : public base_fields {$/;"	s	class:btree::btree_node
+leaf_fields	btree.h	/^  typedef typename node_type::leaf_fields leaf_fields;$/;"	t	class:btree::btree
+leaf_nodes	btree.h	/^    size_t leaf_nodes;$/;"	m	struct:btree::btree::node_stats
+leaf_nodes	btree.h	/^  size_type leaf_nodes() const {$/;"	f	class:btree::btree
+leaf_nodes	btree_container.h	/^  size_type leaf_nodes() const { return tree_.leaf_nodes(); }$/;"	f	class:btree::btree_container
+leaf_nodes	btree_test.h	/^  size_type leaf_nodes() const { return tree_.leaf_nodes(); }$/;"	f	class:btree::base_checker
+leaf_nodes	safe_btree.h	/^  size_type leaf_nodes() const { return tree_.leaf_nodes(); }$/;"	f	class:btree::safe_btree
+leftmost	btree.h	/^  const node_type* leftmost() const { return root() ? root()->parent() : NULL; }$/;"	f	class:btree::btree
+leftmost	btree.h	/^  node_type* leftmost() { return root() ? root()->parent() : NULL; }$/;"	f	class:btree::btree
+linear_search_compare_to	btree.h	/^  int linear_search_compare_to($/;"	f	class:btree::btree_node
+linear_search_compare_to_type	btree.h	/^    key_type, self_type, key_compare> linear_search_compare_to_type;$/;"	t	class:btree::btree_node
+linear_search_plain_compare	btree.h	/^  int linear_search_plain_compare($/;"	f	class:btree::btree_node
+linear_search_plain_compare_type	btree.h	/^    key_type, self_type, key_compare> linear_search_plain_compare_type;$/;"	t	class:btree::btree_node
+linear_search_type	btree.h	/^    linear_search_plain_compare_type>::type linear_search_type;$/;"	t	class:btree::btree_node
+lower_bound	btree.h	/^  const_iterator lower_bound(const key_type &key) const {$/;"	f	class:btree::btree
+lower_bound	btree.h	/^  int lower_bound(const key_type &k, const Compare &comp) const {$/;"	f	class:btree::btree_node
+lower_bound	btree.h	/^  iterator lower_bound(const key_type &key) {$/;"	f	class:btree::btree
+lower_bound	btree.h	/^  static int lower_bound(const K &k, const N &n, Compare comp)  {$/;"	f	struct:btree::btree_binary_search_plain_compare
+lower_bound	btree.h	/^  static int lower_bound(const K &k, const N &n, Compare comp)  {$/;"	f	struct:btree::btree_linear_search_plain_compare
+lower_bound	btree.h	/^  static int lower_bound(const K &k, const N &n, CompareTo comp)  {$/;"	f	struct:btree::btree_binary_search_compare_to
+lower_bound	btree.h	/^  static int lower_bound(const K &k, const N &n, CompareTo comp)  {$/;"	f	struct:btree::btree_linear_search_compare_to
+lower_bound	btree_container.h	/^  const_iterator lower_bound(const key_type &key) const {$/;"	f	class:btree::btree_container
+lower_bound	btree_container.h	/^  iterator lower_bound(const key_type &key) {$/;"	f	class:btree::btree_container
+lower_bound	btree_test.h	/^  const_iterator lower_bound(const key_type &key) const {$/;"	f	class:btree::base_checker
+lower_bound	btree_test.h	/^  iterator lower_bound(const key_type &key) {$/;"	f	class:btree::base_checker
+lower_bound	safe_btree.h	/^  const_iterator lower_bound(const key_type &key) const {$/;"	f	class:btree::safe_btree
+lower_bound	safe_btree.h	/^  iterator lower_bound(const key_type &key) {$/;"	f	class:btree::safe_btree
+make_root	btree.h	/^  void make_root() {$/;"	f	class:btree::btree_node
+mapped_type	btree.h	/^  typedef Data mapped_type;$/;"	t	struct:btree::btree_map_params
+mapped_type	btree.h	/^  typedef std::false_type mapped_type;$/;"	t	struct:btree::btree_set_params
+mapped_type	btree.h	/^  typedef typename Params::mapped_type mapped_type;$/;"	t	class:btree::btree
+mapped_type	btree_container.h	/^  typedef typename Tree::mapped_type mapped_type;$/;"	t	class:btree::btree_map_container
+mapped_type	btree_map.h	/^  typedef typename btree_type::mapped_type mapped_type;$/;"	t	class:btree::btree_multimap
+mapped_type	safe_btree.h	/^  typedef typename btree_type::mapped_type mapped_type;$/;"	t	class:btree::safe_btree
+max_count	btree.h	/^    field_type max_count;$/;"	m	struct:btree::btree_node::base_fields
+max_count	btree.h	/^  int max_count() const { return fields_.max_count; }$/;"	f	class:btree::btree_node
+max_size	btree.h	/^  size_type max_size() const { return std::numeric_limits<size_type>::max(); }$/;"	f	class:btree::btree
+max_size	btree_container.h	/^  size_type max_size() const { return tree_.max_size(); }$/;"	f	class:btree::btree_container
+max_size	btree_test.h	/^  size_type max_size() const { return tree_.max_size(); }$/;"	f	class:btree::base_checker
+max_size	safe_btree.h	/^  size_type max_size() const { return tree_.max_size(); }$/;"	f	class:btree::safe_btree
+maxval	btree_test.h	/^  int maxval;$/;"	m	struct:btree::Generator
+multi_checker	btree_test.h	/^  multi_checker()$/;"	f	class:btree::multi_checker
+multi_checker	btree_test.h	/^  multi_checker(InputIterator b, InputIterator e)$/;"	f	class:btree::multi_checker
+multi_checker	btree_test.h	/^  multi_checker(const self_type &x)$/;"	f	class:btree::multi_checker
+multi_checker	btree_test.h	/^class multi_checker : public base_checker<TreeType, CheckerType> {$/;"	c	namespace:btree
+mutable_child	btree.h	/^  btree_node** mutable_child(int i) { return &fields_.children[i]; }$/;"	f	class:btree::btree_node
+mutable_internal_allocator	btree.h	/^  internal_allocator_type* mutable_internal_allocator() {$/;"	f	class:btree::btree
+mutable_iter	safe_btree.h	/^  Iterator* mutable_iter() const {$/;"	f	class:btree::safe_btree_iterator
+mutable_key_comp	btree.h	/^  key_compare* mutable_key_comp() {$/;"	f	class:btree::btree
+mutable_rightmost	btree.h	/^  btree_node** mutable_rightmost() { return &fields_.rightmost; }$/;"	f	class:btree::btree_node
+mutable_rightmost	btree.h	/^  node_type** mutable_rightmost() { return root()->mutable_rightmost(); }$/;"	f	class:btree::btree
+mutable_root	btree.h	/^  node_type** mutable_root() { return &root_.data; }$/;"	f	class:btree::btree
+mutable_size	btree.h	/^  size_type* mutable_size() { return &fields_.size; }$/;"	f	class:btree::btree_node
+mutable_size	btree.h	/^  size_type* mutable_size() { return root()->mutable_size(); }$/;"	f	class:btree::btree
+mutable_value	btree.h	/^  mutable_value_type* mutable_value(int i) {$/;"	f	class:btree::btree_node
+mutable_value_type	btree.h	/^  typedef std::pair<Key, data_type> mutable_value_type;$/;"	t	struct:btree::btree_map_params
+mutable_value_type	btree.h	/^  typedef typename Params::mutable_value_type mutable_value_type;$/;"	t	class:btree::btree_node
+mutable_value_type	btree.h	/^  typedef value_type mutable_value_type;$/;"	t	struct:btree::btree_set_params
+new_internal_node	btree.h	/^  node_type* new_internal_node(node_type *parent) {$/;"	f	class:btree::btree
+new_internal_root_node	btree.h	/^  node_type* new_internal_root_node() {$/;"	f	class:btree::btree
+new_leaf_node	btree.h	/^  node_type* new_leaf_node(node_type *parent) {$/;"	f	class:btree::btree
+new_leaf_root_node	btree.h	/^  node_type* new_leaf_root_node(int max_count) {$/;"	f	class:btree::btree
+node	btree.h	/^  Node *node;$/;"	m	struct:btree::btree_iterator
+node_count_type	btree.h	/^    uint8_t>::type node_count_type;$/;"	t	struct:btree::btree_common_params
+node_stats	btree.h	/^    node_stats(size_t l, size_t i)$/;"	f	struct:btree::btree::node_stats
+node_stats	btree.h	/^  struct node_stats {$/;"	s	class:btree::btree
+node_type	btree.h	/^  typedef Node node_type;$/;"	t	struct:btree::btree_iterator
+node_type	btree.h	/^  typedef btree_node<Params> node_type;$/;"	t	class:btree::btree
+nodes	btree.h	/^  size_type nodes() const {$/;"	f	class:btree::btree
+nodes	btree_container.h	/^  size_type nodes() const { return tree_.nodes(); }$/;"	f	class:btree::btree_container
+nodes	btree_test.h	/^  size_type nodes() const { return tree_.nodes(); }$/;"	f	class:btree::base_checker
+nodes	safe_btree.h	/^  size_type nodes() const { return tree_.nodes(); }$/;"	f	class:btree::safe_btree
+normal_node	btree.h	/^  typedef typename std::remove_const<Node>::type normal_node;$/;"	t	struct:btree::btree_iterator
+normal_pointer	btree.h	/^  typedef typename params_type::pointer normal_pointer;$/;"	t	struct:btree::btree_iterator
+normal_reference	btree.h	/^  typedef typename params_type::reference normal_reference;$/;"	t	struct:btree::btree_iterator
+operator !=	btree.h	/^  bool operator!=(const const_iterator &x) const {$/;"	f	struct:btree::btree_iterator
+operator !=	btree_container.h	/^  bool operator!=(const self_type& other) const {$/;"	f	class:btree::btree_container
+operator !=	safe_btree.h	/^  bool operator!=(const const_iterator &x) const {$/;"	f	class:btree::safe_btree_iterator
+operator ()	btree.h	/^  bool operator()(const Key &a, const Key &b) const {$/;"	f	struct:btree::btree_upper_bound_adapter
+operator ()	btree.h	/^  bool operator()(const Key &x, const Key &y) const {$/;"	f	struct:btree::btree_key_comparer
+operator ()	btree.h	/^  int operator()(const Key &a, const Key &b) const {$/;"	f	struct:btree::btree_upper_bound_compare_to_adapter
+operator ()	btree.h	/^  int operator()(const std::string &a, const std::string &b) const {$/;"	f	struct:btree::btree_key_compare_to_adapter
+operator ()	btree_test.h	/^  K operator()(int i) const {$/;"	f	struct:btree::Generator
+operator ()	btree_test.h	/^  const typename _Pair::first_type& operator()(const _Pair& __x) const {$/;"	f	struct:btree::select1st
+operator ()	btree_test.h	/^  inline const T& operator()(const T& t) const { return t; }$/;"	f	struct:btree::identity
+operator ()	btree_test.h	/^  std::pair<T, U> operator()(int i) const {$/;"	f	struct:btree::Generator
+operator ()	btree_test.h	/^  std::string operator()(int i) const {$/;"	f	struct:btree::Generator
+operator *	btree.h	/^  reference operator*() const {$/;"	f	struct:btree::btree_iterator
+operator *	btree_container.h	/^    value_type operator*() const {$/;"	f	struct:btree::btree_map_container::generate_value
+operator *	safe_btree.h	/^  reference operator*() const {$/;"	f	class:btree::safe_btree_iterator
+operator ++	btree.h	/^  self_type operator++(int) {$/;"	f	struct:btree::btree_iterator
+operator ++	btree.h	/^  self_type& operator++() {$/;"	f	struct:btree::btree_iterator
+operator ++	safe_btree.h	/^  self_type operator++(int) {$/;"	f	class:btree::safe_btree_iterator
+operator ++	safe_btree.h	/^  self_type& operator++() {$/;"	f	class:btree::safe_btree_iterator
+operator +=	btree.h	/^    node_stats& operator+=(const node_stats &x) {$/;"	f	struct:btree::btree::node_stats
+operator --	btree.h	/^  self_type operator--(int) {$/;"	f	struct:btree::btree_iterator
+operator --	btree.h	/^  self_type& operator--() {$/;"	f	struct:btree::btree_iterator
+operator --	safe_btree.h	/^  self_type operator--(int) {$/;"	f	class:btree::safe_btree_iterator
+operator --	safe_btree.h	/^  self_type& operator--() {$/;"	f	class:btree::safe_btree_iterator
+operator ->	btree.h	/^  pointer operator->() const {$/;"	f	struct:btree::btree_iterator
+operator ->	safe_btree.h	/^  pointer operator->() const {$/;"	f	class:btree::safe_btree_iterator
+operator <<	btree_container.h	/^inline std::ostream& operator<<(std::ostream &os, const btree_container<T> &b) {$/;"	f	namespace:btree
+operator <<	btree_test.h	/^ostream& operator<<(ostream &os, const std::pair<T, U> &p) {$/;"	f	namespace:std
+operator =	btree.h	/^  self_type& operator=(const self_type &x) {$/;"	f	class:btree::btree
+operator =	btree_map.h	/^  self_type& operator=(self_type x) {$/;"	f	class:btree::btree_map
+operator =	btree_map.h	/^  self_type& operator=(self_type x) {$/;"	f	class:btree::btree_multimap
+operator =	btree_set.h	/^  self_type& operator=(self_type x) {$/;"	f	class:btree::btree_multiset
+operator =	btree_set.h	/^  self_type& operator=(self_type x) {$/;"	f	class:btree::btree_set
+operator =	btree_test.h	/^  self_type& operator=(const self_type &x) {$/;"	f	class:btree::base_checker
+operator =	safe_btree.h	/^  self_type& operator=(const self_type &x) {$/;"	f	class:btree::safe_btree
+operator =	safe_btree_map.h	/^  self_type& operator=(self_type x) {$/;"	f	class:btree::safe_btree_map
+operator =	safe_btree_set.h	/^  self_type& operator=(self_type x) {$/;"	f	class:btree::safe_btree_set
+operator ==	btree.h	/^  bool operator==(const const_iterator &x) const {$/;"	f	struct:btree::btree_iterator
+operator ==	btree_container.h	/^  bool operator==(const self_type& x) const {$/;"	f	class:btree::btree_container
+operator ==	btree_test.h	/^bool operator==(const std::pair<T, U> &x, const std::pair<V, W> &y) {$/;"	f	namespace:std
+operator ==	safe_btree.h	/^  bool operator==(const const_iterator &x) const {$/;"	f	class:btree::safe_btree_iterator
+operator []	btree_container.h	/^  data_type& operator[](const key_type &key) {$/;"	f	class:btree::btree_map_container
+other	btree_test.h	/^    typedef TestAllocator<U, typename Alloc::template rebind<U>::other> other;$/;"	t	struct:btree::TestAllocator::rebind
+overhead	btree.h	/^  double overhead() const {$/;"	f	class:btree::btree
+overhead	btree_container.h	/^  double overhead() const { return tree_.overhead(); }$/;"	f	class:btree::btree_container
+overhead	btree_test.h	/^  double overhead() const { return tree_.overhead(); }$/;"	f	class:btree::base_checker
+overhead	safe_btree.h	/^  double overhead() const { return tree_.overhead(); }$/;"	f	class:btree::safe_btree
+params_type	btree.h	/^  typedef Params params_type;$/;"	t	class:btree::btree
+params_type	btree.h	/^  typedef Params params_type;$/;"	t	class:btree::btree_node
+params_type	btree.h	/^  typedef typename Node::params_type params_type;$/;"	t	struct:btree::btree_iterator
+params_type	btree_container.h	/^  typedef typename Tree::params_type params_type;$/;"	t	class:btree::btree_container
+params_type	btree_map.h	/^    Key, Value, Compare, Alloc, TargetNodeSize> params_type;$/;"	t	class:btree::btree_map
+params_type	btree_map.h	/^    Key, Value, Compare, Alloc, TargetNodeSize> params_type;$/;"	t	class:btree::btree_multimap
+params_type	btree_set.h	/^  typedef btree_set_params<Key, Compare, Alloc, TargetNodeSize> params_type;$/;"	t	class:btree::btree_multiset
+params_type	btree_set.h	/^  typedef btree_set_params<Key, Compare, Alloc, TargetNodeSize> params_type;$/;"	t	class:btree::btree_set
+params_type	safe_btree.h	/^  typedef typename btree_type::params_type params_type;$/;"	t	class:btree::safe_btree
+params_type	safe_btree_map.h	/^    Key, Value, Compare, Alloc, TargetNodeSize> params_type;$/;"	t	class:btree::safe_btree_map
+params_type	safe_btree_set.h	/^  typedef btree_set_params<Key, Compare, Alloc, TargetNodeSize> params_type;$/;"	t	class:btree::safe_btree_set
+parent	btree.h	/^    btree_node *parent;$/;"	m	struct:btree::btree_node::base_fields
+parent	btree.h	/^  btree_node* parent() const { return fields_.parent; }$/;"	f	class:btree::btree_node
+pointer	btree.h	/^  typedef Pointer pointer;$/;"	t	struct:btree::btree_iterator
+pointer	btree.h	/^  typedef typename Params::pointer pointer;$/;"	t	class:btree::btree
+pointer	btree.h	/^  typedef typename Params::pointer pointer;$/;"	t	class:btree::btree_node
+pointer	btree.h	/^  typedef value_type* pointer;$/;"	t	struct:btree::btree_map_params
+pointer	btree.h	/^  typedef value_type* pointer;$/;"	t	struct:btree::btree_set_params
+pointer	btree_container.h	/^  typedef typename Tree::pointer pointer;$/;"	t	class:btree::btree_container
+pointer	btree_test.h	/^  typedef typename Alloc::pointer pointer;$/;"	t	class:btree::TestAllocator
+pointer	btree_test.h	/^  typedef typename TreeType::pointer pointer;$/;"	t	class:btree::base_checker
+pointer	safe_btree.h	/^  typedef typename Iterator::pointer pointer;$/;"	t	class:btree::safe_btree_iterator
+pointer	safe_btree.h	/^  typedef typename btree_type::pointer pointer;$/;"	t	class:btree::safe_btree
+position	btree.h	/^    field_type position;$/;"	m	struct:btree::btree_node::base_fields
+position	btree.h	/^  int position() const { return fields_.position; }$/;"	f	class:btree::btree_node
+position	btree.h	/^  int position;$/;"	m	struct:btree::btree_iterator
+rbegin	btree.h	/^  const_reverse_iterator rbegin() const {$/;"	f	class:btree::btree
+rbegin	btree.h	/^  reverse_iterator rbegin() {$/;"	f	class:btree::btree
+rbegin	btree_container.h	/^  const_reverse_iterator rbegin() const { return tree_.rbegin(); }$/;"	f	class:btree::btree_container
+rbegin	btree_container.h	/^  reverse_iterator rbegin() { return tree_.rbegin(); }$/;"	f	class:btree::btree_container
+rbegin	btree_test.h	/^  const_reverse_iterator rbegin() const { return tree_.rbegin(); }$/;"	f	class:btree::base_checker
+rbegin	btree_test.h	/^  reverse_iterator rbegin() { return tree_.rbegin(); }$/;"	f	class:btree::base_checker
+rbegin	safe_btree.h	/^  const_reverse_iterator rbegin() const {$/;"	f	class:btree::safe_btree
+rbegin	safe_btree.h	/^  reverse_iterator rbegin() {$/;"	f	class:btree::safe_btree
+rebind	btree_test.h	/^  template <class U> struct rebind {$/;"	s	class:btree::TestAllocator
+reference	btree.h	/^  typedef Reference reference;$/;"	t	struct:btree::btree_iterator
+reference	btree.h	/^  typedef typename Params::reference reference;$/;"	t	class:btree::btree
+reference	btree.h	/^  typedef typename Params::reference reference;$/;"	t	class:btree::btree_node
+reference	btree.h	/^  typedef value_type& reference;$/;"	t	struct:btree::btree_map_params
+reference	btree.h	/^  typedef value_type& reference;$/;"	t	struct:btree::btree_set_params
+reference	btree_container.h	/^  typedef typename Tree::reference reference;$/;"	t	class:btree::btree_container
+reference	btree_test.h	/^  typedef typename TreeType::reference reference;$/;"	t	class:btree::base_checker
+reference	safe_btree.h	/^  typedef typename Iterator::reference reference;$/;"	t	class:btree::safe_btree_iterator
+reference	safe_btree.h	/^  typedef typename btree_type::reference reference;$/;"	t	class:btree::safe_btree
+remove_const	btree_test.h	/^struct remove_const<pair<T, U> > {$/;"	s	namespace:std
+rend	btree.h	/^  const_reverse_iterator rend() const {$/;"	f	class:btree::btree
+rend	btree.h	/^  reverse_iterator rend() {$/;"	f	class:btree::btree
+rend	btree_container.h	/^  const_reverse_iterator rend() const { return tree_.rend(); }$/;"	f	class:btree::btree_container
+rend	btree_container.h	/^  reverse_iterator rend() { return tree_.rend(); }$/;"	f	class:btree::btree_container
+rend	btree_test.h	/^  const_reverse_iterator rend() const { return tree_.rend(); }$/;"	f	class:btree::base_checker
+rend	btree_test.h	/^  reverse_iterator rend() { return tree_.rend(); }$/;"	f	class:btree::base_checker
+rend	safe_btree.h	/^  const_reverse_iterator rend() const {$/;"	f	class:btree::safe_btree
+rend	safe_btree.h	/^  reverse_iterator rend() {$/;"	f	class:btree::safe_btree
+reverse_iterator	btree.h	/^  typedef std::reverse_iterator<iterator> reverse_iterator;$/;"	t	class:btree::btree
+reverse_iterator	btree_container.h	/^  typedef typename Tree::reverse_iterator reverse_iterator;$/;"	t	class:btree::btree_container
+reverse_iterator	btree_test.h	/^  typedef typename TreeType::reverse_iterator reverse_iterator;$/;"	t	class:btree::base_checker
+reverse_iterator	safe_btree.h	/^  typedef std::reverse_iterator<iterator> reverse_iterator;$/;"	t	class:btree::safe_btree
+rightmost	btree.h	/^    btree_node *rightmost;$/;"	m	struct:btree::btree_node::root_fields
+rightmost	btree.h	/^  btree_node* rightmost() const { return fields_.rightmost; }$/;"	f	class:btree::btree_node
+rightmost	btree.h	/^  const node_type* rightmost() const {$/;"	f	class:btree::btree
+rightmost	btree.h	/^  node_type* rightmost() {$/;"	f	class:btree::btree
+riter_check	btree_test.h	/^  IterType riter_check($/;"	f	class:btree::base_checker
+root	btree.h	/^  const node_type* root() const { return root_.data; }$/;"	f	class:btree::btree
+root	btree.h	/^  node_type* root() { return root_.data; }$/;"	f	class:btree::btree
+root_	btree.h	/^  empty_base_handle<internal_allocator_type, node_type*> root_;$/;"	m	class:btree::btree
+root_fields	btree.h	/^  struct root_fields : public internal_fields {$/;"	s	class:btree::btree_node
+root_fields	btree.h	/^  typedef typename node_type::root_fields root_fields;$/;"	t	class:btree::btree
+safe_btree	safe_btree.h	/^  safe_btree(const key_compare &comp, const allocator_type &alloc)$/;"	f	class:btree::safe_btree
+safe_btree	safe_btree.h	/^  safe_btree(const self_type &x)$/;"	f	class:btree::safe_btree
+safe_btree	safe_btree.h	/^class safe_btree {$/;"	c	namespace:btree
+safe_btree_iterator	safe_btree.h	/^  safe_btree_iterator()$/;"	f	class:btree::safe_btree_iterator
+safe_btree_iterator	safe_btree.h	/^  safe_btree_iterator(Tree *tree, const Iterator &iter)$/;"	f	class:btree::safe_btree_iterator
+safe_btree_iterator	safe_btree.h	/^  safe_btree_iterator(const iterator &x)$/;"	f	class:btree::safe_btree_iterator
+safe_btree_iterator	safe_btree.h	/^class safe_btree_iterator {$/;"	c	namespace:btree
+safe_btree_map	safe_btree_map.h	/^  safe_btree_map(InputIterator b, InputIterator e,$/;"	f	class:btree::safe_btree_map
+safe_btree_map	safe_btree_map.h	/^  safe_btree_map(const key_compare &comp = key_compare(),$/;"	f	class:btree::safe_btree_map
+safe_btree_map	safe_btree_map.h	/^  safe_btree_map(const self_type &x)$/;"	f	class:btree::safe_btree_map
+safe_btree_map	safe_btree_map.h	/^  safe_btree_map(self_type &&x)$/;"	f	class:btree::safe_btree_map
+safe_btree_map	safe_btree_map.h	/^class safe_btree_map : public btree_map_container<$/;"	c	namespace:btree
+safe_btree_set	safe_btree_set.h	/^  safe_btree_set(InputIterator b, InputIterator e,$/;"	f	class:btree::safe_btree_set
+safe_btree_set	safe_btree_set.h	/^  safe_btree_set(const key_compare &comp = key_compare(),$/;"	f	class:btree::safe_btree_set
+safe_btree_set	safe_btree_set.h	/^  safe_btree_set(const self_type &x)$/;"	f	class:btree::safe_btree_set
+safe_btree_set	safe_btree_set.h	/^  safe_btree_set(self_type &&x)$/;"	f	class:btree::safe_btree_set
+safe_btree_set	safe_btree_set.h	/^class safe_btree_set : public btree_unique_container<$/;"	c	namespace:btree
+search_type	btree.h	/^    linear_search_type, binary_search_type>::type search_type;$/;"	t	class:btree::btree_node
+select1st	btree_test.h	/^struct select1st : public std::unary_function<_Pair, typename _Pair::first_type> {$/;"	s	namespace:btree
+self_type	btree.h	/^  typedef btree<Params> self_type;$/;"	t	class:btree::btree
+self_type	btree.h	/^  typedef btree_iterator<Node, Reference, Pointer> self_type;$/;"	t	struct:btree::btree_iterator
+self_type	btree.h	/^  typedef btree_node<Params> self_type;$/;"	t	class:btree::btree_node
+self_type	btree_container.h	/^  typedef btree_container<Tree> self_type;$/;"	t	class:btree::btree_container
+self_type	btree_container.h	/^  typedef btree_map_container<Tree> self_type;$/;"	t	class:btree::btree_map_container
+self_type	btree_container.h	/^  typedef btree_multi_container<Tree> self_type;$/;"	t	class:btree::btree_multi_container
+self_type	btree_container.h	/^  typedef btree_unique_container<Tree> self_type;$/;"	t	class:btree::btree_unique_container
+self_type	btree_map.h	/^  typedef btree_map<Key, Value, Compare, Alloc, TargetNodeSize> self_type;$/;"	t	class:btree::btree_map
+self_type	btree_map.h	/^  typedef btree_multimap<Key, Value, Compare, Alloc, TargetNodeSize> self_type;$/;"	t	class:btree::btree_multimap
+self_type	btree_set.h	/^  typedef btree_multiset<Key, Compare, Alloc, TargetNodeSize> self_type;$/;"	t	class:btree::btree_multiset
+self_type	btree_set.h	/^  typedef btree_set<Key, Compare, Alloc, TargetNodeSize> self_type;$/;"	t	class:btree::btree_set
+self_type	btree_test.h	/^  typedef base_checker<TreeType, CheckerType> self_type;$/;"	t	class:btree::base_checker
+self_type	btree_test.h	/^  typedef multi_checker<TreeType, CheckerType> self_type;$/;"	t	class:btree::multi_checker
+self_type	btree_test.h	/^  typedef unique_checker<TreeType, CheckerType> self_type;$/;"	t	class:btree::unique_checker
+self_type	safe_btree.h	/^  typedef safe_btree<Params> self_type;$/;"	t	class:btree::safe_btree
+self_type	safe_btree.h	/^  typedef safe_btree_iterator<Tree, Iterator> self_type;$/;"	t	class:btree::safe_btree_iterator
+self_type	safe_btree_map.h	/^  typedef safe_btree_map<Key, Value, Compare, Alloc, TargetNodeSize> self_type;$/;"	t	class:btree::safe_btree_map
+self_type	safe_btree_set.h	/^  typedef safe_btree_set<Key, Compare, Alloc, TargetNodeSize> self_type;$/;"	t	class:btree::safe_btree_set
+set_child	btree.h	/^  void set_child(int i, btree_node *c) {$/;"	f	class:btree::btree_node
+set_count	btree.h	/^  void set_count(int v) { fields_.count = static_cast<typename Params::node_count_type>(v); }$/;"	f	class:btree::btree_node
+set_position	btree.h	/^  void set_position(int v) { fields_.position = static_cast<typename Params::node_count_type>(v); }$/;"	f	class:btree::btree_node
+size	btree.h	/^    size_type size;$/;"	m	struct:btree::btree_node::root_fields
+size	btree.h	/^  size_type size() const { return fields_.size; }$/;"	f	class:btree::btree_node
+size	btree.h	/^  size_type size() const {$/;"	f	class:btree::btree
+size	btree_container.h	/^  size_type size() const { return tree_.size(); }$/;"	f	class:btree::btree_container
+size	btree_test.h	/^  size_type size() const {$/;"	f	class:btree::base_checker
+size	safe_btree.h	/^  size_type size() const { return tree_.size(); }$/;"	f	class:btree::safe_btree
+size_type	btree.h	/^  typedef size_t size_type;$/;"	t	struct:btree::btree_common_params
+size_type	btree.h	/^  typedef typename Node::size_type size_type;$/;"	t	struct:btree::btree_iterator
+size_type	btree.h	/^  typedef typename Params::size_type size_type;$/;"	t	class:btree::btree
+size_type	btree.h	/^  typedef typename Params::size_type size_type;$/;"	t	class:btree::btree_node
+size_type	btree_container.h	/^  typedef typename Tree::size_type size_type;$/;"	t	class:btree::btree_container
+size_type	btree_container.h	/^  typedef typename Tree::size_type size_type;$/;"	t	class:btree::btree_multi_container
+size_type	btree_container.h	/^  typedef typename Tree::size_type size_type;$/;"	t	class:btree::btree_unique_container
+size_type	btree_test.h	/^  typedef typename Alloc::size_type size_type;$/;"	t	class:btree::TestAllocator
+size_type	btree_test.h	/^  typedef typename TreeType::size_type size_type;$/;"	t	class:btree::base_checker
+size_type	safe_btree.h	/^  typedef typename Iterator::size_type size_type;$/;"	t	class:btree::safe_btree_iterator
+size_type	safe_btree.h	/^  typedef typename btree_type::size_type size_type;$/;"	t	class:btree::safe_btree
+sizeof	btree.h	/^      sizeof(big_),$/;"	m	class:btree::btree
+small_	btree.h	/^typedef char small_;$/;"	t	namespace:btree
+std	btree_test.h	/^namespace std {$/;"	n
+strcount	btree_test.h	/^inline ptrdiff_t strcount(const char* buf, size_t len, char c) {$/;"	f	namespace:btree
+strcount	btree_test.h	/^inline ptrdiff_t strcount(const char* buf_begin, const char* buf_end, char c) {$/;"	f	namespace:btree
+strcount	btree_test.h	/^inline ptrdiff_t strcount(const std::string& buf, char c) {$/;"	f	namespace:btree
+super_type	btree_container.h	/^  typedef btree_container<Tree> super_type;$/;"	t	class:btree::btree_multi_container
+super_type	btree_container.h	/^  typedef btree_container<Tree> super_type;$/;"	t	class:btree::btree_unique_container
+super_type	btree_container.h	/^  typedef btree_unique_container<Tree> super_type;$/;"	t	class:btree::btree_map_container
+super_type	btree_map.h	/^  typedef btree_map_container<btree_type> super_type;$/;"	t	class:btree::btree_map
+super_type	btree_map.h	/^  typedef btree_multi_container<btree_type> super_type;$/;"	t	class:btree::btree_multimap
+super_type	btree_set.h	/^  typedef btree_multi_container<btree_type> super_type;$/;"	t	class:btree::btree_multiset
+super_type	btree_set.h	/^  typedef btree_unique_container<btree_type> super_type;$/;"	t	class:btree::btree_set
+super_type	btree_test.h	/^  typedef base_checker<TreeType, CheckerType> super_type;$/;"	t	class:btree::multi_checker
+super_type	btree_test.h	/^  typedef base_checker<TreeType, CheckerType> super_type;$/;"	t	class:btree::unique_checker
+super_type	safe_btree_map.h	/^  typedef btree_map_container<btree_type> super_type;$/;"	t	class:btree::safe_btree_map
+super_type	safe_btree_set.h	/^  typedef btree_unique_container<btree_type> super_type;$/;"	t	class:btree::safe_btree_set
+swap	btree.h	/^  static void swap(mutable_value_type *a, mutable_value_type *b) {$/;"	f	struct:btree::btree_map_params
+swap	btree.h	/^  static void swap(mutable_value_type *a, mutable_value_type *b) {$/;"	f	struct:btree::btree_set_params
+swap	btree_container.h	/^  void swap(self_type &x) {$/;"	f	class:btree::btree_container
+swap	btree_map.h	/^inline void swap(btree_map<K, V, C, A, N> &x,$/;"	f	namespace:btree
+swap	btree_map.h	/^inline void swap(btree_multimap<K, V, C, A, N> &x,$/;"	f	namespace:btree
+swap	btree_set.h	/^inline void swap(btree_multiset<K, C, A, N> &x,$/;"	f	namespace:btree
+swap	btree_set.h	/^inline void swap(btree_set<K, C, A, N> &x, btree_set<K, C, A, N> &y) {$/;"	f	namespace:btree
+swap	btree_test.h	/^  void swap(self_type &x) {$/;"	f	class:btree::base_checker
+swap	safe_btree.h	/^  void swap(self_type &x) {$/;"	f	class:btree::safe_btree
+swap	safe_btree_map.h	/^inline void swap(safe_btree_map<K, V, C, A, N> &x,$/;"	f	namespace:btree
+swap	safe_btree_set.h	/^inline void swap(safe_btree_set<K, C, A, N> &x,$/;"	f	namespace:btree
+test_values	btree_test.h	/^DECLARE_int32(test_values);$/;"	v
+tgen	btree_test.h	/^  Generator<typename std::remove_const<T>::type> tgen;$/;"	m	struct:btree::Generator
+tree	btree_test.h	/^  const TreeType& tree() const { return tree_; }$/;"	f	class:btree::base_checker
+tree	safe_btree.h	/^  Tree* tree() const { return tree_; }$/;"	f	class:btree::safe_btree_iterator
+tree_	btree_container.h	/^  Tree tree_;$/;"	m	class:btree::btree_container
+tree_	btree_test.h	/^  TreeType tree_;$/;"	m	class:btree::base_checker
+tree_	safe_btree.h	/^  Tree *tree_;$/;"	m	class:btree::safe_btree_iterator
+tree_	safe_btree.h	/^  btree_type tree_;$/;"	m	class:btree::safe_btree
+tree_const_iterator	safe_btree.h	/^  typedef typename btree_type::const_iterator tree_const_iterator;$/;"	t	class:btree::safe_btree
+tree_iterator	safe_btree.h	/^  typedef typename btree_type::iterator tree_iterator;$/;"	t	class:btree::safe_btree
+type	btree.h	/^  typedef A type;$/;"	t	struct:btree::if_
+type	btree.h	/^  typedef B type;$/;"	t	struct:btree::if_
+type	btree_test.h	/^               typename remove_const<U>::type> type;$/;"	t	struct:std::remove_const
+type	btree_test.h	/^  typedef identity<K> type;$/;"	t	struct:btree::KeyOfValue
+type	btree_test.h	/^  typedef select1st<V> type;$/;"	t	struct:btree::KeyOfValue
+ugen	btree_test.h	/^  Generator<typename std::remove_const<U>::type> ugen;$/;"	m	struct:btree::Generator
+uint16_t	btree.h	/^    uint16_t,$/;"	t	struct:btree::btree_common_params
+unique_checker	btree_test.h	/^  unique_checker()$/;"	f	class:btree::unique_checker
+unique_checker	btree_test.h	/^  unique_checker(InputIterator b, InputIterator e)$/;"	f	class:btree::unique_checker
+unique_checker	btree_test.h	/^  unique_checker(const self_type &x)$/;"	f	class:btree::unique_checker
+unique_checker	btree_test.h	/^class unique_checker : public base_checker<TreeType, CheckerType> {$/;"	c	namespace:btree
+update	safe_btree.h	/^  void update() const {$/;"	f	class:btree::safe_btree_iterator
+upper_bound	btree.h	/^  const_iterator upper_bound(const key_type &key) const {$/;"	f	class:btree::btree
+upper_bound	btree.h	/^  int upper_bound(const key_type &k, const Compare &comp) const {$/;"	f	class:btree::btree_node
+upper_bound	btree.h	/^  iterator upper_bound(const key_type &key) {$/;"	f	class:btree::btree
+upper_bound	btree.h	/^  static int upper_bound(const K &k, const N &n, Compare comp)  {$/;"	f	struct:btree::btree_binary_search_plain_compare
+upper_bound	btree.h	/^  static int upper_bound(const K &k, const N &n, Compare comp)  {$/;"	f	struct:btree::btree_linear_search_plain_compare
+upper_bound	btree.h	/^  static int upper_bound(const K &k, const N &n, CompareTo comp)  {$/;"	f	struct:btree::btree_binary_search_compare_to
+upper_bound	btree.h	/^  static int upper_bound(const K &k, const N &n, CompareTo comp)  {$/;"	f	struct:btree::btree_linear_search_compare_to
+upper_bound	btree_container.h	/^  const_iterator upper_bound(const key_type &key) const {$/;"	f	class:btree::btree_container
+upper_bound	btree_container.h	/^  iterator upper_bound(const key_type &key) {$/;"	f	class:btree::btree_container
+upper_bound	btree_test.h	/^  const_iterator upper_bound(const key_type &key) const {$/;"	f	class:btree::base_checker
+upper_bound	btree_test.h	/^  iterator upper_bound(const key_type &key) {$/;"	f	class:btree::base_checker
+upper_bound	safe_btree.h	/^  const_iterator upper_bound(const key_type &key) const {$/;"	f	class:btree::safe_btree
+upper_bound	safe_btree.h	/^  iterator upper_bound(const key_type &key) {$/;"	f	class:btree::safe_btree
+value	btree.h	/^  const_reference value(int i) const {$/;"	f	class:btree::btree_node
+value	btree.h	/^  reference value(int i) {$/;"	f	class:btree::btree_node
+value_check	btree_test.h	/^  void value_check(const value_type &x) {$/;"	f	class:btree::base_checker
+value_destroy	btree.h	/^  void value_destroy(int i) {$/;"	f	class:btree::btree_node
+value_init	btree.h	/^  void value_init(int i) {$/;"	f	class:btree::btree_node
+value_init	btree.h	/^  void value_init(int i, const value_type &x) {$/;"	f	class:btree::btree_node
+value_swap	btree.h	/^  void value_swap(int i, btree_node *x, int j) {$/;"	f	class:btree::btree_node
+value_type	btree.h	/^  typedef Key value_type;$/;"	t	struct:btree::btree_set_params
+value_type	btree.h	/^  typedef std::pair<const Key, data_type> value_type;$/;"	t	struct:btree::btree_map_params
+value_type	btree.h	/^  typedef typename Params::value_type value_type;$/;"	t	class:btree::btree
+value_type	btree.h	/^  typedef typename Params::value_type value_type;$/;"	t	class:btree::btree_node
+value_type	btree.h	/^  typedef typename params_type::value_type value_type;$/;"	t	struct:btree::btree_iterator
+value_type	btree_container.h	/^  typedef typename Tree::value_type value_type;$/;"	t	class:btree::btree_container
+value_type	btree_container.h	/^  typedef typename Tree::value_type value_type;$/;"	t	class:btree::btree_map_container
+value_type	btree_container.h	/^  typedef typename Tree::value_type value_type;$/;"	t	class:btree::btree_multi_container
+value_type	btree_container.h	/^  typedef typename Tree::value_type value_type;$/;"	t	class:btree::btree_unique_container
+value_type	btree_test.h	/^  typedef typename TreeType::value_type value_type;$/;"	t	class:btree::base_checker
+value_type	btree_test.h	/^  typedef typename super_type::value_type value_type;$/;"	t	class:btree::multi_checker
+value_type	btree_test.h	/^  typedef typename super_type::value_type value_type;$/;"	t	class:btree::unique_checker
+value_type	safe_btree.h	/^  typedef typename Iterator::value_type value_type;$/;"	t	class:btree::safe_btree_iterator
+value_type	safe_btree.h	/^  typedef typename btree_type::value_type value_type;$/;"	t	class:btree::safe_btree
+values	btree.h	/^    mutable_value_type values[kNodeValues];$/;"	m	struct:btree::btree_node::leaf_fields
+verify	btree_container.h	/^  void verify() const {$/;"	f	class:btree::btree_container
+verify	btree_test.h	/^  void verify() const {$/;"	f	class:btree::base_checker
+verify	safe_btree.h	/^  void verify() const {$/;"	f	class:btree::safe_btree
+~btree	btree.h	/^  ~btree() {$/;"	f	class:btree::btree

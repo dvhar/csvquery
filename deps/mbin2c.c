@@ -52,7 +52,7 @@ int main(int argc, char** argv) {
 		printf("b2c_%s\n", fn);
 		return(0);
 	} else {
-		printf("static const char *b2c_%s = \"", fn);
+		printf("static const char b2c_%s[] = \"", fn);
 	}
 	n = 0;
 	unsigned char c;

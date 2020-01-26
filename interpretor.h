@@ -129,6 +129,10 @@ class dat {
 	short a; // unused but comes at no cost because of class padding
 	void print();
 	string tostring();
+	// overload oeprator to test btree library
+	friend bool operator<(const dat& l, const dat& r){
+		return l.u.i < r.u.i;
+	}
 };
 
 //placeholder for jmp positions that can't be determined until later
