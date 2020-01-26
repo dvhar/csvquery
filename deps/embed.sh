@@ -1,13 +1,12 @@
 #!/bin/bash
 
-out=embed_site.h
+out=embed_site.hpp
 
 dostuff(){
 	mbin $1
-	echo
 	filename=`echo $1 | sed 's-webgui/build/--'`
-	len=$(echo "`mbin -n $1`_len")
 	echo "server.resource[\"^/$filename$\"][\"GET\"] = [](shared_ptr<HttpServer::Response> response, shared_ptr<HttpServer::Request> request){response->write($(mbin -n $1));};"
+	echo
 }
 export -f dostuff
 
