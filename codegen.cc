@@ -49,7 +49,7 @@ static int typeConv[6][6] = {
 };
 
 //distinct check types
-static int distinctOps[] = { 0, IDIST, FDIST, IDIST, IDIST, SDIST };
+static int distinctOps[] = { 0, NDIST, NDIST, NDIST, NDIST, SDIST };
 
 static bool isTrivial(unique_ptr<node> &n){
 	if (n == nullptr) return false;
@@ -104,8 +104,7 @@ void jumpPositions::updateBytecode(vector<opcode> &vec) {
 		case RDLINE:
 		case NULFALSE1:
 		case NULFALSE2:
-		case IDIST:
-		case FDIST:
+		case NDIST:
 		case SDIST:
 			if (v.p1 < 0)
 				v.p1 = jumps[v.p1];
@@ -551,10 +550,8 @@ static void genDistinct(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
 		case T_INT:
 		case T_DATE:
 		case T_DURATION:
-			btreeIdx = q.bti++;
-			break;
 		case T_FLOAT:
-			btreeIdx = q.btf++;
+			btreeIdx = q.btn++;
 			break;
 		case T_STRING:
 			btreeIdx = q.bts++;

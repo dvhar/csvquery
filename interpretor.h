@@ -168,8 +168,7 @@ class querySpecs {
 	int numFiles;
 	int tokIdx;
 	int options;
-	int bti;
-	int btf;
+	int btn;
 	int bts;
 	int quantityLimit;
 	bool joining;

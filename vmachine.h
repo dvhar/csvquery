@@ -24,7 +24,7 @@ enum codes : unsigned char {
 	ILEQ, FLEQ, TLEQ,
 	ILT, FLT, TLT,
 	PRINT, POP, POPCPY, ENDRUN, NULFALSE1, NULFALSE2,
-	IDIST, FDIST, SDIST, PUTDIST
+	NDIST, SDIST, PUTDIST
 };
 extern map<int, string> opMap;
 
@@ -103,8 +103,7 @@ class vmachine {
 	vector<dat> stack;
 	vector<dat> vars;
 	//separate btrees for performance
-	vector<btree::btree_set<int64>> bt_ints;
-	vector<btree::btree_set<double>> bt_floats;
+	vector<btree::btree_set<int64>> bt_nums;
 	vector<btree::btree_set<treeCString>> bt_strings;
 	public:
 	void run();
