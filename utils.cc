@@ -203,7 +203,8 @@ void querySpecs::addVar(string name) {
 }
 querySpecs::querySpecs(string &s){
 	queryString = s;
-	tokIdx = options = quantityLimit = numFiles = colspec.count = 0;
+	bti = btf = bts = tokIdx = options =
+	quantityLimit = numFiles = colspec.count = 0;
 	whereFiltering = havingFiltering = joining = grouping = sorting = false;
 }
 bool querySpecs::numIsCol() { return (options & O_C) != 0; }

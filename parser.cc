@@ -207,7 +207,11 @@ static unique_ptr<node> parseSelections(querySpecs &q) {
 	case KW_DISTINCT:
 		n->tok1 = t;
 		t = q.nextTok();
-		if (t.lower() == "hidden" && !t.quoted) { n->tok1 = t; t = q.nextTok(); }
+		if (t.lower() == "hidden" && !t.quoted) {
+			n->tok1 = t;
+			n->tok1.id = KW_DISTINCT;
+			t = q.nextTok();
+		}
 	//expression
 	case KW_CASE:
 	case WORD_TK:
