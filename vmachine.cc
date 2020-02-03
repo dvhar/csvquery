@@ -7,8 +7,9 @@
 #define stkp(N) (*(stacktop-N))
 
 //map for printing opcodes
-map<int, string> opMap = { {CVNO,"CVNO"}, {CVER,"CVER"}, {CVIF,"CVIF"}, {CVIS,"CVIS"}, {CVFI,"CVFI"}, {CVFS,"CVFS"}, {CVDRS,"CVDRS"}, {CVDTS,"CVDTS"}, {CVSI,"CVSI"}, {CVSF,"CVSF"}, {CVSDT,"CVSDT"}, {CVSDR,"CVSDR"}, {IADD,"IADD"}, {FADD,"FADD"}, {TADD,"TADD"}, {DTADD,"DTADD"}, {DRADD,"DRADD"}, {ISUB,"ISUB"}, {FSUB,"FSUB"}, {DRSUB,"DRSUB"}, {DTSUB,"DTSUB"}, {IMULT,"IMULT"}, {FMULT,"FMULT"}, {DRMULT,"DRMULT"}, {IDIV,"IDIV"}, {FDIV,"FDIV"}, {DRDIV,"DRDIV"}, {INEG,"INEG"}, {FNEG,"FNEG"}, {DNEG,"DNEG"}, {IMOD,"IMOD"}, {IEXP,"IEXP"}, {FEXP,"FEXP"}, {JMP,"JMP"}, {JMPCNT,"JMPCNT"}, {JMPTRUE,"JMPTRUE"}, {JMPFALSE,"JMPFALSE"}, {POP,"POP"}, {RDLINE,"RDLINE"}, {RDLINEAT,"RDLINEAT"}, {PRINT,"PRINT"}, {PUT,"PUT"}, {LDPUT,"LDPUT"}, {LDPUTALL,"LDPUTALL"}, {PUTVAR,"PUTVAR"}, {LDINT,"LDINT"}, {LDFLOAT,"LDFLOAT"}, {LDTEXT,"LDTEXT"}, {LDDATE,"LDDATE"}, {LDDUR,"LDDUR"}, {LDNULL,"LDNULL"}, {LDLIT,"LDLIT"}, {LDVAR,"LDVAR"}, {IEQ,"IEQ"}, {FEQ,"FEQ"}, {TEQ,"TEQ"}, {NEQ,"NEQ"}, {ILEQ,"ILEQ"}, {FLEQ,"FLEQ"}, {TLEQ,"TLEQ"}, {ILT,"ILT"}, {FLT,"FLT"}, {TLT,"TLT"}, {ENDRUN,"ENDRUN"}, {NULFALSE1,"NULFALSE1"}, {NULFALSE2,"NULFALSE2"}, {POPCPY,"POPCPY"}, {LIKE,"LIKE"}
+map<int, string> opMap = { {CVNO,"CVNO"}, {CVER,"CVER"}, {CVIF,"CVIF"}, {CVIS,"CVIS"}, {CVFI,"CVFI"}, {CVFS,"CVFS"}, {CVDRS,"CVDRS"}, {CVDTS,"CVDTS"}, {CVSI,"CVSI"}, {CVSF,"CVSF"}, {CVSDT,"CVSDT"}, {CVSDR,"CVSDR"}, {IADD,"IADD"}, {FADD,"FADD"}, {TADD,"TADD"}, {DTADD,"DTADD"}, {DRADD,"DRADD"}, {ISUB,"ISUB"}, {FSUB,"FSUB"}, {DRSUB,"DRSUB"}, {DTSUB,"DTSUB"}, {IMULT,"IMULT"}, {FMULT,"FMULT"}, {DRMULT,"DRMULT"}, {IDIV,"IDIV"}, {FDIV,"FDIV"}, {DRDIV,"DRDIV"}, {INEG,"INEG"}, {FNEG,"FNEG"}, {DNEG,"DNEG"}, {IMOD,"IMOD"}, {IEXP,"IEXP"}, {FEXP,"FEXP"}, {JMP,"JMP"}, {JMPCNT,"JMPCNT"}, {JMPTRUE,"JMPTRUE"}, {JMPFALSE,"JMPFALSE"}, {POP,"POP"}, {RDLINE,"RDLINE"}, {RDLINEAT,"RDLINEAT"}, {PRINT,"PRINT"}, {PUT,"PUT"}, {LDPUT,"LDPUT"}, {LDPUTALL,"LDPUTALL"}, {PUTVAR,"PUTVAR"}, {LDINT,"LDINT"}, {LDFLOAT,"LDFLOAT"}, {LDTEXT,"LDTEXT"}, {LDDATE,"LDDATE"}, {LDDUR,"LDDUR"}, {LDNULL,"LDNULL"}, {LDLIT,"LDLIT"}, {LDVAR,"LDVAR"}, {IEQ,"IEQ"}, {FEQ,"FEQ"}, {TEQ,"TEQ"}, {NEQ,"NEQ"}, {ILEQ,"ILEQ"}, {FLEQ,"FLEQ"}, {TLEQ,"TLEQ"}, {ILT,"ILT"}, {FLT,"FLT"}, {TLT,"TLT"}, {ENDRUN,"ENDRUN"}, {NULFALSE1,"NULFALSE1"}, {NULFALSE2,"NULFALSE2"}, {POPCPY,"POPCPY"}, {LIKE,"LIKE"}, {IDIST,"IDIST"}, {FDIST,"FDIST"}, {SDIST,"SDIST"}, {PUTDIST,"PUTDIST"}
 };
+
 void opcode::print(){
 	cerr << ft("code: {: <9}  [{: <2}  {: <2}  {: <2}]\n", opMap[code], p1, p2, p3);
 }
@@ -37,27 +38,34 @@ void dat::print(){
 	}
 }
 
+treeCString::treeCString(){
+	s = nullptr;
+}
+treeCString::treeCString(dat& d){
+	s = (char*) malloc(d.z+1);
+	memcpy(s, d.u.s, d.z+1);
+}
+
 vmachine::vmachine(querySpecs &qs){
 	q = &qs;
-
 	for (int i=1; i<=q->numFiles; ++i){
 		files.push_back(q->files[str2("_f", i)]);
 	}
-
 	if (q->grouping){
 		//initialize midrow and point torow to it
 	} else {
 		destrow.resize(q->colspec.count);
 		torow = destrow.data();
 		torowSize = destrow.size();
-		cerr << "torow size: " << torowSize << endl;
 	}
 	vars.resize(q->vars.size());
-	//eventually set stack size based on syntax tree
-	stack.resize(50);
+	//eventually set stack size based on ast
+	stack.resize(100);
 	ops = q->bytecode.data();
 	quantityLimit = q->quantityLimit;
-
+	bt_ints.resize(q->bti);
+	bt_floats.resize(q->btf);
+	bt_strings.resize(q->bts);
 	for (auto &d : stack)   memset(&d, 0, sizeof(dat));
 	for (auto &d : vars)    memset(&d, 0, sizeof(dat));
 	for (auto &d : destrow) memset(&d, 0, sizeof(dat));
@@ -65,10 +73,16 @@ vmachine::vmachine(querySpecs &qs){
 }
 
 vmachine::~vmachine(){
+	FREE2(distinctVal);
 	for (auto &d : stack)   FREE2(d);
 	for (auto &d : vars)    FREE2(d);
 	for (auto &d : destrow) FREE2(d);
 	for (auto &d : midrow)  FREE2(d);
+	for (auto &b : bt_strings){
+		for (auto it = b.begin(); it != b.end(); ++it){
+			free(it->s);
+		}
+	}
 }
 querySpecs::~querySpecs(){
 	for (auto &d : literals){
@@ -118,7 +132,7 @@ void vmachine::run(){
 
 	for (;;){
 		op = ops + ip;
-		//cerr << ft("ip {} opcode {} with [{} {} {}]\n", ip, opMap[op->code], op->p1, op->p2, op->p3);
+		//cerr << ft("ip {} opcode {} stack {}\n", ip, opMap[op->code], stacktop-stack.data());
 		//big switch is flush-left instead of using normal indentation
 		switch(op->code){
 
@@ -147,7 +161,12 @@ case LDPUTALL:
 		}
 	++ip;
 	break;
-
+case PUTDIST:
+	FREE1(torow[op->p1]);
+	torow[op->p1] = distinctVal;
+	DISOWN(distinctVal);
+	++ip;
+	break;
 //put variable from stack into var vector
 case PUTVAR:
 	FREE1(vars[op->p1]);
@@ -156,13 +175,13 @@ case PUTVAR:
 	--stacktop;
 	++ip;
 	break;
+
 //put variable from var vector into stack
 case LDVAR:
 	*(++stacktop) = vars[op->p1];
 	DISOWN(stk0); //var vector still owns c string
 	++ip;
 	break;
-
 //load data from filereader to the stack
 case LDDUR:
 	++stacktop;
@@ -580,6 +599,45 @@ case PRINT:
 	++ip;
 	break;
 
+//distinct checkers
+case IDIST:
+	bl1 = bt_ints[op->p2].insert(stk0.u.i).second;
+	if (bl1) {
+		distinctVal = stk0;
+		++ip;
+	} else {
+		ip = op->p1;
+	}
+	--stacktop;
+	break;
+case FDIST:
+	bl1 = bt_floats[op->p2].insert(stk0.u.f).second;
+	if (bl1) {
+		distinctVal = stk0;
+		++ip;
+	} else {
+		ip = op->p1;
+	}
+	--stacktop;
+	break;
+case SDIST:
+	bl1 = bt_strings[op->p2].insert(treeCString(stk0)).second;
+	if (bl1) {
+		if (op->p3){ //not hidden
+			FREE2(distinctVal);
+			distinctVal = stk0;
+			DISOWN(stk0);
+		} else {
+			FREE2(stk0);
+		}
+		++ip;
+	} else {
+		FREE2(stk0);
+		ip = op->p1;
+	}
+	--stacktop;
+	break;
+
 case ENDRUN:
 	goto endloop;
 case 0:
@@ -594,16 +652,6 @@ case 0:
 
 
 void runquery(querySpecs &q){
-	//testing btree library
-	btree::btree_set<dat> bt;
-	cout << bt.insert(dat{.u = {.i=100}}).second;
-	cout << bt.insert(dat{.u = {.i=100}}).second;
-	cout << bt.insert(dat{.u = {.i=200}}).second;
-	cout << (*bt.find(dat{.u = {.i=100}})).u.i << endl;
-	cout << (bt.find(dat{.u = {.i=101}}) == bt.cend()) << endl;;
-	cout << (bt.find(dat{.u = {.i=100}}) == bt.cend()) << endl;;
-
-
 	vmachine vm(q);
 	vm.run();
 }

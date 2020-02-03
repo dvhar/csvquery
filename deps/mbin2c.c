@@ -75,6 +75,6 @@ int main(int argc, char** argv) {
 	}
 	fclose(f);
 	printf("\";\n");
-	printf("int b2c_%s_len = %d;\n", fn, n);
+	printf("static int b2c_%s_len = %d;\n", fn, n);
 	if (debug) printf("write(1,b2c_%s,b2c_%s_len);}\n", fn, fn);
 }

@@ -23,7 +23,8 @@ enum codes : unsigned char {
 	IEQ, FEQ, TEQ, NEQ, LIKE,
 	ILEQ, FLEQ, TLEQ,
 	ILT, FLT, TLT,
-	PRINT, POP, POPCPY, ENDRUN, NULFALSE1, NULFALSE2
+	PRINT, POP, POPCPY, ENDRUN, NULFALSE1, NULFALSE2,
+	IDIST, FDIST, SDIST, PUTDIST
 };
 extern map<int, string> opMap;
 
@@ -79,17 +80,32 @@ const byte NIL = 32;
 //passed free() responsibility to another dat
 #define DISOWN(X) X.b &=(~MAL)
 
+class treeCString {
+	public:
+	char* s;
+	treeCString(dat& d);
+	treeCString();
+	friend bool operator<(const treeCString& l, const treeCString& r){
+		return scomp(l.s, r.s) < 0;
+	}
+};
+
 class vmachine {
 	querySpecs* q;
 	vector<shared_ptr<fileReader>> files;
 	opcode* ops;
 	dat* torow;
+	dat distinctVal;
 	int torowSize;
 	int quantityLimit;
 	vector<dat> destrow;
 	vector<dat> midrow;
 	vector<dat> stack;
 	vector<dat> vars;
+	//separate btrees for performance
+	vector<btree::btree_set<int64>> bt_ints;
+	vector<btree::btree_set<double>> bt_floats;
+	vector<btree::btree_set<treeCString>> bt_strings;
 	public:
 	void run();
 	vmachine(querySpecs &q);

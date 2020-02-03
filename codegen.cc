@@ -48,6 +48,9 @@ static int typeConv[6][6] = {
 	{0, CVSI, CVSF, CVSDT,CVSDR,CVNO},
 };
 
+//distinct check types
+static int distinctOps[] = { 0, IDIST, FDIST, IDIST, IDIST, SDIST };
+
 static bool isTrivial(unique_ptr<node> &n){
 	if (n == nullptr) return false;
 	if (n->label == N_VALUE && n->tok3.id)
@@ -101,6 +104,9 @@ void jumpPositions::updateBytecode(vector<opcode> &vec) {
 		case RDLINE:
 		case NULFALSE1:
 		case NULFALSE2:
+		case IDIST:
+		case FDIST:
+		case SDIST:
 			if (v.p1 < 0)
 				v.p1 = jumps[v.p1];
 		}
@@ -198,7 +204,7 @@ static void genNormalQuery(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q
 	addop(v, RDLINE, endfile, 0);
 	genVars(n->node1, v, q, 1);
 	genWhere(n->node4, v, q);
-	genDistinct(n->node2, v, q);
+	genDistinct(n->node2->node1, v, q);
 	genVars(n->node1, v, q, 0);
 	genGroupOrNewRow(n->node4, v, q);
 	genSelect(n->node2, v, q);
@@ -401,7 +407,8 @@ static void genSelections(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q)
 	case N_SELECTIONS:
 		if (t1 == "hidden") {
 		} else if (t1 == "distinct") {
-			count++; //retrieve value from earlier
+			addop(v, PUTDIST, count);
+			count++;
 		} else if (t1 == "*") {
 			genSelectAll(v, q, count);
 		} else if (isTrivial(n)) {
@@ -427,22 +434,24 @@ static void genPredicates(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q)
 	if (n == nullptr) return;
 	e("gen preds");
 	genPredCompare(n->node1, v, q);
-	int done = q.jumps.newPlaceholder();
+	int doneAndOr = q.jumps.newPlaceholder();
 	switch (n->tok1.id){
 	case KW_AND:
-		addop(v, JMPFALSE, done, 0);
+		addop(v, JMPFALSE, doneAndOr, 0);
 		addop(v, POP); //don't need old result
 		genPredicates(n->node2, v, q);
 		break;
 	case KW_OR:
-		addop(v, JMPTRUE, done, 0);
+		addop(v, JMPTRUE, doneAndOr, 0);
 		addop(v, POP); //don't need old result
 		genPredicates(n->node2, v, q);
 		break;
 	case KW_XOR:
 		break;
 	}
-	q.jumps.setPlace(done, v.size());
+	q.jumps.setPlace(doneAndOr, v.size());
+	if (n->tok2.id == SP_NEGATE)
+		addop(v, PNEG);
 }
 
 static void genPredCompare(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
@@ -531,11 +540,35 @@ static void genWhere(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
 	}
 }
 
-static void genFunction(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
+static void genDistinct(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
+	e("gen distinct");
 	if (n == nullptr) return;
+	if (n->label != N_SELECTIONS) return;
+	if (n->tok1.id == KW_DISTINCT){
+		genExprAll(n->node1, v, q);
+		int btreeIdx;
+		switch (n->datatype){
+		case T_INT:
+		case T_DATE:
+		case T_DURATION:
+			btreeIdx = q.bti++;
+			break;
+		case T_FLOAT:
+			btreeIdx = q.btf++;
+			break;
+		case T_STRING:
+			btreeIdx = q.bts++;
+			break;
+		}
+		addop(v, distinctOps[n->datatype], NORMAL_READ, btreeIdx,
+			n->tok1.lower() == "hidden" ? 0 : 1);
+	} else {
+		//there can be only 1 distinct filter
+		genDistinct(n->node2, v, q);
+	}
 }
 
-static void genDistinct(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
+static void genFunction(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
 	if (n == nullptr) return;
 }
 
