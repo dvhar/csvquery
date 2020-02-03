@@ -7,7 +7,7 @@
 #define stkp(N) (*(stacktop-N))
 
 //map for printing opcodes
-map<int, string> opMap = { {CVNO,"CVNO"}, {CVER,"CVER"}, {CVIF,"CVIF"}, {CVIS,"CVIS"}, {CVFI,"CVFI"}, {CVFS,"CVFS"}, {CVDRS,"CVDRS"}, {CVDTS,"CVDTS"}, {CVSI,"CVSI"}, {CVSF,"CVSF"}, {CVSDT,"CVSDT"}, {CVSDR,"CVSDR"}, {IADD,"IADD"}, {FADD,"FADD"}, {TADD,"TADD"}, {DTADD,"DTADD"}, {DRADD,"DRADD"}, {ISUB,"ISUB"}, {FSUB,"FSUB"}, {DRSUB,"DRSUB"}, {DTSUB,"DTSUB"}, {IMULT,"IMULT"}, {FMULT,"FMULT"}, {DRMULT,"DRMULT"}, {IDIV,"IDIV"}, {FDIV,"FDIV"}, {DRDIV,"DRDIV"}, {INEG,"INEG"}, {FNEG,"FNEG"}, {DNEG,"DNEG"}, {IMOD,"IMOD"}, {IEXP,"IEXP"}, {FEXP,"FEXP"}, {JMP,"JMP"}, {JMPCNT,"JMPCNT"}, {JMPTRUE,"JMPTRUE"}, {JMPFALSE,"JMPFALSE"}, {POP,"POP"}, {RDLINE,"RDLINE"}, {RDLINEAT,"RDLINEAT"}, {PRINT,"PRINT"}, {PUT,"PUT"}, {LDPUT,"LDPUT"}, {LDPUTALL,"LDPUTALL"}, {PUTVAR,"PUTVAR"}, {LDINT,"LDINT"}, {LDFLOAT,"LDFLOAT"}, {LDTEXT,"LDTEXT"}, {LDDATE,"LDDATE"}, {LDDUR,"LDDUR"}, {LDNULL,"LDNULL"}, {LDLIT,"LDLIT"}, {LDVAR,"LDVAR"}, {IEQ,"IEQ"}, {FEQ,"FEQ"}, {TEQ,"TEQ"}, {NEQ,"NEQ"}, {ILEQ,"ILEQ"}, {FLEQ,"FLEQ"}, {TLEQ,"TLEQ"}, {ILT,"ILT"}, {FLT,"FLT"}, {TLT,"TLT"}, {ENDRUN,"ENDRUN"}, {NULFALSE1,"NULFALSE1"}, {NULFALSE2,"NULFALSE2"}, {POPCPY,"POPCPY"}, {LIKE,"LIKE"}, {IDIST,"IDIST"}, {FDIST,"FDIST"}, {SDIST,"SDIST"}, {PUTDIST,"PUTDIST"}
+map<int, string> opMap = { {CVNO,"CVNO"}, {CVER,"CVER"}, {CVIF,"CVIF"}, {CVIS,"CVIS"}, {CVFI,"CVFI"}, {CVFS,"CVFS"}, {CVDRS,"CVDRS"}, {CVDTS,"CVDTS"}, {CVSI,"CVSI"}, {CVSF,"CVSF"}, {CVSDT,"CVSDT"}, {CVSDR,"CVSDR"}, {IADD,"IADD"}, {FADD,"FADD"}, {TADD,"TADD"}, {DTADD,"DTADD"}, {DRADD,"DRADD"}, {ISUB,"ISUB"}, {FSUB,"FSUB"}, {DRSUB,"DRSUB"}, {DTSUB,"DTSUB"}, {IMULT,"IMULT"}, {FMULT,"FMULT"}, {DRMULT,"DRMULT"}, {IDIV,"IDIV"}, {FDIV,"FDIV"}, {DRDIV,"DRDIV"}, {INEG,"INEG"}, {FNEG,"FNEG"}, {DNEG,"DNEG"}, {IMOD,"IMOD"}, {IEXP,"IEXP"}, {FEXP,"FEXP"}, {JMP,"JMP"}, {JMPCNT,"JMPCNT"}, {JMPTRUE,"JMPTRUE"}, {JMPFALSE,"JMPFALSE"}, {POP,"POP"}, {RDLINE,"RDLINE"}, {RDLINEAT,"RDLINEAT"}, {PRINT,"PRINT"}, {PUT,"PUT"}, {LDPUT,"LDPUT"}, {LDPUTALL,"LDPUTALL"}, {PUTVAR,"PUTVAR"}, {LDINT,"LDINT"}, {LDFLOAT,"LDFLOAT"}, {LDTEXT,"LDTEXT"}, {LDDATE,"LDDATE"}, {LDDUR,"LDDUR"}, {LDNULL,"LDNULL"}, {LDLIT,"LDLIT"}, {LDVAR,"LDVAR"}, {IEQ,"IEQ"}, {FEQ,"FEQ"}, {TEQ,"TEQ"}, {NEQ,"NEQ"}, {ILEQ,"ILEQ"}, {FLEQ,"FLEQ"}, {TLEQ,"TLEQ"}, {ILT,"ILT"}, {FLT,"FLT"}, {TLT,"TLT"}, {ENDRUN,"ENDRUN"}, {NULFALSE1,"NULFALSE1"}, {NULFALSE2,"NULFALSE2"}, {POPCPY,"POPCPY"}, {LIKE,"LIKE"}, {NDIST,"NDIST"}, {SDIST,"SDIST"}, {PUTDIST,"PUTDIST"}
 };
 
 void opcode::print(){
@@ -42,8 +42,13 @@ treeCString::treeCString(){
 	s = nullptr;
 }
 treeCString::treeCString(dat& d){
-	s = (char*) malloc(d.z+1);
-	memcpy(s, d.u.s, d.z+1);
+	if (d.b & MAL){
+		s = d.u.s;
+		DISOWN(d);
+	} else {
+		s = (char*) malloc(d.z+1);
+		memcpy(s, d.u.s, d.z+1);
+	}
 }
 
 vmachine::vmachine(querySpecs &qs){
@@ -63,13 +68,13 @@ vmachine::vmachine(querySpecs &qs){
 	stack.resize(100);
 	ops = q->bytecode.data();
 	quantityLimit = q->quantityLimit;
-	bt_ints.resize(q->bti);
-	bt_floats.resize(q->btf);
+	bt_nums.resize(q->btn);
 	bt_strings.resize(q->bts);
-	for (auto &d : stack)   memset(&d, 0, sizeof(dat));
-	for (auto &d : vars)    memset(&d, 0, sizeof(dat));
-	for (auto &d : destrow) memset(&d, 0, sizeof(dat));
-	for (auto &d : midrow)  memset(&d, 0, sizeof(dat));
+	distinctVal = {0};
+	for (auto &d : stack)   d = {0};
+	for (auto &d : vars)    d = {0};
+	for (auto &d : destrow) d = {0};
+	for (auto &d : midrow)  d = {0};
 }
 
 vmachine::~vmachine(){
@@ -600,18 +605,8 @@ case PRINT:
 	break;
 
 //distinct checkers
-case IDIST:
-	bl1 = bt_ints[op->p2].insert(stk0.u.i).second;
-	if (bl1) {
-		distinctVal = stk0;
-		++ip;
-	} else {
-		ip = op->p1;
-	}
-	--stacktop;
-	break;
-case FDIST:
-	bl1 = bt_floats[op->p2].insert(stk0.u.f).second;
+case NDIST:
+	bl1 = bt_nums[op->p2].insert(stk0.u.i).second;
 	if (bl1) {
 		distinctVal = stk0;
 		++ip;
