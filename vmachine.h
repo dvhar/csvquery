@@ -15,7 +15,7 @@ enum codes : unsigned char {
 	INEG, FNEG, DNEG, PNEG,
 	IMOD,
 	IEXP, FEXP,
-	JMP, JMPCNT, JMPTRUE, JMPFALSE,
+	JMP, JMPCNT, JMPTRUE, JMPFALSE, JMPNOTNULL_ELSEPOP,
 	RDLINE, RDLINEAT,
 	PUT, LDPUT, LDPUTALL, PUTVAR,
 	LDINT, LDFLOAT, LDTEXT, LDDATE, LDDUR,
@@ -24,7 +24,8 @@ enum codes : unsigned char {
 	ILEQ, FLEQ, TLEQ,
 	ILT, FLT, TLT,
 	PRINT, POP, POPCPY, ENDRUN, NULFALSE1, NULFALSE2,
-	NDIST, SDIST, PUTDIST
+	NDIST, SDIST, PUTDIST,
+	FINC
 };
 extern map<int, string> opMap;
 
@@ -80,6 +81,7 @@ const byte NIL = 32;
 //passed free() responsibility to another dat
 #define DISOWN(X) X.b &=(~MAL)
 
+//make sure to free manually like normal malloced c strings
 class treeCString {
 	public:
 	char* s;
