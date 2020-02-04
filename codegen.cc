@@ -106,6 +106,7 @@ void jumpPositions::updateBytecode(vector<opcode> &vec) {
 		case NULFALSE2:
 		case NDIST:
 		case SDIST:
+		case JMPNOTNULL_ELSEPOP:
 			if (v.p1 < 0)
 				v.p1 = jumps[v.p1];
 		}
@@ -298,8 +299,12 @@ static void genValue(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
 		case T_DURATION: lit = parseDurationDat(n->tok1.val.c_str()); break;
 		case T_STRING:   lit = parseStringDat(n->tok1.val.c_str());   break;
 		}
-		addop(v, LDLIT, q.literals.size());
-		q.literals.push_back(lit);
+		if (n->tok1.lower() == "null"){
+			addop(v, LDNULL);
+		} else {
+			addop(v, LDLIT, q.literals.size());
+			q.literals.push_back(lit);
+		}
 		break;
 	case VARIABLE:
 		addop(v, LDVAR, getVarIdx(n->tok1.val, q));
@@ -566,7 +571,28 @@ static void genDistinct(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
 }
 
 static void genFunction(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
+	e("gen function");
 	if (n == nullptr) return;
+	int funcDone = q.jumps.newPlaceholder();
+	switch (n->tok1.id){
+	//non-aggregates
+	case FN_COALESCE:
+		for (auto nn = n->node1.get(); nn; nn = nn->node2.get()){
+			genExprAll(nn->node1, v, q);
+			addop(v, JMPNOTNULL_ELSEPOP, funcDone);
+		}
+		addop(v, LDNULL);
+		q.jumps.setPlace(funcDone, v.size());
+		break;
+	case FN_INC:
+		addop(v, FINC, q.literals.size()); //should rename literals vector
+		q.literals.push_back(dat{ {.f = 0.0}, F});
+		break;
+	case FN_ENCRYPT:
+		break;
+	case FN_DECRYPT:
+		break;
+	}
 }
 
 static void genPrint(vector<opcode> &v, querySpecs &q){
