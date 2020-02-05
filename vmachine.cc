@@ -5,130 +5,18 @@
 #define stk0 (*stacktop)
 #define stk1 (*(stacktop-1))
 #define stkp(N) (*(stacktop-N))
-
-//map for printing opcodes
-map<int, string> opMap = { {CVNO,"CVNO"}, {CVER,"CVER"}, {CVIF,"CVIF"}, {CVIS,"CVIS"}, {CVFI,"CVFI"}, {CVFS,"CVFS"}, {CVDRS,"CVDRS"}, {CVDTS,"CVDTS"}, {CVSI,"CVSI"}, {CVSF,"CVSF"}, {CVSDT,"CVSDT"}, {CVSDR,"CVSDR"}, {IADD,"IADD"}, {FADD,"FADD"}, {TADD,"TADD"}, {DTADD,"DTADD"}, {DRADD,"DRADD"}, {ISUB,"ISUB"}, {FSUB,"FSUB"}, {DRSUB,"DRSUB"}, {DTSUB,"DTSUB"}, {IMULT,"IMULT"}, {FMULT,"FMULT"}, {DRMULT,"DRMULT"}, {IDIV,"IDIV"}, {FDIV,"FDIV"}, {DRDIV,"DRDIV"}, {INEG,"INEG"}, {FNEG,"FNEG"}, {DNEG,"DNEG"}, {IMOD,"IMOD"}, {IEXP,"IEXP"}, {FEXP,"FEXP"}, {JMP,"JMP"}, {JMPCNT,"JMPCNT"}, {JMPTRUE,"JMPTRUE"}, {JMPFALSE,"JMPFALSE"}, {POP,"POP"}, {RDLINE,"RDLINE"}, {RDLINEAT,"RDLINEAT"}, {PRINT,"PRINT"}, {PUT,"PUT"}, {LDPUT,"LDPUT"}, {LDPUTALL,"LDPUTALL"}, {PUTVAR,"PUTVAR"}, {LDINT,"LDINT"}, {LDFLOAT,"LDFLOAT"}, {LDTEXT,"LDTEXT"}, {LDDATE,"LDDATE"}, {LDDUR,"LDDUR"}, {LDNULL,"LDNULL"}, {LDLIT,"LDLIT"}, {LDVAR,"LDVAR"}, {IEQ,"IEQ"}, {FEQ,"FEQ"}, {TEQ,"TEQ"}, {NEQ,"NEQ"}, {ILEQ,"ILEQ"}, {FLEQ,"FLEQ"}, {TLEQ,"TLEQ"}, {ILT,"ILT"}, {FLT,"FLT"}, {TLT,"TLT"}, {ENDRUN,"ENDRUN"}, {NULFALSE1,"NULFALSE1"}, {NULFALSE2,"NULFALSE2"}, {POPCPY,"POPCPY"}, {LIKE,"LIKE"}, {NDIST,"NDIST"}, {SDIST,"SDIST"}, {PUTDIST,"PUTDIST"}, {JMPNOTNULL_ELSEPOP,"JMPNOTNULL_ELSEPOP"}, {FINC,"FINC"}
-};
-
-void opcode::print(){
-	cerr << ft("code: {: <18}  [{: <2}  {: <2}  {: <2}]\n", opMap[code], p1, p2, p3);
-}
-
-string dat::tostring(){
-	if (b & NIL) return "";
-	switch ( b & 0b00000111 ) {
-	case I:  return ft("{}",u.i); break;
-	case F:  return ft("{:.10g}",u.f); break;
-	case DT: return ft("{}",datestring(u.i)); break;
-	case DR: return ft("{}",durstring(u.i, nullptr)); break;
-	case T:  return ft("{}",u.s); break;
-	case R:  return ft("regex"); break;
-	}
-	return "";
-}
-void dat::print(){
-	if (b & NIL) return;
-	switch ( b & 0b00000111 ) {
-	case I:  fmt::print("{}",u.i); break;
-	case F:  fmt::print("{:.10g}",u.f); break;
-	case DT: fmt::print("{}",datestring(u.i)); break;
-	case DR: fmt::print("{}",durstring(u.i, nullptr)); break;
-	case T:  fmt::print("{}",u.s); break;
-	case R:  fmt::print("regex"); break;
-	}
-}
-
-treeCString::treeCString(){
-	s = nullptr;
-}
-treeCString::treeCString(dat& d){
-	if (d.b & MAL){
-		s = d.u.s;
-		DISOWN(d);
-	} else {
-		s = (char*) malloc(d.z+1);
-		memcpy(s, d.u.s, d.z+1);
-	}
-}
-
-vmachine::vmachine(querySpecs &qs){
-	q = &qs;
-	for (int i=1; i<=q->numFiles; ++i){
-		files.push_back(q->files[str2("_f", i)]);
-	}
-	if (q->grouping){
-		//initialize midrow and point torow to it
-	} else {
-		destrow.resize(q->colspec.count);
-		torow = destrow.data();
-		torowSize = destrow.size();
-	}
-	vars.resize(q->vars.size());
-	//eventually set stack size based on ast
-	stack.resize(100);
-	ops = q->bytecode.data();
-	quantityLimit = q->quantityLimit;
-	bt_nums.resize(q->btn);
-	bt_strings.resize(q->bts);
-	distinctVal = {0};
-	for (auto &d : stack)   d = {0};
-	for (auto &d : vars)    d = {0};
-	for (auto &d : destrow) d = {0};
-	for (auto &d : midrow)  d = {0};
-}
-
-vmachine::~vmachine(){
-	FREE2(distinctVal);
-	for (auto &d : stack)   FREE2(d);
-	for (auto &d : vars)    FREE2(d);
-	for (auto &d : destrow) FREE2(d);
-	for (auto &d : midrow)  FREE2(d);
-	for (auto &b : bt_strings){
-		for (auto it = b.begin(); it != b.end(); ++it){
-			free(it->s);
-		}
-	}
-}
-querySpecs::~querySpecs(){
-	for (auto &d : literals){
-		FREE2(d);
-		if (d.b & RMAL){
-			regfree(d.u.r);
-			delete d.u.r;
-		}
-	}
-}
-
-
-//add s2 to s1
-void strplus(dat &s1, dat &s2){
-	if (ISNULL(s1)) { s1 = s2; DISOWN(s2); return; }
-	if (ISNULL(s2)) return;
-	int newlen = s1.z+s2.z+1;
-	if (ISMAL(s1)){
-		s1.u.s = (char*) realloc(s1.u.s, newlen);
-		strcat(s1.u.s+s1.z-1, s2.u.s);
-	} else {
-		char* ns = (char*) malloc(newlen);
-		strcpy(ns, s1.u.s);
-		strcat(ns+s1.z-1, s2.u.s);
-		s1.u.s = ns;
-	}
-	FREE2(s2);
-	s1.b |= MAL;
-	s1.z = newlen;
-}
+#define push() ++stacktop
+#define pop() --stacktop
 
 void vmachine::run(){
-	//temporary values
-	short sh1;
-	date_t ll1;
-	int i1, i2;
-	double f1;
-	char* c1;
-	string st1;
-	bool bl1;
-	csvEntry cv;
+
+	int64 i64Temp;
+	int iTemp1, iTemp2;
+	double fTemp;
+	char* cstrTemp;
+	string strTemp;
+	bool boolTemp;
+	csvEntry csvTemp;
 
 	int numPrinted = 0;
 	dat* stacktop = stack.data();
@@ -147,22 +35,22 @@ case PUT:
 	FREE1(torow[op->p1]);
 	torow[op->p1] = stk0;
 	DISOWN(stk0);
-	--stacktop;
+	pop();
 	++ip;
 	break;
 //put data from filereader directly into torow
 case LDPUT:
-	cv = files[op->p3]->entries[op->p2];
+	csvTemp = files[op->p3]->entries[op->p2];
 	FREE1(torow[op->p1]);
-	torow[op->p1] = dat{ { .s = cv.val }, T, cv.size };
+	torow[op->p1] = dat{ { .s = csvTemp.val }, T, csvTemp.size };
 	++ip;
 	break;
 case LDPUTALL:
-	i1 = op->p1;
+	iTemp1 = op->p1;
 	for (auto &f : files)
 		for (auto &e : f->entries){
-			FREE1(torow[i1]);
-			torow[i1++] = dat{ { .s = e.val }, T, e.size };
+			FREE1(torow[iTemp1]);
+			torow[iTemp1++] = dat{ { .s = e.val }, T, e.size };
 		}
 	++ip;
 	break;
@@ -177,64 +65,65 @@ case PUTVAR:
 	FREE1(vars[op->p1]);
 	vars[op->p1] = stk0;
 	DISOWN(stk0);
-	--stacktop;
+	pop();
 	++ip;
 	break;
 
 //put variable from var vector into stack
 case LDVAR:
-	*(++stacktop) = vars[op->p1];
+	push();
+	stk0 = vars[op->p1];
 	DISOWN(stk0); //var vector still owns c string
 	++ip;
 	break;
 //load data from filereader to the stack
 case LDDUR:
-	++stacktop;
-	i1 = parseDuration(files[op->p1]->entries[op->p2].val, &ll1);
-	stk0 = dat{ { .i = ll1}, DR};
-	if (i1) stk0.b |= NIL;
+	push();
+	iTemp1 = parseDuration(files[op->p1]->entries[op->p2].val, &i64Temp);
+	stk0 = dat{ { .i = i64Temp}, DR};
+	if (iTemp1) stk0.b |= NIL;
 	++ip;
 	break;
 case LDDATE:
-	++stacktop;
-	cv = files[op->p1]->entries[op->p2];
-	i1 = dateparse(cv.val, &ll1, &sh1, cv.size);
-	stk0 = dat{ { .i = ll1}, DT, sh1 };
-	if (i1) stk0.b |= NIL;
+	push();
+	csvTemp = files[op->p1]->entries[op->p2];
+	iTemp1 = dateparse(csvTemp.val, &i64Temp, &iTemp2, csvTemp.size);
+	stk0 = dat{ { .i = i64Temp}, DT, iTemp2 };
+	if (iTemp1) stk0.b |= NIL;
 	++ip;
 	break;
 case LDTEXT:
-	++stacktop;
-	cv = files[op->p1]->entries[op->p2];
+	push();
+	csvTemp = files[op->p1]->entries[op->p2];
 	FREE2(stk0);
-	stk0 = dat{ { .s = cv.val }, T, cv.size };
-	if (!cv.size) stk0.b |= NIL;
+	stk0 = dat{ { .s = csvTemp.val }, T, csvTemp.size };
+	if (!csvTemp.size) stk0.b |= NIL;
 	++ip;
 	break;
 case LDFLOAT:
-	++stacktop;
-	cv = files[op->p1]->entries[op->p2];
-	stk0.u.f = strtof(cv.val, &c1);
+	push();
+	csvTemp = files[op->p1]->entries[op->p2];
+	stk0.u.f = strtof(csvTemp.val, &cstrTemp);
 	stk0.b = F;
-	if (!cv.size || *c1){ stk0.b |= NIL; }
+	if (!csvTemp.size || *cstrTemp){ stk0.b |= NIL; }
 	++ip;
 	break;
 case LDINT:
-	++stacktop;
-	cv = files[op->p1]->entries[op->p2];
-	stk0.u.i = strtol(cv.val, &c1, 10);
+	push();
+	csvTemp = files[op->p1]->entries[op->p2];
+	stk0.u.i = strtol(csvTemp.val, &cstrTemp, 10);
 	stk0.b = I;
-	if (!cv.size || *c1) stk0.b |= NIL;
+	if (!csvTemp.size || *cstrTemp) stk0.b |= NIL;
 	++ip;
 	break;
 case LDNULL:
-	++stacktop;
+	push();
 	FREE2(stk0);
 	stk0.b = NIL;
 	++ip;
 	break;
 case LDLIT:
-	++stacktop;
+	push();
 	FREE2(stk0);
 	stk0 = q->literals[op->p1];
 	++ip;
@@ -253,81 +142,81 @@ case RDLINEAT:
 case IADD:
 	if (ISNULL(stk0) || ISNULL(stk1)) stk1.b |= NIL;
 	else stk1.u.i += stk0.u.i;
-	--stacktop;
+	pop();
 	++ip;
 	break;
 case FADD:
 	if (ISNULL(stk0) || ISNULL(stk1)) stk1.b |= NIL;
 	else stk1.u.f += stk0.u.f;
-	--stacktop;
+	pop();
 	++ip;
 	break;
 case TADD:
 	strplus(stk1, stk0);
-	--stacktop;
+	pop();
 	++ip;
 	break;
 case DRADD:
 	if (ISNULL(stk0) || ISNULL(stk1)) stk1.b |= NIL;
 	else { stk1.u.i += stk0.u.i; stk1.b = DR; }
-	--stacktop;
+	pop();
 	++ip;
 	break;
 case DTADD:
 	if (ISNULL(stk0) || ISNULL(stk1)) stk1.b |= NIL;
 	else { stk1.u.i += stk0.u.i; stk1.b = DT; }
-	--stacktop;
+	pop();
 	++ip;
 	break;
 case ISUB:
 	if (ISNULL(stk0) || ISNULL(stk1)) stk1.b |= NIL;
 	else stk1.u.i -= stk0.u.i;
-	--stacktop;
+	pop();
 	++ip;
 	break;
 case FSUB:
 	if (ISNULL(stk0) || ISNULL(stk1)) stk1.b |= NIL;
 	else stk1.u.f -= stk0.u.f;
-	--stacktop;
+	pop();
 	++ip;
 	break;
 case DTSUB:
 	if (ISNULL(stk0) || ISNULL(stk1)) stk1.b |= NIL;
 	else { stk1.u.i -= stk0.u.i; stk1.b = DT; }
-	--stacktop;
+	pop();
 	++ip;
 	break;
 case DRSUB:
 	if (ISNULL(stk0) || ISNULL(stk1)) stk1.b |= NIL;
 	else { stk1.u.i -= stk0.u.i; stk1.b = DR; }
-	--stacktop;
+	pop();
 	if (stk0.u.i < 0) stk0.u.i *= -1;
 	++ip;
 	break;
 case IMULT:
 	if (ISNULL(stk0) || ISNULL(stk1)) stk1.b |= NIL;
 	else stk1.u.i *= stk0.u.i;
-	--stacktop;
+	pop();
 	++ip;
 	break;
 case FMULT:
 	if (ISNULL(stk0) || ISNULL(stk1)) stk1.b |= NIL;
 	else stk1.u.f *= stk0.u.f;
-	--stacktop;
+	pop();
 	++ip;
 	break;
 case DRMULT:
 	if (ISNULL(stk0) || ISNULL(stk1)) stk1.b |= NIL;
 	else {
-		i1 = stk0.b; i2 = stk1.b;
-		if (i1 == T_DATE){
-			if (i2 == T_INT){ // date * int
+		iTemp1 = stk0.b; iTemp2 = stk1.b;
+		if (iTemp1 == T_DATE){
+			if (iTemp2 == T_INT){ // date * int
 				stk1.u.i = stk1.u.i * stk0.u.i;
 			} else { // date * float
 				stk1.u.i = stk1.u.i * stk0.u.f;
 			}
 		} else {
-			if (i2 == T_INT){ // int * date
+			if (iTemp2 == T_INT){ // int * date
 				stk1.u.i = stk1.u.i * stk0.u.i;
 			} else { // float * date
 				stk1.u.i = stk1.u.f * stk0.u.i;
@@ -335,19 +224,19 @@ case DRMULT:
 			stk1.b = DR;
 		}
 	}
-	--stacktop;
+	pop();
 	++ip;
 	break;
 case IDIV:
 	if (ISNULL(stk0) || ISNULL(stk1) || stk0.u.i==0) stk1.b |= NIL;
 	else stk1.u.i /= stk0.u.i;
-	--stacktop;
+	pop();
 	++ip;
 	break;
 case FDIV:
 	if (ISNULL(stk0) || ISNULL(stk1) || stk0.u.f==0) stk1.b |= NIL;
 	else stk1.u.f /= stk0.u.f;
-	--stacktop;
+	pop();
 	++ip;
 	break;
 case DRDIV:
@@ -358,7 +247,7 @@ case DRDIV:
 		else
 			stk1.u.i /= stk0.u.f;
 	}
-	--stacktop;
+	pop();
 	++ip;
 	break;
 case INEG:
@@ -380,32 +269,32 @@ case PNEG:
 // p2 is negator
 //may want to combine with jmp
 case IEQ:
-	i1 = ISNULL(stk0);
-	i2 = ISNULL(stk1);
-	if (i1 ^ i2) stkp(op->p1).u.p = false;
-	else if (i1 & i2) stkp(op->p1).u.p = true;
+	iTemp1 = ISNULL(stk0);
+	iTemp2 = ISNULL(stk1);
+	if (iTemp1 ^ iTemp2) stkp(op->p1).u.p = false;
+	else if (iTemp1 & iTemp2) stkp(op->p1).u.p = true;
 	else stkp(op->p1).u.p = (stk1.u.i == stk0.u.i)^op->p2;
 	stacktop -= op->p1;
 	++ip;
 	break;
 case FEQ:
-	i1 = ISNULL(stk0);
-	i2 = ISNULL(stk1);
-	if (i1 ^ i2) stkp(op->p1).u.p = false;
-	else if (i1 & i2) stkp(op->p1).u.p = true;
+	iTemp1 = ISNULL(stk0);
+	iTemp2 = ISNULL(stk1);
+	if (iTemp1 ^ iTemp2) stkp(op->p1).u.p = false;
+	else if (iTemp1 & iTemp2) stkp(op->p1).u.p = true;
 	else stkp(op->p1).u.p = (stk1.u.f == stk0.u.f)^op->p2;
 	stacktop -= op->p1;
 	++ip;
 	break;
 case TEQ:
-	i1 = ISNULL(stk0);
-	i2 = ISNULL(stk1);
-	if (!(i1|i2)){ //none null
-		bl1 = (scomp(stk1.u.s, stk0.u.s) == 0)^op->p2;
+	iTemp1 = ISNULL(stk0);
+	iTemp2 = ISNULL(stk1);
+	if (!(iTemp1|iTemp2)){ //none null
+		boolTemp = (scomp(stk1.u.s, stk0.u.s) == 0)^op->p2;
 		FREE2(stk0);
 		FREE2(stkp(op->p1));
-		stkp(op->p1).u.p = bl1;
-	} else if (i1 & i2) { //both null
+		stkp(op->p1).u.p = boolTemp;
+	} else if (iTemp1 & iTemp2) { //both null
 		stkp(op->p1).u.p = true;
 	} else { //one null
 		FREE2(stk0);
@@ -430,10 +319,10 @@ case FLEQ:
 case TLEQ:
 	if (ISNULL(stk0) || ISNULL(stk1)) stkp(op->p1).u.p = false;
 	else {
-		bl1 = (scomp(stk1.u.s, stk0.u.s) <= 0)^op->p2;
+		boolTemp = (scomp(stk1.u.s, stk0.u.s) <= 0)^op->p2;
 		FREE2(stk0);
 		FREE2(stkp(op->p1));
-		stkp(op->p1).u.p = bl1;
+		stkp(op->p1).u.p = boolTemp;
 	}
 	stacktop -= op->p1;
 	++ip;
@@ -453,30 +342,30 @@ case FLT:
 case TLT:
 	if (ISNULL(stk0) || ISNULL(stk1)) stkp(op->p1).u.p = false;
 	else {
-		bl1 = (scomp(stk1.u.s, stk0.u.s) < 0)^op->p2;
+		boolTemp = (scomp(stk1.u.s, stk0.u.s) < 0)^op->p2;
 		FREE2(stk0);
 		FREE2(stkp(op->p1));
-		stkp(op->p1).u.p = bl1;
+		stkp(op->p1).u.p = boolTemp;
 	}
 	stacktop -= op->p1;
 	++ip;
 	break;
 case LIKE:
-	i1 = !regexec(q->literals[op->p1].u.r, stk0.u.s, 0, 0, 0)^op->p2;
+	iTemp1 = !regexec(q->literals[op->p1].u.r, stk0.u.s, 0, 0, 0)^op->p2;
 	FREE2(stk0);
-	stk0.u.p = i1;
+	stk0.u.p = iTemp1;
 	++ip;
 	break;
 
 case POP:
 	FREE2(stk0);
-	--stacktop;
+	pop();
 	++ip;
 	break;
 case POPCPY: //currently only used for bools
 	FREE2(stk1);
 	stk1 = stk0;
-	--stacktop;
+	pop();
 	++ip;
 	break;
 case NULFALSE1:
@@ -489,7 +378,7 @@ case NULFALSE1:
 case NULFALSE2:
 	if (ISNULL(stk0)){
 		FREE2(stk0);
-		--stacktop;
+		pop();
 		FREE2(stk0);
 		stk0.u.p = false;
 		ip = op->p1;
@@ -499,18 +388,18 @@ case NULFALSE2:
 //type conversions
 //should use realloc instead of fmt for tostring conversions
 case CVIS:
-	st1 = str1(stk0.u.i);
-	i1 = st1.size()+1;
-	stk0.u.s = (char*) malloc(i1);
-	memcpy((void*) st1.c_str(), stk0.u.s, i1);
+	strTemp = str1(stk0.u.i);
+	iTemp1 = strTemp.size()+1;
+	stk0.u.s = (char*) malloc(iTemp1);
+	memcpy((void*) strTemp.c_str(), stk0.u.s, iTemp1);
 	stk0.b = T|MAL;
 	++ip;
 	break;
 case CVFS:
-	st1 = ft("{:.10g}",stk0.u.f);
-	i1 = st1.size()+1;
-	stk0.u.s = (char*) malloc(i1);
-	memcpy(stk0.u.s, (void*) st1.c_str(), i1);
+	strTemp = ft("{:.10g}",stk0.u.f);
+	iTemp1 = strTemp.size()+1;
+	stk0.u.s = (char*) malloc(iTemp1);
+	memcpy(stk0.u.s, (void*) strTemp.c_str(), iTemp1);
 	stk0.b = T|MAL;
 	++ip;
 	break;
@@ -523,36 +412,36 @@ case CVIF:
 	++ip;
 	break;
 case CVSI:
-	i1 = strtol(stk0.u.s, &c1, 10);
+	iTemp1 = strtol(stk0.u.s, &cstrTemp, 10);
 	FREE2(stk0);
-	stk0.u.i = i1;
+	stk0.u.i = iTemp1;
 	stk0.b = F;
-	if (*c1){ stk0.b |= NIL; }
+	if (*cstrTemp){ stk0.b |= NIL; }
 	++ip;
 	break;
 case CVSF:
-	f1 = strtof(stk0.u.s, &c1);
+	fTemp = strtof(stk0.u.s, &cstrTemp);
 	FREE2(stk0);
-	stk0.u.f = f1;
+	stk0.u.f = fTemp;
 	stk0.b = F;
-	if (*c1){ stk0.b |= NIL; }
+	if (*cstrTemp){ stk0.b |= NIL; }
 	++ip;
 	break;
 case CVSDT:
-	i1 = dateparse(stk0.u.s, &ll1, &sh1, stk0.z);
+	iTemp1 = dateparse(stk0.u.s, &i64Temp, &iTemp2, stk0.z);
 	FREE2(stk0);
-	stk0.u.i = ll1;
+	stk0.u.i = i64Temp;
 	stk0.b = DT;
-	stk0.z = sh1;
-	if (i1) stk0.b |= NIL;
+	stk0.z = iTemp2;
+	if (iTemp1) stk0.b |= NIL;
 	++ip;
 	break;
 case CVSDR:
-	i1 = parseDuration(stk0.u.s, &ll1);
+	iTemp1 = parseDuration(stk0.u.s, &i64Temp);
 	FREE2(stk0);
-	stk0.u.i = ll1;
+	stk0.u.i = i64Temp;
 	stk0.b = DR;
-	if (i1) stk0.b |= NIL;
+	if (iTemp1) stk0.b |= NIL;
 	++ip;
 	break;
 case CVDRS:
@@ -564,9 +453,9 @@ case CVDRS:
 	break;
 case CVDTS:
 	//make version of datestring that writes directly to arg buf
-	c1 = datestring(stk0.u.i);
+	cstrTemp = datestring(stk0.u.i);
 	stk0.u.s = (char*) malloc(20);
-	strncpy(stk0.u.s, c1, 19);
+	strncpy(stk0.u.s, cstrTemp, 19);
 	stk0.b = T|MAL;
 	stk0.z = 19;
 	++ip;
@@ -583,20 +472,20 @@ case JMPFALSE:
 	ip = !stk0.u.p ? op->p1 : ip+1;
 	if (op->p2 == 1){
 		FREE2(stk0);
-		--stacktop;
+		pop();
 	}
 	break;
 case JMPTRUE:
 	ip = stk0.u.p ? op->p1 : ip+1;
 	if (op->p2 == 1){
 		FREE2(stk0);
-		--stacktop;
+		pop();
 	}
 	break;
 case JMPNOTNULL_ELSEPOP:
 	if (ISNULL(stk0)){
 		FREE2(stk0);
-		--stacktop;
+		pop();
 		++ip;
 	} else {
 		ip = op->p1;
@@ -615,18 +504,18 @@ case PRINT:
 
 //distinct checkers
 case NDIST:
-	bl1 = bt_nums[op->p2].insert(stk0.u.i).second;
-	if (bl1) {
+	boolTemp = bt_nums[op->p2].insert(stk0.u.i).second;
+	if (boolTemp) {
 		distinctVal = stk0;
 		++ip;
 	} else {
 		ip = op->p1;
 	}
-	--stacktop;
+	pop();
 	break;
 case SDIST:
-	bl1 = bt_strings[op->p2].insert(treeCString(stk0)).second;
-	if (bl1) {
+	boolTemp = bt_strings[op->p2].insert(treeCString(stk0)).second;
+	if (boolTemp) {
 		if (op->p3){ //not hidden
 			FREE2(distinctVal);
 			distinctVal = stk0;
@@ -639,13 +528,13 @@ case SDIST:
 		FREE2(stk0);
 		ip = op->p1;
 	}
-	--stacktop;
+	pop();
 	break;
 
 //functions
 case FINC:
 	q->literals[op->p1].u.f++;
-	++stacktop;
+	push();
 	FREE2(stk0);
 	stk0 = q->literals[op->p1];
 	++ip;

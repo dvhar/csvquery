@@ -113,4 +113,17 @@ class vmachine {
 	~vmachine();
 };
 
+class crypter {
+	int ciphertype;
+	string password;
+	uint8_t chachaKey[32];
+	public:
+	crypter(string, string);
+	chacha* newChacha();
+	void setChacha(char*, chacha*);
+};
+
+extern map<int, string> opMap;
+void strplus(dat &s1, dat &s2);
+
 #endif

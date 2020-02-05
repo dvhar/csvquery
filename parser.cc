@@ -789,9 +789,9 @@ static unique_ptr<node> parseFunction(querySpecs &q) {
 			}
 			//if (q.password == "" && needPrompt) q.password = promptPassword();
 			if (password == "") { password = q.password; }
-			if (cipherTok != "rc4" && cipherTok != "aes")
-				error("Second parameter to encryption function is cipher type (aes or rc4). Found: "+cipherTok+". "
-						"Use aes for strong but bulky encryption, or rc4 for something a government could probably crack but takes less space.");
+			if (cipherTok != "chacha" && cipherTok != "aes")
+				error("Second parameter to encryption function is cipher type (aes or chacha). Found: "+cipherTok+". "
+						"Use aes for strong but bulky encryption, or chacha for something a government could probably crack but takes less space.");
 			n->tok3.val = cipherTok;
 			n->tok4.val = password;
 			break;

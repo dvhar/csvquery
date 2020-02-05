@@ -14,6 +14,7 @@
 #include <boost/algorithm/string.hpp>
 #include <fmt/format.h>
 #include "deps/dateparse/dateparse.h"
+#include "deps/chacha/chacha20.h"
 
 #ifdef __MINGW32__
 #include <getopt.h>
@@ -23,6 +24,7 @@
 #endif
 
 #define BUFSIZE  1024*1024
+#define chacha struct chacha20_context
 #define int64 long long
 #define dur_t long long
 #define byte unsigned char
@@ -120,6 +122,7 @@ union datunion {
 	char* s;
 	bool p;
 	regex_t* r;
+	chacha* ch;
 };
 class dat {
 	public:
