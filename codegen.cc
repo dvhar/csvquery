@@ -589,8 +589,14 @@ static void genFunction(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
 		q.literals.push_back(dat{ {.f = 0.0}, F});
 		break;
 	case FN_ENCRYPT:
+		if (n->tok3.val == "chacha"){
+		} else /* aes */ {
+		}
 		break;
 	case FN_DECRYPT:
+		if (n->tok3.val == "chacha"){
+		} else /* aes */ {
+		}
 		break;
 	}
 }
