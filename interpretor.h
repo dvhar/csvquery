@@ -156,6 +156,29 @@ class resultSpecs {
 	vector<string> colnames;
 };
 
+class singleQueryResult {
+	public:
+	int numrows;
+	int numcols;
+	vector<int> types;
+	vector<string> colnames;
+	vector<vector<char*>> values;
+	string query;
+};
+
+class chactx {
+	public:
+	chacha ctx;
+	uint8_t key[32];
+	uint8_t nonce[12];
+};
+class crypter {
+	public:
+	vector<chactx> ctxs;
+	int newChacha(string);
+	pair<char*,int> chachaEncrypt(int, int, char*);
+};
+
 class querySpecs {
 	public:
 	string queryString;
@@ -168,6 +191,7 @@ class querySpecs {
 	unique_ptr<node> tree;
 	jumpPositions jumps;
 	resultSpecs colspec;
+	crypter crypt;
 	int numFiles;
 	int tokIdx;
 	int options;
@@ -187,16 +211,6 @@ class querySpecs {
 	void addVar(string);
 	~querySpecs();
 	querySpecs(string &s);
-};
-
-class singleQueryResult {
-	public:
-	int numrows;
-	int numcols;
-	vector<int> types;
-	vector<string> colnames;
-	vector<vector<char*>> values;
-	string query;
 };
 
 

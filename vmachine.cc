@@ -17,6 +17,7 @@ void vmachine::run(){
 	string strTemp;
 	bool boolTemp;
 	csvEntry csvTemp;
+	pair<char*, int> pairTemp;
 
 	int numPrinted = 0;
 	dat* stacktop = stack.data();
@@ -537,6 +538,14 @@ case FINC:
 	push();
 	FREE2(stk0);
 	stk0 = q->literals[op->p1];
+	++ip;
+	break;
+case ENCCHA:
+	pairTemp = q->crypt.chachaEncrypt(op->p1, stk0.z, stk0.u.s);
+	if (stk0.b & MAL) free(stk0.u.s);
+	stk0.u.s = pairTemp.first;
+	stk0.z = pairTemp.second;
+	stk0.b = T|MAL;
 	++ip;
 	break;
 

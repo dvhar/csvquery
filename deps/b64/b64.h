@@ -33,7 +33,7 @@ static const char b64_table[] = {
  * Returns a `char *' base64 encoded string.
  */
 
-int b64_encode (const unsigned char *src, unsigned char *dest, size_t inlen, size_t outlen);
+int b64_encode (const unsigned char *src, unsigned char *dest, size_t inlen);
 
 /**
  * Dencode `char *' source with `size_t' size.

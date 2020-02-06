@@ -113,14 +113,28 @@ void strplus(dat &s1, dat &s2){
 	s1.z = newlen;
 }
 
-crypter::crypter(string cipher, string pass){
-	password = pass;
-	if (cipher == "aes"){
-		ciphertype = 1;
-	} else {
-		ciphertype = 0;
-		for (int i=0; i<sizeof(chachaKey); i++){
-			chachaKey[i] = password[i%password.length()];
-		}
+int crypter::newChacha(string pass){
+	chactx ch;
+	for (int i=0; i<sizeof(ch.key); i++){
+		ch.key[i] = pass[i%pass.length()];
 	}
+	memset(&ch.nonce, 0, sizeof(ch.nonce));
+	ctxs.push_back(ch);
+	return ctxs.size()-1;
+}
+pair<char*, int> crypter::chachaEncrypt(int i, int len, char* input){
+	auto ch = ctxs.data()+i;
+	auto rawResult = (uint8_t*) alloca(len+3);
+	memcpy(rawResult+3, input, len);
+	memcpy(&ch->ctx.key, ch->key, sizeof(ch->ctx.key));
+	auto nonce = rand(); //replace with secure version
+	rawResult[0] = ch->nonce[0] = nonce;
+	rawResult[1] = ch->nonce[1] = nonce >> 8;
+	rawResult[2] = ch->nonce[2] = nonce >> 16;
+	chacha20_init_context(&ch->ctx, ch->key, ch->nonce, 1); //find out what counter param does
+	chacha20_xor(&ch->ctx, rawResult+3, len);
+	int finalSize = encsize(len+3);
+	auto finalResult = (char*) malloc(finalSize);
+	b64_encode(rawResult, (unsigned char*)finalResult, len+3);
+	return pair<char*,int>(finalResult, finalSize);
 }
