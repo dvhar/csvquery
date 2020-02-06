@@ -9,15 +9,13 @@
 #include <stdlib.h>
 #include "b64.h"
 
-int b64_encode (const unsigned char *src, unsigned char *enc, size_t len, size_t outlen) {
+int b64_encode (const unsigned char *src, unsigned char *enc, size_t len) {
   int i = 0;
   int j = 0;
   size_t size = 0;
   unsigned char buf[4];
   unsigned char tmp[3];
 
-  // alloc
-  if (outlen < encsize(len)) return -1;
   if (NULL == enc) { return -1; }
 
   // parse until end of source

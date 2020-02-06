@@ -1,5 +1,6 @@
 #include "interpretor.h"
 #include "deps/btree/btree_set.h"
+#include "deps/b64/b64.h"
 #ifndef VMACH_H
 #define VMACH_H
 
@@ -25,7 +26,7 @@ enum codes : unsigned char {
 	ILT, FLT, TLT,
 	PRINT, POP, POPCPY, ENDRUN, NULFALSE1, NULFALSE2,
 	NDIST, SDIST, PUTDIST,
-	FINC
+	FINC, ENCCHA
 };
 extern map<int, string> opMap;
 
@@ -111,16 +112,6 @@ class vmachine {
 	void run();
 	vmachine(querySpecs &q);
 	~vmachine();
-};
-
-class crypter {
-	int ciphertype;
-	string password;
-	uint8_t chachaKey[32];
-	public:
-	crypter(string, string);
-	chacha* newChacha();
-	void setChacha(char*, chacha*);
 };
 
 extern map<int, string> opMap;

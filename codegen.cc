@@ -574,6 +574,7 @@ static void genFunction(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
 	e("gen function");
 	if (n == nullptr) return;
 	int funcDone = q.jumps.newPlaceholder();
+	int idx;
 	switch (n->tok1.id){
 	//non-aggregates
 	case FN_COALESCE:
@@ -589,7 +590,10 @@ static void genFunction(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
 		q.literals.push_back(dat{ {.f = 0.0}, F});
 		break;
 	case FN_ENCRYPT:
+		genExprAll(n->node1, v, q);
 		if (n->tok3.val == "chacha"){
+			idx = q.crypt.newChacha(n->tok4.val);
+			addop(v, ENCCHA, idx);
 		} else /* aes */ {
 		}
 		break;
