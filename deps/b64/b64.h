@@ -39,8 +39,8 @@ int b64_encode (const unsigned char *src, unsigned char *dest, size_t inlen);
  * Dencode `char *' source with `size_t' size.
  * Returns a `unsigned char *' base64 decoded string.
  */
-unsigned char *
-b64_decode (const char *, size_t);
+int b64_decode (const char *, char*, size_t, int*);
+
 #ifdef __cplusplus
 }
 #endif

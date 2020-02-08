@@ -18,6 +18,7 @@ file(GLOB CQL_SOURCE "*.cc")
 set(CQL_SOURCE ${CQL_SOURCE} deps/dateparse/dateparse.c)
 set(CQL_SOURCE ${CQL_SOURCE} deps/chacha/chacha20.c)
 set(CQL_SOURCE ${CQL_SOURCE} deps/b64/encode.c)
+set(CQL_SOURCE ${CQL_SOURCE} deps/b64/decode.c)
 add_executable(cql ${CQL_SOURCE})
 
 if (WIN32)

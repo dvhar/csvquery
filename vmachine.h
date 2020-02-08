@@ -26,7 +26,7 @@ enum codes : unsigned char {
 	ILT, FLT, TLT,
 	PRINT, POP, POPCPY, ENDRUN, NULFALSE1, NULFALSE2,
 	NDIST, SDIST, PUTDIST,
-	FINC, ENCCHA
+	FINC, ENCCHA, DECCHA
 };
 extern map<int, string> opMap;
 

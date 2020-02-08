@@ -548,6 +548,14 @@ case ENCCHA:
 	stk0.b = T|MAL;
 	++ip;
 	break;
+case DECCHA:
+	pairTemp = q->crypt.chachaDecrypt(op->p1, stk0.z, stk0.u.s);
+	if (stk0.b & MAL) free(stk0.u.s);
+	stk0.u.s = pairTemp.first;
+	stk0.z = pairTemp.second;
+	stk0.b = T|MAL;
+	++ip;
+	break;
 
 case ENDRUN:
 	goto endloop;

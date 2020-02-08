@@ -598,7 +598,10 @@ static void genFunction(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
 		}
 		break;
 	case FN_DECRYPT:
+		genExprAll(n->node1, v, q);
 		if (n->tok3.val == "chacha"){
+			idx = q.crypt.newChacha(n->tok4.val);
+			addop(v, DECCHA, idx);
 		} else /* aes */ {
 		}
 		break;
