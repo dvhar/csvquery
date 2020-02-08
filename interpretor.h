@@ -177,6 +177,7 @@ class crypter {
 	vector<chactx> ctxs;
 	int newChacha(string);
 	pair<char*,int> chachaEncrypt(int, int, char*);
+	pair<char*,int> chachaDecrypt(int, int, char*);
 };
 
 class querySpecs {

@@ -10,19 +10,15 @@
 #include <ctype.h>
 #include "b64.h"
 
-unsigned char *
-b64_decode (const char *src, size_t len) {
+int b64_decode (const char *src, char* dest, size_t len, int*outlen) {
   int i = 0;
   int j = 0;
   int l = 0;
   size_t size = 0;
-  unsigned char *dec = NULL;
   unsigned char buf[3];
   unsigned char tmp[4];
 
-  // alloc
-  dec = (unsigned char *) malloc(0);
-  if (NULL == dec) { return NULL; }
+  if (NULL == dest) { return -1; }
 
   // parse until end of source
   while (len--) {
@@ -51,10 +47,9 @@ b64_decode (const char *src, size_t len) {
       buf[1] = ((tmp[1] & 0xf) << 4) + ((tmp[2] & 0x3c) >> 2);
       buf[2] = ((tmp[2] & 0x3) << 6) + tmp[3];
 
-      // write decoded buffer to `dec'
-      dec = (unsigned char *) realloc(dec, size + 3);
+      // write decoded buffer to `dest'
       for (i = 0; i < 3; ++i) {
-        dec[size++] = buf[i];
+        dest[size++] = buf[i];
       }
 
       // reset
@@ -85,14 +80,14 @@ b64_decode (const char *src, size_t len) {
     buf[1] = ((tmp[1] & 0xf) << 4) + ((tmp[2] & 0x3c) >> 2);
     buf[2] = ((tmp[2] & 0x3) << 6) + tmp[3];
 
-    // write remainer decoded buffer to `dec'
-    dec = (unsigned char *) realloc(dec, size + (i - 1));
+    // write remainer decoded buffer to `dest'
     for (j = 0; (j < i - 1); ++j) {
-      dec[size++] = buf[j];
+      dest[size++] = buf[j];
     }
   }
 
-  dec[size] = '\0';
+  dest[size] = '\0';
+  *outlen = size;
 
-  return dec;
+  return 0;
 }
