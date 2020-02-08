@@ -116,6 +116,7 @@ void strplus(dat &s1, dat &s2){
 int crypter::newChacha(string pass){
 	chactx ch;
 	for (int i=0; i<sizeof(ch.key); i++){
+		//encryption only as strong as password, no need to sha256 to get 256 bit key.
 		ch.key[i] = pass[i%pass.length()];
 	}
 	memset(&ch.nonce, 0, sizeof(ch.nonce));
@@ -124,22 +125,24 @@ int crypter::newChacha(string pass){
 }
 //each row has own nonce so need to reinitialize chacha cipher each time
 pair<char*, int> crypter::chachaEncrypt(int i, int len, char* input){
+	len++; //null terminator
 	auto ch = ctxs.data()+i;
 	auto rawResult = (uint8_t*) alloca(len+3);
 	memcpy(rawResult+3, input, len);
-	memcpy(&ch->ctx.key, ch->key, sizeof(ch->ctx.key));
 	auto nonce = rand(); //replace with secure version
 	rawResult[0] = ch->nonce[0] = nonce;
 	rawResult[1] = ch->nonce[1] = nonce >> 8;
 	rawResult[2] = ch->nonce[2] = nonce >> 16;
+	memcpy(&ch->ctx.key, ch->key, sizeof(ch->ctx.key));
 	chacha20_init_context(&ch->ctx, ch->key, ch->nonce, 1); //find out what counter param does
 	chacha20_xor(&ch->ctx, rawResult+3, len);
 	int finalSize = encsize(len+3);
 	auto finalResult = (char*) malloc(finalSize);
 	b64_encode(rawResult, (unsigned char*)finalResult, len+3);
-	return pair<char*,int>(finalResult, finalSize);
+	return pair<char*,int>(finalResult, finalSize-1); //finalsize corresponds to strlen, no terminator
 }
 pair<char*, int> crypter::chachaDecrypt(int i, int len, char* input){
+	len++; //null terminator
 	auto ch = ctxs.data()+i;
 	auto rawResult = (char*) alloca(len);
 	int finalSize;
@@ -148,9 +151,10 @@ pair<char*, int> crypter::chachaDecrypt(int i, int len, char* input){
 	ch->nonce[0] = rawResult[0];
 	ch->nonce[1] = rawResult[1];
 	ch->nonce[2] = rawResult[2];
+	memcpy(&ch->ctx.key, ch->key, sizeof(ch->ctx.key));
 	chacha20_init_context(&ch->ctx, ch->key, ch->nonce, 1); //find out what counter param does
 	chacha20_xor(&ch->ctx, (uint8_t*) rawResult+3, finalSize);
 	auto finalResult = (char*) malloc(finalSize);
 	memcpy(finalResult, rawResult+3, finalSize);
-	return pair<char*,int>(finalResult, finalSize);
+	return pair<char*,int>(finalResult, finalSize-1);
 }

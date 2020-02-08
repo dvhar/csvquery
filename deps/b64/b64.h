@@ -11,7 +11,7 @@
 extern "C" {
 #endif
 
-#define encsize(X) (((4 * X / 3) + 3) & ~3)
+#define encsize(X) (((4 * (X) / 3) + 3) & ~3)
 
 /**
  * Base64 index table.
