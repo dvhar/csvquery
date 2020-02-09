@@ -11,7 +11,7 @@ void opcode::print(){
 
 string dat::tostring(){
 	if (b & NIL) return "";
-	switch ( b & 0b00000111 ) {
+	switch ( b & 7 ) {
 	case I:  return ft("{}",u.i); break;
 	case F:  return ft("{:.10g}",u.f); break;
 	case DT: return ft("{}",datestring(u.i)); break;
@@ -23,13 +23,13 @@ string dat::tostring(){
 }
 void dat::print(){
 	if (b & NIL) return;
-	switch ( b & 0b00000111 ) {
-	case I:  fmt::print("{}",u.i); break;
-	case F:  fmt::print("{:.10g}",u.f); break;
-	case DT: fmt::print("{}",datestring(u.i)); break;
-	case DR: fmt::print("{}",durstring(u.i, nullptr)); break;
-	case T:  fmt::print("{}",u.s); break;
-	case R:  fmt::print("regex"); break;
+	switch ( b & 7 ) {
+    case I:  fmt::print("{}",u.i); break;
+    case F:  fmt::print("{:.10g}",u.f); break;
+    case DT: fmt::print("{}",datestring(u.i)); break;
+    case DR: fmt::print("{}",durstring(u.i, nullptr)); break;
+    case T:  fmt::print("{}",u.s); break;
+    case R:  fmt::print("regex"); break;
 	}
 }
 
@@ -137,9 +137,10 @@ pair<char*, int> crypter::chachaEncrypt(int i, int len, char* input){
 	chacha20_init_context(&ch->ctx, ch->key, ch->nonce, 1); //find out what counter param does
 	chacha20_xor(&ch->ctx, rawResult+3, len);
 	int finalSize = encsize(len+3);
-	auto finalResult = (char*) malloc(finalSize);
+	auto finalResult = (char*) malloc(finalSize+1);
 	b64_encode(rawResult, (unsigned char*)finalResult, len+3);
-	return pair<char*,int>(finalResult, finalSize-1); //finalsize corresponds to strlen, no terminator
+	finalResult[finalSize]=0;
+	return pair<char*,int>(finalResult, finalSize);
 }
 pair<char*, int> crypter::chachaDecrypt(int i, int len, char* input){
 	len++; //null terminator
@@ -147,14 +148,15 @@ pair<char*, int> crypter::chachaDecrypt(int i, int len, char* input){
 	auto rawResult = (char*) alloca(len);
 	int finalSize;
 	b64_decode(input, rawResult, len, &finalSize);
-	finalSize -= 3;
+	finalSize -= 4;
 	ch->nonce[0] = rawResult[0];
 	ch->nonce[1] = rawResult[1];
 	ch->nonce[2] = rawResult[2];
 	memcpy(&ch->ctx.key, ch->key, sizeof(ch->ctx.key));
 	chacha20_init_context(&ch->ctx, ch->key, ch->nonce, 1); //find out what counter param does
 	chacha20_xor(&ch->ctx, (uint8_t*) rawResult+3, finalSize);
-	auto finalResult = (char*) malloc(finalSize);
+	auto finalResult = (char*) malloc(finalSize+1);
 	memcpy(finalResult, rawResult+3, finalSize);
-	return pair<char*,int>(finalResult, finalSize-1);
+	finalResult[finalSize]=0;
+	return pair<char*,int>(finalResult, finalSize);
 }

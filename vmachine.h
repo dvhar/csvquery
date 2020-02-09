@@ -58,29 +58,29 @@ const byte R = 7;
 const byte RMAL = 8; //regex needs regfree() (literals vector only)
 const byte MAL = 16; //malloced and responsible for freeing c string
 const byte NIL = 32;
-#define ISINT(X) ( X.b & I )
-#define ISFLOAT(X) ( X.b & F )
-#define ISDATE(X) ( X.b & DT )
-#define ISDUR(X) ( X.b & DR )
-#define ISTEXT(X) ( X.b & T )
-#define ISNULL(X) ( X.b & NIL )
-#define ISMAL(X) ( X.b & MAL )
+#define ISINT(X) ( (X).b & I )
+#define ISFLOAT(X) ( (X).b & F )
+#define ISDATE(X) ( (X).b & DT )
+#define ISDUR(X) ( (X).b & DR )
+#define ISTEXT(X) ( (X).b & T )
+#define ISNULL(X) ( (X).b & NIL )
+#define ISMAL(X) ( (X).b & MAL )
 
 //free cstring when arg is array[index] and only index it once
-#define FREE1(X) datp = &X;  \
-	if ( datp->b & MAL ){ \
-		free(datp->u.s); \
-		datp->b &=(~MAL);\
+#define FREE1(X) datp = &(X);  \
+	if ( (datp)->b & MAL ){ \
+		free((datp)->u.s); \
+		(datp)->b &=(~MAL);\
 	}
 //free cstring with fewer steps if arg has no array indexing
 #define FREE2(X) \
-	if ( X.b & MAL ){ \
-		free(X.u.s); \
-		X.b &=(~MAL); \
+	if ( (X).b & MAL ){ \
+		free((X).u.s); \
+		(X).b &=(~MAL); \
 	}
 
 //passed free() responsibility to another dat
-#define DISOWN(X) X.b &=(~MAL)
+#define DISOWN(X) (X).b &=(~MAL)
 
 //make sure to free manually like normal malloced c strings
 class treeCString {

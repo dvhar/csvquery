@@ -96,7 +96,6 @@ case LDDATE:
 case LDTEXT:
 	push();
 	csvTemp = files[op->p1]->entries[op->p2];
-	FREE2(stk0);
 	stk0 = dat{ { .s = csvTemp.val }, T, csvTemp.size };
 	if (!csvTemp.size) stk0.b |= NIL;
 	++ip;
@@ -119,13 +118,11 @@ case LDINT:
 	break;
 case LDNULL:
 	push();
-	FREE2(stk0);
 	stk0.b = NIL;
 	++ip;
 	break;
 case LDLIT:
 	push();
-	FREE2(stk0);
 	stk0 = q->literals[op->p1];
 	++ip;
 	break;
@@ -366,6 +363,7 @@ case POP:
 case POPCPY: //currently only used for bools
 	FREE2(stk1);
 	stk1 = stk0;
+	DISOWN(stk0);
 	pop();
 	++ip;
 	break;
@@ -536,7 +534,6 @@ case SDIST:
 case FINC:
 	q->literals[op->p1].u.f++;
 	push();
-	FREE2(stk0);
 	stk0 = q->literals[op->p1];
 	++ip;
 	break;
