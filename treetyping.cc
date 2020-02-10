@@ -63,6 +63,51 @@ static ktype keepSubtreeTypes(int t1, int t2, int op) {
 	return {0, false};
 }
 
+static bool canBeString(unique_ptr<node> &n){
+	if (n == nullptr) return true;
+
+	switch (n->label){
+	case N_CWEXPR:
+	case N_CPRED:
+		return canBeString(n->node2);
+	case N_EXPRNEG:
+	case N_EXPRADD:
+	case N_EXPRMULT:
+		if (n->tok1.id)
+			return false;
+		else
+			return canBeString(n->node1);
+		break;
+	case N_DEXPRESSIONS:
+	case N_CWEXPRLIST:
+	case N_CPREDLIST:
+		return canBeString(n->node1) && canBeString(n->node2);
+	case N_EXPRCASE:
+		switch (n->tok1.id){
+		case KW_WHEN:
+			return canBeString(n->node1) && canBeString(n->node3);
+		default:
+			return canBeString(n->node2) && canBeString(n->node3);
+		}
+		break;
+	case N_VALUE:
+		return true;
+	case N_FUNCTION:
+		switch (n->tok1.id){
+		case FN_COALESCE:
+			return canBeString(n->node1);
+		case FN_ENCRYPT:
+		case FN_DECRYPT:
+			return true;
+		case FN_INC:
+		case FN_COUNT:
+			return false;
+		}
+	}
+	error("canBeString() function malfunctioned");
+	return false;
+}
+
 //see if a node involves operation that requires specific type
 static bool stillTrivial(unique_ptr<node> &n){
 	switch (n->label){
@@ -288,7 +333,7 @@ static typer typeValueInnerNodes(querySpecs &q, unique_ptr<node> &n){
 
 static typer typeFunctionInnerNodes(querySpecs &q, unique_ptr<node> &n){
 	if (n == nullptr) return {0,0};
-	typer innerType = {0,0};
+	typer innerType = {0}, paramType = {0};
 	switch (n->tok1.id){
 	case FN_COUNT:
 		n->keep = true;
@@ -297,11 +342,17 @@ static typer typeFunctionInnerNodes(querySpecs &q, unique_ptr<node> &n){
 		break;
 	case FN_MONTHNAME:
 	case FN_WDAYNAME:
-	case FN_ENCRYPT:
-	case FN_DECRYPT:
 		n->keep = true;
 		typeInnerNodes(q, n->node1);
-		innerType = {T_STRING, true};
+		innerType = {T_STRING, false};
+		break;
+	case FN_ENCRYPT:
+	case FN_DECRYPT:
+		paramType = typeInnerNodes(q, n->node1);
+		innerType = {T_STRING, false};
+		if (!canBeString(n->node1)) {
+			n->tok5.id = paramType.type;
+		}
 		break;
 	case FN_YEAR:
 	case FN_MONTH:
@@ -460,12 +511,28 @@ static void typePredCompFinalNodes(querySpecs &q, unique_ptr<node> &n){
 
 static void typeFunctionFinalNodes(querySpecs &q, unique_ptr<node> &n, int finaltype){
 	if (n == nullptr) return;
+	if (n->keep) finaltype = -1;
+	node *convNode, *tempNode;
 	switch (n->tok1.id){
 	case FN_COUNT:
 	case FN_INC:
 	case FN_ENCRYPT:
 	case FN_DECRYPT:
-		typeFinalValues(q, n->node1, -1);
+		//add type conversion node if needed
+		if (n->tok5.id){
+			typeFinalValues(q, n->node1, n->tok5.id);
+			convNode = new node;
+			*convNode = {0};
+			convNode->label = N_TYPECONV;
+			convNode->keep = true;
+			convNode->datatype = finaltype;
+			convNode->tok1.id = n->tok5.id;
+			tempNode = n->node1.release();
+			convNode->node1.reset(tempNode);
+			n->node1.reset(convNode);
+		} else {
+			typeFinalValues(q, n->node1, finaltype);
+		}
 		break;
 	case FN_MONTHNAME:
 	case FN_WDAYNAME:

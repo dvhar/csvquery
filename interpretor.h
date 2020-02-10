@@ -347,5 +347,6 @@ int getVarType(string lkup, querySpecs &q);
 int getFileNo(string s, querySpecs &q);
 char* durstring(dur_t dur, char* str);
 void runServer();
+unique_ptr<node> newNode(int);
 
 #endif
