@@ -116,5 +116,7 @@ class vmachine {
 
 extern map<int, string> opMap;
 void strplus(dat &s1, dat &s2);
+int int64ToString(char** dest, int64 i);
+int doubleToString(char** dest, double f);
 
 #endif

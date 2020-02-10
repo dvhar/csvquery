@@ -160,3 +160,18 @@ pair<char*, int> crypter::chachaDecrypt(int i, int len, char* input){
 	finalResult[finalSize]=0;
 	return pair<char*,int>(finalResult, finalSize);
 }
+
+int int64ToString(char** dest, int64 i){
+	auto tmp = (char*) alloca(50);
+	auto size = sprintf(tmp, "%lld", i);
+	*dest = (char*) malloc(size+1);
+	memcpy(*dest, tmp, size+1);
+	return size;
+}
+int doubleToString(char** dest, double f){
+	auto tmp = (char*) alloca(50);
+	auto size = sprintf(tmp, "%.10g", f);
+	*dest = (char*) malloc(size+1);
+	memcpy(*dest, tmp, size+1);
+	return size;
+}

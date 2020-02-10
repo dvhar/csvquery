@@ -385,8 +385,8 @@ case NULFALSE2:
 
 //type conversions
 case CVIS:
-	stk0.z = asprintf(&cstrTemp, "%lld", stk0.u.i);
-	if (stk0.z != -1){
+	stk0.z = int64ToString(&cstrTemp, stk0.u.i);
+	if (stk0.z >= 0){
 		stk0.u.s = cstrTemp;
 		stk0.b = T|MAL;
 	} else {
@@ -395,8 +395,8 @@ case CVIS:
 	++ip;
 	break;
 case CVFS:
-	stk0.z = asprintf(&cstrTemp, "%.10g", stk0.u.f);
-	if (stk0.z != -1){
+	stk0.z = doubleToString(&cstrTemp, stk0.u.f);
+	if (stk0.z >= 0){
 		stk0.u.s = cstrTemp;
 		stk0.b = T|MAL;
 	} else {
