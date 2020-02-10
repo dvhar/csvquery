@@ -24,12 +24,12 @@ string dat::tostring(){
 void dat::print(){
 	if (b & NIL) return;
 	switch ( b & 7 ) {
-    case I:  fmt::print("{}",u.i); break;
-    case F:  fmt::print("{:.10g}",u.f); break;
-    case DT: fmt::print("{}",datestring(u.i)); break;
-    case DR: fmt::print("{}",durstring(u.i, nullptr)); break;
-    case T:  fmt::print("{}",u.s); break;
-    case R:  fmt::print("regex"); break;
+	case I:  fmt::print("{}",u.i); break;
+	case F:  fmt::print("{:.10g}",u.f); break;
+	case DT: fmt::print("{}",datestring(u.i)); break;
+	case DR: fmt::print("{}",durstring(u.i, nullptr)); break;
+	case T:  fmt::print("{}",u.s); break;
+	case R:  fmt::print("regex"); break;
 	}
 }
 

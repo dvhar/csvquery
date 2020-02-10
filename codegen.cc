@@ -23,6 +23,7 @@ static void genValue(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q);
 static void genFunction(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q);
 static void genSelectAll(vector<opcode> &v, querySpecs &q, int &count);
 static void genSelections(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q);
+static void genTypeConv(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q);
 
 //for debugging
 static int ident = 0;
@@ -193,6 +194,7 @@ static void genExprAll(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
 	case N_PREDCOMP:        genPredCompare (n, v, q); break;
 	case N_VALUE:           genValue       (n, v, q); break;
 	case N_FUNCTION:        genFunction    (n, v, q); break;
+	case N_TYPECONV:        genTypeConv    (n, v, q); break;
 	}
 }
 
@@ -314,7 +316,7 @@ static void genValue(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
 		if (op == CVER)
 			error(ft("Error converting variable of type {} to new type {}", vtype, n->datatype));
 		if (op != CVNO)
-			addop(v, op, vtype, n->datatype);
+			addop(v, op);
 		break;
 	case FUNCTION:
 		genExprAll(n->node1, v, q);
@@ -606,6 +608,12 @@ static void genFunction(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
 		}
 		break;
 	}
+}
+
+static void genTypeConv(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
+	if (n == nullptr) return;
+	genExprAll(n->node1, v, q);
+	addop(v, typeConv[n->tok1.id][n->datatype]);
 }
 
 static void genPrint(vector<opcode> &v, querySpecs &q){

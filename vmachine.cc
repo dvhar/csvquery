@@ -396,6 +396,7 @@ case CVIS:
 	break;
 case CVFS:
 	strTemp = ft("{:.10g}",stk0.u.f);
+	cerr << "strTemp = " << strTemp << endl;
 	iTemp1 = strTemp.size()+1;
 	stk0.u.s = (char*) malloc(iTemp1);
 	memcpy(stk0.u.s, (void*) strTemp.c_str(), iTemp1);

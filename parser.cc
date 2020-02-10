@@ -44,16 +44,6 @@ static void e(string s){
 	cerr << s << "   : " << i << endl;
 	t.print();
 }
-
-
-unique_ptr<node> newNode(int l){
-	unique_ptr<node> n(new node);
-	n->tok1 = n->tok2 = n->tok3 = n->tok4 = n->tok5 = token{};
-	n->label = l;
-	n->datatype = 0;
-	n->keep = false;
-	return n;
-}
 unique_ptr<node> newNode(int l, token t){
 	unique_ptr<node> n(new node);
 	n->tok2 = n->tok3 = n->tok4 = n->tok5 = token{};
@@ -740,6 +730,7 @@ static unique_ptr<node> parseOrder(querySpecs &q) {
 //tok2 is * for count(*)
 //tok3 is distinct or cipher
 //tok4 is password
+//tok5 is paramtype for type conversion
 //node1 is expression in parens
 static unique_ptr<node> parseFunction(querySpecs &q) {
 	t = q.tok();
