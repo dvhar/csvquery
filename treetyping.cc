@@ -66,6 +66,7 @@ static ktype keepSubtreeTypes(int t1, int t2, int op) {
 static bool canBeString(unique_ptr<node> &n){
 	if (n == nullptr) return true;
 
+		cerr << treeMap[n->label] << " " << n->tok1.val << "  <- canbe\n";
 	switch (n->label){
 	case N_CWEXPR:
 	case N_CPRED:
@@ -84,13 +85,20 @@ static bool canBeString(unique_ptr<node> &n){
 		return canBeString(n->node1) && canBeString(n->node2);
 	case N_EXPRCASE:
 		switch (n->tok1.id){
-		case KW_WHEN:
-			return canBeString(n->node1) && canBeString(n->node3);
-		default:
-			return canBeString(n->node2) && canBeString(n->node3);
+			case KW_CASE:
+				switch (n->tok1.id){
+				case KW_WHEN:
+					return canBeString(n->node1) && canBeString(n->node3);
+				default:
+					return canBeString(n->node2) && canBeString(n->node3);
+				}
+			default:
+				return canBeString(n->node1);
 		}
 		break;
 	case N_VALUE:
+		if (n->tok2.id)
+			return canBeString(n->node1);
 		return true;
 	case N_FUNCTION:
 		switch (n->tok1.id){
@@ -101,6 +109,7 @@ static bool canBeString(unique_ptr<node> &n){
 			return true;
 		case FN_INC:
 		case FN_COUNT:
+			cerr << "returning false for inc func\n";
 			return false;
 		}
 	}

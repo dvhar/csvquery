@@ -391,15 +391,18 @@ case CVIS:
 	iTemp1 = strTemp.size()+1;
 	stk0.u.s = (char*) malloc(iTemp1);
 	memcpy((void*) strTemp.c_str(), stk0.u.s, iTemp1);
+	stk0.u.s[iTemp1] = 0;
+	stk0.z = iTemp1-1;
 	stk0.b = T|MAL;
 	++ip;
 	break;
 case CVFS:
 	strTemp = ft("{:.10g}",stk0.u.f);
-	cerr << "strTemp = " << strTemp << endl;
 	iTemp1 = strTemp.size()+1;
 	stk0.u.s = (char*) malloc(iTemp1);
 	memcpy(stk0.u.s, (void*) strTemp.c_str(), iTemp1);
+	stk0.u.s[iTemp1] = 0;
+	stk0.z = iTemp1-1;
 	stk0.b = T|MAL;
 	++ip;
 	break;
