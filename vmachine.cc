@@ -14,7 +14,6 @@ void vmachine::run(){
 	int iTemp1, iTemp2;
 	double fTemp;
 	char* cstrTemp;
-	string strTemp;
 	bool boolTemp;
 	csvEntry csvTemp;
 	pair<char*, int> pairTemp;
@@ -385,25 +384,24 @@ case NULFALSE2:
 	break;
 
 //type conversions
-//should use realloc instead of fmt for tostring conversions
 case CVIS:
-	strTemp = str1(stk0.u.i);
-	iTemp1 = strTemp.size()+1;
-	stk0.u.s = (char*) malloc(iTemp1);
-	memcpy((void*) strTemp.c_str(), stk0.u.s, iTemp1);
-	stk0.u.s[iTemp1] = 0;
-	stk0.z = iTemp1-1;
-	stk0.b = T|MAL;
+	stk0.z = asprintf(&cstrTemp, "%lld", stk0.u.i);
+	if (stk0.z != -1){
+		stk0.u.s = cstrTemp;
+		stk0.b = T|MAL;
+	} else {
+		stk0.b = T|NIL;
+	}
 	++ip;
 	break;
 case CVFS:
-	strTemp = ft("{:.10g}",stk0.u.f);
-	iTemp1 = strTemp.size()+1;
-	stk0.u.s = (char*) malloc(iTemp1);
-	memcpy(stk0.u.s, (void*) strTemp.c_str(), iTemp1);
-	stk0.u.s[iTemp1] = 0;
-	stk0.z = iTemp1-1;
-	stk0.b = T|MAL;
+	stk0.z = asprintf(&cstrTemp, "%.10g", stk0.u.f);
+	if (stk0.z != -1){
+		stk0.u.s = cstrTemp;
+		stk0.b = T|MAL;
+	} else {
+		stk0.b = T|NIL;
+	}
 	++ip;
 	break;
 case CVFI:
@@ -418,7 +416,7 @@ case CVSI:
 	iTemp1 = strtol(stk0.u.s, &cstrTemp, 10);
 	FREE2(stk0);
 	stk0.u.i = iTemp1;
-	stk0.b = F;
+	stk0.b = I;
 	if (*cstrTemp){ stk0.b |= NIL; }
 	++ip;
 	break;
