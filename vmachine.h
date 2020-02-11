@@ -26,7 +26,8 @@ enum codes : unsigned char {
 	ILT, FLT, TLT,
 	PRINT, POP, POPCPY, ENDRUN, NULFALSE1, NULFALSE2,
 	NDIST, SDIST, PUTDIST,
-	FINC, ENCCHA, DECCHA
+	FINC, ENCCHA, DECCHA,
+	SAVEPOSI, SAVEPOSF, SAVEPOSS, SORTI
 };
 extern map<int, string> opMap;
 
@@ -55,7 +56,7 @@ const byte DT = 3;
 const byte DR = 4;
 const byte T = 6;
 const byte R = 7;
-const byte RMAL = 8; //regex needs regfree() (literals vector only)
+const byte RMAL = 8; //regex needs regfree() (dataholder vector only)
 const byte MAL = 16; //malloced and responsible for freeing c string
 const byte NIL = 32;
 #define ISINT(X) ( (X).b & I )
@@ -93,6 +94,16 @@ class treeCString {
 	}
 };
 
+class valPos {
+	public:
+	datunion val;
+	int64 pos;
+	valPos(int64, int64);
+	valPos(double, int64);
+	valPos(char*, int64);
+	valPos();
+};
+
 class vmachine {
 	querySpecs* q;
 	vector<shared_ptr<fileReader>> files;
@@ -105,6 +116,7 @@ class vmachine {
 	vector<dat> midrow;
 	vector<dat> stack;
 	vector<dat> vars;
+	vector<vector<valPos>> posVectors;
 	//separate btrees for performance
 	vector<btree::btree_set<int64>> bt_nums;
 	vector<btree::btree_set<treeCString>> bt_strings;
@@ -116,7 +128,5 @@ class vmachine {
 
 extern map<int, string> opMap;
 void strplus(dat &s1, dat &s2);
-int int64ToString(char** dest, int64 i);
-int doubleToString(char** dest, double f);
 
 #endif

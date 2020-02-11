@@ -29,7 +29,7 @@
 #define dur_t long long
 #define byte unsigned char
 #define ft fmt::format
-#define pt fmt::print
+//#define pt fmt::print
 #define str1(A) ft("{}",A)
 #define str2(A,B) ft("{}{}",A,B)
 #define str3(A,B,C) ft("{}{}{}",A,B,C)
@@ -89,9 +89,9 @@ class fileReader {
 	char* pos2;
 	char* terminator;
 	char buf[BUFSIZE];
-	streampos pos;
 	ifstream fs;
 	public:
+		streampos pos;
 		vector<string> colnames;
 		vector<int> types;
 		vector<csvEntry> entries;
@@ -104,6 +104,7 @@ class fileReader {
 	void print();
 	int getColIdx(string);
 	int readline();
+	int readlineat(int64);
 	fileReader(string);
 };
 
@@ -186,7 +187,7 @@ class querySpecs {
 	string password;
 	vector<token> tokArray;
 	vector<variable> vars;
-	vector<dat> literals;
+	vector<dat> dataholder;
 	vector<opcode> bytecode;
 	map<string, shared_ptr<fileReader>> files;
 	unique_ptr<node> tree;
@@ -199,9 +200,10 @@ class querySpecs {
 	int btn;
 	int bts;
 	int quantityLimit;
+	int posVecs;
+	int sorting;
 	bool joining;
 	bool grouping;
-	bool sorting;
 	bool whereFiltering;
 	bool havingFiltering;
 	token tok();

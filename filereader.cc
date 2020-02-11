@@ -16,6 +16,11 @@ void fileReader::print(){
 	}
 	cerr << endl;
 }
+int fileReader::readlineat(int64 position){
+	pos = position;
+	fs.seekg(pos);
+	return readline();
+}
 int fileReader::readline(){
 	pos = fs.tellg();
 	fs.getline(buf, BUFSIZE);
@@ -99,7 +104,6 @@ void fileReader::inferTypes() {
 	readline();
 	auto startData = pos;
 	//get col names and initialize blank types
-	cerr << " noheader: " << noheader << endl;
 	for (int i=0; i<entries.size(); ++i) {
 		if (noheader)
 			colnames.push_back(str2("col",i+1));

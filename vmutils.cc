@@ -33,6 +33,11 @@ void dat::print(){
 	}
 }
 
+valPos::valPos(int64 i, int64 p){ val.i = i; pos = p; }
+valPos::valPos(double f, int64 p){ val.f = f; pos = p; }
+valPos::valPos(char* s, int64 p){ val.s = s; pos = p; }
+valPos::valPos(){val={0};pos=0;}
+
 treeCString::treeCString(){
 	s = nullptr;
 }
@@ -61,6 +66,7 @@ vmachine::vmachine(querySpecs &qs){
 	vars.resize(q->vars.size());
 	//eventually set stack size based on ast
 	stack.resize(100);
+	posVectors.resize(q->posVecs);
 	ops = q->bytecode.data();
 	quantityLimit = q->quantityLimit;
 	bt_nums.resize(q->btn);
@@ -85,7 +91,7 @@ vmachine::~vmachine(){
 	}
 }
 querySpecs::~querySpecs(){
-	for (auto &d : literals){
+	for (auto &d : dataholder){
 		FREE2(d);
 		if (d.b & RMAL){
 			regfree(d.u.r);
@@ -159,19 +165,4 @@ pair<char*, int> crypter::chachaDecrypt(int i, int len, char* input){
 	memcpy(finalResult, rawResult+3, finalSize);
 	finalResult[finalSize]=0;
 	return pair<char*,int>(finalResult, finalSize);
-}
-
-int int64ToString(char** dest, int64 i){
-	auto tmp = (char*) alloca(50);
-	auto size = sprintf(tmp, "%lld", i);
-	*dest = (char*) malloc(size+1);
-	memcpy(*dest, tmp, size+1);
-	return size;
-}
-int doubleToString(char** dest, double f){
-	auto tmp = (char*) alloca(50);
-	auto size = sprintf(tmp, "%.10g", f);
-	*dest = (char*) malloc(size+1);
-	memcpy(*dest, tmp, size+1);
-	return size;
 }
