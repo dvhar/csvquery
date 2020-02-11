@@ -708,7 +708,7 @@ static unique_ptr<node> parseOrder(querySpecs &q) {
 	e("order");
 	if (t.lower() == "order") {
 		if (q.nextTok().lower() != "by") error("Expected 'by' after 'order'. Found "+q.tok().val);
-		q.sorting = true;
+		q.sorting = 1; //later change to type
 		q.nextTok();
 		unique_ptr<node> n = newNode(N_ORDER);
 		n->node1 = parseExprAdd(q);

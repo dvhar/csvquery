@@ -1,6 +1,7 @@
 #include "interpretor.h"
 #include "vmachine.h"
 
+static void genNormalOrderedQuery(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q);
 static void genNormalQuery(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q);
 static void genVars(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q, int filter);
 static void genWhere(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q);
@@ -48,6 +49,7 @@ static int typeConv[6][6] = {
 	{0, CVNO, CVIF, CVER, CVNO, CVDRS},
 	{0, CVSI, CVSF, CVSDT,CVSDR,CVNO},
 };
+static int sortTypes[] = { 0, I, F, I, I, T };
 
 //distinct check types
 static int distinctOps[] = { 0, NDIST, NDIST, NDIST, NDIST, SDIST };
@@ -137,7 +139,7 @@ static void determinePath(querySpecs &q){
 		//order join
 	} else if (q.sorting && !q.grouping) {
 		//ordered plain
-
+		genNormalOrderedQuery(q.tree, q.bytecode, q);
 		// 1 read line
 		// 2 check where
 		// 3 retrieve and append sort expr
@@ -155,18 +157,6 @@ static void determinePath(querySpecs &q){
 		//normal join and grouping
 	} else {
 		genNormalQuery(q.tree, q.bytecode, q);
-		//normal plain and grouping
-
-		// 1 read line
-		// 2 eval vars used for filter
-		// 3 check where and distinct
-		// 4 eval vars not used for filter
-		// 5 set torow (new or group)
-		// 6 select (phase 1)
-		// 7 print/append if not grouping
-		// 8 if not done, goto 1
-		// 9 return grouped rows
-		//	 select (phase 2)
 	}
 	q.jumps.updateBytecode(q.bytecode);
 
@@ -217,6 +207,16 @@ static void genNormalQuery(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q
 	genReturnGroups(n->node4, v, q); //more selecting/printing if grouping
 	addop(v, ENDRUN);
 }
+static void genNormalOrderedQuery(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
+	NORMAL_READ = v.size();
+	int sorter = q.jumps.newPlaceholder(); //where to jump when done scanning file
+	addop(v, RDLINE, sorter, 0);
+	genVars(n->node1, v, q, 1);
+	genWhere(n->node4, v, q);
+	addop(v, sortTypes[q.sorting], 0, 0);
+	q.posVecs++;
+	//go back and read rows in sorted order
+};
 
 static void genVars(unique_ptr<node> &n, vector<opcode> &vec, querySpecs &q, int filter){
 	if (n == nullptr) return;
@@ -304,8 +304,8 @@ static void genValue(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
 		if (n->tok1.lower() == "null"){
 			addop(v, LDNULL);
 		} else {
-			addop(v, LDLIT, q.literals.size());
-			q.literals.push_back(lit);
+			addop(v, LDLIT, q.dataholder.size());
+			q.dataholder.push_back(lit);
 		}
 		break;
 	case VARIABLE:
@@ -516,14 +516,14 @@ static void genPredCompare(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q
 		addop(v, POPCPY); //put result where 1st expr was
 		break;
 	case KW_LIKE:
-		addop(v, LIKE, q.literals.size(), negation);
+		addop(v, LIKE, q.dataholder.size(), negation);
 		reg.u.r = new regex_t;
 		reg.b = R|RMAL;
 		boost::replace_all(n->tok3.val, "_", ".");
 		boost::replace_all(n->tok3.val, "%", ".*");
 		if (regcomp(reg.u.r, ("^"+n->tok3.val+"$").c_str(), REG_EXTENDED|REG_ICASE))
 			error("Could not parse 'like' pattern");
-		q.literals.push_back(reg);
+		q.dataholder.push_back(reg);
 		break;
 	}
 }
@@ -588,8 +588,8 @@ static void genFunction(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
 		q.jumps.setPlace(funcDone, v.size());
 		break;
 	case FN_INC:
-		addop(v, FINC, q.literals.size()); //should rename literals vector
-		q.literals.push_back(dat{ {.f = 0.0}, F});
+		addop(v, FINC, q.dataholder.size());
+		q.dataholder.push_back(dat{ {.f = 0.0}, F});
 		break;
 	case FN_ENCRYPT:
 		genExprAll(n->node1, v, q);

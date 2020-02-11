@@ -1,5 +1,6 @@
 #include "interpretor.h"
 #include "vmachine.h"
+#include <execution>
 
 //syntactic sugar for stack dereferencing
 #define stk0 (*stacktop)
@@ -14,6 +15,7 @@ void vmachine::run(){
 	int iTemp1, iTemp2;
 	double fTemp;
 	char* cstrTemp;
+	char bufTemp[40];
 	bool boolTemp;
 	csvEntry csvTemp;
 	pair<char*, int> pairTemp;
@@ -122,7 +124,7 @@ case LDNULL:
 	break;
 case LDLIT:
 	push();
-	stk0 = q->literals[op->p1];
+	stk0 = q->dataholder[op->p1];
 	++ip;
 	break;
 
@@ -131,8 +133,29 @@ case RDLINE:
 	ip = files[op->p2]->readline() ? op->p1 : ip+1;
 	break;
 case RDLINEAT:
+	files[op->p2]->readlineat(q->dataholder[op->p1].u.i);
 	++ip;
-	//need to add random access feature to filereader
+	break;
+case SAVEPOSI:
+	posVectors[op->p1].push_back(valPos( stk0.u.i, files[op->p2]->pos ));
+	break;
+case SAVEPOSF:
+	posVectors[op->p1].push_back(valPos( stk0.u.f, files[op->p2]->pos ));
+	break;
+case SAVEPOSS:
+	if (ISMAL(stk0)){
+		cstrTemp = stk0.u.s;
+		DISOWN(stk0);
+	} else {
+		cstrTemp = (char*) malloc(stk0.z+1);
+		strcpy(cstrTemp, stk0.u.s);
+	}
+	posVectors[op->p1].push_back(valPos( cstrTemp, files[op->p2]->pos ));
+	break;
+
+case SORTI:
+	sort(execution::par_unseq, posVectors[op->p1].begin(), posVectors[op->p1].end(),
+		[](valPos i, valPos j){ return i.val.i < j.val.i; });
 	break;
 
 //math operations
@@ -348,7 +371,7 @@ case TLT:
 	++ip;
 	break;
 case LIKE:
-	iTemp1 = !regexec(q->literals[op->p1].u.r, stk0.u.s, 0, 0, 0)^op->p2;
+	iTemp1 = !regexec(q->dataholder[op->p1].u.r, stk0.u.s, 0, 0, 0)^op->p2;
 	FREE2(stk0);
 	stk0.u.p = iTemp1;
 	++ip;
@@ -385,9 +408,10 @@ case NULFALSE2:
 
 //type conversions
 case CVIS:
-	stk0.z = int64ToString(&cstrTemp, stk0.u.i);
+	stk0.z = sprintf(bufTemp, "%lld", stk0.u.i);
+	stk0.u.s = (char*) malloc(stk0.z+1);
+	memcpy(stk0.u.s, bufTemp, stk0.z+1);
 	if (stk0.z >= 0){
-		stk0.u.s = cstrTemp;
 		stk0.b = T|MAL;
 	} else {
 		stk0.b = T|NIL;
@@ -395,9 +419,10 @@ case CVIS:
 	++ip;
 	break;
 case CVFS:
-	stk0.z = doubleToString(&cstrTemp, stk0.u.f);
+	stk0.z = sprintf(bufTemp, "%.10g", stk0.u.f);
+	stk0.u.s = (char*) malloc(stk0.z+1);
+	memcpy(stk0.u.s, bufTemp, stk0.z+1);
 	if (stk0.z >= 0){
-		stk0.u.s = cstrTemp;
 		stk0.b = T|MAL;
 	} else {
 		stk0.b = T|NIL;
@@ -534,9 +559,9 @@ case SDIST:
 
 //functions
 case FINC:
-	q->literals[op->p1].u.f++;
+	q->dataholder[op->p1].u.f++;
 	push();
-	stk0 = q->literals[op->p1];
+	stk0 = q->dataholder[op->p1];
 	++ip;
 	break;
 case ENCCHA:
