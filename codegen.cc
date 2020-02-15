@@ -5,7 +5,7 @@ static void genNormalOrderedQuery(unique_ptr<node> &n, vector<opcode> &v, queryS
 static void genNormalQuery(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q);
 static void genVars(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q, int filter);
 static void genWhere(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q);
-static void genDistinct(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q);
+static void genDistinct(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q, int gotoIfNot);
 static void genGroupOrNewRow(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q);
 static void genSelect(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q);
 static void genPrint(vector<opcode> &v, querySpecs &q);
@@ -49,7 +49,8 @@ static int typeConv[6][6] = {
 	{0, CVNO, CVIF, CVER, CVNO, CVDRS},
 	{0, CVSI, CVSF, CVSDT,CVSDR,CVNO},
 };
-static int sortTypes[] = { 0, I, F, I, I, T };
+static int sortOps[] = { 0, SORTI, SORTF, SORTI, SORTI, SORTS };
+static int savePosOps[] = { 0, SAVEPOSI_JMP, SAVEPOSF_JMP, SAVEPOSI_JMP, SAVEPOSI_JMP, SAVEPOSS_JMP };
 
 //distinct check types
 static int distinctOps[] = { 0, NDIST, NDIST, NDIST, NDIST, SDIST };
@@ -105,6 +106,7 @@ void jumpPositions::updateBytecode(vector<opcode> &vec) {
 		case JMPTRUE:
 		case JMPFALSE:
 		case RDLINE:
+		case RDLINE_ORDERED:
 		case NULFALSE1:
 		case NULFALSE2:
 		case NDIST:
@@ -138,6 +140,7 @@ static void determinePath(querySpecs &q){
 	if (q.sorting && !q.grouping && q.joining) {
 		//order join
 	} else if (q.sorting && !q.grouping) {
+		cerr << "ordered normal\n";
 		//ordered plain
 		genNormalOrderedQuery(q.tree, q.bytecode, q);
 		// 1 read line
@@ -156,6 +159,7 @@ static void determinePath(querySpecs &q){
 	} else if (q.joining) {
 		//normal join and grouping
 	} else {
+		cerr << "plain normal\n";
 		genNormalQuery(q.tree, q.bytecode, q);
 	}
 	q.jumps.updateBytecode(q.bytecode);
@@ -196,7 +200,7 @@ static void genNormalQuery(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q
 	addop(v, RDLINE, endfile, 0);
 	genVars(n->node1, v, q, 1);
 	genWhere(n->node4, v, q);
-	genDistinct(n->node2->node1, v, q);
+	genDistinct(n->node2->node1, v, q, NORMAL_READ);
 	genVars(n->node1, v, q, 0);
 	genGroupOrNewRow(n->node4, v, q);
 	genSelect(n->node2, v, q);
@@ -210,12 +214,32 @@ static void genNormalQuery(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q
 static void genNormalOrderedQuery(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
 	NORMAL_READ = v.size();
 	int sorter = q.jumps.newPlaceholder(); //where to jump when done scanning file
+	int reread = q.jumps.newPlaceholder();
+	int endreread = q.jumps.newPlaceholder(); //where to jump when done rereading file
 	addop(v, RDLINE, sorter, 0);
 	genVars(n->node1, v, q, 1);
 	genWhere(n->node4, v, q);
-	addop(v, sortTypes[q.sorting], 0, 0);
-	q.posVecs++;
-	//go back and read rows in sorted order
+	genExprAll(n->node4->node4->node1, v, q);
+	addop(v, savePosOps[q.sorting], NORMAL_READ, 0, 0);
+	q.posVecs = 1;
+	q.jumps.setPlace(sorter, v.size());
+	int asc = n->node4->node4->tok1.lower() == "asc" ? 1 : 0;
+	addop(v, sortOps[q.sorting], 0, asc);
+	addop(v, PREP_REREAD, 0, 0);
+	q.jumps.setPlace(reread, v.size());
+	addop(v, RDLINE_ORDERED, endreread, 0, 0);
+	genDistinct(n->node2->node1, v, q, reread);
+	genVars(n->node1, v, q, 0);
+	genGroupOrNewRow(n->node4, v, q);
+	genSelect(n->node2, v, q);
+	if (!q.grouping)
+		genPrint(v, q);
+	addop(v, (q.quantityLimit > 0 && !q.grouping ? JMPCNT : JMP), reread);
+	q.jumps.setPlace(endreread, v.size());
+	addop(v, POP);
+	addop(v, POP);
+	genReturnGroups(n->node4, v, q); //more selecting/printing if grouping
+	addop(v, ENDRUN);
 };
 
 static void genVars(unique_ptr<node> &n, vector<opcode> &vec, querySpecs &q, int filter){
@@ -546,7 +570,7 @@ static void genWhere(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
 	}
 }
 
-static void genDistinct(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
+static void genDistinct(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q, int gotoIfNot){
 	e("gen distinct");
 	if (n == nullptr) return;
 	if (n->label != N_SELECTIONS) return;
@@ -564,11 +588,11 @@ static void genDistinct(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
 			btreeIdx = q.bts++;
 			break;
 		}
-		addop(v, distinctOps[n->datatype], NORMAL_READ, btreeIdx,
+		addop(v, distinctOps[n->datatype], gotoIfNot, btreeIdx,
 			n->tok1.lower() == "hidden" ? 0 : 1);
 	} else {
 		//there can be only 1 distinct filter
-		genDistinct(n->node2, v, q);
+		genDistinct(n->node2, v, q, gotoIfNot);
 	}
 }
 

@@ -102,6 +102,7 @@ class fileReader {
 	int checkWidth();
 	void inferTypes();
 	void print();
+	void clear(){ fs.clear(); }
 	int getColIdx(string);
 	int readline();
 	int readlineat(int64);
