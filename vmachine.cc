@@ -1,6 +1,9 @@
 #include "interpretor.h"
 #include "vmachine.h"
+
+#ifndef __APPLE__ //get your shit together, apple
 #include <execution>
+#endif
 
 //syntactic sugar for stack dereferencing
 #define stk0 (*stacktop)
@@ -49,11 +52,12 @@ case LDPUT:
 	break;
 case LDPUTALL:
 	iTemp1 = op->p1;
-	for (auto &f : files)
+	for (auto &f : files){
 		for (auto &e : f->entries){
 			FREE1(torow[iTemp1]);
 			torow[iTemp1++] = dat{ { .s = e.val }, T, e.size };
 		}
+	}
 	++ip;
 	break;
 case PUTDIST:
@@ -132,17 +136,28 @@ case LDLIT:
 case RDLINE:
 	ip = files[op->p2]->readline() ? op->p1 : ip+1;
 	break;
-case RDLINEAT:
-	files[op->p2]->readlineat(q->dataholder[op->p1].u.i);
+case RDLINE_ORDERED:
+	//stk0 has current read index, stk1 has vector.size()
+	ip = stk0.u.i < stk1.u.i ? ip+1 : op->p1;
+	files[op->p2]->readlineat(posVectors[op->p3][stk0.u.i++].pos);
+	break;
+case PREP_REREAD:
+	push();
+	stk0.u.i = posVectors[op->p1].size();
+	push();
+	stk0.u.i = 0;
 	++ip;
 	break;
-case SAVEPOSI:
-	posVectors[op->p1].push_back(valPos( stk0.u.i, files[op->p2]->pos ));
+//savepos operations include a jmp
+case SAVEPOSI_JMP:
+	posVectors[op->p2].push_back(valPos( stk0.u.i, files[op->p3]->pos ));
+	ip = op->p1;
 	break;
-case SAVEPOSF:
-	posVectors[op->p1].push_back(valPos( stk0.u.f, files[op->p2]->pos ));
+case SAVEPOSF_JMP:
+	posVectors[op->p2].push_back(valPos( stk0.u.f, files[op->p3]->pos ));
+	ip = op->p1;
 	break;
-case SAVEPOSS:
+case SAVEPOSS_JMP:
 	if (ISMAL(stk0)){
 		cstrTemp = stk0.u.s;
 		DISOWN(stk0);
@@ -150,13 +165,43 @@ case SAVEPOSS:
 		cstrTemp = (char*) malloc(stk0.z+1);
 		strcpy(cstrTemp, stk0.u.s);
 	}
-	posVectors[op->p1].push_back(valPos( cstrTemp, files[op->p2]->pos ));
+	posVectors[op->p2].push_back(valPos( cstrTemp, files[op->p3]->pos ));
+	ip = op->p1;
 	break;
 
+#ifndef __APPLE__ //get your shit together, apple
 case SORTI:
 	sort(execution::par_unseq, posVectors[op->p1].begin(), posVectors[op->p1].end(),
-		[](valPos i, valPos j){ return i.val.i < j.val.i; });
+		[op](const valPos &a, const valPos &b){ return (a.val.i > b.val.i)^op->p2; });
+	++ip;
 	break;
+case SORTF:
+	sort(execution::par_unseq, posVectors[op->p1].begin(), posVectors[op->p1].end(),
+		[op](const valPos &a, const valPos &b){ return (a.val.f > b.val.f)^op->p2; });
+	++ip;
+	break;
+case SORTS:
+	sort(execution::par_unseq, posVectors[op->p1].begin(), posVectors[op->p1].end(),
+		[op](const valPos &a, const valPos &b){ return (scomp(a.val.s, b.val.s) > 0)^op->p2; });
+	++ip;
+	break;
+#else
+case SORTI:
+	sort(posVectors[op->p1].begin(), posVectors[op->p1].end(),
+		[op](const valPos &a, const valPos &b){ return (a.val.i > b.val.i)^op->p2; });
+	++ip;
+	break;
+case SORTF:
+	sort(posVectors[op->p1].begin(), posVectors[op->p1].end(),
+		[op](const valPos &a, const valPos &b){ return (a.val.f > b.val.f)^op->p2; });
+	++ip;
+	break;
+case SORTS:
+	sort(posVectors[op->p1].begin(), posVectors[op->p1].end(),
+		[op](const valPos &a, const valPos &b){ return (scomp(a.val.s, b.val.s) > 0)^op->p2; });
+	++ip;
+	break;
+#endif
 
 //math operations
 case IADD:

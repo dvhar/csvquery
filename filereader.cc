@@ -16,8 +16,10 @@ void fileReader::print(){
 	}
 	cerr << endl;
 }
+//need to fix this
 int fileReader::readlineat(int64 position){
 	pos = position;
+	fs.clear();
 	fs.seekg(pos);
 	return readline();
 }

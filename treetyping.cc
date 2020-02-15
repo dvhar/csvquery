@@ -397,13 +397,15 @@ static typer typeInnerNodes(querySpecs &q, unique_ptr<node> &n){
 		typeInnerNodes(q, n->node1);
 		typeInnerNodes(q, n->node2);
 		typeInnerNodes(q, n->node3);
-		n4 = typeInnerNodes(q, n->node4);
+		typeInnerNodes(q, n->node4);
+		break;
+	case N_ORDER:
+		innerType = typeInnerNodes(q, n->node1);
 		if (q.sorting)
-			q.sorting = n4.type;
+			q.sorting = innerType.type;
 		break;
 	//things that may be list but have independant types
 	case N_SELECTIONS:
-	case N_ORDER:
 	case N_GROUPBY:
 	case N_EXPRESSIONS:
 		innerType = typeInnerNodes(q, n->node1);
