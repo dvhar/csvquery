@@ -103,6 +103,7 @@ void jumpPositions::updateBytecode(vector<opcode> &vec) {
 	for (auto &v : vec)
 		switch (v.code){
 		case JMP:
+		case JMPCNT:
 		case JMPTRUE:
 		case JMPFALSE:
 		case RDLINE:
@@ -215,7 +216,7 @@ static void genNormalOrderedQuery(unique_ptr<node> &n, vector<opcode> &v, queryS
 	NORMAL_READ = v.size();
 	int sorter = q.jumps.newPlaceholder(); //where to jump when done scanning file
 	int reread = q.jumps.newPlaceholder();
-	int endreread = q.jumps.newPlaceholder(); //where to jump when done rereading file
+	int endreread = q.jumps.newPlaceholder();
 	addop(v, RDLINE, sorter, 0);
 	genVars(n->node1, v, q, 1);
 	genWhere(n->node4, v, q);
@@ -236,7 +237,7 @@ static void genNormalOrderedQuery(unique_ptr<node> &n, vector<opcode> &v, queryS
 		genPrint(v, q);
 	addop(v, (q.quantityLimit > 0 && !q.grouping ? JMPCNT : JMP), reread);
 	q.jumps.setPlace(endreread, v.size());
-	addop(v, POP);
+	addop(v, POP); //rereader used 2 stack spaces
 	addop(v, POP);
 	genReturnGroups(n->node4, v, q); //more selecting/printing if grouping
 	addop(v, ENDRUN);
