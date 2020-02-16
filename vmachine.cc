@@ -138,8 +138,12 @@ case RDLINE:
 	break;
 case RDLINE_ORDERED:
 	//stk0 has current read index, stk1 has vector.size()
-	ip = stk0.u.i < stk1.u.i ? ip+1 : op->p1;
-	files[op->p2]->readlineat(posVectors[op->p3][stk0.u.i++].pos);
+	if (stk0.u.i < stk1.u.i){
+		files[op->p2]->readlineat(posVectors[op->p3][stk0.u.i++].pos);
+		++ip;
+	} else {
+	ip = op->p1;
+	}
 	break;
 case PREP_REREAD:
 	push();
@@ -148,7 +152,6 @@ case PREP_REREAD:
 	stk0.u.i = 0;
 	++ip;
 	break;
-//savepos operations include a jmp
 case SAVEPOSI_JMP:
 	posVectors[op->p2].push_back(valPos( stk0.u.i, files[op->p3]->pos ));
 	ip = op->p1;
@@ -427,7 +430,7 @@ case POP:
 	pop();
 	++ip;
 	break;
-case POPCPY: //currently only used for bools
+case POPCPY:
 	FREE2(stk1);
 	stk1 = stk0;
 	DISOWN(stk0);
@@ -630,6 +633,8 @@ case ENDRUN:
 	goto endloop;
 case 0:
 	error("Invalid opcode");
+default:
+	error("Unknown opcode");
 
 		} //end big switch
 	} //end loop
