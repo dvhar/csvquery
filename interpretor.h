@@ -146,7 +146,6 @@ class jumpPositions {
 	public:
 	int newPlaceholder() { return --uniqueKey; };
 	void setPlace(int k, int v) { jumps[k] = v; };
-	int getPlace(int k) { return jumps[k]; };
 	void updateBytecode(vector<opcode> &vec);
 	jumpPositions() { uniqueKey = -1; };
 };

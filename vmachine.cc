@@ -142,7 +142,7 @@ case RDLINE_ORDERED:
 		files[op->p2]->readlineat(posVectors[op->p3][stk0.u.i++].pos);
 		++ip;
 	} else {
-	ip = op->p1;
+		ip = op->p1;
 	}
 	break;
 case PREP_REREAD:
@@ -456,82 +456,104 @@ case NULFALSE2:
 
 //type conversions
 case CVIS:
-	stk0.z = sprintf(bufTemp, "%lld", stk0.u.i);
-	stk0.u.s = (char*) malloc(stk0.z+1);
-	memcpy(stk0.u.s, bufTemp, stk0.z+1);
-	if (stk0.z >= 0){
-		stk0.b = T|MAL;
-	} else {
-		stk0.b = T|NIL;
+	if (!ISNULL(stk0)){
+		stk0.z = sprintf(bufTemp, "%lld", stk0.u.i);
+		stk0.u.s = (char*) malloc(stk0.z+1);
+		memcpy(stk0.u.s, bufTemp, stk0.z+1);
+		if (stk0.z >= 0){
+			stk0.b = T|MAL;
+		} else {
+			stk0.b = T|NIL;
+		}
 	}
 	++ip;
 	break;
 case CVFS:
-	stk0.z = sprintf(bufTemp, "%.10g", stk0.u.f);
-	stk0.u.s = (char*) malloc(stk0.z+1);
-	memcpy(stk0.u.s, bufTemp, stk0.z+1);
-	if (stk0.z >= 0){
-		stk0.b = T|MAL;
-	} else {
-		stk0.b = T|NIL;
+	if (!ISNULL(stk0)){
+		stk0.z = sprintf(bufTemp, "%.10g", stk0.u.f);
+		stk0.u.s = (char*) malloc(stk0.z+1);
+		memcpy(stk0.u.s, bufTemp, stk0.z+1);
+		if (stk0.z >= 0){
+			stk0.b = T|MAL;
+		} else {
+			stk0.b = T|NIL;
+		}
 	}
 	++ip;
 	break;
 case CVFI:
-	stk0.u.i = stk0.u.f;
+	if (!ISNULL(stk0)){
+		stk0.u.i = stk0.u.f;
+		stk0.b = I;
+	}
 	++ip;
 	break;
 case CVIF:
-	stk0.u.f = stk0.u.i;
+	if (!ISNULL(stk0)){
+		stk0.u.f = stk0.u.i;
+		stk0.b = F;
+	}
 	++ip;
 	break;
 case CVSI:
-	iTemp1 = strtol(stk0.u.s, &cstrTemp, 10);
-	FREE2(stk0);
-	stk0.u.i = iTemp1;
-	stk0.b = I;
-	if (*cstrTemp){ stk0.b |= NIL; }
+	if (!ISNULL(stk0)){
+		iTemp1 = strtol(stk0.u.s, &cstrTemp, 10);
+		FREE2(stk0);
+		stk0.u.i = iTemp1;
+		stk0.b = I;
+		if (*cstrTemp){ stk0.b |= NIL; }
+	}
 	++ip;
 	break;
 case CVSF:
-	fTemp = strtof(stk0.u.s, &cstrTemp);
-	FREE2(stk0);
-	stk0.u.f = fTemp;
-	stk0.b = F;
-	if (*cstrTemp){ stk0.b |= NIL; }
+	if (!ISNULL(stk0)){
+		fTemp = strtof(stk0.u.s, &cstrTemp);
+		FREE2(stk0);
+		stk0.u.f = fTemp;
+		stk0.b = F;
+		if (*cstrTemp){ stk0.b |= NIL; }
+	}
 	++ip;
 	break;
 case CVSDT:
-	iTemp1 = dateparse(stk0.u.s, &i64Temp, &iTemp2, stk0.z);
-	FREE2(stk0);
-	stk0.u.i = i64Temp;
-	stk0.b = DT;
-	stk0.z = iTemp2;
-	if (iTemp1) stk0.b |= NIL;
+	if (!ISNULL(stk0)){
+		iTemp1 = dateparse(stk0.u.s, &i64Temp, &iTemp2, stk0.z);
+		FREE2(stk0);
+		stk0.u.i = i64Temp;
+		stk0.b = DT;
+		stk0.z = iTemp2;
+		if (iTemp1) stk0.b |= NIL;
+	}
 	++ip;
 	break;
 case CVSDR:
-	iTemp1 = parseDuration(stk0.u.s, &i64Temp);
-	FREE2(stk0);
-	stk0.u.i = i64Temp;
-	stk0.b = DR;
-	if (iTemp1) stk0.b |= NIL;
+	if (!ISNULL(stk0)){
+		iTemp1 = parseDuration(stk0.u.s, &i64Temp);
+		FREE2(stk0);
+		stk0.u.i = i64Temp;
+		stk0.b = DR;
+		if (iTemp1) stk0.b |= NIL;
+	}
 	++ip;
 	break;
 case CVDRS:
-	stk0.u.s = (char*) malloc(24);
-	durstring(stk0.u.i, stk0.u.s);
-	stk0.b = T|MAL;
-	stk0.z = strlen(stk0.u.s);
+	if (!ISNULL(stk0)){
+		stk0.u.s = (char*) malloc(24);
+		durstring(stk0.u.i, stk0.u.s);
+		stk0.b = T|MAL;
+		stk0.z = strlen(stk0.u.s);
+	}
 	++ip;
 	break;
 case CVDTS:
-	//make version of datestring that writes directly to arg buf
-	cstrTemp = datestring(stk0.u.i);
-	stk0.u.s = (char*) malloc(20);
-	strncpy(stk0.u.s, cstrTemp, 19);
-	stk0.b = T|MAL;
-	stk0.z = 19;
+	if (!ISNULL(stk0)){
+		//make version of datestring that writes directly to arg buf
+		cstrTemp = datestring(stk0.u.i);
+		stk0.u.s = (char*) malloc(20);
+		strncpy(stk0.u.s, cstrTemp, 19);
+		stk0.b = T|MAL;
+		stk0.z = 19;
+	}
 	++ip;
 	break;
 
