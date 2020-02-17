@@ -296,7 +296,7 @@ static void genExprMult(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
 		addop(v, ops[OPEXP][n->datatype]);
 		break;
 	case SP_MOD:
-		addop(v, IMOD); //only integer
+		addop(v, ops[OPMOD][n->datatype]);
 		break;
 	}
 }

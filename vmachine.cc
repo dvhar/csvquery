@@ -1,28 +1,30 @@
 #include "interpretor.h"
 #include "vmachine.h"
+#include <cmath>
 
 #ifndef __APPLE__ //get your shit together, apple
 #include <execution>
 #endif
 
-//syntactic sugar for stack dereferencing
+//work with stack data
 #define stk0 (*stacktop)
 #define stk1 (*(stacktop-1))
 #define stkp(N) (*(stacktop-N))
 #define push() ++stacktop
 #define pop() --stacktop
 
-
-
+//jump to next operation
+#define debugOpcode /* cerr << ft("ip {} opcode {} stack {}\n", ip, opMap[op->code], stacktop-stack.data()); */
 #define next() \
 	op = ops + ip; \
-	goto *(labels[op->code]); \
-	//cerr << ft("ip {} opcode {} stack {}\n", ip, opMap[op->code], stacktop-stack.data());
+	debugOpcode \
+	goto *(labels[op->code]);
 
 void vmachine::run(){
 
-	void* labels[] = { &&CVER_label, &&CVNO_label, &&CVIF_label, &&CVIS_label, &&CVFI_label, &&CVFS_label, &&CVDRS_label, &&CVDRF_label, &&CVDTS_label, &&CVSI_label, &&CVSF_label, &&CVSDR_label, &&CVSDT_label, &&IADD_label, &&FADD_label, &&TADD_label, &&DTADD_label, &&DRADD_label, &&ISUB_label, &&FSUB_label, &&DTSUB_label, &&DRSUB_label, &&IMULT_label, &&FMULT_label, &&DRMULT_label, &&IDIV_label, &&FDIV_label, &&DRDIV_label, &&INEG_label, &&FNEG_label, &&DNEG_label, &&PNEG_label, &&IMOD_label, &&IEXP_label, &&FEXP_label, &&JMP_label, &&JMPCNT_label, &&JMPTRUE_label, &&JMPFALSE_label, &&JMPNOTNULL_ELSEPOP_label, &&RDLINE_label, &&RDLINE_ORDERED_label, &&PREP_REREAD_label, &&PUT_label, &&LDPUT_label, &&LDPUTALL_label, &&PUTVAR_label, &&LDINT_label, &&LDFLOAT_label, &&LDTEXT_label, &&LDDATE_label, &&LDDUR_label, &&LDNULL_label, &&LDLIT_label, &&LDVAR_label, &&IEQ_label, &&FEQ_label, &&TEQ_label, &&NEQ_label, &&LIKE_label, &&ILEQ_label, &&FLEQ_label, &&TLEQ_label, &&ILT_label, &&FLT_label, &&TLT_label, &&PRINT_label, &&POP_label, &&POPCPY_label, &&ENDRUN_label, &&NULFALSE1_label, &&NULFALSE2_label, &&NDIST_label, &&SDIST_label, &&PUTDIST_label, &&FINC_label, &&ENCCHA_label, &&DECCHA_label, &&SAVEPOSI_JMP_label, &&SAVEPOSF_JMP_label, &&SAVEPOSS_JMP_label, &&SORTI_label, &&SORTF_label, &&SORTS_label };
+	void* labels[] = { &&CVER_label, &&CVNO_label, &&CVIF_label, &&CVIS_label, &&CVFI_label, &&CVFS_label, &&CVDRS_label, &&CVDRF_label, &&CVDTS_label, &&CVSI_label, &&CVSF_label, &&CVSDR_label, &&CVSDT_label, &&IADD_label, &&FADD_label, &&TADD_label, &&DTADD_label, &&DRADD_label, &&ISUB_label, &&FSUB_label, &&DTSUB_label, &&DRSUB_label, &&IMULT_label, &&FMULT_label, &&DRMULT_label, &&IDIV_label, &&FDIV_label, &&DRDIV_label, &&INEG_label, &&FNEG_label, &&DNEG_label, &&PNEG_label, &&IMOD_label, &&FMOD_label, &&IEXP_label, &&FEXP_label, &&JMP_label, &&JMPCNT_label, &&JMPTRUE_label, &&JMPFALSE_label, &&JMPNOTNULL_ELSEPOP_label, &&RDLINE_label, &&RDLINE_ORDERED_label, &&PREP_REREAD_label, &&PUT_label, &&LDPUT_label, &&LDPUTALL_label, &&PUTVAR_label, &&LDINT_label, &&LDFLOAT_label, &&LDTEXT_label, &&LDDATE_label, &&LDDUR_label, &&LDNULL_label, &&LDLIT_label, &&LDVAR_label, &&IEQ_label, &&FEQ_label, &&TEQ_label, &&NEQ_label, &&LIKE_label, &&ILEQ_label, &&FLEQ_label, &&TLEQ_label, &&ILT_label, &&FLT_label, &&TLT_label, &&PRINT_label, &&POP_label, &&POPCPY_label, &&ENDRUN_label, &&NULFALSE1_label, &&NULFALSE2_label, &&NDIST_label, &&SDIST_label, &&PUTDIST_label, &&FINC_label, &&ENCCHA_label, &&DECCHA_label, &&SAVEPOSI_JMP_label, &&SAVEPOSF_JMP_label, &&SAVEPOSS_JMP_label, &&SORTI_label, &&SORTF_label, &&SORTS_label };
 
+	//vars for data
 	int64 i64Temp;
 	int iTemp1, iTemp2;
 	double fTemp;
@@ -32,6 +34,7 @@ void vmachine::run(){
 	csvEntry csvTemp;
 	pair<char*, int> pairTemp;
 
+	//vars for vm operations
 	int numPrinted = 0;
 	dat* stacktop = stack.data();
 	int ip = 0;
@@ -160,10 +163,12 @@ PREP_REREAD_label:
 SAVEPOSI_JMP_label:
 	posVectors[op->p2].push_back(valPos( stk0.u.i, files[op->p3]->pos ));
 	ip = op->p1;
+	pop();
 	next();
 SAVEPOSF_JMP_label:
 	posVectors[op->p2].push_back(valPos( stk0.u.f, files[op->p3]->pos ));
 	ip = op->p1;
+	pop();
 	next();
 SAVEPOSS_JMP_label:
 	if (ISMAL(stk0)){
@@ -175,6 +180,7 @@ SAVEPOSS_JMP_label:
 	}
 	posVectors[op->p2].push_back(valPos( cstrTemp, files[op->p3]->pos ));
 	ip = op->p1;
+	pop();
 	next();
 
 #ifndef __APPLE__ //get your shit together, apple
@@ -335,6 +341,30 @@ FNEG_label:
 	next();
 PNEG_label:
 	stk0.u.p ^= true;
+	++ip;
+	next();
+FEXP_label:
+	if (ISNULL(stk0) || ISNULL(stk1)) stk1.b |= NIL;
+	else stk1.u.f = pow(stk1.u.f, stk0.u.f);
+	pop();
+	++ip;
+	next();
+IEXP_label:
+	if (ISNULL(stk0) || ISNULL(stk1)) stk1.b |= NIL;
+	else stk1.u.i = pow(stk1.u.i, stk0.u.i);
+	pop();
+	++ip;
+	next();
+IMOD_label:
+	if (ISNULL(stk0) || ISNULL(stk1)) stk1.b |= NIL;
+	else stk1.u.i = stk1.u.i % stk0.u.i;
+	pop();
+	++ip;
+	next();
+FMOD_label:
+	if (ISNULL(stk0) || ISNULL(stk1)) stk1.b |= NIL;
+	else stk1.u.f = (int64)stk1.u.f % (int64)stk0.u.f;
+	pop();
 	++ip;
 	next();
 
@@ -657,21 +687,18 @@ DECCHA_label:
 	next();
 
 ENDRUN_label:
-	goto endloop;
+	goto halt;
 
 //unimplemeted opcodes
 CVER_label:
 CVNO_label:
-FEXP_label:
-IEXP_label:
-IMOD_label:
 CVDRF_label:
 DNEG_label:
 NEQ_label:
 	error("Invalid opcode");
 
 
-	endloop:
+	halt:
 	return;
 }
 

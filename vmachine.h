@@ -14,7 +14,7 @@ enum codes : unsigned char {
 	IMULT, FMULT, DRMULT,
 	IDIV, FDIV, DRDIV,
 	INEG, FNEG, DNEG, PNEG,
-	IMOD,
+	IMOD, FMOD,
 	IEXP, FEXP,
 	JMP, JMPCNT, JMPTRUE, JMPFALSE, JMPNOTNULL_ELSEPOP,
 	RDLINE, RDLINE_ORDERED, PREP_REREAD,
@@ -33,12 +33,13 @@ extern map<int, string> opMap;
 
 //2d array for ops indexed by operation and datatype
 enum typeOperators {
-	OPADD, OPSUB, OPMULT, OPDIV, OPEXP, OPNEG, OPLD, OPEQ, OPLEQ, OPLT
+	OPADD, OPSUB, OPMULT, OPMOD, OPDIV, OPEXP, OPNEG, OPLD, OPEQ, OPLEQ, OPLT
 };
 static int ops[][6] = {
 	{ 0, IADD, FADD, DTADD, DRADD, TADD },
 	{ 0, ISUB, FSUB, DTSUB, DRSUB, 0 },
 	{ 0, IMULT, FMULT, 0, DRMULT, 0 },
+	{ 0, IMOD, FMOD, 0, IMOD, 0 },
 	{ 0, IDIV, FDIV, 0, DRDIV, 0 },
 	{ 0, IEXP, FEXP, 0, 0, 0 },
 	{ 0, INEG, FNEG, 0, DNEG, 0 },
