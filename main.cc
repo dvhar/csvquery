@@ -65,6 +65,7 @@ int main(int argc, char** argv){
 		runquery(q);
 	} catch (const invalid_argument& ia) {
 		cerr << "Error: " << ia.what() << '\n';
+		return 1;
 	}
 	return 0;
 }
