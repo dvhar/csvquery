@@ -7,9 +7,10 @@ f2 = "'test/cities.csv'"
 # [description, expected return code, query]
 tests = [
 ["Basic top 10",0,f"select top 10 from {f1}"],
-["With int and addition types",0,
+["With int and arithmetic",0,
 	"with c7 as int select top 10 int, c9, int+c9, int+c1, int+c7 "
-	"c1+c2 as ss, c1+c9 as sf, c1+c7 as si, c7+c9 as if, c16+'11 years' as dd "
+	"c1+c2 as ss, c1+c9 as sf, c1+c7 as si, c7+c9 as if, "
+	"int+-c5 as ii, int-c5 as ii2 c16, c16+'10 years', c16-'10 years', '10 years'*-2 "
 	f"from {f1}"]
 ]
 

@@ -2,7 +2,7 @@
 #include "vmachine.h"
 #include <cmath>
 
-#ifndef __APPLE__ //get your shit together, apple
+#ifndef _APPLE_ //get your shit together, apple
 #include <execution>
 #endif
 
@@ -22,7 +22,7 @@
 
 void vmachine::run(){
 
-	void* labels[] = { &&CVER_label, &&CVNO_label, &&CVIF_label, &&CVIS_label, &&CVFI_label, &&CVFS_label, &&CVDRS_label, &&CVDRF_label, &&CVDTS_label, &&CVSI_label, &&CVSF_label, &&CVSDR_label, &&CVSDT_label, &&IADD_label, &&FADD_label, &&TADD_label, &&DTADD_label, &&DRADD_label, &&ISUB_label, &&FSUB_label, &&DTSUB_label, &&DRSUB_label, &&IMULT_label, &&FMULT_label, &&DRMULT_label, &&IDIV_label, &&FDIV_label, &&DRDIV_label, &&INEG_label, &&FNEG_label, &&DNEG_label, &&PNEG_label, &&IMOD_label, &&FMOD_label, &&IEXP_label, &&FEXP_label, &&JMP_label, &&JMPCNT_label, &&JMPTRUE_label, &&JMPFALSE_label, &&JMPNOTNULL_ELSEPOP_label, &&RDLINE_label, &&RDLINE_ORDERED_label, &&PREP_REREAD_label, &&PUT_label, &&LDPUT_label, &&LDPUTALL_label, &&PUTVAR_label, &&LDINT_label, &&LDFLOAT_label, &&LDTEXT_label, &&LDDATE_label, &&LDDUR_label, &&LDNULL_label, &&LDLIT_label, &&LDVAR_label, &&IEQ_label, &&FEQ_label, &&TEQ_label, &&NEQ_label, &&LIKE_label, &&ILEQ_label, &&FLEQ_label, &&TLEQ_label, &&ILT_label, &&FLT_label, &&TLT_label, &&PRINT_label, &&POP_label, &&POPCPY_label, &&ENDRUN_label, &&NULFALSE1_label, &&NULFALSE2_label, &&NDIST_label, &&SDIST_label, &&PUTDIST_label, &&FINC_label, &&ENCCHA_label, &&DECCHA_label, &&SAVEPOSI_JMP_label, &&SAVEPOSF_JMP_label, &&SAVEPOSS_JMP_label, &&SORTI_label, &&SORTF_label, &&SORTS_label };
+	void* labels[] = { &&CVER_, &&CVNO_, &&CVIF_, &&CVIS_, &&CVFI_, &&CVFS_, &&CVDRS_, &&CVDTS_, &&CVSI_, &&CVSF_, &&CVSDR_, &&CVSDT_, &&IADD_, &&FADD_, &&TADD_, &&DTADD_, &&DRADD_, &&ISUB_, &&FSUB_, &&DTSUB_, &&DRSUB_, &&IMULT_, &&FMULT_, &&DRMULT_, &&IDIV_, &&FDIV_, &&DRDIV_, &&INEG_, &&FNEG_, &&PNEG_, &&IMOD_, &&FMOD_, &&IEXP_, &&FEXP_, &&JMP_, &&JMPCNT_, &&JMPTRUE_, &&JMPFALSE_, &&JMPNOTNULL_ELSEPOP_, &&RDLINE_, &&RDLINE_ORDERED_, &&PREP_REREAD_, &&PUT_, &&LDPUT_, &&LDPUTALL_, &&PUTVAR_, &&LDINT_, &&LDFLOAT_, &&LDTEXT_, &&LDDATE_, &&LDDUR_, &&LDNULL_, &&LDLIT_, &&LDVAR_, &&IEQ_, &&FEQ_, &&TEQ_, &&LIKE_, &&ILEQ_, &&FLEQ_, &&TLEQ_, &&ILT_, &&FLT_, &&TLT_, &&PRINT_, &&POP_, &&POPCPY_, &&ENDRUN_, &&NULFALSE1_, &&NULFALSE2_, &&NDIST_, &&SDIST_, &&PUTDIST_, &&FINC_, &&ENCCHA_, &&DECCHA_, &&SAVEPOSI_JMP_, &&SAVEPOSF_JMP_, &&SAVEPOSS_JMP_, &&SORTI_, &&SORTF_, &&SORTS_ };
 
 	//vars for data
 	int64 i64Temp;
@@ -44,7 +44,7 @@ void vmachine::run(){
 
 //put data from stack into torow
 //should make a version of this that prints directly rather than using torow
-PUT_label:
+PUT_:
 	FREE1(torow[op->p1]);
 	torow[op->p1] = stk0;
 	DISOWN(stk0);
@@ -52,13 +52,13 @@ PUT_label:
 	++ip;
 	next();
 //put data from filereader directly into torow
-LDPUT_label:
+LDPUT_:
 	csvTemp = files[op->p3]->entries[op->p2];
 	FREE1(torow[op->p1]);
 	torow[op->p1] = dat{ { .s = csvTemp.val }, T, csvTemp.size };
 	++ip;
 	next();
-LDPUTALL_label:
+LDPUTALL_:
 	iTemp1 = op->p1;
 	for (auto &f : files){
 		for (auto &e : f->entries){
@@ -68,14 +68,14 @@ LDPUTALL_label:
 	}
 	++ip;
 	next();
-PUTDIST_label:
+PUTDIST_:
 	FREE1(torow[op->p1]);
 	torow[op->p1] = distinctVal;
 	DISOWN(distinctVal);
 	++ip;
 	next();
 //put variable from stack into var vector
-PUTVAR_label:
+PUTVAR_:
 	FREE1(vars[op->p1]);
 	vars[op->p1] = stk0;
 	DISOWN(stk0);
@@ -84,21 +84,21 @@ PUTVAR_label:
 	next();
 
 //put variable from var vector into stack
-LDVAR_label:
+LDVAR_:
 	push();
 	stk0 = vars[op->p1];
 	DISOWN(stk0); //var vector still owns c string
 	++ip;
 	next();
 //load data from filereader to the stack
-LDDUR_label:
+LDDUR_:
 	push();
 	iTemp1 = parseDuration(files[op->p1]->entries[op->p2].val, &i64Temp);
 	stk0 = dat{ { .i = i64Temp}, DR};
 	if (iTemp1) stk0.b |= NIL;
 	++ip;
 	next();
-LDDATE_label:
+LDDATE_:
 	push();
 	csvTemp = files[op->p1]->entries[op->p2];
 	iTemp1 = dateparse(csvTemp.val, &i64Temp, &iTemp2, csvTemp.size);
@@ -106,14 +106,14 @@ LDDATE_label:
 	if (iTemp1) stk0.b |= NIL;
 	++ip;
 	next();
-LDTEXT_label:
+LDTEXT_:
 	push();
 	csvTemp = files[op->p1]->entries[op->p2];
 	stk0 = dat{ { .s = csvTemp.val }, T, csvTemp.size };
 	if (!csvTemp.size) stk0.b |= NIL;
 	++ip;
 	next();
-LDFLOAT_label:
+LDFLOAT_:
 	push();
 	csvTemp = files[op->p1]->entries[op->p2];
 	stk0.u.f = strtof(csvTemp.val, &cstrTemp);
@@ -121,7 +121,7 @@ LDFLOAT_label:
 	if (!csvTemp.size || *cstrTemp){ stk0.b |= NIL; }
 	++ip;
 	next();
-LDINT_label:
+LDINT_:
 	push();
 	csvTemp = files[op->p1]->entries[op->p2];
 	stk0.u.i = strtol(csvTemp.val, &cstrTemp, 10);
@@ -129,22 +129,22 @@ LDINT_label:
 	if (!csvTemp.size || *cstrTemp) stk0.b |= NIL;
 	++ip;
 	next();
-LDNULL_label:
+LDNULL_:
 	push();
 	stk0.b = NIL;
 	++ip;
 	next();
-LDLIT_label:
+LDLIT_:
 	push();
 	stk0 = q->dataholder[op->p1];
 	++ip;
 	next();
 
 //read a new line from a file
-RDLINE_label:
+RDLINE_:
 	ip = files[op->p2]->readline() ? op->p1 : ip+1;
 	next();
-RDLINE_ORDERED_label:
+RDLINE_ORDERED_:
 	//stk0 has current read index, stk1 has vector.size()
 	if (stk0.u.i < stk1.u.i){
 		files[op->p2]->readlineat(posVectors[op->p3][stk0.u.i++].pos);
@@ -153,24 +153,24 @@ RDLINE_ORDERED_label:
 		ip = op->p1;
 	}
 	next();
-PREP_REREAD_label:
+PREP_REREAD_:
 	push();
 	stk0.u.i = posVectors[op->p1].size();
 	push();
 	stk0.u.i = 0;
 	++ip;
 	next();
-SAVEPOSI_JMP_label:
+SAVEPOSI_JMP_:
 	posVectors[op->p2].push_back(valPos( stk0.u.i, files[op->p3]->pos ));
 	ip = op->p1;
 	pop();
 	next();
-SAVEPOSF_JMP_label:
+SAVEPOSF_JMP_:
 	posVectors[op->p2].push_back(valPos( stk0.u.f, files[op->p3]->pos ));
 	ip = op->p1;
 	pop();
 	next();
-SAVEPOSS_JMP_label:
+SAVEPOSS_JMP_:
 	if (ISMAL(stk0)){
 		cstrTemp = stk0.u.s;
 		DISOWN(stk0);
@@ -183,34 +183,34 @@ SAVEPOSS_JMP_label:
 	pop();
 	next();
 
-#ifndef __APPLE__ //get your shit together, apple
-SORTI_label:
+#ifndef _APPLE_ //get your shit together, apple
+SORTI_:
 	sort(execution::par_unseq, posVectors[op->p1].begin(), posVectors[op->p1].end(),
 		[op](const valPos &a, const valPos &b){ return (a.val.i > b.val.i)^op->p2; });
 	++ip;
 	next();
-SORTF_label:
+SORTF_:
 	sort(execution::par_unseq, posVectors[op->p1].begin(), posVectors[op->p1].end(),
 		[op](const valPos &a, const valPos &b){ return (a.val.f > b.val.f)^op->p2; });
 	++ip;
 	next();
-SORTS_label:
+SORTS_:
 	sort(execution::par_unseq, posVectors[op->p1].begin(), posVectors[op->p1].end(),
 		[op](const valPos &a, const valPos &b){ return (scomp(a.val.s, b.val.s) > 0)^op->p2; });
 	++ip;
 	next();
 #else
-SORTI_label:
+SORTI_:
 	sort(posVectors[op->p1].begin(), posVectors[op->p1].end(),
 		[op](const valPos &a, const valPos &b){ return (a.val.i > b.val.i)^op->p2; });
 	++ip;
 	next();
-SORTF_label:
+SORTF_:
 	sort(posVectors[op->p1].begin(), posVectors[op->p1].end(),
 		[op](const valPos &a, const valPos &b){ return (a.val.f > b.val.f)^op->p2; });
 	++ip;
 	next();
-SORTS_label:
+SORTS_:
 	sort(posVectors[op->p1].begin(), posVectors[op->p1].end(),
 		[op](const valPos &a, const valPos &b){ return (scomp(a.val.s, b.val.s) > 0)^op->p2; });
 	++ip;
@@ -218,76 +218,76 @@ SORTS_label:
 #endif
 
 //math operations
-IADD_label:
+IADD_:
 	if (ISNULL(stk0) || ISNULL(stk1)) stk1.b |= NIL;
 	else stk1.u.i += stk0.u.i;
 	pop();
 	++ip;
 	next();
-FADD_label:
+FADD_:
 	if (ISNULL(stk0) || ISNULL(stk1)) stk1.b |= NIL;
 	else stk1.u.f += stk0.u.f;
 	pop();
 	++ip;
 	next();
-TADD_label:
+TADD_:
 	strplus(stk1, stk0);
 	pop();
 	++ip;
 	next();
-DRADD_label:
+DRADD_:
 	if (ISNULL(stk0) || ISNULL(stk1)) stk1.b |= NIL;
 	else { stk1.u.i += stk0.u.i; stk1.b = DR; }
 	pop();
 	++ip;
 	next();
-DTADD_label:
+DTADD_:
 	if (ISNULL(stk0) || ISNULL(stk1)) stk1.b |= NIL;
 	else { stk1.u.i += stk0.u.i; stk1.b = DT; }
 	pop();
 	++ip;
 	next();
-ISUB_label:
+ISUB_:
 	if (ISNULL(stk0) || ISNULL(stk1)) stk1.b |= NIL;
 	else stk1.u.i -= stk0.u.i;
 	pop();
 	++ip;
 	next();
-FSUB_label:
+FSUB_:
 	if (ISNULL(stk0) || ISNULL(stk1)) stk1.b |= NIL;
 	else stk1.u.f -= stk0.u.f;
 	pop();
 	++ip;
 	next();
-DTSUB_label:
+DTSUB_:
 	if (ISNULL(stk0) || ISNULL(stk1)) stk1.b |= NIL;
 	else { stk1.u.i -= stk0.u.i; stk1.b = DT; }
 	pop();
 	++ip;
 	next();
-DRSUB_label:
+DRSUB_:
 	if (ISNULL(stk0) || ISNULL(stk1)) stk1.b |= NIL;
 	else { stk1.u.i -= stk0.u.i; stk1.b = DR; }
 	pop();
 	if (stk0.u.i < 0) stk0.u.i *= -1;
 	++ip;
 	next();
-IMULT_label:
+IMULT_:
 	if (ISNULL(stk0) || ISNULL(stk1)) stk1.b |= NIL;
 	else stk1.u.i *= stk0.u.i;
 	pop();
 	++ip;
 	next();
-FMULT_label:
+FMULT_:
 	if (ISNULL(stk0) || ISNULL(stk1)) stk1.b |= NIL;
 	else stk1.u.f *= stk0.u.f;
 	pop();
 	++ip;
 	next();
-DRMULT_label:
+DRMULT_:
 	if (ISNULL(stk0) || ISNULL(stk1)) stk1.b |= NIL;
 	else {
-		iTemp1 = stk0.b; iTemp2 = stk1.b;
+		iTemp1 = stk1.b; iTemp2 = stk0.b;
 		if (iTemp1 == T_DATE){
 			if (iTemp2 == T_INT){ // date * int
 				stk1.u.i = stk1.u.i * stk0.u.i;
@@ -306,19 +306,19 @@ DRMULT_label:
 	pop();
 	++ip;
 	next();
-IDIV_label:
+IDIV_:
 	if (ISNULL(stk0) || ISNULL(stk1) || stk0.u.i==0) stk1.b |= NIL;
 	else stk1.u.i /= stk0.u.i;
 	pop();
 	++ip;
 	next();
-FDIV_label:
+FDIV_:
 	if (ISNULL(stk0) || ISNULL(stk1) || stk0.u.f==0) stk1.b |= NIL;
 	else stk1.u.f /= stk0.u.f;
 	pop();
 	++ip;
 	next();
-DRDIV_label:
+DRDIV_:
 	if (ISNULL(stk0) || ISNULL(stk1) || stk0.u.f==0) stk1.b |= NIL;
 	else {
 		if (stk0.b == I)
@@ -329,39 +329,39 @@ DRDIV_label:
 	pop();
 	++ip;
 	next();
-INEG_label:
+INEG_:
 	if (ISNULL(stk0)) stk0.b |= NIL;
 	else stk0.u.i *= -1;
 	++ip;
 	next();
-FNEG_label:
+FNEG_:
 	if (ISNULL(stk0)) stk0.b |= NIL;
 	else stk0.u.f *= -1;
 	++ip;
 	next();
-PNEG_label:
+PNEG_:
 	stk0.u.p ^= true;
 	++ip;
 	next();
-FEXP_label:
+FEXP_:
 	if (ISNULL(stk0) || ISNULL(stk1)) stk1.b |= NIL;
 	else stk1.u.f = pow(stk1.u.f, stk0.u.f);
 	pop();
 	++ip;
 	next();
-IEXP_label:
+IEXP_:
 	if (ISNULL(stk0) || ISNULL(stk1)) stk1.b |= NIL;
 	else stk1.u.i = pow(stk1.u.i, stk0.u.i);
 	pop();
 	++ip;
 	next();
-IMOD_label:
+IMOD_:
 	if (ISNULL(stk0) || ISNULL(stk1)) stk1.b |= NIL;
 	else stk1.u.i = stk1.u.i % stk0.u.i;
 	pop();
 	++ip;
 	next();
-FMOD_label:
+FMOD_:
 	if (ISNULL(stk0) || ISNULL(stk1)) stk1.b |= NIL;
 	else stk1.u.f = (int64)stk1.u.f % (int64)stk0.u.f;
 	pop();
@@ -371,7 +371,7 @@ FMOD_label:
 //comparisions - p1 determines how far down the stack to leave the result
 // p2 is negator
 //may want to combine with jmp
-IEQ_label:
+IEQ_:
 	iTemp1 = ISNULL(stk0);
 	iTemp2 = ISNULL(stk1);
 	if (iTemp1 ^ iTemp2) stkp(op->p1).u.p = false;
@@ -380,7 +380,7 @@ IEQ_label:
 	stacktop -= op->p1;
 	++ip;
 	next();
-FEQ_label:
+FEQ_:
 	iTemp1 = ISNULL(stk0);
 	iTemp2 = ISNULL(stk1);
 	if (iTemp1 ^ iTemp2) stkp(op->p1).u.p = false;
@@ -389,7 +389,7 @@ FEQ_label:
 	stacktop -= op->p1;
 	++ip;
 	next();
-TEQ_label:
+TEQ_:
 	iTemp1 = ISNULL(stk0);
 	iTemp2 = ISNULL(stk1);
 	if (!(iTemp1|iTemp2)){ //none null
@@ -407,19 +407,19 @@ TEQ_label:
 	stacktop -= op->p1;
 	++ip;
 	next();
-ILEQ_label:
+ILEQ_:
 	if (ISNULL(stk0) || ISNULL(stk1)) stkp(op->p1).u.p = false;
 	else stkp(op->p1).u.p = (stk1.u.i <= stk0.u.i)^op->p2;
 	stacktop -= op->p1;
 	++ip;
 	next();
-FLEQ_label:
+FLEQ_:
 	if (ISNULL(stk0) || ISNULL(stk1)) stkp(op->p1).u.p = false;
 	else stkp(op->p1).u.p = (stk1.u.f <= stk0.u.f)^op->p2;
 	stacktop -= op->p1;
 	++ip;
 	next();
-TLEQ_label:
+TLEQ_:
 	if (ISNULL(stk0) || ISNULL(stk1)) stkp(op->p1).u.p = false;
 	else {
 		boolTemp = (scomp(stk1.u.s, stk0.u.s) <= 0)^op->p2;
@@ -430,19 +430,19 @@ TLEQ_label:
 	stacktop -= op->p1;
 	++ip;
 	next();
-ILT_label:
+ILT_:
 	if (ISNULL(stk0) || ISNULL(stk1)) stkp(op->p1).u.p = false;
 	else stkp(op->p1).u.p = (stk1.u.i < stk0.u.i)^op->p2;
 	stacktop -= op->p1;
 	++ip;
 	next();
-FLT_label:
+FLT_:
 	if (ISNULL(stk0) || ISNULL(stk1)) stkp(op->p1).u.p = false;
 	else stkp(op->p1).u.p = (stk1.u.f < stk0.u.f)^op->p2;
 	stacktop -= op->p1;
 	++ip;
 	next();
-TLT_label:
+TLT_:
 	if (ISNULL(stk0) || ISNULL(stk1)) stkp(op->p1).u.p = false;
 	else {
 		boolTemp = (scomp(stk1.u.s, stk0.u.s) < 0)^op->p2;
@@ -453,33 +453,33 @@ TLT_label:
 	stacktop -= op->p1;
 	++ip;
 	next();
-LIKE_label:
+LIKE_:
 	iTemp1 = !regexec(q->dataholder[op->p1].u.r, stk0.u.s, 0, 0, 0)^op->p2;
 	FREE2(stk0);
 	stk0.u.p = iTemp1;
 	++ip;
 	next();
 
-POP_label:
+POP_:
 	FREE2(stk0);
 	pop();
 	++ip;
 	next();
-POPCPY_label:
+POPCPY_:
 	FREE2(stk1);
 	stk1 = stk0;
 	DISOWN(stk0);
 	pop();
 	++ip;
 	next();
-NULFALSE1_label:
+NULFALSE1_:
 	if (ISNULL(stk0)){
 		FREE2(stk0);
 		stk0.u.p = false;
 		ip = op->p1;
 	} else ++ip;
 	next();
-NULFALSE2_label:
+NULFALSE2_:
 	if (ISNULL(stk0)){
 		FREE2(stk0);
 		pop();
@@ -490,7 +490,7 @@ NULFALSE2_label:
 	next();
 
 //type conversions
-CVIS_label:
+CVIS_:
 	if (!ISNULL(stk0)){
 		stk0.z = sprintf(bufTemp, "%lld", stk0.u.i);
 		stk0.u.s = (char*) malloc(stk0.z+1);
@@ -503,7 +503,7 @@ CVIS_label:
 	}
 	++ip;
 	next();
-CVFS_label:
+CVFS_:
 	if (!ISNULL(stk0)){
 		stk0.z = sprintf(bufTemp, "%.10g", stk0.u.f);
 		stk0.u.s = (char*) malloc(stk0.z+1);
@@ -516,21 +516,21 @@ CVFS_label:
 	}
 	++ip;
 	next();
-CVFI_label:
+CVFI_:
 	if (!ISNULL(stk0)){
 		stk0.u.i = stk0.u.f;
 		stk0.b = I;
 	}
 	++ip;
 	next();
-CVIF_label:
+CVIF_:
 	if (!ISNULL(stk0)){
 		stk0.u.f = stk0.u.i;
 		stk0.b = F;
 	}
 	++ip;
 	next();
-CVSI_label:
+CVSI_:
 	if (!ISNULL(stk0)){
 		iTemp1 = strtol(stk0.u.s, &cstrTemp, 10);
 		FREE2(stk0);
@@ -540,7 +540,7 @@ CVSI_label:
 	}
 	++ip;
 	next();
-CVSF_label:
+CVSF_:
 	if (!ISNULL(stk0)){
 		fTemp = strtof(stk0.u.s, &cstrTemp);
 		FREE2(stk0);
@@ -550,7 +550,7 @@ CVSF_label:
 	}
 	++ip;
 	next();
-CVSDT_label:
+CVSDT_:
 	if (!ISNULL(stk0)){
 		iTemp1 = dateparse(stk0.u.s, &i64Temp, &iTemp2, stk0.z);
 		FREE2(stk0);
@@ -561,7 +561,7 @@ CVSDT_label:
 	}
 	++ip;
 	next();
-CVSDR_label:
+CVSDR_:
 	if (!ISNULL(stk0)){
 		iTemp1 = parseDuration(stk0.u.s, &i64Temp);
 		FREE2(stk0);
@@ -571,7 +571,7 @@ CVSDR_label:
 	}
 	++ip;
 	next();
-CVDRS_label:
+CVDRS_:
 	if (!ISNULL(stk0)){
 		stk0.u.s = (char*) malloc(24);
 		durstring(stk0.u.i, stk0.u.s);
@@ -580,7 +580,7 @@ CVDRS_label:
 	}
 	++ip;
 	next();
-CVDTS_label:
+CVDTS_:
 	if (!ISNULL(stk0)){
 		//make version of datestring that writes directly to arg buf
 		cstrTemp = datestring(stk0.u.i);
@@ -593,27 +593,27 @@ CVDTS_label:
 	next();
 
 //jump instructions
-JMP_label:
+JMP_:
 	ip = op->p1;
 	next();
-JMPCNT_label:
+JMPCNT_:
 	ip = (numPrinted < quantityLimit) ? op->p1 : ip+1;
 	next();
-JMPFALSE_label:
+JMPFALSE_:
 	ip = !stk0.u.p ? op->p1 : ip+1;
 	if (op->p2 == 1){
 		FREE2(stk0);
 		pop();
 	}
 	next();
-JMPTRUE_label:
+JMPTRUE_:
 	ip = stk0.u.p ? op->p1 : ip+1;
 	if (op->p2 == 1){
 		FREE2(stk0);
 		pop();
 	}
 	next();
-JMPNOTNULL_ELSEPOP_label:
+JMPNOTNULL_ELSEPOP_:
 	if (ISNULL(stk0)){
 		FREE2(stk0);
 		pop();
@@ -623,7 +623,7 @@ JMPNOTNULL_ELSEPOP_label:
 	}
 	next();
 
-PRINT_label:
+PRINT_:
 	for (int i=0; i<torowSize; ++i){
 		torow[i].print();
 		if (i < torowSize-1) fmt::print(",");
@@ -634,7 +634,7 @@ PRINT_label:
 	next();
 
 //distinct checkers
-NDIST_label:
+NDIST_:
 	boolTemp = bt_nums[op->p2].insert(stk0.u.i).second;
 	if (boolTemp) {
 		distinctVal = stk0;
@@ -644,7 +644,7 @@ NDIST_label:
 	}
 	pop();
 	next();
-SDIST_label:
+SDIST_:
 	boolTemp = bt_strings[op->p2].insert(treeCString(stk0)).second;
 	if (boolTemp) {
 		if (op->p3){ //not hidden
@@ -663,13 +663,13 @@ SDIST_label:
 	next();
 
 //functions
-FINC_label:
+FINC_:
 	q->dataholder[op->p1].u.f++;
 	push();
 	stk0 = q->dataholder[op->p1];
 	++ip;
 	next();
-ENCCHA_label:
+ENCCHA_:
 	pairTemp = q->crypt.chachaEncrypt(op->p1, stk0.z, stk0.u.s);
 	if (stk0.b & MAL) free(stk0.u.s);
 	stk0.u.s = pairTemp.first;
@@ -677,7 +677,7 @@ ENCCHA_label:
 	stk0.b = T|MAL;
 	++ip;
 	next();
-DECCHA_label:
+DECCHA_:
 	pairTemp = q->crypt.chachaDecrypt(op->p1, stk0.z, stk0.u.s);
 	if (stk0.b & MAL) free(stk0.u.s);
 	stk0.u.s = pairTemp.first;
@@ -686,15 +686,12 @@ DECCHA_label:
 	++ip;
 	next();
 
-ENDRUN_label:
+ENDRUN_:
 	goto halt;
 
 //unimplemeted opcodes
-CVER_label:
-CVNO_label:
-CVDRF_label:
-DNEG_label:
-NEQ_label:
+CVER_:
+CVNO_:
 	error("Invalid opcode");
 
 
