@@ -482,7 +482,7 @@ static void genPredicates(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q)
 	}
 	q.jumps.setPlace(doneAndOr, v.size());
 	if (n->tok2.id == SP_NEGATE)
-		addop(v, PNEG);
+		addop(v, PNEG); //can optimize be returning value to genwhere and add opposite jump code
 }
 
 static void genPredCompare(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){

@@ -687,16 +687,12 @@ DECCHA_:
 	next();
 
 ENDRUN_:
-	goto halt;
+	return;
 
 //unimplemeted opcodes
 CVER_:
 CVNO_:
 	error("Invalid opcode");
-
-
-	halt:
-	return;
 }
 
 
