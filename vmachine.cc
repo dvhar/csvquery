@@ -40,10 +40,14 @@ void vmachine::run(){
 	int ip = 0;
 	opcode *op;
 
+	//file writer
+	ostream output(cout.rdbuf());
+	string outbuf;
+
 	next();
 
 //put data from stack into torow
-//should make a version of this that prints directly rather than using torow
+//should make a version of this that appends to outbuf rather than using torow
 PUT_:
 	FREE1(torow[op->p1]);
 	torow[op->p1] = stk0;
@@ -625,10 +629,14 @@ JMPNOTNULL_ELSEPOP_:
 
 PRINT_:
 	for (int i=0; i<torowSize; ++i){
-		torow[i].print();
-		if (i < torowSize-1) fmt::print(",");
+		outbuf += torow[i].tostring();
+		if (i < torowSize-1) outbuf += ',';
 	}
-	fmt::print("\n");
+	outbuf += '\n';
+	if (outbuf.size() > 700){
+		output << outbuf;
+		outbuf.clear();
+	}
 	++numPrinted;
 	++ip;
 	next();
@@ -687,6 +695,8 @@ DECCHA_:
 	next();
 
 ENDRUN_:
+	output << outbuf;
+	output.flush();
 	return;
 
 //unimplemeted opcodes

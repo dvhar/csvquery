@@ -10,28 +10,17 @@ void opcode::print(){
 	cerr << ft("code: {: <18}  [{: <2}  {: <2}  {: <2}]\n", opMap[code], p1, p2, p3);
 }
 
-string dat::tostring(){
-	if (b & NIL) return "";
+char* dat::tostring(){
+	if (b & NIL) return (char*)"";
+	static char buf[40];
 	switch ( b & 7 ) {
-	case I:  return ft("{}",u.i); break;
-	case F:  return ft("{:.10g}",u.f); break;
-	case DT: return ft("{}",datestring(u.i)); break;
-	case DR: return ft("{}",durstring(u.i, nullptr)); break;
-	case T:  return ft("{}",u.s); break;
-	case R:  return ft("regex"); break;
+	case I:  sprintf(buf,"%lld",u.i); return buf;
+	case F:  sprintf(buf,"%.10g",u.f); return buf;
+	case DT: return datestring(u.i);
+	case DR: return durstring(u.i, nullptr);
+	case T:  return u.s;
 	}
-	return "";
-}
-void dat::print(){
-	if (b & NIL) return;
-	switch ( b & 7 ) {
-	case I:  fmt::print("{}",u.i); break;
-	case F:  fmt::print("{:.10g}",u.f); break;
-	case DT: fmt::print("{}",datestring(u.i)); break;
-	case DR: fmt::print("{}",durstring(u.i, nullptr)); break;
-	case T:  fmt::print("{}",u.s); break;
-	case R:  fmt::print("regex"); break;
-	}
+	return (char*)"";
 }
 
 valPos::valPos(int64 i, int64 p){ val.i = i; pos = p; }
