@@ -131,8 +131,7 @@ class dat {
 	short b; // metadata bit array
 	int z; // string size
 	short a; // unused but comes at no cost because of class padding
-	void print();
-	string tostring();
+	char* tostring();
 	// overload oeprator to test btree library
 	friend bool operator<(const dat& l, const dat& r){
 		return l.u.i < r.u.i;
