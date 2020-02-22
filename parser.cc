@@ -44,11 +44,10 @@ static void e(string s){
 	cerr << s << "   : " << i << endl;
 	t.print();
 }
-unique_ptr<node> newNode(int l, token t){
+unique_ptr<node> newNode(int l){
 	unique_ptr<node> n(new node);
-	n->tok2 = n->tok3 = n->tok4 = n->tok5 = token{};
+	n->tok1 = n->tok2 = n->tok3 = n->tok4 = n->tok5 = token{};
 	n->label = l;
-	n->tok1 = t;
 	n->datatype = 0;
 	n->keep = false;
 	return n;

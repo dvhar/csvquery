@@ -2,7 +2,7 @@
 #include "vmachine.h"
 #include <cmath>
 
-#ifndef _APPLE_ //get your shit together, apple
+#ifndef __APPLE__ //get your shit together, apple
 #include <execution>
 #endif
 
@@ -187,7 +187,7 @@ SAVEPOSS_JMP_:
 	pop();
 	next();
 
-#ifndef _APPLE_ //get your shit together, apple
+#ifndef __APPLE__ //get your shit together, apple
 SORTI_:
 	sort(execution::par_unseq, posVectors[op->p1].begin(), posVectors[op->p1].end(),
 		[op](const valPos &a, const valPos &b){ return (a.val.i > b.val.i)^op->p2; });
