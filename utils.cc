@@ -178,14 +178,6 @@ map<string, int> specialMap = {
 	{"^" ,  SP_CARROT}
 };
 
-unique_ptr<node> newNode(int l){
-	unique_ptr<node> n(new node);
-	n->tok1 = n->tok2 = n->tok3 = n->tok4 = n->tok5 = token{};
-	n->label = l;
-	n->datatype = 0;
-	n->keep = false;
-	return n;
-}
 
 bool is_number(const std::string& s)
 {

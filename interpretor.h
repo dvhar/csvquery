@@ -132,10 +132,6 @@ class dat {
 	int z; // string size
 	short a; // unused but comes at no cost because of class padding
 	char* tostring();
-	// overload oeprator to test btree library
-	friend bool operator<(const dat& l, const dat& r){
-		return l.u.i < r.u.i;
-	}
 };
 
 //placeholder for jmp positions that can't be determined until later
@@ -348,6 +344,5 @@ int getVarType(string lkup, querySpecs &q);
 int getFileNo(string s, querySpecs &q);
 char* durstring(dur_t dur, char* str);
 void runServer();
-unique_ptr<node> newNode(int);
 
 #endif
