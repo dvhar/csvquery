@@ -131,7 +131,7 @@ class dat {
 	short b; // metadata bit array
 	int z; // string size
 	short a; // unused but comes at no cost because of class padding
-	char* tostring();
+	void appendToBuffer(string&);
 };
 
 //placeholder for jmp positions that can't be determined until later
