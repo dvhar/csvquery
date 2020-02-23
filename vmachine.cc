@@ -629,11 +629,9 @@ JMPNOTNULL_ELSEPOP_:
 
 PRINT_:
 	torow[0].appendToBuffer(outbuf);
-	if (torowSize > 1){
-		for (int i=1; i<torowSize; ++i){
-			outbuf += ',';
-			torow[i].appendToBuffer(outbuf);
-		}
+	for (int i=1; i<torowSize; ++i){
+		outbuf += ',';
+		torow[i].appendToBuffer(outbuf);
 	}
 	outbuf += '\n';
 	if (outbuf.size() > 700){
