@@ -18,6 +18,11 @@ tests = [
 ["basic where",0,f"select top 10 c5 c7 c16 from {f1} where c5%2=0 and c7<200000 and c16 between '1/1/2020' and '1/1/2040'"],
 ["where in",0,f"select top 10 c1 from {f1} where c1 in (FRA, FRO, FSM, GAB, GBR, GEO, GHA, GIB, GIN)"],
 ["where not in",0,f"select top 10 c1 from {f1} where c1 not in (AFG, AGO, AIA, ALB, 'AND', ANT, ARE, ARG, ARM, ASM)"],
+["order by int",0,f"select top 10 c7 from {f1} order by c7"],
+["order by float asc",0,f"select top 10 c9 from {f1} order by c9 asc where c9 <> 0"],
+["order by date",0,f"select top 10 c16 from {f1} order by c16"],
+["order by string",0,f"select top 10 c1 from {f1} order by c1"],
+["order by variable",0,f"with c1 + dog as ord select top 10 ord from {f1} order by ord"],
 ]
 
 def runtest(test):

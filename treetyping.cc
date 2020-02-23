@@ -235,10 +235,9 @@ static void typeInitialValue(querySpecs &q, unique_ptr<node> &n, bool trivial){
 		//is not a var, function, or column, must be literal
 		n->tok2.id = LITERAL;
 		n->datatype = getNarrowestType((char*)val.c_str(), 0);
-	//put label after } if not printing
-	donetyping:
-	cerr << "typed " << n->tok1.val << " as " << n->datatype << endl;
 	}
+	donetyping:;
+	//cerr << "typed " << n->tok1.val << " as " << n->datatype << endl;
 
 	//see if selecting trivial value (just column or literal)
 	if (n->label == N_SELECTIONS)       trivial = true;
