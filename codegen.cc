@@ -141,22 +141,9 @@ static void determinePath(querySpecs &q){
 	if (q.sorting && !q.grouping && q.joining) {
 		//order join
 	} else if (q.sorting && !q.grouping) {
-		cerr << "ordered normal\n";
 		//ordered plain
+		cerr << "ordered normal\n";
 		genNormalOrderedQuery(q.tree, q.bytecode, q);
-		// 1 read line
-		// 2 check where
-		// 3 retrieve and append sort expr
-		// 4 if not done, goto 1
-		// 5 sort
-		// 6 read line at index
-		// 7 check distinct
-		// 8 set torow (new or group)
-		// 9 select
-		//10 print/append if not grouping
-		//11 if not done, goto 6
-
-
 	} else if (q.joining) {
 		//normal join and grouping
 	} else {

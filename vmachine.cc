@@ -628,9 +628,12 @@ JMPNOTNULL_ELSEPOP_:
 	next();
 
 PRINT_:
-	for (int i=0; i<torowSize; ++i){
-		outbuf += torow[i].tostring();
-		if (i < torowSize-1) outbuf += ',';
+	torow[0].appendToBuffer(outbuf);
+	if (torowSize > 1){
+		for (int i=1; i<torowSize; ++i){
+			outbuf += ',';
+			torow[i].appendToBuffer(outbuf);
+		}
 	}
 	outbuf += '\n';
 	if (outbuf.size() > 700){
@@ -699,7 +702,7 @@ ENDRUN_:
 	output.flush();
 	return;
 
-//unimplemeted opcodes
+//error opcodes
 CVER_:
 CVNO_:
 	error("Invalid opcode");

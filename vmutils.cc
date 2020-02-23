@@ -10,17 +10,36 @@ void opcode::print(){
 	cerr << ft("code: {: <18}  [{: <2}  {: <2}  {: <2}]\n", opMap[code], p1, p2, p3);
 }
 
-char* dat::tostring(){
-	if (b & NIL) return (char*)"";
+void dat::appendToBuffer(string &outbuf){
+	if (b & NIL) return;
+	// need quoting: , \n
+	//implement quote escaping after implemented in reader
+	static char abnormal[] = {0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+
 	static char buf[40];
+	char a = 0;
 	switch ( b & 7 ) {
-	case I:  sprintf(buf,"%lld",u.i); return buf;
-	case F:  sprintf(buf,"%.10g",u.f); return buf;
-	case DT: return datestring(u.i);
-	case DR: return durstring(u.i, nullptr);
-	case T:  return u.s;
+	case I:
+		sprintf(buf,"%lld",u.i);
+		outbuf += buf;
+		return;
+	case F:
+		sprintf(buf,"%.10g",u.f);
+		outbuf += buf;
+		return;
+	case DT: outbuf += datestring(u.i); return;
+	case DR: outbuf += durstring(u.i, nullptr); return;
+	case T:
+		for (char* c = u.s; *c; c++) a |= abnormal[*c];
+		if (!a){
+			outbuf += u.s;
+		} else {
+			outbuf += '"';
+			outbuf += u.s;
+			outbuf += '"';
+		}
+		return;
 	}
-	return (char*)"";
 }
 
 valPos::valPos(int64 i, int64 p){ val.i = i; pos = p; }
