@@ -3,7 +3,7 @@
 
 static void genNormalOrderedQuery(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q);
 static void genNormalQuery(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q);
-static void genVars(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q, int filter, int policy);
+static void genVars(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q, varScoper* vo);
 static void genWhere(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q);
 static void genDistinct(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q, int gotoIfNot);
 static void genGroupOrNewRow(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q);
@@ -183,15 +183,17 @@ static void genExprAll(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
 //given q.tree as node param
 static void genNormalQuery(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
 	e("normal");
-	NORMAL_READ = v.size();
 	int endfile = q.jumps.newPlaceholder(); //where to jump when done reading file
+	auto vscope = unique_ptr<varScoper>(new varScoper);
+	auto vs = vscope.get();
+	NORMAL_READ = v.size();
 	addop(v, RDLINE, endfile, 0);
-	genVars(n->node1, v, q, WHERE_FILTER|DISTINCT_FILTER, V_EQUALS);
-	genVars(n->node1, v, q, WHERE_FILTER, V_EQUALS);
+	genVars(n->node1, v, q, vs->again(WHERE_FILTER|DISTINCT_FILTER, V_EQUALS, V_SCOPE1));
+	genVars(n->node1, v, q, vs->again(WHERE_FILTER, V_EQUALS, V_SCOPE1));
 	genWhere(n->node4, v, q);
-	genVars(n->node1, v, q, DISTINCT_FILTER, V_EQUALS);
+	genVars(n->node1, v, q, vs->again(DISTINCT_FILTER, V_EQUALS, V_SCOPE1));
 	genDistinct(n->node2->node1, v, q, NORMAL_READ);
-	genVars(n->node1, v, q, NO_FILTER, V_ANY);
+	genVars(n->node1, v, q, vs->again(NO_FILTER, V_ANY, V_SCOPE1));
 	genGroupOrNewRow(n->node4, v, q);
 	genSelect(n->node2, v, q);
 	if (!q.grouping)
@@ -206,8 +208,10 @@ static void genNormalOrderedQuery(unique_ptr<node> &n, vector<opcode> &v, queryS
 	int sorter = q.jumps.newPlaceholder(); //where to jump when done scanning file
 	int reread = q.jumps.newPlaceholder();
 	int endreread = q.jumps.newPlaceholder();
+	auto vscope = unique_ptr<varScoper>(new varScoper);
+	auto vs = vscope.get();
 	addop(v, RDLINE, sorter, 0);
-	genVars(n->node1, v, q, WHERE_FILTER|ORDER_FILTER, V_INCLUDES);
+	genVars(n->node1, v, q, vs->again(WHERE_FILTER|ORDER_FILTER, V_INCLUDES, V_SCOPE1));
 	genWhere(n->node4, v, q);
 	genExprAll(n->node4->node4->node1, v, q);
 	addop(v, savePosOps[q.sorting], NORMAL_READ, 0, 0);
@@ -218,10 +222,10 @@ static void genNormalOrderedQuery(unique_ptr<node> &n, vector<opcode> &v, queryS
 	addop(v, PREP_REREAD, 0, 0);
 	q.jumps.setPlace(reread, v.size());
 	addop(v, RDLINE_ORDERED, endreread, 0, 0);
-	genVars(n->node1, v, q, DISTINCT_FILTER, V_EQUALS);
+	genVars(n->node1, v, q, vs->again(DISTINCT_FILTER, V_EQUALS, V_SCOPE2));
 	genDistinct(n->node2->node1, v, q, reread);
 	genGroupOrNewRow(n->node4, v, q);
-	genVars(n->node1, v, q, NO_FILTER, V_ANY);
+	genVars(n->node1, v, q, vs->again(NO_FILTER, V_ANY, V_SCOPE2));
 	genSelect(n->node2, v, q);
 	if (!q.grouping)
 		genPrint(v, q);
@@ -234,7 +238,7 @@ static void genNormalOrderedQuery(unique_ptr<node> &n, vector<opcode> &v, queryS
 };
 
 //find way to deduplicate var used for different filters in same time scope
-static void genVars(unique_ptr<node> &n, vector<opcode> &vec, querySpecs &q, int filter, int policy){
+static void genVars(unique_ptr<node> &n, vector<opcode> &vec, querySpecs &q, varScoper* vo){
 	if (n == nullptr) return;
 	e("gen vars");
 	int i;
@@ -242,23 +246,23 @@ static void genVars(unique_ptr<node> &n, vector<opcode> &vec, querySpecs &q, int
 	switch (n->label){
 	case N_PRESELECT: //currently only has 'with' branch
 	case N_WITH:
-		genVars(n->node1, vec, q, filter, policy);
+		genVars(n->node1, vec, q, vo);
 		break;
 	case N_VARS:
 		i = getVarIdx(n->tok1.val, q);
-		switch (policy){
+		switch (vo->policy){
 		case V_INCLUDES:
-			match = q.vars[i].filter & filter; break;
+			match = q.vars[i].filter & vo->filter; break;
 		case V_EQUALS:
-			match = q.vars[i].filter == filter; break;
+			match = q.vars[i].filter == vo->filter; break;
 		case V_ANY:
-			match = 1;
+			match = 1; break;
 		}
-		if (match){
+		if (match && vo->checkDuplicates(i)){
 			genExprAll(n->node1, vec, q);
 			addop(vec, PUTVAR, i);
 		}
-		genVars(n->node2, vec, q, filter, policy);
+		genVars(n->node2, vec, q, vo);
 		break;
 	}
 }

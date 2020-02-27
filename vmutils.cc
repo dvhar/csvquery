@@ -109,6 +109,20 @@ querySpecs::~querySpecs(){
 	}
 }
 
+varScoper* varScoper::again(int f, int p, int s){
+	filter = f;
+	policy = p;
+	scope = s;
+	return this;
+}
+bool varScoper::checkDuplicates(int i){
+	if (duplicates.count(scope) && duplicates[scope].count(i)){
+		return false;
+	}
+	duplicates[scope][i] = 1;
+	return true;
+}
+
 //add s2 to s1
 void strplus(dat &s1, dat &s2){
 	if (ISNULL(s1)) { s1 = s2; DISOWN(s2); return; }

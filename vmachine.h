@@ -127,6 +127,17 @@ class vmachine {
 	~vmachine();
 };
 
+class varScoper {
+	public:
+	int filter;
+	int policy;
+	int scope;
+	//map[scope][index] = already evaluated
+	map<int,map<int,int>> duplicates;
+	varScoper* again(int, int, int);
+	bool checkDuplicates(int);
+};
+
 extern map<int, string> opMap;
 void strplus(dat &s1, dat &s2);
 
