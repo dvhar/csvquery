@@ -136,6 +136,7 @@ class varScoper {
 	map<int,map<int,int>> duplicates;
 	varScoper* again(int, int, int);
 	bool checkDuplicates(int);
+	bool neededHere(int, int);
 };
 
 extern map<int, string> opMap;

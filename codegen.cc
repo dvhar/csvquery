@@ -237,8 +237,7 @@ static void genNormalOrderedQuery(unique_ptr<node> &n, vector<opcode> &v, queryS
 	addop(v, ENDRUN);
 };
 
-//find way to deduplicate var used for different filters in same time scope
-static void genVars(unique_ptr<node> &n, vector<opcode> &vec, querySpecs &q, varScoper* vo){
+static void genVars(unique_ptr<node> &n, vector<opcode> &vec, querySpecs &q, varScoper* vs){
 	if (n == nullptr) return;
 	e("gen vars");
 	int i;
@@ -246,23 +245,15 @@ static void genVars(unique_ptr<node> &n, vector<opcode> &vec, querySpecs &q, var
 	switch (n->label){
 	case N_PRESELECT: //currently only has 'with' branch
 	case N_WITH:
-		genVars(n->node1, vec, q, vo);
+		genVars(n->node1, vec, q, vs);
 		break;
 	case N_VARS:
 		i = getVarIdx(n->tok1.val, q);
-		switch (vo->policy){
-		case V_INCLUDES:
-			match = q.vars[i].filter & vo->filter; break;
-		case V_EQUALS:
-			match = q.vars[i].filter == vo->filter; break;
-		case V_ANY:
-			match = 1; break;
-		}
-		if (match && vo->checkDuplicates(i)){
+		if (vs->neededHere(i, q.vars[i].filter)){
 			genExprAll(n->node1, vec, q);
 			addop(vec, PUTVAR, i);
 		}
-		genVars(n->node2, vec, q, vo);
+		genVars(n->node2, vec, q, vs);
 		break;
 	}
 }

@@ -115,6 +115,18 @@ varScoper* varScoper::again(int f, int p, int s){
 	scope = s;
 	return this;
 }
+bool varScoper::neededHere(int i, int f){
+	int match;
+	switch (policy){
+	case V_INCLUDES:
+		match = f & filter; break;
+	case V_EQUALS:
+		match = f == filter; break;
+	case V_ANY:
+		match = 1; break;
+	}
+	return match && checkDuplicates(i);
+}
 bool varScoper::checkDuplicates(int i){
 	if (duplicates.count(scope) && duplicates[scope].count(i)){
 		return false;
