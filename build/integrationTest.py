@@ -1,4 +1,7 @@
 #!/usr/bin/env python3
+
+#TODO: check actual results instead of just return code after csv formatting is finalized
+
 from subprocess import Popen
 
 picky = False
@@ -23,6 +26,7 @@ tests = [
 ["order by date",0,f"select top 10 c16 from {f1} order by c16"],
 ["order by string",0,f"select top 10 c1 from {f1} order by c1"],
 ["order by variable",0,f"with c1 + dog as ord select top 10 ord from {f1} order by ord"],
+["order by variable asc",0,f"with c1 + dog as ord select top 10 ord from {f1} order by ord asc"],
 ]
 
 def runtest(test):

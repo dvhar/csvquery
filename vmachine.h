@@ -50,7 +50,7 @@ static int ops[][6] = {
 };
 static dat* datp;
 
-//8 bit array
+
 const byte I = 1;
 const byte F = 2;
 const byte DT = 3;
