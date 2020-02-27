@@ -43,6 +43,9 @@ enum nodetypes { N_QUERY, N_PRESELECT, N_WITH, N_VARS, N_SELECT, N_SELECTIONS, N
 
 enum valTypes { LITERAL, COLUMN, VARIABLE, FUNCTION };
 
+enum varScopes { NO_FILTER, WHERE_FILTER=1, DISTINCT_FILTER=2, ORDER_FILTER=4 };
+enum varGen { V_ANY, V_INCLUDES, V_EQUALS };
+
 class token {
 	public:
 	int id;

@@ -2,29 +2,28 @@
 
 static void varUsedInFilter(unique_ptr<node> &n, querySpecs &q){
 	if (n == nullptr) return;
-	static int filterBranch = 0;
+	static int filterBranch = NO_FILTER;
 	string t1;
 	switch (n->label){
 	//skip irrelvent subtrees
 	case N_PRESELECT:
 	case N_FROM:
 	case N_GROUPBY:
-	case N_ORDER:
 	case N_HAVING: //may use this one later
 		break;
 	case N_SELECTIONS:
 		t1 = n->tok1.lower();
 		if (t1 == "hidden" || t1 == "distinct"){
-			filterBranch = 1;
+			filterBranch = DISTINCT_FILTER;
 			varUsedInFilter(n->node1, q);
-			filterBranch = 0;
+			filterBranch = NO_FILTER;
 		}
 		varUsedInFilter(n->node2, q);
 		break;
 	case N_WHERE:
-		filterBranch = 1;
+		filterBranch = WHERE_FILTER;
 		varUsedInFilter(n->node1, q);
-		filterBranch = 0;
+		filterBranch = NO_FILTER;
 		break;
 	case N_VALUE:
 		if (filterBranch && n->tok2.id == VARIABLE){
@@ -34,6 +33,11 @@ static void varUsedInFilter(unique_ptr<node> &n, querySpecs &q){
 					cerr << n->tok1.val << " used in filter\n";
 				}
 		}
+		break;
+	case N_ORDER:
+		filterBranch = ORDER_FILTER;
+		varUsedInFilter(n->node1, q);
+		filterBranch = NO_FILTER;
 		break;
 	default:
 		varUsedInFilter(n->node1, q);

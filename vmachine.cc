@@ -632,12 +632,12 @@ PRINT_:
 	for (int i=1; i<torowSize; ++i){
 		outbuf += ',';
 		torow[i].appendToBuffer(outbuf);
+		if (outbuf.size() > 900){
+			output << outbuf;
+			outbuf.clear();
+		}
 	}
 	outbuf += '\n';
-	if (outbuf.size() > 700){
-		output << outbuf;
-		outbuf.clear();
-	}
 	++numPrinted;
 	++ip;
 	next();
