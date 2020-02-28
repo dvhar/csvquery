@@ -9,7 +9,8 @@
 //work with stack data
 #define stk0 (*stacktop)
 #define stk1 (*(stacktop-1))
-#define stkp(N) (*(stacktop-N))
+#define stkt(N) (*(stacktop-N))
+#define stkb(N) (*(stackbot+N))
 #define push() ++stacktop
 #define pop() --stacktop
 
@@ -22,7 +23,7 @@
 
 void vmachine::run(){
 
-	void* labels[] = { &&CVER_, &&CVNO_, &&CVIF_, &&CVIS_, &&CVFI_, &&CVFS_, &&CVDRS_, &&CVDTS_, &&CVSI_, &&CVSF_, &&CVSDR_, &&CVSDT_, &&IADD_, &&FADD_, &&TADD_, &&DTADD_, &&DRADD_, &&ISUB_, &&FSUB_, &&DTSUB_, &&DRSUB_, &&IMULT_, &&FMULT_, &&DRMULT_, &&IDIV_, &&FDIV_, &&DRDIV_, &&INEG_, &&FNEG_, &&PNEG_, &&IMOD_, &&FMOD_, &&IEXP_, &&FEXP_, &&JMP_, &&JMPCNT_, &&JMPTRUE_, &&JMPFALSE_, &&JMPNOTNULL_ELSEPOP_, &&RDLINE_, &&RDLINE_ORDERED_, &&PREP_REREAD_, &&PUT_, &&LDPUT_, &&LDPUTALL_, &&PUTVAR_, &&LDINT_, &&LDFLOAT_, &&LDTEXT_, &&LDDATE_, &&LDDUR_, &&LDNULL_, &&LDLIT_, &&LDVAR_, &&IEQ_, &&FEQ_, &&TEQ_, &&LIKE_, &&ILEQ_, &&FLEQ_, &&TLEQ_, &&ILT_, &&FLT_, &&TLT_, &&PRINT_, &&POP_, &&POPCPY_, &&ENDRUN_, &&NULFALSE1_, &&NULFALSE2_, &&NDIST_, &&SDIST_, &&PUTDIST_, &&FINC_, &&ENCCHA_, &&DECCHA_, &&SAVEPOSI_JMP_, &&SAVEPOSF_JMP_, &&SAVEPOSS_JMP_, &&SORTI_, &&SORTF_, &&SORTS_ };
+	void* labels[] = { &&CVER_, &&CVNO_, &&CVIF_, &&CVIS_, &&CVFI_, &&CVFS_, &&CVDRS_, &&CVDTS_, &&CVSI_, &&CVSF_, &&CVSDR_, &&CVSDT_, &&IADD_, &&FADD_, &&TADD_, &&DTADD_, &&DRADD_, &&ISUB_, &&FSUB_, &&DTSUB_, &&DRSUB_, &&IMULT_, &&FMULT_, &&DRMULT_, &&IDIV_, &&FDIV_, &&DRDIV_, &&INEG_, &&FNEG_, &&PNEG_, &&IMOD_, &&FMOD_, &&IEXP_, &&FEXP_, &&JMP_, &&JMPCNT_, &&JMPTRUE_, &&JMPFALSE_, &&JMPNOTNULL_ELSEPOP_, &&RDLINE_, &&RDLINE_ORDERED_, &&PREP_REREAD_, &&PUT_, &&LDPUT_, &&LDPUTALL_, &&PUTVAR_, &&LDINT_, &&LDFLOAT_, &&LDTEXT_, &&LDDATE_, &&LDDUR_, &&LDNULL_, &&LDLIT_, &&LDVAR_, &&IEQ_, &&FEQ_, &&TEQ_, &&LIKE_, &&ILEQ_, &&FLEQ_, &&TLEQ_, &&ILT_, &&FLT_, &&TLT_, &&PRINT_, &&PUSH_, &&POP_, &&POPCPY_, &&ENDRUN_, &&NULFALSE1_, &&NULFALSE2_, &&NDIST_, &&SDIST_, &&PUTDIST_, &&FINC_, &&ENCCHA_, &&DECCHA_, &&SAVEPOSI_JMP_, &&SAVEPOSF_JMP_, &&SAVEPOSS_JMP_, &&SORTI_, &&SORTF_, &&SORTS_ };
 
 	//vars for data
 	int64 i64Temp;
@@ -37,6 +38,7 @@ void vmachine::run(){
 	//vars for vm operations
 	int numPrinted = 0;
 	dat* stacktop = stack.data();
+	dat* stackbot = stack.data();
 	int ip = 0;
 	opcode *op;
 
@@ -80,8 +82,8 @@ PUTDIST_:
 	next();
 //put variable from stack into var vector
 PUTVAR_:
-	FREE1(vars[op->p1]);
-	vars[op->p1] = stk0;
+	FREE1(stkb(op->p1));
+	stkb(op->p1) = stk0;
 	DISOWN(stk0);
 	pop();
 	++ip;
@@ -90,7 +92,7 @@ PUTVAR_:
 //put variable from var vector into stack
 LDVAR_:
 	push();
-	stk0 = vars[op->p1];
+	stk0 = stkb(op->p1);
 	DISOWN(stk0); //var vector still owns c string
 	++ip;
 	next();
@@ -378,18 +380,18 @@ FMOD_:
 IEQ_:
 	iTemp1 = ISNULL(stk0);
 	iTemp2 = ISNULL(stk1);
-	if (iTemp1 ^ iTemp2) stkp(op->p1).u.p = false;
-	else if (iTemp1 & iTemp2) stkp(op->p1).u.p = true;
-	else stkp(op->p1).u.p = (stk1.u.i == stk0.u.i)^op->p2;
+	if (iTemp1 ^ iTemp2) stkt(op->p1).u.p = false;
+	else if (iTemp1 & iTemp2) stkt(op->p1).u.p = true;
+	else stkt(op->p1).u.p = (stk1.u.i == stk0.u.i)^op->p2;
 	stacktop -= op->p1;
 	++ip;
 	next();
 FEQ_:
 	iTemp1 = ISNULL(stk0);
 	iTemp2 = ISNULL(stk1);
-	if (iTemp1 ^ iTemp2) stkp(op->p1).u.p = false;
-	else if (iTemp1 & iTemp2) stkp(op->p1).u.p = true;
-	else stkp(op->p1).u.p = (stk1.u.f == stk0.u.f)^op->p2;
+	if (iTemp1 ^ iTemp2) stkt(op->p1).u.p = false;
+	else if (iTemp1 & iTemp2) stkt(op->p1).u.p = true;
+	else stkt(op->p1).u.p = (stk1.u.f == stk0.u.f)^op->p2;
 	stacktop -= op->p1;
 	++ip;
 	next();
@@ -399,60 +401,60 @@ TEQ_:
 	if (!(iTemp1|iTemp2)){ //none null
 		boolTemp = (scomp(stk1.u.s, stk0.u.s) == 0)^op->p2;
 		FREE2(stk0);
-		FREE2(stkp(op->p1));
-		stkp(op->p1).u.p = boolTemp;
+		FREE2(stkt(op->p1));
+		stkt(op->p1).u.p = boolTemp;
 	} else if (iTemp1 & iTemp2) { //both null
-		stkp(op->p1).u.p = true;
+		stkt(op->p1).u.p = true;
 	} else { //one null
 		FREE2(stk0);
-		FREE2(stkp(op->p1));
-		stkp(op->p1).u.p = false;
+		FREE2(stkt(op->p1));
+		stkt(op->p1).u.p = false;
 	}
 	stacktop -= op->p1;
 	++ip;
 	next();
 ILEQ_:
-	if (ISNULL(stk0) || ISNULL(stk1)) stkp(op->p1).u.p = false;
-	else stkp(op->p1).u.p = (stk1.u.i <= stk0.u.i)^op->p2;
+	if (ISNULL(stk0) || ISNULL(stk1)) stkt(op->p1).u.p = false;
+	else stkt(op->p1).u.p = (stk1.u.i <= stk0.u.i)^op->p2;
 	stacktop -= op->p1;
 	++ip;
 	next();
 FLEQ_:
-	if (ISNULL(stk0) || ISNULL(stk1)) stkp(op->p1).u.p = false;
-	else stkp(op->p1).u.p = (stk1.u.f <= stk0.u.f)^op->p2;
+	if (ISNULL(stk0) || ISNULL(stk1)) stkt(op->p1).u.p = false;
+	else stkt(op->p1).u.p = (stk1.u.f <= stk0.u.f)^op->p2;
 	stacktop -= op->p1;
 	++ip;
 	next();
 TLEQ_:
-	if (ISNULL(stk0) || ISNULL(stk1)) stkp(op->p1).u.p = false;
+	if (ISNULL(stk0) || ISNULL(stk1)) stkt(op->p1).u.p = false;
 	else {
 		boolTemp = (scomp(stk1.u.s, stk0.u.s) <= 0)^op->p2;
 		FREE2(stk0);
-		FREE2(stkp(op->p1));
-		stkp(op->p1).u.p = boolTemp;
+		FREE2(stkt(op->p1));
+		stkt(op->p1).u.p = boolTemp;
 	}
 	stacktop -= op->p1;
 	++ip;
 	next();
 ILT_:
-	if (ISNULL(stk0) || ISNULL(stk1)) stkp(op->p1).u.p = false;
-	else stkp(op->p1).u.p = (stk1.u.i < stk0.u.i)^op->p2;
+	if (ISNULL(stk0) || ISNULL(stk1)) stkt(op->p1).u.p = false;
+	else stkt(op->p1).u.p = (stk1.u.i < stk0.u.i)^op->p2;
 	stacktop -= op->p1;
 	++ip;
 	next();
 FLT_:
-	if (ISNULL(stk0) || ISNULL(stk1)) stkp(op->p1).u.p = false;
-	else stkp(op->p1).u.p = (stk1.u.f < stk0.u.f)^op->p2;
+	if (ISNULL(stk0) || ISNULL(stk1)) stkt(op->p1).u.p = false;
+	else stkt(op->p1).u.p = (stk1.u.f < stk0.u.f)^op->p2;
 	stacktop -= op->p1;
 	++ip;
 	next();
 TLT_:
-	if (ISNULL(stk0) || ISNULL(stk1)) stkp(op->p1).u.p = false;
+	if (ISNULL(stk0) || ISNULL(stk1)) stkt(op->p1).u.p = false;
 	else {
 		boolTemp = (scomp(stk1.u.s, stk0.u.s) < 0)^op->p2;
 		FREE2(stk0);
-		FREE2(stkp(op->p1));
-		stkp(op->p1).u.p = boolTemp;
+		FREE2(stkt(op->p1));
+		stkt(op->p1).u.p = boolTemp;
 	}
 	stacktop -= op->p1;
 	++ip;
@@ -464,6 +466,10 @@ LIKE_:
 	++ip;
 	next();
 
+PUSH_:
+	push();	
+	++ip;
+	next();
 POP_:
 	FREE2(stk0);
 	pop();

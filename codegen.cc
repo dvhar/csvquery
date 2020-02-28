@@ -37,6 +37,9 @@ static int ident = 0;
 	cerr << "done " << A << endl; });
 #endif
 
+#define pushvars() for (auto &i : q.vars) addop(v, PUSH);
+#define popvars() for (auto &i : q.vars) addop(v, POP);
+
 //global bytecode position
 static int NORMAL_READ;
 
@@ -180,20 +183,21 @@ static void genExprAll(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
 	}
 }
 
+
 //given q.tree as node param
 static void genNormalQuery(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
 	e("normal");
 	int endfile = q.jumps.newPlaceholder(); //where to jump when done reading file
-	auto vscope = unique_ptr<varScoper>(new varScoper);
-	auto vs = vscope.get();
+	varScoper vs;
+	pushvars();
 	NORMAL_READ = v.size();
 	addop(v, RDLINE, endfile, 0);
-	genVars(n->node1, v, q, vs->again(WHERE_FILTER|DISTINCT_FILTER, V_EQUALS, V_SCOPE1));
-	genVars(n->node1, v, q, vs->again(WHERE_FILTER, V_EQUALS, V_SCOPE1));
+	genVars(n->node1, v, q, vs.setscope(WHERE_FILTER|DISTINCT_FILTER, V_EQUALS, V_SCOPE1));
+	genVars(n->node1, v, q, vs.setscope(WHERE_FILTER, V_EQUALS, V_SCOPE1));
 	genWhere(n->node4, v, q);
-	genVars(n->node1, v, q, vs->again(DISTINCT_FILTER, V_EQUALS, V_SCOPE1));
+	genVars(n->node1, v, q, vs.setscope(DISTINCT_FILTER, V_EQUALS, V_SCOPE1));
 	genDistinct(n->node2->node1, v, q, NORMAL_READ);
-	genVars(n->node1, v, q, vs->again(NO_FILTER, V_ANY, V_SCOPE1));
+	genVars(n->node1, v, q, vs.setscope(NO_FILTER, V_ANY, V_SCOPE1));
 	genGroupOrNewRow(n->node4, v, q);
 	genSelect(n->node2, v, q);
 	if (!q.grouping)
@@ -201,17 +205,18 @@ static void genNormalQuery(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q
 	addop(v, (q.quantityLimit > 0 && !q.grouping ? JMPCNT : JMP), NORMAL_READ);
 	q.jumps.setPlace(endfile, v.size());
 	genReturnGroups(n->node4, v, q); //more selecting/printing if grouping
+	popvars();
 	addop(v, ENDRUN);
 }
 static void genNormalOrderedQuery(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
-	NORMAL_READ = v.size();
 	int sorter = q.jumps.newPlaceholder(); //where to jump when done scanning file
 	int reread = q.jumps.newPlaceholder();
 	int endreread = q.jumps.newPlaceholder();
-	auto vscope = unique_ptr<varScoper>(new varScoper);
-	auto vs = vscope.get();
+	varScoper vs;
+	pushvars();
+	NORMAL_READ = v.size();
 	addop(v, RDLINE, sorter, 0);
-	genVars(n->node1, v, q, vs->again(WHERE_FILTER|ORDER_FILTER, V_INCLUDES, V_SCOPE1));
+	genVars(n->node1, v, q, vs.setscope(WHERE_FILTER|ORDER_FILTER, V_INCLUDES, V_SCOPE1));
 	genWhere(n->node4, v, q);
 	genExprAll(n->node4->node4->node1, v, q);
 	addop(v, savePosOps[q.sorting], NORMAL_READ, 0, 0);
@@ -222,10 +227,10 @@ static void genNormalOrderedQuery(unique_ptr<node> &n, vector<opcode> &v, queryS
 	addop(v, PREP_REREAD, 0, 0);
 	q.jumps.setPlace(reread, v.size());
 	addop(v, RDLINE_ORDERED, endreread, 0, 0);
-	genVars(n->node1, v, q, vs->again(DISTINCT_FILTER, V_EQUALS, V_SCOPE2));
+	genVars(n->node1, v, q, vs.setscope(DISTINCT_FILTER, V_EQUALS, V_SCOPE2));
 	genDistinct(n->node2->node1, v, q, reread);
 	genGroupOrNewRow(n->node4, v, q);
-	genVars(n->node1, v, q, vs->again(NO_FILTER, V_ANY, V_SCOPE2));
+	genVars(n->node1, v, q, vs.setscope(NO_FILTER, V_ANY, V_SCOPE2));
 	genSelect(n->node2, v, q);
 	if (!q.grouping)
 		genPrint(v, q);
@@ -234,6 +239,7 @@ static void genNormalOrderedQuery(unique_ptr<node> &n, vector<opcode> &v, queryS
 	addop(v, POP); //rereader used 2 stack spaces
 	addop(v, POP);
 	genReturnGroups(n->node4, v, q); //more selecting/printing if grouping
+	popvars();
 	addop(v, ENDRUN);
 };
 
