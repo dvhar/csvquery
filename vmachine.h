@@ -24,7 +24,7 @@ enum codes : unsigned char {
 	IEQ, FEQ, TEQ, LIKE,
 	ILEQ, FLEQ, TLEQ,
 	ILT, FLT, TLT,
-	PRINT, POP, POPCPY, ENDRUN, NULFALSE1, NULFALSE2,
+	PRINT, PUSH, POP, POPCPY, ENDRUN, NULFALSE1, NULFALSE2,
 	NDIST, SDIST, PUTDIST,
 	FINC, ENCCHA, DECCHA,
 	SAVEPOSI_JMP, SAVEPOSF_JMP, SAVEPOSS_JMP, SORTI, SORTF, SORTS
@@ -116,7 +116,6 @@ class vmachine {
 	vector<dat> destrow;
 	vector<dat> midrow;
 	vector<dat> stack;
-	vector<dat> vars;
 	vector<vector<valPos>> posVectors;
 	//separate btrees for performance
 	vector<btree::btree_set<int64>> bt_nums;
@@ -134,7 +133,7 @@ class varScoper {
 	int scope;
 	//map[scope][index] = already evaluated
 	map<int,map<int,int>> duplicates;
-	varScoper* again(int, int, int);
+	varScoper* setscope(int, int, int);
 	bool checkDuplicates(int);
 	bool neededHere(int, int);
 };
