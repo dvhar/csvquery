@@ -141,20 +141,35 @@ static void addop(vector<opcode> &v, byte code, int p1, int p2, int p3){
 
 static void determinePath(querySpecs &q){
 
-	if (q.sorting && !q.grouping && q.joining) {
-		//order join
-	} else if (q.sorting && !q.grouping) {
-		//ordered plain
-		cerr << "ordered normal\n";
-		genNormalOrderedQuery(q.tree, q.bytecode, q);
-	} else if (q.joining) {
-		//normal join and grouping
-	} else {
-		cerr << "plain normal\n";
-		genNormalQuery(q.tree, q.bytecode, q);
-	}
-	q.jumps.updateBytecode(q.bytecode);
+	int whatdo = 0;
+	if (q.sorting)  whatdo = 1;
+	if (q.grouping) whatdo|= 2;
+	if (q.joining)  whatdo|= 4;
 
+	switch (whatdo){
+	case 0:
+		cerr << "normal\n";
+		genNormalQuery(q.tree, q.bytecode, q);
+		break;
+	case 1:
+		cerr << "sorting\n";
+		genNormalOrderedQuery(q.tree, q.bytecode, q);
+		break;
+	case 2:
+		break;
+	case 4:
+		break;
+	case 1|2:
+		break;
+	case 1|4:
+		break;
+	case 1|2|4:
+		break;
+	case 2|4:
+		break;
+	}
+
+	q.jumps.updateBytecode(q.bytecode);
 }
 
 void codeGen(querySpecs &q){
@@ -198,13 +213,10 @@ static void genNormalQuery(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q
 	genVars(n->node1, v, q, vs.setscope(DISTINCT_FILTER, V_EQUALS, V_SCOPE1));
 	genDistinct(n->node2->node1, v, q, NORMAL_READ);
 	genVars(n->node1, v, q, vs.setscope(NO_FILTER, V_ANY, V_SCOPE1));
-	genGroupOrNewRow(n->node4, v, q);
 	genSelect(n->node2, v, q);
-	if (!q.grouping)
-		genPrint(v, q);
-	addop(v, (q.quantityLimit > 0 && !q.grouping ? JMPCNT : JMP), NORMAL_READ);
+	genPrint(v, q);
+	addop(v, (q.quantityLimit > 0 ? JMPCNT : JMP), NORMAL_READ);
 	q.jumps.setPlace(endfile, v.size());
-	genReturnGroups(n->node4, v, q); //more selecting/printing if grouping
 	popvars();
 	addop(v, ENDRUN);
 }
@@ -229,16 +241,13 @@ static void genNormalOrderedQuery(unique_ptr<node> &n, vector<opcode> &v, queryS
 	addop(v, RDLINE_ORDERED, endreread, 0, 0);
 	genVars(n->node1, v, q, vs.setscope(DISTINCT_FILTER, V_EQUALS, V_SCOPE2));
 	genDistinct(n->node2->node1, v, q, reread);
-	genGroupOrNewRow(n->node4, v, q);
 	genVars(n->node1, v, q, vs.setscope(NO_FILTER, V_ANY, V_SCOPE2));
 	genSelect(n->node2, v, q);
-	if (!q.grouping)
-		genPrint(v, q);
-	addop(v, (q.quantityLimit > 0 && !q.grouping ? JMPCNT : JMP), reread);
+	genPrint(v, q);
+	addop(v, (q.quantityLimit > 0 ? JMPCNT : JMP), reread);
 	q.jumps.setPlace(endreread, v.size());
 	addop(v, POP); //rereader used 2 stack spaces
 	addop(v, POP);
-	genReturnGroups(n->node4, v, q); //more selecting/printing if grouping
 	popvars();
 	addop(v, ENDRUN);
 };
