@@ -3,10 +3,11 @@
 
 static void genNormalOrderedQuery(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q);
 static void genNormalQuery(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q);
+static void genBasicGroupingQuery(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q);
 static void genVars(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q, varScoper* vo);
 static void genWhere(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q);
 static void genDistinct(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q, int gotoIfNot);
-static void genGroupOrNewRow(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q);
+static void genGroup(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q);
 static void genSelect(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q);
 static void genPrint(vector<opcode> &v, querySpecs &q);
 static void genReturnGroups(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q);
@@ -156,6 +157,8 @@ static void determinePath(querySpecs &q){
 		genNormalOrderedQuery(q.tree, q.bytecode, q);
 		break;
 	case 2:
+		cerr << "basic grouping\n";
+		genBasicGroupingQuery(q.tree, q.bytecode, q);
 		break;
 	case 4:
 		break;
@@ -251,6 +254,28 @@ static void genNormalOrderedQuery(unique_ptr<node> &n, vector<opcode> &v, queryS
 	popvars();
 	addop(v, ENDRUN);
 };
+static void genBasicGroupingQuery(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
+	e("grouping");
+	int getgroups = q.jumps.newPlaceholder();
+	varScoper vs;
+	pushvars();
+	NORMAL_READ = v.size();
+	addop(v, RDLINE, getgroups, 0);
+	genVars(n->node1, v, q, vs.setscope(WHERE_FILTER|DISTINCT_FILTER, V_EQUALS, V_SCOPE1));
+	genVars(n->node1, v, q, vs.setscope(WHERE_FILTER, V_EQUALS, V_SCOPE1));
+	genWhere(n->node4, v, q);
+	genVars(n->node1, v, q, vs.setscope(DISTINCT_FILTER, V_EQUALS, V_SCOPE1));
+	genDistinct(n->node2->node1, v, q, NORMAL_READ);
+	genVars(n->node1, v, q, vs.setscope(NO_FILTER, V_ANY, V_SCOPE1));
+	genGroup(n->node4, v, q);
+	genSelect(n->node2, v, q);//phase 1?
+	addop(v, JMP, NORMAL_READ);
+	q.jumps.setPlace(getgroups, v.size());
+	genSelect(n->node2, v, q); //phase 2?
+	genReturnGroups(n->node4, v, q); //having?
+	popvars();
+	addop(v, ENDRUN);
+}
 
 static void genVars(unique_ptr<node> &n, vector<opcode> &vec, querySpecs &q, varScoper* vs){
 	if (n == nullptr) return;
@@ -659,6 +684,6 @@ static void genReturnGroups(unique_ptr<node> &n, vector<opcode> &v, querySpecs &
 	if (n == nullptr) return;
 }
 
-static void genGroupOrNewRow(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
+static void genGroup(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
 	if (n == nullptr) return;
 }

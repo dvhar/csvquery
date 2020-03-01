@@ -35,9 +35,10 @@
 #define str3(A,B,C) ft("{}{}{}",A,B,C)
 #define error(A) throw invalid_argument(A)
 #define printasm(S, L) asm("syscall\n\t"::"a"(1), "D"(1), "S"(S), "d"(L));
-
-
 using namespace std;
+
+
+int scomp(const char*, const char*);
 
 enum nodetypes { N_QUERY, N_PRESELECT, N_WITH, N_VARS, N_SELECT, N_SELECTIONS, N_FROM, N_AFTERFROM, N_JOINCHAIN, N_JOIN, N_WHERE, N_HAVING, N_ORDER, N_EXPRADD, N_EXPRMULT, N_EXPRNEG, N_EXPRCASE, N_CPREDLIST, N_CPRED, N_CWEXPRLIST, N_CWEXPR, N_PREDICATES, N_PREDCOMP, N_VALUE, N_FUNCTION, N_GROUPBY, N_EXPRESSIONS, N_DEXPRESSIONS, N_TYPECONV };
 
@@ -135,6 +136,12 @@ class dat {
 	int z; // string size
 	short a; // unused but comes at no cost because of class padding
 	void appendToBuffer(string&);
+	friend bool operator<(const dat& l, const dat& r){
+		if ((l.b & 7)==6)
+			return scomp(l.u.s, r.u.s) < 0;
+		else
+			return l.u.i < r.u.i;
+	}
 };
 
 //placeholder for jmp positions that can't be determined until later
@@ -329,7 +336,6 @@ void scanTokens(querySpecs &q);
 void parseQuery(querySpecs &q);
 bool is_number(const std::string& s);
 void printTree(unique_ptr<node> &n, int ident);
-int scomp(const char*, const char*);
 int slcomp(const char*, const char*);
 int isInt(const char*);
 int isFloat(const char*);
