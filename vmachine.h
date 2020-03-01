@@ -87,22 +87,48 @@ const byte NIL = 32;
 //make sure to free manually like normal malloced c strings
 class treeCString {
 	public:
-	char* s;
-	treeCString(dat& d);
-	treeCString();
-	friend bool operator<(const treeCString& l, const treeCString& r){
-		return scomp(l.s, r.s) < 0;
-	}
+		char* s;
+		treeCString(dat& d);
+		treeCString();
+		friend bool operator<(const treeCString& l, const treeCString& r){
+			return scomp(l.s, r.s) < 0;
+		}
 };
 
 class valPos {
 	public:
-	datunion val;
-	int64 pos;
-	valPos(int64, int64);
-	valPos(double, int64);
-	valPos(char*, int64);
-	valPos();
+		datunion val;
+		int64 pos;
+		valPos(int64, int64);
+		valPos(double, int64);
+		valPos(char*, int64);
+		valPos();
+};
+
+class rowgroup {
+	public:
+		void* data;
+		int type;
+		vector<dat> getRow();
+		map<dat, rowgroup> getMap();
+		rowgroup(int t, int size){
+			type = t;
+			if (type == 1){
+				data = new vector<dat>;
+				((vector<dat>*) data)->resize(size);
+			} else {
+				data = new map<dat, rowgroup>;
+			}
+		}
+		~rowgroup(){
+			if (type == 1){
+				if ((((vector<dat>*) data)->begin()->b & 7) == T)
+					for (auto &d : *((vector<dat>*) data)) FREE2(d);
+				delete ((vector<dat>*) data);
+			} else {
+				delete ((map<dat, rowgroup>*) data);
+			}
+		}
 };
 
 class vmachine {
@@ -121,21 +147,21 @@ class vmachine {
 	vector<btree::btree_set<int64>> bt_nums;
 	vector<btree::btree_set<treeCString>> bt_strings;
 	public:
-	void run();
-	vmachine(querySpecs &q);
-	~vmachine();
+		void run();
+		vmachine(querySpecs &q);
+		~vmachine();
 };
 
 class varScoper {
 	public:
-	int filter;
-	int policy;
-	int scope;
-	//map[scope][index] = already evaluated
-	map<int,map<int,int>> duplicates;
-	varScoper* setscope(int, int, int);
-	bool checkDuplicates(int);
-	bool neededHere(int, int);
+		int filter;
+		int policy;
+		int scope;
+		//map[scope][index] = already evaluated
+		map<int,map<int,int>> duplicates;
+		varScoper* setscope(int, int, int);
+		bool checkDuplicates(int);
+		bool neededHere(int, int);
 };
 
 extern map<int, string> opMap;
