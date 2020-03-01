@@ -49,7 +49,6 @@ void vmachine::run(){
 	next();
 
 //put data from stack into torow
-//should make a version of this that appends to outbuf rather than using torow
 PUT_:
 	FREE1(torow[op->p1]);
 	torow[op->p1] = stk0;
