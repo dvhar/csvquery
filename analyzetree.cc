@@ -8,7 +8,6 @@ static void varUsedInFilter(unique_ptr<node> &n, querySpecs &q){
 	//skip irrelvent subtrees
 	case N_PRESELECT:
 	case N_FROM:
-	case N_GROUPBY:
 	case N_HAVING: //may use this one later
 		break;
 	case N_SELECTIONS:
@@ -36,6 +35,11 @@ static void varUsedInFilter(unique_ptr<node> &n, querySpecs &q){
 		break;
 	case N_ORDER:
 		filterBranch = ORDER_FILTER;
+		varUsedInFilter(n->node1, q);
+		filterBranch = NO_FILTER;
+		break;
+	case N_GROUPBY:
+		filterBranch = GROUP_FILTER;
 		varUsedInFilter(n->node1, q);
 		filterBranch = NO_FILTER;
 		break;
@@ -84,6 +88,55 @@ static void recordResultColumns(unique_ptr<node> &n, querySpecs &q){
 		recordResultColumns(n->node4, q);
 	}
 };
+
+static bool findAgrregates(unique_ptr<node> &n){
+	if (n == nullptr) return false;
+	switch (n->label){
+	case N_FUNCTION:
+		if ((n->tok1.id & AGG_BIT) != 0){
+			return true;
+		}
+		break;
+	default:
+		// no shortcircuit evaluation because need to check semantics
+		return
+		findAgrregates(n->node1) |
+		findAgrregates(n->node2) |
+		findAgrregates(n->node3) |
+		findAgrregates(n->node4);
+	}
+	return false;
+}
+
+//mark selections and function nodes with midrow index+1
+static void markGroupMidrowTargets(unique_ptr<node> &n, querySpecs &q){
+	if (n == nullptr && !q.grouping) return;
+	switch (n->label){
+	case N_SELECTIONS:
+		if (!findAgrregates(n->node1)){
+			n->tok3.id = ++q.midcount;
+		}
+		markGroupMidrowTargets(n->node2, q);
+		break;
+	case N_FUNCTION:
+		if ((n->tok1.id & AGG_BIT) != 0){
+			if (findAgrregates(n->node1))
+				error("Cannot have aggregate function inside another aggregate");
+			n->tok6.id = ++q.midcount;
+			return;
+		}
+		break;
+	case N_GROUPBY:
+		if (findAgrregates(n->node1))
+			error("Cannot have aggregate function in groupby clause");
+		break;
+	default:
+		markGroupMidrowTargets(n->node1, q);
+		markGroupMidrowTargets(n->node2, q);
+		markGroupMidrowTargets(n->node3, q);
+		markGroupMidrowTargets(n->node4, q);
+	}
+}
 
 //typing done, still need semantics etc
 void analyzeTree(querySpecs &q){

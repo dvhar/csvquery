@@ -66,7 +66,7 @@ vmachine::vmachine(querySpecs &qs){
 		files.push_back(q->files[str2("_f", i)]);
 	}
 	if (q->grouping){
-		//initialize midrow and point torow to it
+		//set group target with opcode
 	} else {
 		destrow.resize(q->colspec.count);
 		torow = destrow.data();
