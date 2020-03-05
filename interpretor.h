@@ -44,7 +44,7 @@ enum nodetypes { N_QUERY, N_PRESELECT, N_WITH, N_VARS, N_SELECT, N_SELECTIONS, N
 
 enum valTypes { LITERAL, COLUMN, VARIABLE, FUNCTION };
 
-enum varScopes { NO_FILTER, WHERE_FILTER=1, DISTINCT_FILTER=2, ORDER_FILTER=4 };
+enum varScopes { NO_FILTER, WHERE_FILTER=1, DISTINCT_FILTER=2, ORDER_FILTER=4, GROUP_FILTER=8 };
 enum varGen { V_ANY, V_INCLUDES, V_EQUALS, V_SCOPE1, V_SCOPE2 };
 
 class token {
@@ -71,6 +71,7 @@ class node {
 	token tok3;
 	token tok4;
 	token tok5;
+	token tok6;
 	void print();
 };
 class variable {
@@ -199,6 +200,7 @@ class querySpecs {
 	jumpPositions jumps;
 	resultSpecs colspec;
 	crypter crypt;
+	int midcount;
 	int numFiles;
 	int tokIdx;
 	int options;

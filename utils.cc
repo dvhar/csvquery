@@ -205,7 +205,7 @@ void querySpecs::addVar(string name) {
 querySpecs::querySpecs(string &s){
 	queryString = s;
 	btn = bts = tokIdx = options = posVecs = sorting = 
-	quantityLimit = numFiles = colspec.count = 0;
+	midcount = quantityLimit = numFiles = colspec.count = 0;
 	whereFiltering = havingFiltering = joining = grouping = false;
 }
 bool querySpecs::numIsCol() { return (options & O_C) != 0; }

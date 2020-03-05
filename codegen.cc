@@ -266,8 +266,9 @@ static void genBasicGroupingQuery(unique_ptr<node> &n, vector<opcode> &v, queryS
 	genWhere(n->node4, v, q);
 	genVars(n->node1, v, q, vs.setscope(DISTINCT_FILTER, V_EQUALS, V_SCOPE1));
 	genDistinct(n->node2->node1, v, q, NORMAL_READ);
-	genVars(n->node1, v, q, vs.setscope(NO_FILTER, V_ANY, V_SCOPE1));
+	genVars(n->node1, v, q, vs.setscope(GROUP_FILTER, V_INCLUDES, V_SCOPE1));
 	genGroup(n->node4, v, q);
+	genVars(n->node1, v, q, vs.setscope(NO_FILTER, V_ANY, V_SCOPE1));
 	genSelect(n->node2, v, q);//phase 1?
 	addop(v, JMP, NORMAL_READ);
 	q.jumps.setPlace(getgroups, v.size());
@@ -686,4 +687,12 @@ static void genReturnGroups(unique_ptr<node> &n, vector<opcode> &v, querySpecs &
 
 static void genGroup(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
 	if (n == nullptr) return;
+	if (n->label == N_GROUPBY){
+		int depth = -1;
+		for (auto nn=n->node1.get(); nn; nn=nn->node2.get()){
+			depth++;
+			genExprAll(n->node1, v, q);
+		}
+		addop(v, GETGROUP, depth);
+	}
 }

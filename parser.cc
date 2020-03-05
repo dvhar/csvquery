@@ -179,7 +179,7 @@ static unique_ptr<node> parseSelect(querySpecs &q) {
 //tok1 is * or distinct or hidden
 //tok2 is alias
 //later stages:
-//  tok3 will be aggregate function
+//  tok3 will be aggregate midrow index+1 if used in aggregate
 static unique_ptr<node> parseSelections(querySpecs &q) {
 	t = q.tok();
 	e("selections");
@@ -730,6 +730,7 @@ static unique_ptr<node> parseOrder(querySpecs &q) {
 //tok3 is distinct or cipher
 //tok4 is password
 //tok5 is paramtype for type conversion
+//tok6 is midrow index +1
 //node1 is expression in parens
 static unique_ptr<node> parseFunction(querySpecs &q) {
 	t = q.tok();

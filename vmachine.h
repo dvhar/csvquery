@@ -1,8 +1,12 @@
 #include "interpretor.h"
 #include "deps/btree/btree_set.h"
+#include "deps/btree/btree_map.h"
 #include "deps/b64/b64.h"
 #ifndef VMACH_H
 #define VMACH_H
+
+#define bmap btree::btree_map
+#define bset btree::btree_set
 
 //code prefixes are for Int Float Text Date/Duration
 enum codes : unsigned char {
@@ -27,7 +31,8 @@ enum codes : unsigned char {
 	PRINT, PUSH, POP, POPCPY, ENDRUN, NULFALSE1, NULFALSE2,
 	NDIST, SDIST, PUTDIST,
 	FINC, ENCCHA, DECCHA,
-	SAVEPOSI_JMP, SAVEPOSF_JMP, SAVEPOSS_JMP, SORTI, SORTF, SORTS
+	SAVEPOSI_JMP, SAVEPOSF_JMP, SAVEPOSS_JMP, SORTI, SORTF, SORTS,
+	GETGROUP
 };
 extern map<int, string> opMap;
 
@@ -60,13 +65,13 @@ const byte R = 7;
 const byte RMAL = 8; //regex needs regfree() (dataholder vector only)
 const byte MAL = 16; //malloced and responsible for freeing c string
 const byte NIL = 32;
-#define ISINT(X) ( (X).b & I )
-#define ISFLOAT(X) ( (X).b & F )
-#define ISDATE(X) ( (X).b & DT )
-#define ISDUR(X) ( (X).b & DR )
-#define ISTEXT(X) ( (X).b & T )
-#define ISNULL(X) ( (X).b & NIL )
-#define ISMAL(X) ( (X).b & MAL )
+#define ISINT(X) ( ((X).b & 7) == I )
+#define ISFLOAT(X) ( ((X).b & 7) == F )
+#define ISDATE(X) ( ((X).b & 7) == DT )
+#define ISDUR(X) ( ((X).b & 7) == DR )
+#define ISTEXT(X) ( ((X).b & 7) == T )
+#define ISNULL(X) ((X).b & NIL )
+#define ISMAL(X)  ((X).b & MAL )
 
 //free cstring when arg is array[index] and only index it once
 #define FREE1(X) datp = &(X);  \
@@ -109,24 +114,25 @@ class rowgroup {
 	public:
 		void* data;
 		int type;
-		vector<dat> getRow();
-		map<dat, rowgroup> getMap();
+		vector<dat>* getRow(){ return ((vector<dat>*) data); };
+		bmap<dat, rowgroup>* getMap(){ return ((bmap<dat, rowgroup>*) data); };
+		rowgroup(){ type = 0; }
 		rowgroup(int t, int size){
 			type = t;
 			if (type == 1){
 				data = new vector<dat>;
-				((vector<dat>*) data)->resize(size);
-			} else {
-				data = new map<dat, rowgroup>;
+				getRow()->resize(size);
+			} else if (type == 2) {
+				data = new bmap<dat, rowgroup>;
 			}
 		}
 		~rowgroup(){
 			if (type == 1){
-				if ((((vector<dat>*) data)->begin()->b & 7) == T)
-					for (auto &d : *((vector<dat>*) data)) FREE2(d);
-				delete ((vector<dat>*) data);
-			} else {
-				delete ((map<dat, rowgroup>*) data);
+				if (ISTEXT(*getRow()->begin()))
+					for (auto &d : *getRow()) FREE2(d);
+				delete getRow();
+			} else if (type == 2) {
+				delete getMap();
 			}
 		}
 };
@@ -143,9 +149,10 @@ class vmachine {
 	vector<dat> midrow;
 	vector<dat> stack;
 	vector<vector<valPos>> posVectors;
+	rowgroup groupTree;
 	//separate btrees for performance
-	vector<btree::btree_set<int64>> bt_nums;
-	vector<btree::btree_set<treeCString>> bt_strings;
+	vector<bset<int64>> bt_nums;
+	vector<bset<treeCString>> bt_strings;
 	public:
 		void run();
 		vmachine(querySpecs &q);
