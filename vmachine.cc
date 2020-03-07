@@ -37,6 +37,7 @@ void vmachine::run(){
 
 	//vars for vm operations
 	int numPrinted = 0;
+	rowgroup* group;
 	dat* stacktop = stack.data();
 	dat* stackbot = stack.data();
 	int ip = 0;
@@ -701,11 +702,11 @@ DECCHA_:
 	next();
 
 GETGROUP_:
+	group = &groupTree;
 	for (int i=op->p1; i >= 0; --i){
-		// map points to map
-		if (i){
-		// map points to row
-		} else {
+		group = group->nextGroup(stkt(i));
+		if (!i){
+			torow = group->getVector(q->midcount);
 		}
 	}
 	++ip;
