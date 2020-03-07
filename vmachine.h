@@ -116,16 +116,26 @@ class rowgroup {
 		int type;
 		vector<dat>* getRow(){ return ((vector<dat>*) data); };
 		bmap<dat, rowgroup>* getMap(){ return ((bmap<dat, rowgroup>*) data); };
-		rowgroup(){ type = 0; }
-		rowgroup(int t, int size){
-			type = t;
-			if (type == 1){
-				data = new vector<dat>;
-				getRow()->resize(size);
-			} else if (type == 2) {
+		rowgroup* nextGroup(dat d){
+			if (data) {
+				auto m = getMap()->find(d);
+				if (m != getMap()->end()){
+					return &m->second;
+				}
+			} else {
 				data = new bmap<dat, rowgroup>;
+				type = 2;
 			}
+			return &getMap()->insert(pair<dat, rowgroup>(d, rowgroup())).first->second;
 		}
+		vector<dat>* getVector(int size){
+			if (!data) {
+				data = new vector<dat>(size);
+				type = 1;
+			}
+			return getRow();
+		}
+		rowgroup(){ type = 0; data =0; }
 		~rowgroup(){
 			if (type == 1){
 				if (ISTEXT(*getRow()->begin()))
