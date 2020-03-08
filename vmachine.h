@@ -32,7 +32,7 @@ enum codes : unsigned char {
 	NDIST, SDIST, PUTDIST,
 	FINC, ENCCHA, DECCHA,
 	SAVEPOSI_JMP, SAVEPOSF_JMP, SAVEPOSS_JMP, SORTI, SORTF, SORTS,
-	GETGROUP, SUMI, SUMF, AVGI, AVGF, STDVI, STDVF, COUNT, MINI, MINF, MINS
+	GETGROUP, SUMI, SUMF, AVGI, AVGF, STDVI, STDVF, COUNT, MINI, MINF, MINS, MAXI, MAXF, MAXS
 };
 extern map<int, string> opMap;
 
@@ -56,22 +56,14 @@ static int ops[][6] = {
 static dat* datp;
 
 
-const byte I = 1;
-const byte F = 2;
-const byte DT = 3;
-const byte DR = 4;
-const byte T = 6;
-const byte R = 7;
-const byte RMAL = 8; //regex needs regfree() (dataholder vector only)
-const byte MAL = 16; //malloced and responsible for freeing c string
-const byte NIL = 32;
-#define ISINT(X) ( ((X).b & 7) == I )
-#define ISFLOAT(X) ( ((X).b & 7) == F )
-#define ISDATE(X) ( ((X).b & 7) == DT )
-#define ISDUR(X) ( ((X).b & 7) == DR )
-#define ISTEXT(X) ( ((X).b & 7) == T )
+#define ISINT(X) ( ((X).b & 7) == T_INT )
+#define ISFLOAT(X) ( ((X).b & 7) == T_FLOAT )
+#define ISDATE(X) ( ((X).b & 7) == T_DATE )
+#define ISDUR(X) ( ((X).b & 7) == T_DURATION )
+#define ISTEXT(X) ( ((X).b & 7) == T_STRING )
 #define ISNULL(X) ((X).b & NIL )
 #define ISMAL(X)  ((X).b & MAL )
+#define SETNULL(X) { (X).b |= NIL; (X).u.i = 0;}
 
 //free cstring when arg is array[index] and only index it once
 #define FREE1(X) datp = &(X);  \
@@ -130,7 +122,7 @@ class rowgroup {
 		}
 		vector<dat>* getVector(int size){
 			if (!data) {
-				data = new vector<dat>(size);
+				data = new vector<dat>(size, {{},0,NIL});
 				type = 1;
 			}
 			return getRow();
