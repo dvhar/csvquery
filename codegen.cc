@@ -23,7 +23,7 @@ static void genPredicates(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q)
 static void genPredCompare(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q);
 static void genValue(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q);
 static void genFunction(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q);
-static void genSelectAll(vector<opcode> &v, querySpecs &q, int &count);
+static void genSelectAll(vector<opcode> &v, querySpecs &q);
 static void genSelections(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q);
 static void genTypeConv(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q);
 
@@ -41,8 +41,9 @@ static int ident = 0;
 #define pushvars() for (auto &i : q.vars) addop(v, PUSH);
 #define popvars() for (auto &i : q.vars) addop(v, POP);
 
-//global bytecode position
-static int NORMAL_READ;
+static int normal_read;
+static int agg_phase; //0 is not grouping, 1 is first read, 2 is aggregate retrieval
+static int select_count;
 
 //type conversion opcodes - [from][to]
 static int typeConv[6][6] = {
@@ -176,6 +177,8 @@ static void determinePath(querySpecs &q){
 }
 
 void codeGen(querySpecs &q){
+	select_count = 0;
+	agg_phase = 0;
 	determinePath(q);
 	int i = 0;
 	for (auto c : q.bytecode){
@@ -208,17 +211,17 @@ static void genNormalQuery(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q
 	int endfile = q.jumps.newPlaceholder(); //where to jump when done reading file
 	varScoper vs;
 	pushvars();
-	NORMAL_READ = v.size();
+	normal_read = v.size();
 	addop(v, RDLINE, endfile, 0);
 	genVars(n->node1, v, q, vs.setscope(WHERE_FILTER|DISTINCT_FILTER, V_EQUALS, V_SCOPE1));
 	genVars(n->node1, v, q, vs.setscope(WHERE_FILTER, V_EQUALS, V_SCOPE1));
 	genWhere(n->node4, v, q);
 	genVars(n->node1, v, q, vs.setscope(DISTINCT_FILTER, V_EQUALS, V_SCOPE1));
-	genDistinct(n->node2->node1, v, q, NORMAL_READ);
+	genDistinct(n->node2->node1, v, q, normal_read);
 	genVars(n->node1, v, q, vs.setscope(NO_FILTER, V_ANY, V_SCOPE1));
 	genSelect(n->node2, v, q);
 	genPrint(v, q);
-	addop(v, (q.quantityLimit > 0 ? JMPCNT : JMP), NORMAL_READ);
+	addop(v, (q.quantityLimit > 0 ? JMPCNT : JMP), normal_read);
 	q.jumps.setPlace(endfile, v.size());
 	popvars();
 	addop(v, ENDRUN);
@@ -229,12 +232,12 @@ static void genNormalOrderedQuery(unique_ptr<node> &n, vector<opcode> &v, queryS
 	int endreread = q.jumps.newPlaceholder();
 	varScoper vs;
 	pushvars();
-	NORMAL_READ = v.size();
+	normal_read = v.size();
 	addop(v, RDLINE, sorter, 0);
 	genVars(n->node1, v, q, vs.setscope(WHERE_FILTER|ORDER_FILTER, V_INCLUDES, V_SCOPE1));
 	genWhere(n->node4, v, q);
 	genExprAll(n->node4->node4->node1, v, q);
-	addop(v, savePosOps[q.sorting], NORMAL_READ, 0, 0);
+	addop(v, savePosOps[q.sorting], normal_read, 0, 0);
 	q.posVecs = 1;
 	q.jumps.setPlace(sorter, v.size());
 	int asc = n->node4->node4->tok1.lower() == "asc" ? 1 : 0;
@@ -256,23 +259,25 @@ static void genNormalOrderedQuery(unique_ptr<node> &n, vector<opcode> &v, queryS
 };
 static void genBasicGroupingQuery(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
 	e("grouping");
+	agg_phase = 1;
 	int getgroups = q.jumps.newPlaceholder();
 	varScoper vs;
 	pushvars();
-	NORMAL_READ = v.size();
+	normal_read = v.size();
 	addop(v, RDLINE, getgroups, 0);
 	genVars(n->node1, v, q, vs.setscope(WHERE_FILTER|DISTINCT_FILTER, V_EQUALS, V_SCOPE1));
 	genVars(n->node1, v, q, vs.setscope(WHERE_FILTER, V_EQUALS, V_SCOPE1));
 	genWhere(n->node4, v, q);
 	genVars(n->node1, v, q, vs.setscope(DISTINCT_FILTER, V_EQUALS, V_SCOPE1));
-	genDistinct(n->node2->node1, v, q, NORMAL_READ);
-	genVars(n->node1, v, q, vs.setscope(GROUP_FILTER, V_INCLUDES, V_SCOPE1));
-	genGroup(n->node4, v, q);
+	genDistinct(n->node2->node1, v, q, normal_read);
 	genVars(n->node1, v, q, vs.setscope(NO_FILTER, V_ANY, V_SCOPE1));
-	genSelect(n->node2, v, q);//phase 1?
-	addop(v, JMP, NORMAL_READ);
+	genGroup(n->node4, v, q);
+	genSelect(n->node2, v, q);
+	addop(v, JMP, normal_read);
 	q.jumps.setPlace(getgroups, v.size());
-	genSelect(n->node2, v, q); //phase 2?
+	agg_phase = 2;
+	select_count = 0; //used as midrow count in phase 1
+	genSelect(n->node2, v, q);
 	genReturnGroups(n->node4, v, q); //having?
 	popvars();
 	addop(v, ENDRUN);
@@ -462,10 +467,9 @@ static void genSelect(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
 }
 
 static void genSelections(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
-	static int count = 0;
 	if (n == nullptr) {
 		//reached end of selections section of query
-		if (!count) genSelectAll(v, q, count);
+		if (!select_count) genSelectAll(v, q);
 		return;
 	}
 	e("gen selections");
@@ -474,20 +478,23 @@ static void genSelections(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q)
 	case N_SELECTIONS:
 		if (t1 == "hidden") {
 		} else if (t1 == "distinct") {
-			addop(v, PUTDIST, count);
-			count++;
+			addop(v, PUTDIST, select_count);
+			select_count++;
 		} else if (t1 == "*") {
-			genSelectAll(v, q, count);
+			genSelectAll(v, q);
 		} else if (isTrivial(n)) {
 			for (auto nn = n.get(); nn; nn = nn->node1.get()) if (nn->label == N_VALUE){
-				addop(v, LDPUT, count, nn->tok1.id, getFileNo(nn->tok3.val, q));
+				addop(v, LDPUT, select_count, nn->tok1.id, getFileNo(nn->tok3.val, q));
 				break;
 			}
-			count++;
+			select_count++;
 		} else {
 			genExprAll(n->node1, v, q);
-			addop(v, PUT, count);
-			count++;
+			//if aggregate, target was loaded by child nodes
+			if (agg_phase == 0 || (agg_phase == 1 && n->tok3.id)) {
+				addop(v, PUT, select_count);
+				select_count++;
+			}
 		}
 		break;
 	default:
@@ -589,10 +596,10 @@ static void genPredCompare(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q
 	}
 }
 
-static void genSelectAll(vector<opcode> &v, querySpecs &q, int &count){
-	addop(v, LDPUTALL, count);
+static void genSelectAll(vector<opcode> &v, querySpecs &q){
+	addop(v, LDPUTALL, select_count);
 	for (int i=1; i<=q.numFiles; ++i)
-		count += q.files[str2("_f", i)]->numFields;
+		select_count += q.files[str2("_f", i)]->numFields;
 }
 
 static void genWhere(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
@@ -603,7 +610,7 @@ static void genWhere(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
 	case N_AFTERFROM: genWhere(n->node1, v, q); break;
 	case N_WHERE:
 		genPredicates(n->node1, v, q);
-		addop(v, JMPFALSE, NORMAL_READ, 1);
+		addop(v, JMPFALSE, normal_read, 1);
 	}
 }
 
@@ -667,6 +674,16 @@ static void genFunction(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
 			addop(v, DECCHA, idx);
 		} else /* aes */ {
 		}
+		break;
+
+	//aggregates
+	case FN_SUM:
+	case FN_AVG:
+	case FN_STDEV:
+	case FN_STDEVP:
+	case FN_MIN:
+	case FN_MAX:
+	case FN_COUNT:
 		break;
 	}
 }

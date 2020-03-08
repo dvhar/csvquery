@@ -8,6 +8,7 @@ static void varUsedInFilter(unique_ptr<node> &n, querySpecs &q){
 	//skip irrelvent subtrees
 	case N_PRESELECT:
 	case N_FROM:
+	case N_GROUPBY:
 	case N_HAVING: //may use this one later
 		break;
 	case N_SELECTIONS:
@@ -38,11 +39,13 @@ static void varUsedInFilter(unique_ptr<node> &n, querySpecs &q){
 		varUsedInFilter(n->node1, q);
 		filterBranch = NO_FILTER;
 		break;
+	/* maybe not needed
 	case N_GROUPBY:
 		filterBranch = GROUP_FILTER;
 		varUsedInFilter(n->node1, q);
 		filterBranch = NO_FILTER;
 		break;
+	*/
 	default:
 		varUsedInFilter(n->node1, q);
 		varUsedInFilter(n->node2, q);
@@ -108,22 +111,26 @@ static bool findAgrregates(unique_ptr<node> &n){
 	return false;
 }
 
-//mark selections and function nodes with midrow index+1
-static void markGroupMidrowTargets(unique_ptr<node> &n, querySpecs &q){
-	if (n == nullptr && !q.grouping) return;
+static void findMidrowTargets(unique_ptr<node> &n, querySpecs &q){
+	if (n == nullptr || !q.grouping) return;
 	switch (n->label){
 	case N_SELECTIONS:
-		if (!findAgrregates(n->node1)){
-			n->tok3.id = ++q.midcount;
+		if (findAgrregates(n->node1)){
+			n->tok4.id = 1;
+		} else {
+			n->tok3.id = 1;
+			q.midcount++;
 		}
-		markGroupMidrowTargets(n->node2, q);
+		findMidrowTargets(n->node2, q);
 		break;
 	case N_FUNCTION:
 		if ((n->tok1.id & AGG_BIT) != 0){
 			if (findAgrregates(n->node1))
 				error("Cannot have aggregate function inside another aggregate");
-			n->tok6.id = ++q.midcount;
+			q.midcount++;
 			return;
+		} else {
+			findAgrregates(n->node1);
 		}
 		break;
 	case N_GROUPBY:
@@ -131,10 +138,10 @@ static void markGroupMidrowTargets(unique_ptr<node> &n, querySpecs &q){
 			error("Cannot have aggregate function in groupby clause");
 		break;
 	default:
-		markGroupMidrowTargets(n->node1, q);
-		markGroupMidrowTargets(n->node2, q);
-		markGroupMidrowTargets(n->node3, q);
-		markGroupMidrowTargets(n->node4, q);
+		findMidrowTargets(n->node1, q);
+		findMidrowTargets(n->node2, q);
+		findMidrowTargets(n->node3, q);
+		findMidrowTargets(n->node4, q);
 	}
 }
 
@@ -142,4 +149,5 @@ static void markGroupMidrowTargets(unique_ptr<node> &n, querySpecs &q){
 void analyzeTree(querySpecs &q){
 	varUsedInFilter(q.tree, q);
 	recordResultColumns(q.tree, q);
+	findMidrowTargets(q.tree, q);
 }

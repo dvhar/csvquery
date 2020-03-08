@@ -2,7 +2,7 @@ set(CMAKE_CXX_STANDARD 17)
 cmake_minimum_required(VERSION 3.1)
 project(cql)
 
-set(optimize "-Ofast")
+set(optimize "-O1")
 set(applegcc $ENV{HOME}/stuff/gcc/usr/local)
 set(winpkg $ENV{HOME}/vcpkg/installed/x86-windows/)
 set(staticlib "-static-libgcc -static-libstdc++")
