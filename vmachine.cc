@@ -23,7 +23,7 @@
 
 void vmachine::run(){
 
-	void* labels[] = { &&CVER_, &&CVNO_, &&CVIF_, &&CVIS_, &&CVFI_, &&CVFS_, &&CVDRS_, &&CVDTS_, &&CVSI_, &&CVSF_, &&CVSDR_, &&CVSDT_, &&IADD_, &&FADD_, &&TADD_, &&DTADD_, &&DRADD_, &&ISUB_, &&FSUB_, &&DTSUB_, &&DRSUB_, &&IMULT_, &&FMULT_, &&DRMULT_, &&IDIV_, &&FDIV_, &&DRDIV_, &&INEG_, &&FNEG_, &&PNEG_, &&IMOD_, &&FMOD_, &&IEXP_, &&FEXP_, &&JMP_, &&JMPCNT_, &&JMPTRUE_, &&JMPFALSE_, &&JMPNOTNULL_ELSEPOP_, &&RDLINE_, &&RDLINE_ORDERED_, &&PREP_REREAD_, &&PUT_, &&LDPUT_, &&LDPUTALL_, &&PUTVAR_, &&LDINT_, &&LDFLOAT_, &&LDTEXT_, &&LDDATE_, &&LDDUR_, &&LDNULL_, &&LDLIT_, &&LDVAR_, &&IEQ_, &&FEQ_, &&TEQ_, &&LIKE_, &&ILEQ_, &&FLEQ_, &&TLEQ_, &&ILT_, &&FLT_, &&TLT_, &&PRINT_, &&PUSH_, &&POP_, &&POPCPY_, &&ENDRUN_, &&NULFALSE1_, &&NULFALSE2_, &&NDIST_, &&SDIST_, &&PUTDIST_, &&FINC_, &&ENCCHA_, &&DECCHA_, &&SAVEPOSI_JMP_, &&SAVEPOSF_JMP_, &&SAVEPOSS_JMP_, &&SORTI_, &&SORTF_, &&SORTS_, &&GETGROUP_, &&SUMI_, &&SUMF_, &&AVGI_, &&AVGF_, &&STDVI_, &&STDVF_, &&COUNT_, &&MINI_, &&MINF_, &&MINS_ };
+	void* labels[] = { &&CVER_, &&CVNO_, &&CVIF_, &&CVIS_, &&CVFI_, &&CVFS_, &&CVDRS_, &&CVDTS_, &&CVSI_, &&CVSF_, &&CVSDR_, &&CVSDT_, &&IADD_, &&FADD_, &&TADD_, &&DTADD_, &&DRADD_, &&ISUB_, &&FSUB_, &&DTSUB_, &&DRSUB_, &&IMULT_, &&FMULT_, &&DRMULT_, &&IDIV_, &&FDIV_, &&DRDIV_, &&INEG_, &&FNEG_, &&PNEG_, &&IMOD_, &&FMOD_, &&IEXP_, &&FEXP_, &&JMP_, &&JMPCNT_, &&JMPTRUE_, &&JMPFALSE_, &&JMPNOTNULL_ELSEPOP_, &&RDLINE_, &&RDLINE_ORDERED_, &&PREP_REREAD_, &&PUT_, &&LDPUT_, &&LDPUTALL_, &&PUTVAR_, &&LDINT_, &&LDFLOAT_, &&LDTEXT_, &&LDDATE_, &&LDDUR_, &&LDNULL_, &&LDLIT_, &&LDVAR_, &&IEQ_, &&FEQ_, &&TEQ_, &&LIKE_, &&ILEQ_, &&FLEQ_, &&TLEQ_, &&ILT_, &&FLT_, &&TLT_, &&PRINT_, &&PUSH_, &&POP_, &&POPCPY_, &&ENDRUN_, &&NULFALSE1_, &&NULFALSE2_, &&NDIST_, &&SDIST_, &&PUTDIST_, &&FINC_, &&ENCCHA_, &&DECCHA_, &&SAVEPOSI_JMP_, &&SAVEPOSF_JMP_, &&SAVEPOSS_JMP_, &&SORTI_, &&SORTF_, &&SORTS_, &&GETGROUP_, &&SUMI_, &&SUMF_, &&AVGI_, &&AVGF_, &&STDVI_, &&STDVF_, &&COUNT_, &&MINI_, &&MINF_, &&MINS_, &&MAXI_, &&MAXF_, &&MAXS_ };
 
 
 	//vars for data
@@ -62,7 +62,7 @@ PUT_:
 LDPUT_:
 	csvTemp = files[op->p3]->entries[op->p2];
 	FREE1(torow[op->p1]);
-	torow[op->p1] = dat{ { .s = csvTemp.val }, T, csvTemp.size };
+	torow[op->p1] = dat{ { .s = csvTemp.val }, T_STRING, csvTemp.size };
 	++ip;
 	next();
 LDPUTALL_:
@@ -70,7 +70,7 @@ LDPUTALL_:
 	for (auto &f : files){
 		for (auto &e : f->entries){
 			FREE1(torow[iTemp1]);
-			torow[iTemp1++] = dat{ { .s = e.val }, T, e.size };
+			torow[iTemp1++] = dat{ { .s = e.val }, T_STRING, e.size };
 		}
 	}
 	++ip;
@@ -101,44 +101,44 @@ LDVAR_:
 LDDUR_:
 	push();
 	iTemp1 = parseDuration(files[op->p1]->entries[op->p2].val, &i64Temp);
-	stk0 = dat{ { .i = i64Temp}, DR};
-	if (iTemp1) stk0.b |= NIL;
+	stk0 = dat{ { .i = i64Temp}, T_DURATION};
+	if (iTemp1) { SETNULL(stk0); }
 	++ip;
 	next();
 LDDATE_:
 	push();
 	csvTemp = files[op->p1]->entries[op->p2];
 	iTemp1 = dateparse(csvTemp.val, &i64Temp, &iTemp2, csvTemp.size);
-	stk0 = dat{ { .i = i64Temp}, DT, iTemp2 };
-	if (iTemp1) stk0.b |= NIL;
+	stk0 = dat{ { .i = i64Temp}, T_DATE, iTemp2 };
+	if (iTemp1) { SETNULL(stk0); }
 	++ip;
 	next();
 LDTEXT_:
 	push();
 	csvTemp = files[op->p1]->entries[op->p2];
-	stk0 = dat{ { .s = csvTemp.val }, T, csvTemp.size };
-	if (!csvTemp.size) stk0.b |= NIL;
+	stk0 = dat{ { .s = csvTemp.val }, T_STRING, csvTemp.size };
+	if (!csvTemp.size) { SETNULL(stk0); }
 	++ip;
 	next();
 LDFLOAT_:
 	push();
 	csvTemp = files[op->p1]->entries[op->p2];
 	stk0.u.f = strtof(csvTemp.val, &cstrTemp);
-	stk0.b = F;
-	if (!csvTemp.size || *cstrTemp){ stk0.b |= NIL; }
+	stk0.b = T_FLOAT;
+	if (!csvTemp.size || *cstrTemp){ SETNULL(stk0); }
 	++ip;
 	next();
 LDINT_:
 	push();
 	csvTemp = files[op->p1]->entries[op->p2];
 	stk0.u.i = strtol(csvTemp.val, &cstrTemp, 10);
-	stk0.b = I;
-	if (!csvTemp.size || *cstrTemp) stk0.b |= NIL;
+	stk0.b = T_INT;
+	if (!csvTemp.size || *cstrTemp) { SETNULL(stk0); }
 	++ip;
 	next();
 LDNULL_:
 	push();
-	stk0.b = NIL;
+	{ SETNULL(stk0); }
 	++ip;
 	next();
 LDLIT_:
@@ -226,13 +226,13 @@ SORTS_:
 
 //math operations
 IADD_:
-	if (ISNULL(stk0) || ISNULL(stk1)) stk1.b |= NIL;
+	if (ISNULL(stk0) || ISNULL(stk1)) { SETNULL(stk1); }
 	else stk1.u.i += stk0.u.i;
 	pop();
 	++ip;
 	next();
 FADD_:
-	if (ISNULL(stk0) || ISNULL(stk1)) stk1.b |= NIL;
+	if (ISNULL(stk0) || ISNULL(stk1)) { SETNULL(stk1); }
 	else stk1.u.f += stk0.u.f;
 	pop();
 	++ip;
@@ -243,56 +243,56 @@ TADD_:
 	++ip;
 	next();
 DRADD_:
-	if (ISNULL(stk0) || ISNULL(stk1)) stk1.b |= NIL;
-	else { stk1.u.i += stk0.u.i; stk1.b = DR; }
+	if (ISNULL(stk0) || ISNULL(stk1)) { SETNULL(stk1); }
+	else { stk1.u.i += stk0.u.i; stk1.b = T_DURATION; }
 	pop();
 	++ip;
 	next();
 DTADD_:
-	if (ISNULL(stk0) || ISNULL(stk1)) stk1.b |= NIL;
-	else { stk1.u.i += stk0.u.i; stk1.b = DT; }
+	if (ISNULL(stk0) || ISNULL(stk1)) { SETNULL(stk1); }
+	else { stk1.u.i += stk0.u.i; stk1.b = T_DATE; }
 	pop();
 	++ip;
 	next();
 ISUB_:
-	if (ISNULL(stk0) || ISNULL(stk1)) stk1.b |= NIL;
+	if (ISNULL(stk0) || ISNULL(stk1)) { SETNULL(stk1); }
 	else stk1.u.i -= stk0.u.i;
 	pop();
 	++ip;
 	next();
 FSUB_:
-	if (ISNULL(stk0) || ISNULL(stk1)) stk1.b |= NIL;
+	if (ISNULL(stk0) || ISNULL(stk1)) { SETNULL(stk1); }
 	else stk1.u.f -= stk0.u.f;
 	pop();
 	++ip;
 	next();
 DTSUB_:
-	if (ISNULL(stk0) || ISNULL(stk1)) stk1.b |= NIL;
-	else { stk1.u.i -= stk0.u.i; stk1.b = DT; }
+	if (ISNULL(stk0) || ISNULL(stk1)) { SETNULL(stk1); }
+	else { stk1.u.i -= stk0.u.i; stk1.b = T_DATE; }
 	pop();
 	++ip;
 	next();
 DRSUB_:
-	if (ISNULL(stk0) || ISNULL(stk1)) stk1.b |= NIL;
-	else { stk1.u.i -= stk0.u.i; stk1.b = DR; }
+	if (ISNULL(stk0) || ISNULL(stk1)) { SETNULL(stk1); }
+	else { stk1.u.i -= stk0.u.i; stk1.b = T_DURATION; }
 	pop();
 	if (stk0.u.i < 0) stk0.u.i *= -1;
 	++ip;
 	next();
 IMULT_:
-	if (ISNULL(stk0) || ISNULL(stk1)) stk1.b |= NIL;
+	if (ISNULL(stk0) || ISNULL(stk1)) { SETNULL(stk1); }
 	else stk1.u.i *= stk0.u.i;
 	pop();
 	++ip;
 	next();
 FMULT_:
-	if (ISNULL(stk0) || ISNULL(stk1)) stk1.b |= NIL;
+	if (ISNULL(stk0) || ISNULL(stk1)) { SETNULL(stk1); }
 	else stk1.u.f *= stk0.u.f;
 	pop();
 	++ip;
 	next();
 DRMULT_:
-	if (ISNULL(stk0) || ISNULL(stk1)) stk1.b |= NIL;
+	if (ISNULL(stk0) || ISNULL(stk1)) { SETNULL(stk1); }
 	else {
 		iTemp1 = stk1.b; iTemp2 = stk0.b;
 		if (iTemp1 == T_DATE){
@@ -307,28 +307,28 @@ DRMULT_:
 			} else { // float * date
 				stk1.u.i = stk1.u.f * stk0.u.i;
 			}
-			stk1.b = DR;
+			stk1.b = T_DURATION;
 		}
 	}
 	pop();
 	++ip;
 	next();
 IDIV_:
-	if (ISNULL(stk0) || ISNULL(stk1) || stk0.u.i==0) stk1.b |= NIL;
+	if (ISNULL(stk0) || ISNULL(stk1) || stk0.u.i==0) { SETNULL(stk1); }
 	else stk1.u.i /= stk0.u.i;
 	pop();
 	++ip;
 	next();
 FDIV_:
-	if (ISNULL(stk0) || ISNULL(stk1) || stk0.u.f==0) stk1.b |= NIL;
+	if (ISNULL(stk0) || ISNULL(stk1) || stk0.u.f==0) { SETNULL(stk1); }
 	else stk1.u.f /= stk0.u.f;
 	pop();
 	++ip;
 	next();
 DRDIV_:
-	if (ISNULL(stk0) || ISNULL(stk1) || stk0.u.f==0) stk1.b |= NIL;
+	if (ISNULL(stk0) || ISNULL(stk1) || stk0.u.f==0) { SETNULL(stk1); }
 	else {
-		if (stk0.b == I)
+		if (stk0.b == T_INT)
 			stk1.u.i /= stk0.u.i;
 		else
 			stk1.u.i /= stk0.u.f;
@@ -337,12 +337,12 @@ DRDIV_:
 	++ip;
 	next();
 INEG_:
-	if (ISNULL(stk0)) stk0.b |= NIL;
+	if (ISNULL(stk0)) { SETNULL(stk0); }
 	else stk0.u.i *= -1;
 	++ip;
 	next();
 FNEG_:
-	if (ISNULL(stk0)) stk0.b |= NIL;
+	if (ISNULL(stk0)) { SETNULL(stk0); }
 	else stk0.u.f *= -1;
 	++ip;
 	next();
@@ -351,25 +351,25 @@ PNEG_:
 	++ip;
 	next();
 FEXP_:
-	if (ISNULL(stk0) || ISNULL(stk1)) stk1.b |= NIL;
+	if (ISNULL(stk0) || ISNULL(stk1)) { SETNULL(stk1); }
 	else stk1.u.f = pow(stk1.u.f, stk0.u.f);
 	pop();
 	++ip;
 	next();
 IEXP_:
-	if (ISNULL(stk0) || ISNULL(stk1)) stk1.b |= NIL;
+	if (ISNULL(stk0) || ISNULL(stk1)) { SETNULL(stk1); }
 	else stk1.u.i = pow(stk1.u.i, stk0.u.i);
 	pop();
 	++ip;
 	next();
 IMOD_:
-	if (ISNULL(stk0) || ISNULL(stk1)) stk1.b |= NIL;
+	if (ISNULL(stk0) || ISNULL(stk1)) { SETNULL(stk1); }
 	else stk1.u.i = stk1.u.i % stk0.u.i;
 	pop();
 	++ip;
 	next();
 FMOD_:
-	if (ISNULL(stk0) || ISNULL(stk1)) stk1.b |= NIL;
+	if (ISNULL(stk0) || ISNULL(stk1)) { SETNULL(stk1); }
 	else stk1.u.f = (int64)stk1.u.f % (int64)stk0.u.f;
 	pop();
 	++ip;
@@ -506,11 +506,7 @@ CVIS_:
 		stk0.z = sprintf(bufTemp, "%lld", stk0.u.i);
 		stk0.u.s = (char*) malloc(stk0.z+1);
 		memcpy(stk0.u.s, bufTemp, stk0.z+1);
-		if (stk0.z >= 0){
-			stk0.b = T|MAL;
-		} else {
-			stk0.b = T|NIL;
-		}
+		stk0.b = T_STRING|MAL;
 	}
 	++ip;
 	next();
@@ -519,25 +515,21 @@ CVFS_:
 		stk0.z = sprintf(bufTemp, "%.10g", stk0.u.f);
 		stk0.u.s = (char*) malloc(stk0.z+1);
 		memcpy(stk0.u.s, bufTemp, stk0.z+1);
-		if (stk0.z >= 0){
-			stk0.b = T|MAL;
-		} else {
-			stk0.b = T|NIL;
-		}
+		stk0.b = T_STRING|MAL;
 	}
 	++ip;
 	next();
 CVFI_:
 	if (!ISNULL(stk0)){
 		stk0.u.i = stk0.u.f;
-		stk0.b = I;
+		stk0.b = T_INT;
 	}
 	++ip;
 	next();
 CVIF_:
 	if (!ISNULL(stk0)){
 		stk0.u.f = stk0.u.i;
-		stk0.b = F;
+		stk0.b = T_FLOAT;
 	}
 	++ip;
 	next();
@@ -546,8 +538,8 @@ CVSI_:
 		iTemp1 = strtol(stk0.u.s, &cstrTemp, 10);
 		FREE2(stk0);
 		stk0.u.i = iTemp1;
-		stk0.b = I;
-		if (*cstrTemp){ stk0.b |= NIL; }
+		stk0.b = T_INT;
+		if (*cstrTemp){ SETNULL(stk0); }
 	}
 	++ip;
 	next();
@@ -556,8 +548,8 @@ CVSF_:
 		fTemp = strtof(stk0.u.s, &cstrTemp);
 		FREE2(stk0);
 		stk0.u.f = fTemp;
-		stk0.b = F;
-		if (*cstrTemp){ stk0.b |= NIL; }
+		stk0.b = T_FLOAT;
+		if (*cstrTemp){ SETNULL(stk0); }
 	}
 	++ip;
 	next();
@@ -566,9 +558,9 @@ CVSDT_:
 		iTemp1 = dateparse(stk0.u.s, &i64Temp, &iTemp2, stk0.z);
 		FREE2(stk0);
 		stk0.u.i = i64Temp;
-		stk0.b = DT;
+		stk0.b = T_DATE;
 		stk0.z = iTemp2;
-		if (iTemp1) stk0.b |= NIL;
+		if (iTemp1) { SETNULL(stk0); }
 	}
 	++ip;
 	next();
@@ -577,8 +569,8 @@ CVSDR_:
 		iTemp1 = parseDuration(stk0.u.s, &i64Temp);
 		FREE2(stk0);
 		stk0.u.i = i64Temp;
-		stk0.b = DR;
-		if (iTemp1) stk0.b |= NIL;
+		stk0.b = T_DURATION;
+		if (iTemp1) { SETNULL(stk0); }
 	}
 	++ip;
 	next();
@@ -586,7 +578,7 @@ CVDRS_:
 	if (!ISNULL(stk0)){
 		stk0.u.s = (char*) malloc(24);
 		durstring(stk0.u.i, stk0.u.s);
-		stk0.b = T|MAL;
+		stk0.b = T_STRING|MAL;
 		stk0.z = strlen(stk0.u.s);
 	}
 	++ip;
@@ -597,7 +589,7 @@ CVDTS_:
 		cstrTemp = datestring(stk0.u.i);
 		stk0.u.s = (char*) malloc(20);
 		strncpy(stk0.u.s, cstrTemp, 19);
-		stk0.b = T|MAL;
+		stk0.b = T_STRING|MAL;
 		stk0.z = 19;
 	}
 	++ip;
@@ -690,7 +682,7 @@ ENCCHA_:
 	if (stk0.b & MAL) free(stk0.u.s);
 	stk0.u.s = pairTemp.first;
 	stk0.z = pairTemp.second;
-	stk0.b = T|MAL;
+	stk0.b = T_STRING|MAL;
 	++ip;
 	next();
 DECCHA_:
@@ -698,20 +690,77 @@ DECCHA_:
 	if (stk0.b & MAL) free(stk0.u.s);
 	stk0.u.s = pairTemp.first;
 	stk0.z = pairTemp.second;
-	stk0.b = T|MAL;
+	stk0.b = T_STRING|MAL;
 	++ip;
 	next();
 //aggregates
-SUMI_:
-SUMF_:
 AVGI_:
+SUMI_:
+	if (!ISNULL(stk0))
+		torow[op->p1].u.i += stk0.u.i;
+	pop();
+	++ip;
+	next();
 AVGF_:
+SUMF_:
+	if (!ISNULL(stk0))
+		torow[op->p1].u.f += stk0.u.f;
+	pop();
+	++ip;
+	next();
 STDVI_:
 STDVF_:
+	//TODO
+	pop();
+	++ip;
+	next();
 COUNT_:
+	torow[op->p1].u.f++;
+	pop();
+	++ip;
+	next();
 MINI_:
+	if (ISNULL(torow[op->p1]) || (!ISNULL(stk0) && torow[op->p1].u.i > stk0.u.i))
+		torow[op->p1].u.i = stk0.u.i;
+	pop();
+	++ip;
+	next();
 MINF_:
+	if (ISNULL(torow[op->p1]) || (!ISNULL(stk0) && torow[op->p1].u.f > stk0.u.f))
+		torow[op->p1].u.f = stk0.u.f;
+	pop();
+	++ip;
+	next();
 MINS_:
+	if (ISNULL(torow[op->p1]) || (!ISNULL(stk0) && scomp(torow[op->p1].u.s, stk0.u.s) > 0)){
+		FREE1(torow[op->p1]);
+		torow[op->p1] = stk0;
+		DISOWN(stk0);
+	}
+	pop();
+	++ip;
+	next();
+MAXI_:
+	if (ISNULL(torow[op->p1]) || (!ISNULL(stk0) && torow[op->p1].u.i < stk0.u.i))
+		torow[op->p1].u.i = stk0.u.i;
+	pop();
+	++ip;
+	next();
+MAXF_:
+	if (ISNULL(torow[op->p1]) || (!ISNULL(stk0) && torow[op->p1].u.f < stk0.u.f))
+		torow[op->p1].u.f = stk0.u.f;
+	pop();
+	++ip;
+	next();
+MAXS_:
+	if (ISNULL(torow[op->p1]) || (!ISNULL(stk0) && scomp(torow[op->p1].u.s, stk0.u.s) < 0)){
+		FREE1(torow[op->p1]);
+		torow[op->p1] = stk0;
+		DISOWN(stk0);
+	}
+	pop();
+	++ip;
+	next();
 
 GETGROUP_:
 	group = &groupTree;

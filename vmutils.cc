@@ -19,17 +19,17 @@ void dat::appendToBuffer(string &outbuf){
 	static char buf[40];
 	char a = 0;
 	switch ( b & 7 ) {
-	case I:
+	case T_INT:
 		sprintf(buf,"%lld",u.i);
 		outbuf += buf;
 		return;
-	case F:
+	case T_FLOAT:
 		sprintf(buf,"%.10g",u.f);
 		outbuf += buf;
 		return;
-	case DT: outbuf += datestring(u.i); return;
-	case DR: outbuf += durstring(u.i, nullptr); return;
-	case T:
+	case T_DATE: outbuf += datestring(u.i); return;
+	case T_DURATION: outbuf += durstring(u.i, nullptr); return;
+	case T_STRING:
 		for (auto c = (unsigned char*)u.s; *c; c++) a |= abnormal[*c];
 		if (!a){
 			outbuf += u.s;

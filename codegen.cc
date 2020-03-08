@@ -70,14 +70,14 @@ static bool isTrivial(unique_ptr<node> &n){
 //parse literals and check for errors
 static dat parseIntDat(const char* s){
 	char* end = NULL;
-	dat idat = { { .i = strtol(s, &end, 10) }, I };
+	dat idat = { { .i = strtol(s, &end, 10) }, T_INT };
 	if (*end != 0)
 		error(str3("Could not parse ", s, " as a number."));
 	return idat;
 }
 static dat parseFloatDat(const char* s){
 	char* end = NULL;
-	dat fdat = { { .f = strtof(s, &end) }, F };
+	dat fdat = { { .f = strtof(s, &end) }, T_FLOAT };
 	if (*end != 0)
 		error(str3("Could not parse ", s, " as a number."));
 	return fdat;
@@ -87,19 +87,19 @@ static dat parseDurationDat(const char* s) {
 	if (parseDuration((char*)s, &dur))
 		error(str3("Could not parse ", s, " as duration."));
 	if (dur < 0) dur *= -1;
-	dat ddat = { { .i = dur }, DR };
+	dat ddat = { { .i = dur }, T_DURATION };
 	return ddat;
 }
 static dat parseDateDat(const char* s) {
 	date_t date;
 	if (dateparse_2(s, &date))
 		error(str3("Could not parse ", s, " as date."));
-	dat ddat = { { .i = date }, DT };
+	dat ddat = { { .i = date }, T_DATE };
 	return ddat;
 }
 static dat parseStringDat(const char* s) {
 	//may want to malloc
-	dat ddat = { { .s = (char*)s }, T, (short)strlen(s) };
+	dat ddat = { { .s = (char*)s }, T_STRING, (short)strlen(s) };
 	return ddat;
 }
 
@@ -657,7 +657,7 @@ static void genFunction(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
 		break;
 	case FN_INC:
 		addop(v, FINC, q.dataholder.size());
-		q.dataholder.push_back(dat{ {.f = 0.0}, F});
+		q.dataholder.push_back(dat{ {.f = 0.0}, T_FLOAT});
 		break;
 	case FN_ENCRYPT:
 		genExprAll(n->node1, v, q);

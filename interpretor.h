@@ -38,7 +38,6 @@
 using namespace std;
 
 
-int scomp(const char*, const char*);
 
 enum nodetypes { N_QUERY, N_PRESELECT, N_WITH, N_VARS, N_SELECT, N_SELECTIONS, N_FROM, N_AFTERFROM, N_JOINCHAIN, N_JOIN, N_WHERE, N_HAVING, N_ORDER, N_EXPRADD, N_EXPRMULT, N_EXPRNEG, N_EXPRCASE, N_CPREDLIST, N_CPRED, N_CWEXPRLIST, N_CWEXPR, N_PREDICATES, N_PREDCOMP, N_VALUE, N_FUNCTION, N_GROUPBY, N_EXPRESSIONS, N_DEXPRESSIONS, N_TYPECONV };
 
@@ -46,182 +45,11 @@ enum valTypes { LITERAL, COLUMN, VARIABLE, FUNCTION };
 enum varScopes { NO_FILTER, WHERE_FILTER=1, DISTINCT_FILTER=2, ORDER_FILTER=4, GROUP_FILTER=8 };
 enum varGen { V_ANY, V_INCLUDES, V_EQUALS, V_SCOPE1, V_SCOPE2 };
 
-class token {
-	public:
-	int id;
-	string val;
-	int line;
-	int col;
-	bool quoted;
-	string lower();
-	void print();
-};
-class node {
-	public:
-	int label;
-	int datatype;
-	bool keep; //preserve subtree types
-	unique_ptr<node> node1;
-	unique_ptr<node> node2;
-	unique_ptr<node> node3;
-	unique_ptr<node> node4;
-	token tok1;
-	token tok2;
-	token tok3;
-	token tok4;
-	token tok5;
-	token tok6;
-	void print();
-};
-class variable {
-	public:
-	string name;
-	int type;
-	int lit;
-	int filter;
-};
 
-class csvEntry {
-	public:
-	char* val;
-	int size;
-};
-
-class fileReader {
-	int fieldsFound;
-	char* pos1;
-	char* pos2;
-	char* terminator;
-	char buf[BUFSIZE];
-	ifstream fs;
-	public:
-		streampos pos;
-		vector<string> colnames;
-		vector<int> types;
-		vector<csvEntry> entries;
-		bool noheader;
-		string id;
-		int numFields;
-	int getField();
-	int checkWidth();
-	void inferTypes();
-	void print();
-	int getColIdx(string);
-	int readline();
-	int readlineat(int64);
-	fileReader(string);
-};
-
-class opcode {
-	public:
-	byte code;
-	int p1;
-	int p2;
-	int p3;
-	void print();
-};
-//data during processing
-union datunion {
-	int64 i; //also used for date and duration
-	double f;
-	char* s;
-	bool p;
-	regex_t* r;
-	chacha* ch;
-};
-class dat {
-	public:
-	union datunion u;
-	short b; // metadata bit array
-	int z; // string size
-	short a; // unused but comes at no cost because of class padding
-	void appendToBuffer(string&);
-	friend bool operator<(const dat& l, const dat& r){
-		if ((l.b & 7)==6)
-			return scomp(l.u.s, r.u.s) < 0;
-		else
-			return l.u.i < r.u.i;
-	}
-};
-
-//placeholder for jmp positions that can't be determined until later
-class jumpPositions {
-	map<int, int> jumps;
-	int uniqueKey;
-	public:
-	int newPlaceholder() { return --uniqueKey; };
-	void setPlace(int k, int v) { jumps[k] = v; };
-	void updateBytecode(vector<opcode> &vec);
-	jumpPositions() { uniqueKey = -1; };
-};
-
-class resultSpecs {
-	public:
-	int count;
-	vector<int> types;
-	vector<string> colnames;
-};
-
-class singleQueryResult {
-	public:
-	int numrows;
-	int numcols;
-	vector<int> types;
-	vector<string> colnames;
-	vector<vector<char*>> values;
-	string query;
-};
-
-class chactx {
-	public:
-	chacha ctx;
-	uint8_t key[32];
-	uint8_t nonce[12];
-};
-class crypter {
-	public:
-	vector<chactx> ctxs;
-	int newChacha(string);
-	pair<char*,int> chachaEncrypt(int, int, char*);
-	pair<char*,int> chachaDecrypt(int, int, char*);
-};
-
-class querySpecs {
-	public:
-	string queryString;
-	string password;
-	vector<token> tokArray;
-	vector<variable> vars;
-	vector<dat> dataholder;
-	vector<opcode> bytecode;
-	map<string, shared_ptr<fileReader>> files;
-	unique_ptr<node> tree;
-	jumpPositions jumps;
-	resultSpecs colspec;
-	crypter crypt;
-	int midcount;
-	int numFiles;
-	int tokIdx;
-	int options;
-	int btn;
-	int bts;
-	int quantityLimit;
-	int posVecs;
-	int sorting;
-	bool joining;
-	bool grouping;
-	bool whereFiltering;
-	bool havingFiltering;
-	token tok();
-	token nextTok();
-	token peekTok();
-	bool numIsCol();
-	void init(string);
-	void addVar(string);
-	~querySpecs();
-	querySpecs(string &s);
-};
-
+const byte R = 7;
+const byte RMAL = 8; //regex needs regfree() (dataholder vector only)
+const byte MAL = 16; //malloced and responsible for freeing c string
+const byte NIL = 32;
 
 const int T_NULL = 0;
 const int T_INT = 1;
@@ -332,6 +160,188 @@ extern regex_t floatType;
 extern regex cInt;
 extern regex posInt;
 extern regex colNum;
+
+
+int scomp(const char*, const char*);
+
+class token {
+	public:
+	int id;
+	string val;
+	int line;
+	int col;
+	bool quoted;
+	string lower();
+	void print();
+};
+class node {
+	public:
+	int label;
+	int datatype;
+	bool keep; //preserve subtree types
+	unique_ptr<node> node1;
+	unique_ptr<node> node2;
+	unique_ptr<node> node3;
+	unique_ptr<node> node4;
+	token tok1;
+	token tok2;
+	token tok3;
+	token tok4;
+	token tok5;
+	token tok6;
+	void print();
+};
+class variable {
+	public:
+	string name;
+	int type;
+	int lit;
+	int filter;
+};
+
+class csvEntry {
+	public:
+	char* val;
+	int size;
+};
+
+class fileReader {
+	int fieldsFound;
+	char* pos1;
+	char* pos2;
+	char* terminator;
+	char buf[BUFSIZE];
+	ifstream fs;
+	public:
+		streampos pos;
+		vector<string> colnames;
+		vector<int> types;
+		vector<csvEntry> entries;
+		bool noheader;
+		string id;
+		int numFields;
+	int getField();
+	int checkWidth();
+	void inferTypes();
+	void print();
+	int getColIdx(string);
+	int readline();
+	int readlineat(int64);
+	fileReader(string);
+};
+
+class opcode {
+	public:
+	byte code;
+	int p1;
+	int p2;
+	int p3;
+	void print();
+};
+//data during processing
+union datunion {
+	int64 i; //also used for date and duration
+	double f;
+	char* s;
+	bool p;
+	regex_t* r;
+	chacha* ch;
+};
+class dat {
+	public:
+	union datunion u;
+	short b; // metadata bit array
+	int z; // string size
+	short a; // unused but comes at no cost because of class padding
+	void appendToBuffer(string&);
+	friend bool operator<(const dat& l, const dat& r){
+		if ((l.b & 7)==6) {
+			if ((l.b | r.b) & NIL){
+				return (r.b & NIL) < (l.b & NIL);
+			}
+			return scomp(l.u.s, r.u.s) < 0;
+		} else
+			return l.u.i < r.u.i;
+	}
+};
+
+//placeholder for jmp positions that can't be determined until later
+class jumpPositions {
+	map<int, int> jumps;
+	int uniqueKey;
+	public:
+	int newPlaceholder() { return --uniqueKey; };
+	void setPlace(int k, int v) { jumps[k] = v; };
+	void updateBytecode(vector<opcode> &vec);
+	jumpPositions() { uniqueKey = -1; };
+};
+
+class resultSpecs {
+	public:
+	int count;
+	vector<int> types;
+	vector<string> colnames;
+};
+
+class singleQueryResult {
+	public:
+	int numrows;
+	int numcols;
+	vector<int> types;
+	vector<string> colnames;
+	vector<vector<char*>> values;
+	string query;
+};
+
+class chactx {
+	public:
+	chacha ctx;
+	uint8_t key[32];
+	uint8_t nonce[12];
+};
+class crypter {
+	public:
+	vector<chactx> ctxs;
+	int newChacha(string);
+	pair<char*,int> chachaEncrypt(int, int, char*);
+	pair<char*,int> chachaDecrypt(int, int, char*);
+};
+
+class querySpecs {
+	public:
+	string queryString;
+	string password;
+	vector<token> tokArray;
+	vector<variable> vars;
+	vector<dat> dataholder;
+	vector<opcode> bytecode;
+	map<string, shared_ptr<fileReader>> files;
+	unique_ptr<node> tree;
+	jumpPositions jumps;
+	resultSpecs colspec;
+	crypter crypt;
+	int midcount;
+	int numFiles;
+	int tokIdx;
+	int options;
+	int btn;
+	int bts;
+	int quantityLimit;
+	int posVecs;
+	int sorting;
+	bool joining;
+	bool grouping;
+	bool whereFiltering;
+	bool havingFiltering;
+	token tok();
+	token nextTok();
+	token peekTok();
+	bool numIsCol();
+	void init(string);
+	void addVar(string);
+	~querySpecs();
+	querySpecs(string &s);
+};
 
 void scanTokens(querySpecs &q);
 void parseQuery(querySpecs &q);
