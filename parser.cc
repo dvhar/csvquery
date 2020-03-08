@@ -179,7 +179,8 @@ static unique_ptr<node> parseSelect(querySpecs &q) {
 //tok1 is * or distinct or hidden
 //tok2 is alias
 //later stages:
-//  tok3 will be aggregate midrow index+1 if used in aggregate
+//  tok3.id will be 1 if loading plain value into midrow
+//  tok4.id will be 1 if selection contains aggregate
 static unique_ptr<node> parseSelections(querySpecs &q) {
 	t = q.tok();
 	e("selections");
@@ -234,7 +235,6 @@ static unique_ptr<node> parseSelections(querySpecs &q) {
 //node1 is exprMult
 //node2 is exprAdd
 //tok1 is add/minus operator
-//later stages:
 static unique_ptr<node> parseExprAdd(querySpecs &q) {
 	t = q.tok();
 	e("expradd");
