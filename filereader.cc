@@ -97,7 +97,7 @@ int fileReader::getField(){
 	//trim trailing whitespace and push pointer
 	while (isblank(*(terminator-1))) --terminator;
 	*terminator = '\0';
-	entries.push_back({pos1, (int)(terminator-pos1)});
+	entries.push_back({pos1, (uint)(terminator-pos1)});
 	return 0;
 }
 

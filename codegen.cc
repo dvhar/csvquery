@@ -99,7 +99,7 @@ static dat parseDateDat(const char* s) {
 }
 static dat parseStringDat(const char* s) {
 	//may want to malloc
-	dat ddat = { { .s = (char*)s }, T_STRING, (short)strlen(s) };
+	dat ddat = { { .s = (char*)s }, T_STRING, (uint) strlen(s) };
 	return ddat;
 }
 

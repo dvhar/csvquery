@@ -27,6 +27,7 @@
 #define chacha struct chacha20_context
 #define int64 long long
 #define dur_t long long
+#define uint unsigned int
 #define byte unsigned char
 #define ft fmt::format
 //#define pt fmt::print
@@ -202,7 +203,7 @@ class variable {
 class csvEntry {
 	public:
 	char* val;
-	int size;
+	uint size;
 };
 
 class fileReader {
@@ -251,11 +252,11 @@ class dat {
 	public:
 	union datunion u;
 	short b; // metadata bit array
-	int z; // string size
+	uint z; // string size
 	short a; // unused but comes at no cost because of class padding
 	void appendToBuffer(string&);
 	friend bool operator<(const dat& l, const dat& r){
-		if ((l.b & 7)==6) {
+		if ((l.b & 7) == T_STRING) {
 			if ((l.b | r.b) & NIL){
 				return (r.b & NIL) < (l.b & NIL);
 			}
