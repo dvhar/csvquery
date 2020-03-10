@@ -2,7 +2,8 @@
 #include "vmachine.h"
 #include <cmath>
 
-#ifndef __APPLE__ //get your shit together, apple
+//parallel sort only available in gcc's libstdc++
+#ifdef _GLIBCXX_EXECUTION
 #include <execution>
 #endif
 
@@ -109,7 +110,7 @@ LDDATE_:
 	push();
 	csvTemp = files[op->p1]->entries[op->p2];
 	iTemp1 = dateparse(csvTemp.val, &i64Temp, &iTemp2, csvTemp.size);
-	stk0 = dat{ { .i = i64Temp}, T_DATE, iTemp2 };
+	stk0 = dat{ { .i = i64Temp}, T_DATE, (uint) iTemp2 };
 	if (iTemp1) { SETNULL(stk0); }
 	++ip;
 	next();
@@ -190,7 +191,7 @@ SAVEPOSS_JMP_:
 	pop();
 	next();
 
-#ifndef __APPLE__ //get your shit together, apple
+#ifdef _GLIBCXX_EXECUTION
 SORTI_:
 	sort(execution::par_unseq, posVectors[op->p1].begin(), posVectors[op->p1].end(),
 		[op](const valPos &a, const valPos &b){ return (a.val.i > b.val.i)^op->p2; });
@@ -628,6 +629,10 @@ JMPNOTNULL_ELSEPOP_:
 
 PRINT_:
 	torow[0].appendToBuffer(outbuf);
+	if (outbuf.size() > 900){
+		output << outbuf;
+		outbuf.clear();
+	}
 	for (int i=1; i<torowSize; ++i){
 		outbuf += ',';
 		torow[i].appendToBuffer(outbuf);
@@ -695,6 +700,8 @@ DECCHA_:
 	next();
 //aggregates
 AVGI_:
+	if (!ISNULL(stk0))
+		torow[op->p1].z++;
 SUMI_:
 	if (!ISNULL(stk0))
 		torow[op->p1].u.i += stk0.u.i;
@@ -702,6 +709,8 @@ SUMI_:
 	++ip;
 	next();
 AVGF_:
+	if (!ISNULL(stk0))
+		torow[op->p1].z++;
 SUMF_:
 	if (!ISNULL(stk0))
 		torow[op->p1].u.f += stk0.u.f;
@@ -715,7 +724,8 @@ STDVF_:
 	++ip;
 	next();
 COUNT_:
-	torow[op->p1].u.f++;
+	if (!ISNULL(stk0))
+		torow[op->p1].u.f++;
 	pop();
 	++ip;
 	next();

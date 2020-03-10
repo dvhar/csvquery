@@ -118,11 +118,11 @@ class rowgroup {
 				data = new bmap<dat, rowgroup>;
 				type = 2;
 			}
-			return &getMap()->insert(pair<dat, rowgroup>(d, rowgroup())).first->second;
+			return &getMap()->insert({d, rowgroup()}).first->second;
 		}
 		vector<dat>* getVector(int size){
 			if (!data) {
-				data = new vector<dat>(size, {{},0,NIL});
+				data = new vector<dat>(size, {{0},NIL,0});
 				type = 1;
 			}
 			return getRow();
