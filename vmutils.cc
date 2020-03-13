@@ -82,14 +82,12 @@ vmachine::vmachine(querySpecs &qs){
 	distinctVal = {0};
 	for (auto &d : stack)   d = {0};
 	for (auto &d : destrow) d = {0};
-	for (auto &d : midrow)  d = {0};
 }
 
 vmachine::~vmachine(){
 	FREE2(distinctVal);
 	for (auto &d : stack)   FREE2(d);
 	for (auto &d : destrow) FREE2(d);
-	for (auto &d : midrow)  FREE2(d);
 	for (auto &b : bt_strings){
 		for (auto it = b.begin(); it != b.end(); ++it){
 			free(it->s);

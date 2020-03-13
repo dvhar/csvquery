@@ -26,6 +26,7 @@ static void genFunction(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q);
 static void genSelectAll(vector<opcode> &v, querySpecs &q);
 static void genSelections(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q);
 static void genTypeConv(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q);
+static void genIterateGroups(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q);
 
 //for debugging
 static int ident = 0;
@@ -708,8 +709,24 @@ static void genGroup(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
 		int depth = -1;
 		for (auto nn=n->node1.get(); nn; nn=nn->node2.get()){
 			depth++;
-			genExprAll(n->node1, v, q);
+			genExprAll(nn->node1, v, q);
 		}
 		addop(v, GETGROUP, depth);
+	}
+}
+
+static void genIterateGroups(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
+	if (n == nullptr) return;
+	if (n->label == N_GROUPBY){
+		int depth = 0;
+		addop(v, ROOTMAP, depth, depth+1);
+		for (auto nn=n->node1.get(); nn; nn=nn->node2.get()){
+			if (nn->node2.get()){
+				depth += 2;
+				addop(v, NEXTMAP, depth, depth+1);
+			} else {
+				addop(v, NEXTVEC, depth, depth+1);
+			}
+		}
 	}
 }

@@ -15,6 +15,7 @@
 #include <fmt/format.h>
 #include "deps/dateparse/dateparse.h"
 #include "deps/chacha/chacha20.h"
+#include "deps/btree/btree_map.h"
 
 #ifdef __MINGW32__
 #include <getopt.h>
@@ -239,7 +240,7 @@ class opcode {
 	int p3;
 	void print();
 };
-//data during processing
+
 union datunion {
 	int64 i; //also used for date and duration
 	double f;

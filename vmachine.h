@@ -8,6 +8,9 @@
 #define bmap btree::btree_map
 #define bset btree::btree_set
 
+//iterator type for btree map
+#define bmapit btree::btree_iterator<btree::btree_node<btree::btree_map_params<dat, rowgroup, std::less<dat>, std::allocator<std::pair<const dat, rowgroup> >, 256> >, std::pair<const dat, rowgroup>&, std::pair<const dat, rowgroup>*>
+
 //code prefixes are for Int Float Text Date/Duration
 enum codes : unsigned char {
 	CVER, CVNO,
@@ -32,7 +35,9 @@ enum codes : unsigned char {
 	NDIST, SDIST, PUTDIST,
 	FINC, ENCCHA, DECCHA,
 	SAVEPOSI_JMP, SAVEPOSF_JMP, SAVEPOSS_JMP, SORTI, SORTF, SORTS,
-	GETGROUP, SUMI, SUMF, AVGI, AVGF, STDVI, STDVF, COUNT, MINI, MINF, MINS, MAXI, MAXF, MAXS
+	GETGROUP, PRINTGROUPS,
+	SUMI, SUMF, AVGI, AVGF, STDVI, STDVF, COUNT, MINI, MINF, MINS, MAXI, MAXF, MAXS,
+	NEXTMAP, NEXTVEC, ROOTMAP
 };
 extern map<int, string> opMap;
 
@@ -148,7 +153,6 @@ class vmachine {
 	int torowSize;
 	int quantityLimit;
 	vector<dat> destrow;
-	vector<dat> midrow;
 	vector<dat> stack;
 	vector<vector<valPos>> posVectors;
 	rowgroup groupTree;
