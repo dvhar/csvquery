@@ -36,12 +36,14 @@ void vmachine::run(){
 	bool boolTemp;
 	csvEntry csvTemp;
 	pair<char*, int> pairTemp;
+	vector<dat>* vecTemp;
 
 	//vars for vm operations
 	int numPrinted = 0;
-	rowgroup* group;
+	rowgroup* groupTemp;
 	dat* stacktop = stack.data();
 	dat* stackbot = stack.data();
+	bmapit itstk[20];
 	int ip = 0;
 	opcode *op;
 
@@ -773,13 +775,39 @@ MAXS_:
 	next();
 
 GETGROUP_:
-	group = &groupTree;
+	groupTemp = &groupTree;
 	for (int i=op->p1; i >= 0; --i){
-		group = group->nextGroup(stkt(i));
+		groupTemp = groupTemp->nextGroup(stkt(i));
 		FREE2(stkt(i));
 	}
-	torow = group->getVector(q->midcount)->data();
+	torow = groupTemp->getVector(q->midcount)->data();
 	stacktop -= (op->p1 + 1);
+	++ip;
+	next();
+
+ROOTMAP_:
+	itstk[op->p1] = groupTree.getMap()->begin();
+	itstk[op->p2] = groupTree.getMap()->end();
+	++ip;
+	next();
+NEXTMAP_:
+	if (itstk[op->p1-2] == itstk[op->p2-2]){
+		// done with map
+	} else {
+		// set iterator stacktop2 to next map
+		groupTemp = &(itstk[op->p1-2]++)->second;
+		itstk[op->p1] = groupTemp->getMap()->begin();
+		itstk[op->p2] = groupTemp->getMap()->end();
+	}
+	++ip;
+	next();
+NEXTVEC_:
+	if (itstk[op->p1-2] == itstk[op->p2-2]){
+		// done with map
+	} else {
+		// set iterator stack to next map
+		vecTemp = (itstk[op->p1-2]++)->second.getRow();
+	}
 	++ip;
 	next();
 
@@ -793,7 +821,6 @@ CVER_:
 CVNO_:
 	error("Invalid opcode");
 }
-
 
 void runquery(querySpecs &q){
 	vmachine vm(q);
