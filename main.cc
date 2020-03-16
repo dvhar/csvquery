@@ -61,6 +61,7 @@ int main(int argc, char** argv){
 		openfiles(q, q.tree);
 		applyTypes(q);
 		analyzeTree(q);
+		printTree(q.tree, 0);
 		codeGen(q);
 		runquery(q);
 	} catch (const invalid_argument& ia) {

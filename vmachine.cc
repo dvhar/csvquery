@@ -16,7 +16,7 @@
 #define pop() --stacktop
 
 //jump to next operation
-#define debugOpcode /* cerr << ft("ip {} opcode {} stack {}\n", ip, opMap[op->code], stacktop-stack.data()); */
+#define debugOpcode cerr << ft("ip {} opcode {} stack {}\n", ip, opMap[op->code], stacktop-stack.data());
 #define next() \
 	op = ops + ip; \
 	debugOpcode \
@@ -24,7 +24,7 @@
 
 void vmachine::run(){
 
-	void* labels[] = { &&CVER_, &&CVNO_, &&CVIF_, &&CVIS_, &&CVFI_, &&CVFS_, &&CVDRS_, &&CVDTS_, &&CVSI_, &&CVSF_, &&CVSDR_, &&CVSDT_, &&IADD_, &&FADD_, &&TADD_, &&DTADD_, &&DRADD_, &&ISUB_, &&FSUB_, &&DTSUB_, &&DRSUB_, &&IMULT_, &&FMULT_, &&DRMULT_, &&IDIV_, &&FDIV_, &&DRDIV_, &&INEG_, &&FNEG_, &&PNEG_, &&IMOD_, &&FMOD_, &&IEXP_, &&FEXP_, &&JMP_, &&JMPCNT_, &&JMPTRUE_, &&JMPFALSE_, &&JMPNOTNULL_ELSEPOP_, &&RDLINE_, &&RDLINE_ORDERED_, &&PREP_REREAD_, &&PUT_, &&LDPUT_, &&LDPUTALL_, &&PUTVAR_, &&LDINT_, &&LDFLOAT_, &&LDTEXT_, &&LDDATE_, &&LDDUR_, &&LDNULL_, &&LDLIT_, &&LDVAR_, &&IEQ_, &&FEQ_, &&TEQ_, &&LIKE_, &&ILEQ_, &&FLEQ_, &&TLEQ_, &&ILT_, &&FLT_, &&TLT_, &&PRINT_, &&PUSH_, &&POP_, &&POPCPY_, &&ENDRUN_, &&NULFALSE1_, &&NULFALSE2_, &&NDIST_, &&SDIST_, &&PUTDIST_, &&FINC_, &&ENCCHA_, &&DECCHA_, &&SAVEPOSI_JMP_, &&SAVEPOSF_JMP_, &&SAVEPOSS_JMP_, &&SORTI_, &&SORTF_, &&SORTS_, &&GETGROUP_, &&SUMI_, &&SUMF_, &&AVGI_, &&AVGF_, &&STDVI_, &&STDVF_, &&COUNT_, &&MINI_, &&MINF_, &&MINS_, &&MAXI_, &&MAXF_, &&MAXS_ };
+	void* labels[] = { &&CVER_, &&CVNO_, &&CVIF_, &&CVIS_, &&CVFI_, &&CVFS_, &&CVDRS_, &&CVDTS_, &&CVSI_, &&CVSF_, &&CVSDR_, &&CVSDT_, &&IADD_, &&FADD_, &&TADD_, &&DTADD_, &&DRADD_, &&ISUB_, &&FSUB_, &&DTSUB_, &&DRSUB_, &&IMULT_, &&FMULT_, &&DRMULT_, &&IDIV_, &&FDIV_, &&DRDIV_, &&INEG_, &&FNEG_, &&PNEG_, &&IMOD_, &&FMOD_, &&IEXP_, &&FEXP_, &&JMP_, &&JMPCNT_, &&JMPTRUE_, &&JMPFALSE_, &&JMPNOTNULL_ELSEPOP_, &&RDLINE_, &&RDLINE_ORDERED_, &&PREP_REREAD_, &&PUT_, &&LDPUT_, &&LDPUTALL_, &&PUTVAR_, &&LDINT_, &&LDFLOAT_, &&LDTEXT_, &&LDDATE_, &&LDDUR_, &&LDNULL_, &&LDLIT_, &&LDVAR_, &&IEQ_, &&FEQ_, &&TEQ_, &&LIKE_, &&ILEQ_, &&FLEQ_, &&TLEQ_, &&ILT_, &&FLT_, &&TLT_, &&PRINT_, &&PUSH_, &&POP_, &&POPCPY_, &&ENDRUN_, &&NULFALSE1_, &&NULFALSE2_, &&NDIST_, &&SDIST_, &&PUTDIST_, &&LDDIST_, &&FINC_, &&ENCCHA_, &&DECCHA_, &&SAVEPOSI_JMP_, &&SAVEPOSF_JMP_, &&SAVEPOSS_JMP_, &&SORTI_, &&SORTF_, &&SORTS_, &&GETGROUP_, &&SUMI_, &&SUMF_, &&AVGI_, &&AVGF_, &&STDVI_, &&STDVF_, &&COUNT_, &&MINI_, &&MINF_, &&MINS_, &&MAXI_, &&MAXF_, &&MAXS_ };
 
 
 	//vars for data
@@ -649,6 +649,12 @@ PRINT_:
 	next();
 
 //distinct checkers
+LDDIST_:
+	push();
+	stk0 = distinctVal;
+	DISOWN(distinctVal);
+	++ip;
+	next();
 NDIST_:
 	boolTemp = bt_nums[op->p2].insert(stk0.u.i).second;
 	if (boolTemp) {
@@ -726,9 +732,13 @@ STDVF_:
 	++ip;
 	next();
 COUNT_:
-	if (!ISNULL(stk0))
+	if (op->p2){ //count(*)
 		torow[op->p1].u.f++;
-	pop();
+	} else {
+		if (!ISNULL(stk0))
+			torow[op->p1].u.f++;
+		pop();
+	}
 	++ip;
 	next();
 MINI_:
@@ -794,7 +804,7 @@ NEXTMAP_:
 	if (itstk[op->p1-2] == itstk[op->p2-2]){
 		// done with map
 	} else {
-		// set iterator stacktop2 to next map
+		// set top of iterator stack to next map
 		groupTemp = &(itstk[op->p1-2]++)->second;
 		itstk[op->p1] = groupTemp->getMap()->begin();
 		itstk[op->p2] = groupTemp->getMap()->end();
@@ -805,7 +815,6 @@ NEXTVEC_:
 	if (itstk[op->p1-2] == itstk[op->p2-2]){
 		// done with map
 	} else {
-		// set iterator stack to next map
 		vecTemp = (itstk[op->p1-2]++)->second.getRow();
 	}
 	++ip;
