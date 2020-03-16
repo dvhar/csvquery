@@ -1,8 +1,1 @@
-with (r.c5*inc()) as floaty
-select 
-'8.4 years' as dur, '1/22/2019' as date, r.c9 as float2, r.c7 as inty,
-dursub='11/12/1990' - 'April 1 1987', '12-12-1999' + '8 years' as dateAdd
-from 'test/country.csv' nh r
-where r.c3=Asia and floaty > 0
-group by r.c4+land
-order by r.c11+t.c1
+select count(*) from 'test/country.csv' group by c3 c4

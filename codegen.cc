@@ -30,7 +30,7 @@ static void genIterateGroups(unique_ptr<node> &n, vector<opcode> &v, querySpecs 
 
 //for debugging
 static int ident = 0;
-#define e //turn off debug printer
+//#define e //turn off debug printer
 #ifndef e
 #define e(A) for (int i=0; i< ident; i++) cerr << "    "; \
 	cerr << A << endl; ident++; \
@@ -102,6 +102,21 @@ static dat parseStringDat(const char* s) {
 	//may want to malloc
 	dat ddat = { { .s = (char*)s }, T_STRING, (uint) strlen(s) };
 	return ddat;
+}
+static int addBtree(int type, querySpecs &q){
+	//returns index of btree
+	switch (type){
+	case T_INT:
+	case T_DATE:
+	case T_DURATION:
+	case T_FLOAT:
+		return q.btn++;
+	case T_STRING:
+		return q.bts++;
+	default:
+		error("invalid btree type");
+	}
+	return 0;
 }
 
 
@@ -271,15 +286,18 @@ static void genBasicGroupingQuery(unique_ptr<node> &n, vector<opcode> &v, queryS
 	genWhere(n->node4, v, q);
 	genVars(n->node1, v, q, vs.setscope(DISTINCT_FILTER, V_EQUALS, V_SCOPE1));
 	genDistinct(n->node2->node1, v, q, normal_read);
+	cerr << "done distinct\n";
 	genVars(n->node1, v, q, vs.setscope(NO_FILTER, V_ANY, V_SCOPE1));
-	genGroup(n->node4, v, q);
+	cerr << "done vars, gen group\n";
+	genGroup(n->node4->node2, v, q);
+	cerr << "done group, gen select\n";
 	genSelect(n->node2, v, q);
 	addop(v, JMP, normal_read);
 	q.jumps.setPlace(getgroups, v.size());
 	agg_phase = 2;
 	select_count = 0; //used as midrow count in phase 1
-	genSelect(n->node2, v, q);
-	genReturnGroups(n->node4, v, q); //having?
+	//genSelect(n->node2, v, q);
+	//genReturnGroups(n->node4, v, q); //having?
 	popvars();
 	addop(v, ENDRUN);
 }
@@ -621,19 +639,7 @@ static void genDistinct(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q, i
 	if (n->label != N_SELECTIONS) return;
 	if (n->tok1.id == KW_DISTINCT){
 		genExprAll(n->node1, v, q);
-		int btreeIdx;
-		switch (n->datatype){
-		case T_INT:
-		case T_DATE:
-		case T_DURATION:
-		case T_FLOAT:
-			btreeIdx = q.btn++;
-			break;
-		case T_STRING:
-			btreeIdx = q.bts++;
-			break;
-		}
-		addop(v, distinctOps[n->datatype], gotoIfNot, btreeIdx,
+		addop(v, distinctOps[n->datatype], gotoIfNot, addBtree(n->datatype, q),
 			n->tok1.lower() == "hidden" ? 0 : 1);
 	} else {
 		//there can be only 1 distinct filter
@@ -646,6 +652,16 @@ static void genFunction(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
 	if (n == nullptr) return;
 	int funcDone = q.jumps.newPlaceholder();
 	int idx;
+
+	//stuff common to all aggregate functions
+	if ((n->tok1.id & AGG_BIT) != 0 ) {
+		genExprAll(n->node1, v, q);
+		if (n->tok3.val == "distinct"){
+			addop(v, distinctOps[n->datatype], funcDone, addBtree(n->datatype, q), 1);
+			addop(v, LDDIST);
+		}
+	}
+
 	switch (n->tok1.id){
 	//non-aggregates
 	case FN_COALESCE:
@@ -654,7 +670,6 @@ static void genFunction(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
 			addop(v, JMPNOTNULL_ELSEPOP, funcDone);
 		}
 		addop(v, LDNULL);
-		q.jumps.setPlace(funcDone, v.size());
 		break;
 	case FN_INC:
 		addop(v, FINC, q.dataholder.size());
@@ -684,9 +699,12 @@ static void genFunction(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
 	case FN_STDEVP:
 	case FN_MIN:
 	case FN_MAX:
+		break;
 	case FN_COUNT:
+		addop(v, COUNT, select_count++, n->tok2.id ? 1 : 0);
 		break;
 	}
+	q.jumps.setPlace(funcDone, v.size());
 }
 
 static void genTypeConv(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){

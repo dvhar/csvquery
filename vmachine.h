@@ -32,14 +32,13 @@ enum codes : unsigned char {
 	ILEQ, FLEQ, TLEQ,
 	ILT, FLT, TLT,
 	PRINT, PUSH, POP, POPCPY, ENDRUN, NULFALSE1, NULFALSE2,
-	NDIST, SDIST, PUTDIST,
+	NDIST, SDIST, PUTDIST, LDDIST,
 	FINC, ENCCHA, DECCHA,
 	SAVEPOSI_JMP, SAVEPOSF_JMP, SAVEPOSS_JMP, SORTI, SORTF, SORTS,
-	GETGROUP, PRINTGROUPS,
+	GETGROUP,
 	SUMI, SUMF, AVGI, AVGF, STDVI, STDVF, COUNT, MINI, MINF, MINS, MAXI, MAXF, MAXS,
 	NEXTMAP, NEXTVEC, ROOTMAP
 };
-extern map<int, string> opMap;
 
 //2d array for ops indexed by operation and datatype
 enum typeOperators {
@@ -177,7 +176,7 @@ class varScoper {
 		bool neededHere(int, int);
 };
 
-extern map<int, string> opMap;
+extern map<byte, string> opMap;
 void strplus(dat &s1, dat &s2);
 
 #endif

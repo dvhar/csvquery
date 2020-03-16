@@ -113,10 +113,12 @@ static bool findAgrregates(unique_ptr<node> &n){
 
 static void findMidrowTargets(unique_ptr<node> &n, querySpecs &q){
 	if (n == nullptr || !q.grouping) return;
+	cerr << " find midrow " << treeMap[n->label] << " midcount: " << q.midcount << endl;
 	switch (n->label){
 	case N_SELECTIONS:
 		if (findAgrregates(n->node1)){
 			n->tok4.id = 1;
+			findMidrowTargets(n->node1, q);
 		} else {
 			n->tok3.id = 1;
 			q.midcount++;
