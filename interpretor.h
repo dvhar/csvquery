@@ -15,7 +15,6 @@
 #include <fmt/format.h>
 #include "deps/dateparse/dateparse.h"
 #include "deps/chacha/chacha20.h"
-#include "deps/btree/btree_map.h"
 
 #ifdef __MINGW32__
 #include <getopt.h>
@@ -256,6 +255,7 @@ class dat {
 	uint z; // string size
 	short a; // unused but comes at no cost because of class padding
 	void appendToBuffer(string&);
+	string str(){ string st; appendToBuffer(st); return st; }
 	friend bool operator<(const dat& l, const dat& r){
 		if ((l.b & 7) == T_STRING) {
 			if ((l.b | r.b) & NIL){
