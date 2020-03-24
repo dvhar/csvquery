@@ -1,17 +1,11 @@
 #include "interpretor.h"
 #include "deps/btree/btree_set.h"
-#include "deps/btree/btree_map.h"
 #include "deps/b64/b64.h"
 #ifndef VMACH_H
 #define VMACH_H
 
-#define bmap btree::btree_map
 #define bset btree::btree_set
 
-//iterator type for btree map
-#define bmapit btree::btree_iterator<btree::btree_node<btree::btree_map_params<dat, rowgroup, std::less<dat>, std::allocator<std::pair<const dat, rowgroup> >, 256> >, std::pair<const dat, rowgroup>&, std::pair<const dat, rowgroup>*>
-
-//code prefixes are for Int Float Text Date/Duration
 enum codes : unsigned char {
 	CVER, CVNO,
 	CVIF, CVIS, CVFI, CVFS, CVDRS, CVDTS,
@@ -111,7 +105,7 @@ class rowgroup {
 		void* data;
 		int type;
 		vector<dat>* getRow(){ return ((vector<dat>*) data); };
-		bmap<dat, rowgroup>* getMap(){ return ((bmap<dat, rowgroup>*) data); };
+		map<dat, rowgroup>* getMap(){ return ((map<dat, rowgroup>*) data); };
 		rowgroup* nextGroup(dat d){
 			if (data) {
 				auto m = getMap()->find(d);
@@ -119,7 +113,7 @@ class rowgroup {
 					return &m->second;
 				}
 			} else {
-				data = new bmap<dat, rowgroup>;
+				data = new map<dat, rowgroup>;
 				type = 2;
 			}
 			return &getMap()->insert({d, rowgroup()}).first->second;
@@ -131,7 +125,7 @@ class rowgroup {
 			}
 			return getRow();
 		}
-		rowgroup(){ type = 0; data =0; }
+		rowgroup(){ type = 0; data = 0; }
 		~rowgroup(){
 			if (type == 1){
 				if (ISTEXT(*getRow()->begin()))

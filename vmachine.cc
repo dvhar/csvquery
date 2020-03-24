@@ -43,7 +43,7 @@ void vmachine::run(){
 	rowgroup* groupTemp;
 	dat* stacktop = stack.data();
 	dat* stackbot = stack.data();
-	bmapit itstk[20];
+	map<dat, rowgroup>::iterator itstk[20];
 	int ip = 0;
 	opcode *op;
 
