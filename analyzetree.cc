@@ -122,6 +122,7 @@ static void findMidrowTargets(unique_ptr<node> &n, querySpecs &q){
 		} else {
 			n->tok3.id = 1;
 			q.midcount++;
+			q.midtypes.push_back(n->datatype);
 		}
 		findMidrowTargets(n->node2, q);
 		break;
@@ -130,6 +131,7 @@ static void findMidrowTargets(unique_ptr<node> &n, querySpecs &q){
 			if (findAgrregates(n->node1))
 				error("Cannot have aggregate function inside another aggregate");
 			q.midcount++;
+			q.midtypes.push_back(n->datatype);
 			return;
 		} else {
 			findAgrregates(n->node1);
