@@ -823,15 +823,14 @@ NEXTMAP_:
 		next();
 	}
 NEXTVEC_:
-	if (itstk[op->p2-2] == itstk[op->p2-1]){
+	if (itstk[op->p2] == itstk[op->p2+1]){
 		// done with map
 		ip = op->p1;
 		next();
 	} else {
-		vecTemp = (itstk[op->p2-2]++)->second.getRow();
+		vecTemp = (itstk[op->p2]++)->second.getRow();
 		torow = vecTemp->data();
 		torowSize = vecTemp->size();
-		cerr << "new torow size: " << torowSize << " midcount: " << q->midcount << endl;
 		++ip;
 		next();
 	}

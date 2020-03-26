@@ -251,9 +251,8 @@ union datunion {
 class dat {
 	public:
 	union datunion u;
-	short b; // metadata bit array
+	uint b; // metadata bit array
 	uint z; // string size
-	short a; // unused but comes at no cost because of class padding
 	void appendToBuffer(string&);
 	string str(){ string st; appendToBuffer(st); return st; }
 	friend bool operator<(const dat& l, const dat& r){

@@ -752,16 +752,16 @@ static void genIterateGroups(unique_ptr<node> &n, vector<opcode> &v, querySpecs 
 			}
 			if (nn->node2.get()){
 				depth += 2;
-				addop(v, NEXTMAP, goWhenDone, depth);
 				prevmap = v.size();
+				addop(v, NEXTMAP, goWhenDone, depth);
 			} else {
-				addop(v, NEXTVEC, goWhenDone, depth);
 				int nextvec = v.size();
+				addop(v, NEXTVEC, goWhenDone, depth);
 				// for debugging:
 				addop(v, PRINT);
 				addop(v, JMP, nextvec);
 			}
 		}
-		q.jumps.setPlace(goWhenDone, v.size());
+		q.jumps.setPlace(doneGroups, v.size());
 	}
 }
