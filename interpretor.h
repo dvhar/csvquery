@@ -317,6 +317,7 @@ class querySpecs {
 	vector<variable> vars;
 	vector<dat> dataholder;
 	vector<opcode> bytecode;
+	vector<int> midtypes;
 	map<string, shared_ptr<fileReader>> files;
 	unique_ptr<node> tree;
 	jumpPositions jumps;

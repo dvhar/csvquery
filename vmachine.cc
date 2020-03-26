@@ -24,7 +24,7 @@
 
 void vmachine::run(){
 
-	void* labels[] = { &&CVER_, &&CVNO_, &&CVIF_, &&CVIS_, &&CVFI_, &&CVFS_, &&CVDRS_, &&CVDTS_, &&CVSI_, &&CVSF_, &&CVSDR_, &&CVSDT_, &&IADD_, &&FADD_, &&TADD_, &&DTADD_, &&DRADD_, &&ISUB_, &&FSUB_, &&DTSUB_, &&DRSUB_, &&IMULT_, &&FMULT_, &&DRMULT_, &&IDIV_, &&FDIV_, &&DRDIV_, &&INEG_, &&FNEG_, &&PNEG_, &&IMOD_, &&FMOD_, &&IEXP_, &&FEXP_, &&JMP_, &&JMPCNT_, &&JMPTRUE_, &&JMPFALSE_, &&JMPNOTNULL_ELSEPOP_, &&RDLINE_, &&RDLINE_ORDERED_, &&PREP_REREAD_, &&PUT_, &&LDPUT_, &&LDPUTALL_, &&PUTVAR_, &&LDINT_, &&LDFLOAT_, &&LDTEXT_, &&LDDATE_, &&LDDUR_, &&LDNULL_, &&LDLIT_, &&LDVAR_, &&IEQ_, &&FEQ_, &&TEQ_, &&LIKE_, &&ILEQ_, &&FLEQ_, &&TLEQ_, &&ILT_, &&FLT_, &&TLT_, &&PRINT_, &&PUSH_, &&POP_, &&POPCPY_, &&ENDRUN_, &&NULFALSE1_, &&NULFALSE2_, &&NDIST_, &&SDIST_, &&PUTDIST_, &&LDDIST_, &&FINC_, &&ENCCHA_, &&DECCHA_, &&SAVEPOSI_JMP_, &&SAVEPOSF_JMP_, &&SAVEPOSS_JMP_, &&SORTI_, &&SORTF_, &&SORTS_, &&GETGROUP_, &&SUMI_, &&SUMF_, &&AVGI_, &&AVGF_, &&STDVI_, &&STDVF_, &&COUNT_, &&MINI_, &&MINF_, &&MINS_, &&MAXI_, &&MAXF_, &&MAXS_ };
+	void* labels[] = { &&CVER_, &&CVNO_, &&CVIF_, &&CVIS_, &&CVFI_, &&CVFS_, &&CVDRS_, &&CVDTS_, &&CVSI_, &&CVSF_, &&CVSDR_, &&CVSDT_, &&IADD_, &&FADD_, &&TADD_, &&DTADD_, &&DRADD_, &&ISUB_, &&FSUB_, &&DTSUB_, &&DRSUB_, &&IMULT_, &&FMULT_, &&DRMULT_, &&IDIV_, &&FDIV_, &&DRDIV_, &&INEG_, &&FNEG_, &&PNEG_, &&IMOD_, &&FMOD_, &&IEXP_, &&FEXP_, &&JMP_, &&JMPCNT_, &&JMPTRUE_, &&JMPFALSE_, &&JMPNOTNULL_ELSEPOP_, &&RDLINE_, &&RDLINE_ORDERED_, &&PREP_REREAD_, &&PUT_, &&LDPUT_, &&LDPUTALL_, &&PUTVAR_, &&LDINT_, &&LDFLOAT_, &&LDTEXT_, &&LDDATE_, &&LDDUR_, &&LDNULL_, &&LDLIT_, &&LDVAR_, &&IEQ_, &&FEQ_, &&TEQ_, &&LIKE_, &&ILEQ_, &&FLEQ_, &&TLEQ_, &&ILT_, &&FLT_, &&TLT_, &&PRINT_, &&PUSH_, &&POP_, &&POPCPY_, &&ENDRUN_, &&NULFALSE1_, &&NULFALSE2_, &&NDIST_, &&SDIST_, &&PUTDIST_, &&LDDIST_, &&FINC_, &&ENCCHA_, &&DECCHA_, &&SAVEPOSI_JMP_, &&SAVEPOSF_JMP_, &&SAVEPOSS_JMP_, &&SORTI_, &&SORTF_, &&SORTS_, &&GETGROUP_, &&SUMI_, &&SUMF_, &&AVGI_, &&AVGF_, &&STDVI_, &&STDVF_, &&COUNT_, &&MINI_, &&MINF_, &&MINS_, &&MAXI_, &&MAXF_, &&MAXS_, &&NEXTMAP_, &&NEXTVEC_, &&ROOTMAP_ };
 
 
 	//vars for data
@@ -43,7 +43,7 @@ void vmachine::run(){
 	rowgroup* groupTemp;
 	dat* stacktop = stack.data();
 	dat* stackbot = stack.data();
-	map<dat, rowgroup>::iterator itstk[20];
+	decltype(groupTemp->getMap()->begin()) itstk[20];
 	int ip = 0;
 	opcode *op;
 
@@ -630,6 +630,7 @@ JMPNOTNULL_ELSEPOP_:
 	next();
 
 PRINT_:
+	cerr << torow[0].str() << endl;
 	torow[0].appendToBuffer(outbuf);
 	if (outbuf.size() > 900){
 		output << outbuf;
@@ -711,8 +712,10 @@ AVGI_:
 	if (!ISNULL(stk0))
 		torow[op->p1].z++;
 SUMI_:
-	if (!ISNULL(stk0))
+	if (!ISNULL(stk0)){
 		torow[op->p1].u.i += stk0.u.i;
+		torow[op->p1].b = stk0.b;
+	}
 	pop();
 	++ip;
 	next();
@@ -720,8 +723,10 @@ AVGF_:
 	if (!ISNULL(stk0))
 		torow[op->p1].z++;
 SUMF_:
-	if (!ISNULL(stk0))
+	if (!ISNULL(stk0)){
 		torow[op->p1].u.f += stk0.u.f;
+		torow[op->p1].b = stk0.b;
+	}
 	pop();
 	++ip;
 	next();
@@ -733,23 +738,29 @@ STDVF_:
 	next();
 COUNT_:
 	if (op->p2){ //count(*)
+		torow[op->p1].b = T_FLOAT;
 		torow[op->p1].u.f++;
+		cerr << "count: " << torow[op->p1].str() << endl;
 	} else {
-		if (!ISNULL(stk0))
+		if (!ISNULL(stk0)) {
+			torow[op->p1].b = T_FLOAT;
 			torow[op->p1].u.f++;
+			cerr << "count: " << torow[op->p1].str() << endl;
+		}
 		pop();
 	}
 	++ip;
 	next();
 MINI_:
-	if (ISNULL(torow[op->p1]) || (!ISNULL(stk0) && torow[op->p1].u.i > stk0.u.i))
-		torow[op->p1].u.i = stk0.u.i;
+	if (ISNULL(torow[op->p1]) || (!ISNULL(stk0) && torow[op->p1].u.i > stk0.u.i)){
+		torow[op->p1] = stk0;
+	}
 	pop();
 	++ip;
 	next();
 MINF_:
 	if (ISNULL(torow[op->p1]) || (!ISNULL(stk0) && torow[op->p1].u.f > stk0.u.f))
-		torow[op->p1].u.f = stk0.u.f;
+		torow[op->p1] = stk0;
 	pop();
 	++ip;
 	next();
@@ -764,13 +775,13 @@ MINS_:
 	next();
 MAXI_:
 	if (ISNULL(torow[op->p1]) || (!ISNULL(stk0) && torow[op->p1].u.i < stk0.u.i))
-		torow[op->p1].u.i = stk0.u.i;
+		torow[op->p1] = stk0;
 	pop();
 	++ip;
 	next();
 MAXF_:
 	if (ISNULL(torow[op->p1]) || (!ISNULL(stk0) && torow[op->p1].u.f < stk0.u.f))
-		torow[op->p1].u.f = stk0.u.f;
+		torow[op->p1] = stk0;
 	pop();
 	++ip;
 	next();
@@ -783,7 +794,6 @@ MAXS_:
 	pop();
 	++ip;
 	next();
-
 GETGROUP_:
 	groupTemp = &groupTree;
 	for (int i=op->p1; i >= 0; --i){
@@ -794,31 +804,37 @@ GETGROUP_:
 	stacktop -= (op->p1 + 1);
 	++ip;
 	next();
-
 ROOTMAP_:
-	itstk[op->p1] = groupTree.getMap()->begin();
-	itstk[op->p2] = groupTree.getMap()->end();
+	itstk[op->p2]   = groupTree.getMap()->begin();
+	itstk[op->p2+1] = groupTree.getMap()->end();
 	++ip;
 	next();
 NEXTMAP_:
-	if (itstk[op->p1-2] == itstk[op->p2-2]){
+	if (itstk[op->p2-2] == itstk[op->p2-1]){
 		// done with map
+		ip = op->p1;
+		next();
 	} else {
 		// set top of iterator stack to next map
-		groupTemp = &(itstk[op->p1-2]++)->second;
-		itstk[op->p1] = groupTemp->getMap()->begin();
-		itstk[op->p2] = groupTemp->getMap()->end();
+		groupTemp = &(itstk[op->p2-2]++)->second;
+		itstk[op->p2]   = groupTemp->getMap()->begin();
+		itstk[op->p2+1] = groupTemp->getMap()->end();
+		++ip;
+		next();
 	}
-	++ip;
-	next();
 NEXTVEC_:
-	if (itstk[op->p1-2] == itstk[op->p2-2]){
+	if (itstk[op->p2-2] == itstk[op->p2-1]){
 		// done with map
+		ip = op->p1;
+		next();
 	} else {
-		vecTemp = (itstk[op->p1-2]++)->second.getRow();
+		vecTemp = (itstk[op->p2-2]++)->second.getRow();
+		torow = vecTemp->data();
+		torowSize = vecTemp->size();
+		cerr << "new torow size: " << torowSize << " midcount: " << q->midcount << endl;
+		++ip;
+		next();
 	}
-	++ip;
-	next();
 
 ENDRUN_:
 	output << outbuf;

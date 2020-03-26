@@ -134,6 +134,8 @@ void jumpPositions::updateBytecode(vector<opcode> &vec) {
 		case NDIST:
 		case SDIST:
 		case JMPNOTNULL_ELSEPOP:
+		case NEXTMAP:
+		case NEXTVEC:
 			if (v.p1 < 0)
 				v.p1 = jumps[v.p1];
 		}
@@ -296,6 +298,7 @@ static void genBasicGroupingQuery(unique_ptr<node> &n, vector<opcode> &v, queryS
 	q.jumps.setPlace(getgroups, v.size());
 	agg_phase = 2;
 	select_count = 0; //used as midrow count in phase 1
+	genIterateGroups(n->node4->node2, v, q);
 	//genSelect(n->node2, v, q);
 	//genReturnGroups(n->node4, v, q); //having?
 	popvars();
@@ -737,14 +740,28 @@ static void genIterateGroups(unique_ptr<node> &n, vector<opcode> &v, querySpecs 
 	if (n == nullptr) return;
 	if (n->label == N_GROUPBY){
 		int depth = 0;
-		addop(v, ROOTMAP, depth, depth+1);
+		int doneGroups = q.jumps.newPlaceholder();
+		int goWhenDone;
+		int prevmap;
+		addop(v, ROOTMAP, 0, depth);
 		for (auto nn=n->node1.get(); nn; nn=nn->node2.get()){
+			if (depth == 0) {
+				goWhenDone = doneGroups;
+			} else {
+				goWhenDone = prevmap;
+			}
 			if (nn->node2.get()){
 				depth += 2;
-				addop(v, NEXTMAP, depth, depth+1);
+				addop(v, NEXTMAP, goWhenDone, depth);
+				prevmap = v.size();
 			} else {
-				addop(v, NEXTVEC, depth, depth+1);
+				addop(v, NEXTVEC, goWhenDone, depth);
+				int nextvec = v.size();
+				// for debugging:
+				addop(v, PRINT);
+				addop(v, JMP, nextvec);
 			}
 		}
+		q.jumps.setPlace(goWhenDone, v.size());
 	}
 }
