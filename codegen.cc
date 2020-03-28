@@ -9,7 +9,6 @@ static void genWhere(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q);
 static void genDistinct(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q, int gotoIfNot);
 static void genGetGroup(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q);
 static void genSelect(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q);
-static void genPrint(vector<opcode> &v, querySpecs &q);
 static void genExprAdd(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q);
 static void genExprMult(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q);
 static void genExprNeg(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q);
@@ -140,21 +139,21 @@ void jumpPositions::updateBytecode(vector<opcode> &vec) {
 		}
 };
 
+#define has(A,B) ((A)==(B) || (A & B))
+#define addop0(V,A)       if has(n->phase, agg_phase) addop(V, A)
+#define addop1(V,A,B)     if has(n->phase, agg_phase) addop(V, A, B)
+#define addop2(V,A,B,C)   if has(n->phase, agg_phase) addop(V, A, B, C)
+#define addop3(V,A,B,C,D) if has(n->phase, agg_phase) addop(V, A, B, C, D)
 static void addop(vector<opcode> &v, byte code){
-	//cerr << "adding op " << opMap[code] << endl;
 	v.push_back({code, 0, 0, 0});
 }
 static void addop(vector<opcode> &v, byte code, int p1){
-	//cerr << "adding op " << opMap[code] << "  p1 " << p1 << endl;
 	v.push_back({code, p1, 0, 0});
 }
 static void addop(vector<opcode> &v, byte code, int p1, int p2){
-	//cerr << "adding op " << opMap[code] << "  p1 " << p1 << "  p2 " << p2 << endl;
 	v.push_back({code, p1, p2, 0});
 }
 static void addop(vector<opcode> &v, byte code, int p1, int p2, int p3){
-	//cerr << "adding op " << opMap[code]
-		//<< "  p1 " << p1 << "  p2 " << p2 << "  p3 " << p3 << endl;
 	v.push_back({code, p1, p2, p3});
 }
 
@@ -237,7 +236,7 @@ static void genNormalQuery(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q
 	genDistinct(n->node2->node1, v, q, normal_read);
 	genVars(n->node1, v, q, vs.setscope(NO_FILTER, V_ANY, V_SCOPE1));
 	genSelect(n->node2, v, q);
-	genPrint(v, q);
+	addop(v, PRINT);
 	addop(v, (q.quantityLimit > 0 ? JMPCNT : JMP), normal_read);
 	q.jumps.setPlace(endfile, v.size());
 	popvars();
@@ -266,7 +265,7 @@ static void genNormalOrderedQuery(unique_ptr<node> &n, vector<opcode> &v, queryS
 	genDistinct(n->node2->node1, v, q, reread);
 	genVars(n->node1, v, q, vs.setscope(NO_FILTER, V_ANY, V_SCOPE2));
 	genSelect(n->node2, v, q);
-	genPrint(v, q);
+	addop(v, PRINT);
 	addop(v, (q.quantityLimit > 0 ? JMPCNT : JMP), reread);
 	q.jumps.setPlace(endreread, v.size());
 	addop(v, POP); //rereader used 2 stack spaces
@@ -314,7 +313,7 @@ static void genVars(unique_ptr<node> &n, vector<opcode> &vec, querySpecs &q, var
 		i = getVarIdx(n->tok1.val, q);
 		if (vs->neededHere(i, q.vars[i].filter)){
 			genExprAll(n->node1, vec, q);
-			addop(vec, PUTVAR, i);
+			addop1(vec, PUTVAR, i);
 		}
 		genVars(n->node2, vec, q, vs);
 		break;
@@ -329,10 +328,10 @@ static void genExprAdd(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
 	genExprAll(n->node2, v, q);
 	switch (n->tok1.id){
 	case SP_PLUS:
-		addop(v, ops[OPADD][n->datatype]);
+		addop0(v, ops[OPADD][n->datatype]);
 		break;
 	case SP_MINUS:
-		addop(v, ops[OPSUB][n->datatype]);
+		addop0(v, ops[OPSUB][n->datatype]);
 		break;
 	}
 }
@@ -345,16 +344,16 @@ static void genExprMult(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
 	genExprAll(n->node2, v, q);
 	switch (n->tok1.id){
 	case SP_STAR:
-		addop(v, ops[OPMULT][n->datatype]);
+		addop0(v, ops[OPMULT][n->datatype]);
 		break;
 	case SP_DIV:
-		addop(v, ops[OPDIV][n->datatype]);
+		addop0(v, ops[OPDIV][n->datatype]);
 		break;
 	case SP_CARROT:
-		addop(v, ops[OPEXP][n->datatype]);
+		addop0(v, ops[OPEXP][n->datatype]);
 		break;
 	case SP_MOD:
-		addop(v, ops[OPMOD][n->datatype]);
+		addop0(v, ops[OPMOD][n->datatype]);
 		break;
 	}
 }
@@ -364,7 +363,7 @@ static void genExprNeg(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
 	e("gen neg");
 	genExprAll(n->node1, v, q);
 	if (!n->tok1.id) return;
-	addop(v, ops[OPNEG][n->datatype]);
+	addop0(v, ops[OPNEG][n->datatype]);
 }
 
 static void genValue(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
@@ -374,7 +373,7 @@ static void genValue(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
 	e("gen value");
 	switch (n->tok2.id){
 	case COLUMN:
-		addop(v, ops[OPLD][n->datatype], getFileNo(n->tok3.val, q), n->tok1.id);
+		addop2(v, ops[OPLD][n->datatype], getFileNo(n->tok3.val, q), n->tok1.id);
 		break;
 	case LITERAL:
 		switch (n->datatype){
@@ -385,21 +384,21 @@ static void genValue(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
 		case T_STRING:   lit = parseStringDat(n->tok1.val.c_str());   break;
 		}
 		if (n->tok1.lower() == "null"){
-			addop(v, LDNULL);
+			addop0(v, LDNULL);
 		} else {
-			addop(v, LDLIT, q.dataholder.size());
+			addop1(v, LDLIT, q.dataholder.size());
 			q.dataholder.push_back(lit);
 		}
 		break;
 	case VARIABLE:
-		addop(v, LDVAR, getVarIdx(n->tok1.val, q));
+		addop1(v, LDVAR, getVarIdx(n->tok1.val, q));
 		//variable may be used in operations with different types
 		vtype = getVarType(n->tok1.val, q);
 		op = typeConv[vtype][n->datatype];
 		if (op == CVER)
 			error(ft("Error converting variable of type {} to new type {}", vtype, n->datatype));
 		if (op != CVNO)
-			addop(v, op);
+			addop0(v, op);
 		break;
 	case FUNCTION:
 		genExprAll(n->node1, v, q);
@@ -419,7 +418,7 @@ static void genExprCase(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
 			genCPredList(n->node1, v, q, caseEnd);
 			genExprAll(n->node3, v, q);
 			if (n->node3 == nullptr)
-				addop(v, LDNULL);
+				addop0(v, LDNULL);
 			q.jumps.setPlace(caseEnd, v.size());
 			break;
 		//expression matches expression list
@@ -427,10 +426,10 @@ static void genExprCase(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
 		case SP_LPAREN:
 			genExprAll(n->node1, v, q);
 			genCWExprList(n->node2, v, q, caseEnd);
-			addop(v, POP); //don't need comparison value anymore
+			addop0(v, POP); //don't need comparison value anymore
 			genExprAll(n->node3, v, q);
 			if (n->node3 == nullptr)
-				addop(v, LDNULL);
+				addop0(v, LDNULL);
 			q.jumps.setPlace(caseEnd, v.size());
 			break;
 		}
@@ -453,11 +452,11 @@ static void genCWExpr(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q, int
 	e("gen case w expr");
 	int next = q.jumps.newPlaceholder(); //get jump pos for next try
 	genExprAll(n->node1, v, q); //evaluate comparision expression
-	addop(v, ops[OPEQ][n->tok1.id], 0); //leave '=' result where this comp value was
-	addop(v, JMPFALSE, next, 1);
-	addop(v, POP); //don't need comparison value anymore
+	addop1(v, ops[OPEQ][n->tok1.id], 0); //leave '=' result where this comp value was
+	addop2(v, JMPFALSE, next, 1);
+	addop0(v, POP); //don't need comparison value anymore
 	genExprAll(n->node2, v, q); //result value if eq
-	addop(v, JMP, end);
+	addop1(v, JMP, end);
 	q.jumps.setPlace(next, v.size()); //jump here for next try
 }
 
@@ -473,9 +472,9 @@ static void genCPred(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q, int 
 	e("gen case p");
 	int next = q.jumps.newPlaceholder(); //get jump pos for next try
 	genPredicates(n->node1, v, q);
-	addop(v, JMPFALSE, next, 1);
+	addop2(v, JMPFALSE, next, 1);
 	genExprAll(n->node2, v, q); //result value if true
-	addop(v, JMP, end);
+	addop1(v, JMP, end);
 	q.jumps.setPlace(next, v.size()); //jump here for next try
 }
 
@@ -495,13 +494,13 @@ static void genSelections(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q)
 	case N_SELECTIONS:
 		if (t1 == "hidden") {
 		} else if (t1 == "distinct") {
-			addop(v, PUTDIST, select_count);
+			addop1(v, PUTDIST, select_count);
 			select_count++;
 		} else if (t1 == "*") {
 			genSelectAll(v, q);
 		} else if (isTrivial(n)) {
 			for (auto nn = n.get(); nn; nn = nn->node1.get()) if (nn->label == N_VALUE){
-				addop(v, LDPUT, select_count, nn->tok1.id, getFileNo(nn->tok3.val, q));
+				addop3(v, LDPUT, select_count, nn->tok1.id, getFileNo(nn->tok3.val, q));
 				break;
 			}
 			select_count++;
@@ -509,7 +508,7 @@ static void genSelections(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q)
 			genExprAll(n->node1, v, q);
 			//if aggregate, target was loaded by child nodes
 			if (agg_phase == 0 || (agg_phase == 1 && n->tok3.id)) {
-				addop(v, PUT, select_count);
+				addop1(v, PUT, select_count);
 				select_count++;
 			}
 		}
@@ -528,13 +527,13 @@ static void genPredicates(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q)
 	int doneAndOr = q.jumps.newPlaceholder();
 	switch (n->tok1.id){
 	case KW_AND:
-		addop(v, JMPFALSE, doneAndOr, 0);
-		addop(v, POP); //don't need old result
+		addop2(v, JMPFALSE, doneAndOr, 0);
+		addop0(v, POP); //don't need old result
 		genPredicates(n->node2, v, q);
 		break;
 	case KW_OR:
-		addop(v, JMPTRUE, doneAndOr, 0);
-		addop(v, POP); //don't need old result
+		addop2(v, JMPTRUE, doneAndOr, 0);
+		addop0(v, POP); //don't need old result
 		genPredicates(n->node2, v, q);
 		break;
 	case KW_XOR:
@@ -542,7 +541,7 @@ static void genPredicates(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q)
 	}
 	q.jumps.setPlace(doneAndOr, v.size());
 	if (n->tok2.id == SP_NEGATE)
-		addop(v, PNEG); //can optimize be returning value to genwhere and add opposite jump code
+		addop0(v, PNEG); //can optimize be returning value to genwhere and add opposite jump code
 }
 
 static void genPredCompare(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
@@ -556,52 +555,52 @@ static void genPredCompare(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q
 	case SP_NOEQ: negation ^= 1;
 	case SP_EQ:
 		genExprAll(n->node2, v, q);
-		addop(v, ops[OPEQ][n->datatype], 1, negation);
+		addop2(v, ops[OPEQ][n->datatype], 1, negation);
 		break;
 	case SP_GREATEQ: negation ^= 1;
 	case SP_LESS:
 		genExprAll(n->node2, v, q);
-		addop(v, ops[OPLT][n->datatype], 1, negation);
+		addop2(v, ops[OPLT][n->datatype], 1, negation);
 		break;
 	case SP_GREAT: negation ^= 1;
 	case SP_LESSEQ:
 		genExprAll(n->node2, v, q);
-		addop(v, ops[OPLEQ][n->datatype], 1, negation);
+		addop2(v, ops[OPLEQ][n->datatype], 1, negation);
 		break;
 	case KW_BETWEEN:
 		endcomp = q.jumps.newPlaceholder();
 		greaterThanExpr3 = q.jumps.newPlaceholder();
-		addop(v, NULFALSE1, endcomp);
+		addop1(v, NULFALSE1, endcomp);
 		genExprAll(n->node2, v, q);
-		addop(v, NULFALSE2, endcomp);
-		addop(v, ops[OPLT][n->datatype], 0, 1);
-		addop(v, JMPFALSE, greaterThanExpr3, 1);
+		addop1(v, NULFALSE2, endcomp);
+		addop2(v, ops[OPLT][n->datatype], 0, 1);
+		addop2(v, JMPFALSE, greaterThanExpr3, 1);
 		genExprAll(n->node3, v, q);
-		addop(v, NULFALSE2, endcomp);
-		addop(v, ops[OPLT][n->datatype], 1, negation);
-		addop(v, JMP, endcomp);
+		addop1(v, NULFALSE2, endcomp);
+		addop2(v, ops[OPLT][n->datatype], 1, negation);
+		addop1(v, JMP, endcomp);
 		q.jumps.setPlace(greaterThanExpr3, v.size());
 		genExprAll(n->node3, v, q);
-		addop(v, NULFALSE2, endcomp);
-		addop(v, ops[OPLT][n->datatype], 1, negation^1);
+		addop1(v, NULFALSE2, endcomp);
+		addop2(v, ops[OPLT][n->datatype], 1, negation^1);
 		q.jumps.setPlace(endcomp, v.size());
 		break;
 	case KW_IN:
 		endcomp = q.jumps.newPlaceholder();
 		for (auto nn=n->node2.get(); nn; nn=nn->node2.get()){
 			genExprAll(nn->node1, v, q);
-			addop(v, ops[OPEQ][n->node1->datatype], 0);
-			addop(v, JMPTRUE, endcomp, 0);
+			addop1(v, ops[OPEQ][n->node1->datatype], 0);
+			addop2(v, JMPTRUE, endcomp, 0);
 			if (nn->node2.get())
-				addop(v, POP);
+				addop0(v, POP);
 		}
 		q.jumps.setPlace(endcomp, v.size());
 		if (negation)
-			addop(v, PNEG);
-		addop(v, POPCPY); //put result where 1st expr was
+			addop0(v, PNEG);
+		addop0(v, POPCPY); //put result where 1st expr was
 		break;
 	case KW_LIKE:
-		addop(v, LIKE, q.dataholder.size(), negation);
+		addop2(v, LIKE, q.dataholder.size(), negation);
 		reg.u.r = new regex_t;
 		reg.b = R|RMAL;
 		boost::replace_all(n->tok3.val, "_", ".");
@@ -627,7 +626,7 @@ static void genWhere(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
 	case N_AFTERFROM: genWhere(n->node1, v, q); break;
 	case N_WHERE:
 		genPredicates(n->node1, v, q);
-		addop(v, JMPFALSE, normal_read, 1);
+		addop2(v, JMPFALSE, normal_read, 1);
 	}
 }
 
@@ -637,7 +636,7 @@ static void genDistinct(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q, i
 	if (n->label != N_SELECTIONS) return;
 	if (n->tok1.id == KW_DISTINCT){
 		genExprAll(n->node1, v, q);
-		addop(v, distinctOps[n->datatype], gotoIfNot, addBtree(n->datatype, q),
+		addop3(v, distinctOps[n->datatype], gotoIfNot, addBtree(n->datatype, q),
 			n->tok1.lower() == "hidden" ? 0 : 1);
 	} else {
 		//there can be only 1 distinct filter
@@ -655,8 +654,8 @@ static void genFunction(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
 	if ((n->tok1.id & AGG_BIT) != 0 ) {
 		genExprAll(n->node1, v, q);
 		if (n->tok3.val == "distinct"){
-			addop(v, distinctOps[n->datatype], funcDone, addBtree(n->datatype, q), 1);
-			addop(v, LDDIST);
+			addop3(v, distinctOps[n->datatype], funcDone, addBtree(n->datatype, q), 1);
+			addop0(v, LDDIST);
 		}
 	}
 
@@ -665,19 +664,19 @@ static void genFunction(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
 	case FN_COALESCE:
 		for (auto nn = n->node1.get(); nn; nn = nn->node2.get()){
 			genExprAll(nn->node1, v, q);
-			addop(v, JMPNOTNULL_ELSEPOP, funcDone);
+			addop1(v, JMPNOTNULL_ELSEPOP, funcDone);
 		}
-		addop(v, LDNULL);
+		addop0(v, LDNULL);
 		break;
 	case FN_INC:
-		addop(v, FINC, q.dataholder.size());
+		addop1(v, FINC, q.dataholder.size());
 		q.dataholder.push_back(dat{ {.f = 0.0}, T_FLOAT});
 		break;
 	case FN_ENCRYPT:
 		genExprAll(n->node1, v, q);
 		if (n->tok3.val == "chacha"){
 			idx = q.crypt.newChacha(n->tok4.val);
-			addop(v, ENCCHA, idx);
+			addop1(v, ENCCHA, idx);
 		} else /* aes */ {
 		}
 		break;
@@ -685,7 +684,7 @@ static void genFunction(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
 		genExprAll(n->node1, v, q);
 		if (n->tok3.val == "chacha"){
 			idx = q.crypt.newChacha(n->tok4.val);
-			addop(v, DECCHA, idx);
+			addop1(v, DECCHA, idx);
 		} else /* aes */ {
 		}
 		break;
@@ -708,11 +707,7 @@ static void genFunction(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
 static void genTypeConv(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
 	if (n == nullptr) return;
 	genExprAll(n->node1, v, q);
-	addop(v, typeConv[n->tok1.id][n->datatype]);
-}
-
-static void genPrint(vector<opcode> &v, querySpecs &q){
-	addop(v, PRINT);
+	addop0(v, typeConv[n->tok1.id][n->datatype]);
 }
 
 static void genGetGroup(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
@@ -723,7 +718,7 @@ static void genGetGroup(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
 			depth++;
 			genExprAll(nn->node1, v, q);
 		}
-		addop(v, GETGROUP, depth);
+		addop1(v, GETGROUP, depth);
 	}
 }
 
@@ -734,7 +729,7 @@ static void genIterateGroups(unique_ptr<node> &n, vector<opcode> &v, querySpecs 
 		int doneGroups = q.jumps.newPlaceholder();
 		int goWhenDone;
 		int prevmap;
-		addop(v, ROOTMAP, depth);
+		addop1(v, ROOTMAP, depth);
 		for (auto nn=n->node1.get(); nn; nn=nn->node2.get()){
 			if (depth == 0) {
 				goWhenDone = doneGroups;
@@ -744,10 +739,10 @@ static void genIterateGroups(unique_ptr<node> &n, vector<opcode> &v, querySpecs 
 			if (nn->node2.get()){
 				depth += 2;
 				prevmap = v.size();
-				addop(v, NEXTMAP, goWhenDone, depth);
+				addop2(v, NEXTMAP, goWhenDone, depth);
 			} else {
 				int nextvec = v.size();
-				addop(v, NEXTVEC, goWhenDone, depth);
+				addop2(v, NEXTVEC, goWhenDone, depth);
 				// for debugging:
 				//addop(v, PRINT); //not applicable since using midrow rather than torow
 				//addop(v, JMP, nextvec);

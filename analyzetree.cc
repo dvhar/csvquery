@@ -112,12 +112,18 @@ static bool findAgrregates(unique_ptr<node> &n){
 }
 
 static void setNodePhase(unique_ptr<node> &n, int phase){
-	if (n == nullptr || !q.grouping) return;
+	if (n == nullptr) return;
 	switch (n->label){
 	case N_SELECTIONS:
-		//upper nodes of group query are phase 2
-		n->phase = 2;
-		setNodePhase(n->node1, 2);
+		if (findAgrregates(n->node1)){
+			//upper nodes of aggregate query are phase 2
+			n->phase = 2;
+			setNodePhase(n->node1, 2);
+		} else {
+			//non-aggretate gets queried in phase 1
+			n->phase = 1;
+			setNodePhase(n->node1, 1);
+		}
 		setNodePhase(n->node2, 2);
 		break;
 	case N_FUNCTION:
@@ -135,6 +141,17 @@ static void setNodePhase(unique_ptr<node> &n, int phase){
 			setNodePhase(n->node1, 1);
 		}
 		setNodePhase(n->node2, 0);
+		break;
+	case N_GROUPBY:
+	case N_WHERE:
+		n->phase = 1;
+		setNodePhase(n->node1, 1);
+		break;
+	case N_HAVING:
+	case N_ORDER:
+		n->phase = 2;
+		setNodePhase(n->node1, 2);
+		break;
 	default:
 		n->phase = phase;
 		setNodePhase(n->node1, phase);
