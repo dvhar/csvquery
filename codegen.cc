@@ -7,10 +7,9 @@ static void genBasicGroupingQuery(unique_ptr<node> &n, vector<opcode> &v, queryS
 static void genVars(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q, varScoper* vo);
 static void genWhere(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q);
 static void genDistinct(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q, int gotoIfNot);
-static void genGroup(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q);
+static void genGetGroup(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q);
 static void genSelect(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q);
 static void genPrint(vector<opcode> &v, querySpecs &q);
-static void genReturnGroups(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q);
 static void genExprAdd(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q);
 static void genExprMult(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q);
 static void genExprNeg(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q);
@@ -288,11 +287,8 @@ static void genBasicGroupingQuery(unique_ptr<node> &n, vector<opcode> &v, queryS
 	genWhere(n->node4, v, q);
 	genVars(n->node1, v, q, vs.setscope(DISTINCT_FILTER, V_EQUALS, V_SCOPE1));
 	genDistinct(n->node2->node1, v, q, normal_read);
-	cerr << "done distinct\n";
 	genVars(n->node1, v, q, vs.setscope(NO_FILTER, V_ANY, V_SCOPE1));
-	cerr << "done vars, gen group\n";
-	genGroup(n->node4->node2, v, q);
-	cerr << "done group, gen select\n";
+	genGetGroup(n->node4->node2, v, q);
 	genSelect(n->node2, v, q);
 	addop(v, JMP, normal_read);
 	q.jumps.setPlace(getgroups, v.size());
@@ -300,7 +296,6 @@ static void genBasicGroupingQuery(unique_ptr<node> &n, vector<opcode> &v, queryS
 	select_count = 0; //used as midrow count in phase 1
 	genIterateGroups(n->node4->node2, v, q);
 	//genSelect(n->node2, v, q);
-	//genReturnGroups(n->node4, v, q); //having?
 	popvars();
 	addop(v, ENDRUN);
 }
@@ -720,11 +715,7 @@ static void genPrint(vector<opcode> &v, querySpecs &q){
 	addop(v, PRINT);
 }
 
-static void genReturnGroups(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
-	if (n == nullptr) return;
-}
-
-static void genGroup(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
+static void genGetGroup(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
 	if (n == nullptr) return;
 	if (n->label == N_GROUPBY){
 		int depth = -1;
@@ -743,7 +734,7 @@ static void genIterateGroups(unique_ptr<node> &n, vector<opcode> &v, querySpecs 
 		int doneGroups = q.jumps.newPlaceholder();
 		int goWhenDone;
 		int prevmap;
-		addop(v, ROOTMAP, 0, depth);
+		addop(v, ROOTMAP, depth);
 		for (auto nn=n->node1.get(); nn; nn=nn->node2.get()){
 			if (depth == 0) {
 				goWhenDone = doneGroups;
@@ -758,8 +749,8 @@ static void genIterateGroups(unique_ptr<node> &n, vector<opcode> &v, querySpecs 
 				int nextvec = v.size();
 				addop(v, NEXTVEC, goWhenDone, depth);
 				// for debugging:
-				addop(v, PRINT);
-				addop(v, JMP, nextvec);
+				//addop(v, PRINT); //not applicable since using midrow rather than torow
+				//addop(v, JMP, nextvec);
 			}
 		}
 		q.jumps.setPlace(doneGroups, v.size());

@@ -111,18 +111,49 @@ static bool findAgrregates(unique_ptr<node> &n){
 	return false;
 }
 
+static void setNodePhase(unique_ptr<node> &n, int phase){
+	if (n == nullptr || !q.grouping) return;
+	switch (n->label){
+	case N_SELECTIONS:
+		//upper nodes of group query are phase 2
+		n->phase = 2;
+		setNodePhase(n->node1, 2);
+		setNodePhase(n->node2, 2);
+		break;
+	case N_FUNCTION:
+		if ((n->tok1.id & AGG_BIT) != 0){
+			//nodes below aggregate are phase 1
+			setNodePhase(n->node1, 1);
+		} else {
+			setNodePhase(n->node1, phase);
+		}
+		break;
+	case N_VARS:
+		if (findAgrregates(n->node1)){
+			setNodePhase(n->node1, 2);
+		} else {
+			setNodePhase(n->node1, 1);
+		}
+		setNodePhase(n->node2, 0);
+	default:
+		n->phase = phase;
+		setNodePhase(n->node1, phase);
+		setNodePhase(n->node2, phase);
+		setNodePhase(n->node3, phase);
+		setNodePhase(n->node4, phase);
+	}
+}
+
 static void findMidrowTargets(unique_ptr<node> &n, querySpecs &q){
 	if (n == nullptr || !q.grouping) return;
-	cerr << " find midrow " << treeMap[n->label] << " midcount: " << q.midcount << endl;
 	switch (n->label){
 	case N_SELECTIONS:
 		if (findAgrregates(n->node1)){
 			n->tok4.id = 1;
 			findMidrowTargets(n->node1, q);
 		} else {
-			n->tok3.id = 1;
 			q.midcount++;
-			q.midtypes.push_back(n->datatype);
+			n->tok3.id = q.midcount;
 		}
 		findMidrowTargets(n->node2, q);
 		break;
@@ -131,7 +162,7 @@ static void findMidrowTargets(unique_ptr<node> &n, querySpecs &q){
 			if (findAgrregates(n->node1))
 				error("Cannot have aggregate function inside another aggregate");
 			q.midcount++;
-			q.midtypes.push_back(n->datatype);
+			n->tok6.id = q.midcount;
 			return;
 		} else {
 			findAgrregates(n->node1);
@@ -153,5 +184,8 @@ static void findMidrowTargets(unique_ptr<node> &n, querySpecs &q){
 void analyzeTree(querySpecs &q){
 	varUsedInFilter(q.tree, q);
 	recordResultColumns(q.tree, q);
-	findMidrowTargets(q.tree, q);
+	if (q.grouping){
+		findMidrowTargets(q.tree, q);
+		setNodePhase(q.tree, 0);
+	}
 }
