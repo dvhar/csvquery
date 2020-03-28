@@ -1,1 +1,1 @@
-select count(*) from 'test/country.csv' group by c3 c4
+select count(*) c3 c4 from 'test/country.csv' group by c3 c4
