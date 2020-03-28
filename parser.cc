@@ -48,7 +48,7 @@ unique_ptr<node> newNode(int l){
 	unique_ptr<node> n(new node);
 	n->tok1 = n->tok2 = n->tok3 = n->tok4 = n->tok5 = token{};
 	n->label = l;
-	n->datatype = 0;
+	n->phase = n->datatype = 0;
 	n->keep = false;
 	return n;
 }
@@ -180,7 +180,7 @@ static unique_ptr<node> parseSelect(querySpecs &q) {
 //tok2 is alias
 //later stages:
 //  tok3.id will be 1 if loading plain value into midrow
-//  tok4.id will be 1 if selection contains aggregate
+//  tok4.id will be midrow index+1 if selection contains aggregate
 static unique_ptr<node> parseSelections(querySpecs &q) {
 	t = q.tok();
 	e("selections");

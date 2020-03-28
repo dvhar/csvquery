@@ -179,6 +179,7 @@ class node {
 	public:
 	int label;
 	int datatype;
+	int phase;
 	bool keep; //preserve subtree types
 	unique_ptr<node> node1;
 	unique_ptr<node> node2;
