@@ -179,8 +179,7 @@ static unique_ptr<node> parseSelect(querySpecs &q) {
 //tok1 is * or distinct or hidden
 //tok2 is alias
 //later stages:
-//  tok3.id will be 1 if loading plain value into midrow
-//  tok4.id will be midrow index+1 if selection contains aggregate
+//  tok3.id will be midrow index+1
 static unique_ptr<node> parseSelections(querySpecs &q) {
 	t = q.tok();
 	e("selections");

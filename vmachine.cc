@@ -16,7 +16,7 @@
 #define pop() --stacktop
 
 //jump to next operation
-#define debugOpcode /* cerr << ft("ip {} opcode {} stack {}\n", ip, opMap[op->code], stacktop-stack.data()); */
+#define debugOpcode  cerr << ft("ip {} opcode {} stack {}\n", ip, opMap[op->code], stacktop-stack.data()); 
 #define next() \
 	op = ops + ip; \
 	debugOpcode \
@@ -82,9 +82,9 @@ LDPUTALL_:
 	next();
 //put data from midrow to torow
 LDPUTMID_:
-	FREE1(torow[op->p2]);
-	torow[op->p2] = midrow[op->p1];
-	DISOWN(midrow[op->p1]);
+	FREE1(torow[op->p1]);
+	torow[op->p1] = midrow[op->p2];
+	DISOWN(midrow[op->p2]);
 	++ip;
 	next();
 LDMID_:
@@ -649,7 +649,7 @@ PRINT_:
 	iTemp1 = 0;	
 	printfield:
 	torow[iTemp1].appendToBuffer(outbuf);
-	if (outbuf.size() > 900){
+	if (outbuf.size() > 900 || 1){ //skip buffering for debug
 		output << outbuf;
 		outbuf.clear();
 	}
@@ -657,7 +657,8 @@ PRINT_:
 		outbuf += ',';
 		goto printfield;
 	}
-	outbuf += '\n';
+	//outbuf += '\n';
+	output << "\n";
 	++numPrinted;
 	++ip;
 	next();

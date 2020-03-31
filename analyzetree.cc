@@ -120,8 +120,8 @@ static void setNodePhase(unique_ptr<node> &n, int phase){
 			n->phase = 2;
 			setNodePhase(n->node1, 2);
 		} else {
-			//non-aggretate gets queried in phase 1
-			n->phase = 1;
+			//non-aggregate gets queried in phase 1, retrieved again in phase 2
+			n->phase = 1|2;
 			setNodePhase(n->node1, 1);
 		}
 		setNodePhase(n->node2, 2);
@@ -166,7 +166,6 @@ static void findMidrowTargets(unique_ptr<node> &n, querySpecs &q){
 	switch (n->label){
 	case N_SELECTIONS:
 		if (findAgrregates(n->node1)){
-			n->tok4.id = 1;
 			findMidrowTargets(n->node1, q);
 		} else {
 			q.midcount++;
