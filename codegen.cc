@@ -139,7 +139,8 @@ void jumpPositions::updateBytecode(vector<opcode> &vec) {
 		}
 };
 
-#define has(A,B) ((A)==(B) || (A & B))
+#define has(A,B) ((A)==(B) || ((A) & (B)))
+#define incSelectCount()  if has(n->phase, agg_phase) select_count++;
 #define addop0(V,A)       if has(n->phase, agg_phase) addop(V, A)
 #define addop1(V,A,B)     if has(n->phase, agg_phase) addop(V, A, B)
 #define addop2(V,A,B,C)   if has(n->phase, agg_phase) addop(V, A, B, C)
@@ -294,7 +295,6 @@ static void genBasicGroupingQuery(unique_ptr<node> &n, vector<opcode> &v, queryS
 	agg_phase = 2;
 	select_count = 0; //used as midrow count in phase 1
 	genIterateGroups(n->node4->node2, v, q);
-	//genSelect(n->node2, v, q);
 	popvars();
 	addop(v, ENDRUN);
 }
@@ -367,10 +367,10 @@ static void genExprNeg(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
 }
 
 static void genValue(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
-	dat lit;
-	int vtype, op;
 	if (n == nullptr) return;
 	e("gen value");
+	dat lit;
+	int vtype, op;
 	switch (n->tok2.id){
 	case COLUMN:
 		addop2(v, ops[OPLD][n->datatype], getFileNo(n->tok3.val, q), n->tok1.id);
@@ -495,22 +495,23 @@ static void genSelections(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q)
 		if (t1 == "hidden") {
 		} else if (t1 == "distinct") {
 			addop1(v, PUTDIST, select_count);
-			select_count++;
+			incSelectCount();
 		} else if (t1 == "*") {
 			genSelectAll(v, q);
 		} else if (isTrivial(n)) {
-			for (auto nn = n.get(); nn; nn = nn->node1.get()) if (nn->label == N_VALUE){
-				addop3(v, LDPUT, select_count, nn->tok1.id, getFileNo(nn->tok3.val, q));
-				break;
+			if (agg_phase != 2) {
+				for (auto nn = n.get(); nn; nn = nn->node1.get()) if (nn->label == N_VALUE){
+					addop3(v, LDPUT, select_count, nn->tok1.id, getFileNo(nn->tok3.val, q));
+					break;
+				}
+			} else {
+				addop2(v, LDPUTMID, select_count, n->tok3.id-1);
 			}
-			select_count++;
+			incSelectCount();
 		} else {
 			genExprAll(n->node1, v, q);
-			//if aggregate, target was loaded by child nodes
-			if (agg_phase == 0 || (agg_phase == 1 && n->tok3.id)) {
-				addop1(v, PUT, select_count);
-				select_count++;
-			}
+			addop1(v, PUT, select_count);
+			incSelectCount();
 		}
 		break;
 	default:
@@ -631,8 +632,8 @@ static void genWhere(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
 }
 
 static void genDistinct(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q, int gotoIfNot){
-	e("gen distinct");
 	if (n == nullptr) return;
+	e("gen distinct");
 	if (n->label != N_SELECTIONS) return;
 	if (n->tok1.id == KW_DISTINCT){
 		genExprAll(n->node1, v, q);
@@ -645,8 +646,8 @@ static void genDistinct(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q, i
 }
 
 static void genFunction(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
-	e("gen function");
 	if (n == nullptr) return;
+	e("gen function");
 	int funcDone = q.jumps.newPlaceholder();
 	int idx;
 
@@ -698,7 +699,12 @@ static void genFunction(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
 	case FN_MAX:
 		break;
 	case FN_COUNT:
-		addop(v, COUNT, select_count++, n->tok2.id ? 1 : 0);
+		if (agg_phase == 1) {
+			addop(v, COUNT, select_count, n->tok2.id ? 1 : 0);
+			select_count++;
+		} else {
+			addop(v, LDMID, n->tok6.id-1);
+		}
 		break;
 	}
 	q.jumps.setPlace(funcDone, v.size());
@@ -706,12 +712,14 @@ static void genFunction(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
 
 static void genTypeConv(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
 	if (n == nullptr) return;
+	e("type convert");
 	genExprAll(n->node1, v, q);
 	addop0(v, typeConv[n->tok1.id][n->datatype]);
 }
 
 static void genGetGroup(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
 	if (n == nullptr) return;
+	e("get group");
 	if (n->label == N_GROUPBY){
 		int depth = -1;
 		for (auto nn=n->node1.get(); nn; nn=nn->node2.get()){
@@ -724,12 +732,13 @@ static void genGetGroup(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
 
 static void genIterateGroups(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
 	if (n == nullptr) return;
+	e("iterate groups");
 	if (n->label == N_GROUPBY){
 		int depth = 0;
 		int doneGroups = q.jumps.newPlaceholder();
 		int goWhenDone;
 		int prevmap;
-		addop1(v, ROOTMAP, depth);
+		addop(v, ROOTMAP, depth);
 		for (auto nn=n->node1.get(); nn; nn=nn->node2.get()){
 			if (depth == 0) {
 				goWhenDone = doneGroups;
@@ -739,13 +748,14 @@ static void genIterateGroups(unique_ptr<node> &n, vector<opcode> &v, querySpecs 
 			if (nn->node2.get()){
 				depth += 2;
 				prevmap = v.size();
-				addop2(v, NEXTMAP, goWhenDone, depth);
+				addop(v, NEXTMAP, goWhenDone, depth);
 			} else {
 				int nextvec = v.size();
-				addop2(v, NEXTVEC, goWhenDone, depth);
+				addop(v, NEXTVEC, goWhenDone, depth);
+				genSelect(q.tree->node2, v, q);
 				// for debugging:
-				//addop(v, PRINT); //not applicable since using midrow rather than torow
-				//addop(v, JMP, nextvec);
+				addop(v, PRINT);
+				addop(v, JMP, nextvec);
 			}
 		}
 		q.jumps.setPlace(doneGroups, v.size());
