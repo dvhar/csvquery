@@ -104,15 +104,15 @@ class rowgroup {
 	public:
 		void* data;
 		int type;
+		string str(){
+			if (type==2) return ft("map-> {}", getMap()->size());
+			if (type==1) return "vec";
+			return "blank";
+		}
 		vector<dat>* getRow(){ return ((vector<dat>*) data); };
 		map<dat, rowgroup>* getMap(){ return ((map<dat, rowgroup>*) data); };
 		rowgroup* nextGroup(dat d){
-			if (data) {
-				auto m = getMap()->find(d);
-				if (m != getMap()->end()){
-					return &m->second;
-				}
-			} else {
+			if (!data) {
 				data = new map<dat, rowgroup>;
 				type = 2;
 			}
@@ -128,10 +128,12 @@ class rowgroup {
 		rowgroup(){ type = 0; data = 0; }
 		~rowgroup(){
 			if (type == 1){
+				cerr << "destruct row\n";
 				if (ISTEXT(*getRow()->begin()))
 					for (auto &d : *getRow()) FREE2(d);
 				delete getRow();
 			} else if (type == 2) {
+				cerr << "destruct map\n";
 				delete getMap();
 			}
 		}
