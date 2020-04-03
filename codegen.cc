@@ -689,23 +689,36 @@ static void genFunction(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
 		} else /* aes */ {
 		}
 		break;
+	}
 
 	//aggregates
-	case FN_SUM:
-	case FN_AVG:
-	case FN_STDEV:
-	case FN_STDEVP:
-	case FN_MIN:
-	case FN_MAX:
-		break;
-	case FN_COUNT:
-		if (agg_phase == 1) {
+	if (agg_phase == 1) {
+		switch (n->tok1.id){
+		case FN_SUM:
+		case FN_AVG:
+		case FN_STDEV:
+		case FN_STDEVP:
+		case FN_MIN:
+		case FN_MAX:
+			break;
+		case FN_COUNT:
 			addop(v, COUNT, select_count, n->tok2.id ? 1 : 0);
 			select_count++;
-		} else {
-			addop(v, LDMID, n->tok6.id-1);
+			break;
 		}
-		break;
+	} else if (agg_phase == 2) {
+		switch (n->tok1.id){
+		case FN_SUM:
+		case FN_AVG:
+		case FN_STDEV:
+		case FN_STDEVP:
+		case FN_MIN:
+		case FN_MAX:
+			break;
+		case FN_COUNT:
+			addop(v, LDMID, n->tok6.id-1);
+			break;
+		}
 	}
 	q.jumps.setPlace(funcDone, v.size());
 }
