@@ -17,7 +17,7 @@
 
 //jump to next operation
 #define debugOpcode  cerr << ft("ip {} opcode {} stack {}\n", ip, opMap[op->code], stacktop-stack.data());
-//#define debugOpcode
+#define debugOpcode
 #define next() \
 	op = ops + ip; \
 	debugOpcode \
@@ -25,7 +25,7 @@
 
 void vmachine::run(){
 
-	void* labels[] = { &&CVER_, &&CVNO_, &&CVIF_, &&CVIS_, &&CVFI_, &&CVFS_, &&CVDRS_, &&CVDTS_, &&CVSI_, &&CVSF_, &&CVSDR_, &&CVSDT_, &&IADD_, &&FADD_, &&TADD_, &&DTADD_, &&DRADD_, &&ISUB_, &&FSUB_, &&DTSUB_, &&DRSUB_, &&IMULT_, &&FMULT_, &&DRMULT_, &&IDIV_, &&FDIV_, &&DRDIV_, &&INEG_, &&FNEG_, &&PNEG_, &&IMOD_, &&FMOD_, &&IEXP_, &&FEXP_, &&JMP_, &&JMPCNT_, &&JMPTRUE_, &&JMPFALSE_, &&JMPNOTNULL_ELSEPOP_, &&RDLINE_, &&RDLINE_ORDERED_, &&PREP_REREAD_, &&PUT_, &&LDPUT_, &&LDPUTALL_, &&PUTVAR_, &&LDINT_, &&LDFLOAT_, &&LDTEXT_, &&LDDATE_, &&LDDUR_, &&LDNULL_, &&LDLIT_, &&LDVAR_, &&IEQ_, &&FEQ_, &&TEQ_, &&LIKE_, &&ILEQ_, &&FLEQ_, &&TLEQ_, &&ILT_, &&FLT_, &&TLT_, &&PRINT_, &&PUSH_, &&POP_, &&POPCPY_, &&ENDRUN_, &&NULFALSE1_, &&NULFALSE2_, &&NDIST_, &&SDIST_, &&PUTDIST_, &&LDDIST_, &&FINC_, &&ENCCHA_, &&DECCHA_, &&SAVEPOSI_JMP_, &&SAVEPOSF_JMP_, &&SAVEPOSS_JMP_, &&SORTI_, &&SORTF_, &&SORTS_, &&GETGROUP_, &&SUMI_, &&SUMF_, &&AVGI_, &&AVGF_, &&STDVI_, &&STDVF_, &&COUNT_, &&MINI_, &&MINF_, &&MINS_, &&MAXI_, &&MAXF_, &&MAXS_, &&NEXTMAP_, &&NEXTVEC_, &&ROOTMAP_, &&LDMID_, &&LDPUTMID_ };
+	void* labels[] = { &&CVER_, &&CVNO_, &&CVIF_, &&CVIS_, &&CVFI_, &&CVFS_, &&CVDRS_, &&CVDTS_, &&CVSI_, &&CVSF_, &&CVSDR_, &&CVSDT_, &&IADD_, &&FADD_, &&TADD_, &&DTADD_, &&DRADD_, &&ISUB_, &&FSUB_, &&DTSUB_, &&DRSUB_, &&IMULT_, &&FMULT_, &&DRMULT_, &&IDIV_, &&FDIV_, &&DRDIV_, &&INEG_, &&FNEG_, &&PNEG_, &&IMOD_, &&FMOD_, &&IEXP_, &&FEXP_, &&JMP_, &&JMPCNT_, &&JMPTRUE_, &&JMPFALSE_, &&JMPNOTNULL_ELSEPOP_, &&RDLINE_, &&RDLINE_ORDERED_, &&PREP_REREAD_, &&PUT_, &&LDPUT_, &&LDPUTALL_, &&PUTVAR_, &&LDINT_, &&LDFLOAT_, &&LDTEXT_, &&LDDATE_, &&LDDUR_, &&LDNULL_, &&LDLIT_, &&LDVAR_, &&IEQ_, &&FEQ_, &&TEQ_, &&LIKE_, &&ILEQ_, &&FLEQ_, &&TLEQ_, &&ILT_, &&FLT_, &&TLT_, &&PRINT_, &&PUSH_, &&POP_, &&POPCPY_, &&ENDRUN_, &&NULFALSE1_, &&NULFALSE2_, &&NDIST_, &&SDIST_, &&PUTDIST_, &&LDDIST_, &&FINC_, &&ENCCHA_, &&DECCHA_, &&SAVEPOSI_JMP_, &&SAVEPOSF_JMP_, &&SAVEPOSS_JMP_, &&SORTI_, &&SORTF_, &&SORTS_, &&GETGROUP_, &&SUMI_, &&SUMF_, &&AVGI_, &&AVGF_, &&STDVI_, &&STDVF_, &&COUNT_, &&MINI_, &&MINF_, &&MINS_, &&MAXI_, &&MAXF_, &&MAXS_, &&NEXTMAP_, &&NEXTVEC_, &&ROOTMAP_, &&LDMID_, &&LDPUTMID_, &&LDPUTGRP_ };
 
 
 	//vars for data
@@ -35,9 +35,8 @@ void vmachine::run(){
 	char* cstrTemp;
 	char bufTemp[40];
 	bool boolTemp;
-	csvEntry csvTemp;
-	pair<char*, int> pairTemp;
 	dat datTemp;
+	auto&& csvTemp = files[0]->entries[0];
 
 	//vars for vm operations
 	int numPrinted = 0;
@@ -68,6 +67,16 @@ LDPUT_:
 	csvTemp = files[op->p3]->entries[op->p2];
 	FREE1(torow[op->p1]);
 	torow[op->p1] = dat{ { .s = csvTemp.val }, T_STRING, csvTemp.size };
+	++ip;
+	next();
+LDPUTGRP_:
+	csvTemp = files[op->p3]->entries[op->p2];
+	if (ISNULL(torow[op->p1]) && csvTemp.size){
+		dat &t = torow[op->p1];
+		t.z = csvTemp.size;
+		t.b = T_STRING|MAL;
+		t.u.s = newStr(csvTemp.val, t.z);
+	}
 	++ip;
 	next();
 LDPUTALL_:
@@ -705,18 +714,18 @@ FINC_:
 	++ip;
 	next();
 ENCCHA_:
-	pairTemp = q->crypt.chachaEncrypt(op->p1, stk0.z, stk0.u.s);
+	auto&& pt1 = q->crypt.chachaEncrypt(op->p1, stk0.z, stk0.u.s);
 	if (stk0.b & MAL) free(stk0.u.s);
-	stk0.u.s = pairTemp.first;
-	stk0.z = pairTemp.second;
+	stk0.u.s = pt1.first;
+	stk0.z = pt1.second;
 	stk0.b = T_STRING|MAL;
 	++ip;
 	next();
 DECCHA_:
-	pairTemp = q->crypt.chachaDecrypt(op->p1, stk0.z, stk0.u.s);
+	auto&& pt2 = q->crypt.chachaDecrypt(op->p1, stk0.z, stk0.u.s);
 	if (stk0.b & MAL) free(stk0.u.s);
-	stk0.u.s = pairTemp.first;
-	stk0.z = pairTemp.second;
+	stk0.u.s = pt2.first;
+	stk0.z = pt2.second;
 	stk0.b = T_STRING|MAL;
 	++ip;
 	next();

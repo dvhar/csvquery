@@ -249,6 +249,11 @@ union datunion {
 	regex_t* r;
 	chacha* ch;
 };
+inline static char* newStr(char* src, int size){
+	char* s = (char*) malloc(size+1);
+	strcpy(s, src);
+	return s;
+}
 class dat {
 	public:
 	union datunion u;
