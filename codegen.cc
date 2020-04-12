@@ -493,24 +493,35 @@ static void genSelections(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q)
 	switch (n->label){
 	case N_SELECTIONS:
 		if (t1 == "hidden") {
+
 		} else if (t1 == "distinct") {
 			addop1(v, PUTDIST, select_count);
 			incSelectCount();
+
 		} else if (t1 == "*") {
 			genSelectAll(v, q);
+
 		} else if (isTrivial(n)) {
-			if (agg_phase != 2) {
+			switch (agg_phase){
+			case 0:
 				for (auto nn = n.get(); nn; nn = nn->node1.get()) if (nn->label == N_VALUE){
 					addop3(v, LDPUT, select_count, nn->tok1.id, getFileNo(nn->tok3.val, q));
 					break;
-				}
-			} else {
+				} break;
+			case 1:
+				for (auto nn = n.get(); nn; nn = nn->node1.get()) if (nn->label == N_VALUE){
+					addop3(v, LDPUTGRP, select_count, nn->tok1.id, getFileNo(nn->tok3.val, q));
+					break;
+				} break;
+			case 2:
 				addop2(v, LDPUTMID, select_count, n->tok3.id-1);
+				break;
 			}
 			incSelectCount();
+
 		} else {
 			genExprAll(n->node1, v, q);
-			addop1(v, PUT, select_count);
+			addop2(v, PUT, select_count, agg_phase==1?1:0);
 			incSelectCount();
 		}
 		break;
