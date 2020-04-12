@@ -104,11 +104,6 @@ class rowgroup {
 	public:
 		void* data;
 		int type;
-		string str(){
-			if (type==2) return ft("map-> {}", getMap()->size());
-			if (type==1) return "vec";
-			return "blank";
-		}
 		vector<dat>* getRow(){ return ((vector<dat>*) data); };
 		map<dat, rowgroup>* getMap(){ return ((map<dat, rowgroup>*) data); };
 		rowgroup* nextGroup(dat d){
@@ -116,7 +111,7 @@ class rowgroup {
 				data = new map<dat, rowgroup>;
 				type = 2;
 			}
-			return &getMap()->insert({d, rowgroup()}).first->second;
+			return &getMap()->insert({d.heap(), rowgroup()}).first->second;
 		}
 		vector<dat>* getVector(int size){
 			if (!data) {

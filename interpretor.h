@@ -265,6 +265,19 @@ class dat {
 		} else
 			return l.u.i < r.u.i;
 	}
+	dat heap(){
+		dat d;
+		d.z = z;
+		if ((b & 7) == T_STRING && (b & MAL) == 0){
+			d.u.s = (char*) malloc(z+1);
+			strcpy(d.u.s, u.s);
+			d.b = b | MAL;
+		} else {
+			d.b = b;
+			d.u.s = u.s;
+		}
+		return d;
+	}
 };
 
 //placeholder for jmp positions that can't be determined until later
