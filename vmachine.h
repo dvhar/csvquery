@@ -115,7 +115,7 @@ class rowgroup {
 		}
 		vector<dat>& getVector(int size){
 			if (!data.r) {
-				data.r = new vector<dat>(size, dat());
+				data.r = new vector<dat>(size, dat{{0},NIL});
 				type = 1;
 			}
 			return getRow();
