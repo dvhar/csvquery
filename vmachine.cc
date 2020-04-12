@@ -17,34 +17,12 @@
 
 //jump to next operation
 #define debugOpcode  cerr << ft("ip {} opcode {} stack {}\n", ip, opMap[op->code], stacktop-stack.data());
-#define debugOpcode
+//#define debugOpcode
 #define next() \
 	op = ops + ip; \
 	debugOpcode \
 	goto *(labels[op->code]);
 
-static void trav(rowgroup *r){
-	if (r == nullptr)
-		return;
-	if (r->type == 2){
-		auto m = *(r->getMap());
-		cerr << "new map node\n";
-		for (auto &e : m){
-			auto d = e.first;
-			cerr << "    key: " << d.str() << endl;
-		}
-		for (auto &e : m){
-			trav(&e.second);
-		}
-	}
-	if (r->type == 1){
-		return;
-		auto v = *(r->getRow());
-		for (auto &e : v){
-			cerr << "  v: " << e.str() << endl;
-		}
-	}
-}
 void vmachine::run(){
 
 	void* labels[] = { &&CVER_, &&CVNO_, &&CVIF_, &&CVIS_, &&CVFI_, &&CVFS_, &&CVDRS_, &&CVDTS_, &&CVSI_, &&CVSF_, &&CVSDR_, &&CVSDT_, &&IADD_, &&FADD_, &&TADD_, &&DTADD_, &&DRADD_, &&ISUB_, &&FSUB_, &&DTSUB_, &&DRSUB_, &&IMULT_, &&FMULT_, &&DRMULT_, &&IDIV_, &&FDIV_, &&DRDIV_, &&INEG_, &&FNEG_, &&PNEG_, &&IMOD_, &&FMOD_, &&IEXP_, &&FEXP_, &&JMP_, &&JMPCNT_, &&JMPTRUE_, &&JMPFALSE_, &&JMPNOTNULL_ELSEPOP_, &&RDLINE_, &&RDLINE_ORDERED_, &&PREP_REREAD_, &&PUT_, &&LDPUT_, &&LDPUTALL_, &&PUTVAR_, &&LDINT_, &&LDFLOAT_, &&LDTEXT_, &&LDDATE_, &&LDDUR_, &&LDNULL_, &&LDLIT_, &&LDVAR_, &&IEQ_, &&FEQ_, &&TEQ_, &&LIKE_, &&ILEQ_, &&FLEQ_, &&TLEQ_, &&ILT_, &&FLT_, &&TLT_, &&PRINT_, &&PUSH_, &&POP_, &&POPCPY_, &&ENDRUN_, &&NULFALSE1_, &&NULFALSE2_, &&NDIST_, &&SDIST_, &&PUTDIST_, &&LDDIST_, &&FINC_, &&ENCCHA_, &&DECCHA_, &&SAVEPOSI_JMP_, &&SAVEPOSF_JMP_, &&SAVEPOSS_JMP_, &&SORTI_, &&SORTF_, &&SORTS_, &&GETGROUP_, &&SUMI_, &&SUMF_, &&AVGI_, &&AVGF_, &&STDVI_, &&STDVF_, &&COUNT_, &&MINI_, &&MINF_, &&MINS_, &&MAXI_, &&MAXF_, &&MAXS_, &&NEXTMAP_, &&NEXTVEC_, &&ROOTMAP_, &&LDMID_, &&LDPUTMID_ };
@@ -59,15 +37,13 @@ void vmachine::run(){
 	bool boolTemp;
 	csvEntry csvTemp;
 	pair<char*, int> pairTemp;
-	vector<dat>* vecTemp;
 	dat datTemp;
 
 	//vars for vm operations
 	int numPrinted = 0;
-	rowgroup* groupTemp;
 	dat* stacktop = stack.data();
 	dat* stackbot = stack.data();
-	decltype(groupTemp->getMap()->begin()) itstk[20];
+	decltype(groupTree.getMap().begin()) itstk[20];
 	dat* midrow;
 	int midrowSize;
 	int ip = 0;
@@ -420,7 +396,6 @@ FMOD_:
 
 //comparisions - p1 determines how far down the stack to leave the result
 // p2 is negator
-//may want to combine with jmp
 IEQ_:
 	iTemp1 = ISNULL(stk0);
 	iTemp2 = ISNULL(stk1);
@@ -831,45 +806,40 @@ MAXS_:
 	++ip;
 	next();
 GETGROUP_:
-	groupTemp = &groupTree;
+	auto groupTemp = &groupTree;
 	for (int i=op->p1; i >= 0; --i){
-		cerr << "getting group " << stkt(i).str() << endl;
-		groupTemp = groupTemp->nextGroup(stkt(i));
-		FREE2(stkt(i));
+		groupTemp = &groupTemp->nextGroup(stkt(i));
 	}
-	torow = groupTemp->getVector(q->midcount)->data();
-	cerr << "done getgroup\n";
+	torow = groupTemp->getVector(q->midcount).data();
 	stacktop -= (op->p1 + 1);
 	++ip;
 	next();
 ROOTMAP_:
-	//trav(&groupTree);
-	itstk[op->p1]   = groupTree.getMap()->begin();
-	itstk[op->p1+1] = groupTree.getMap()->end();
+	//trav(groupTree);
+	itstk[op->p1]   = groupTree.getMap().begin();
+	itstk[op->p1+1] = groupTree.getMap().end();
 	++ip;
 	next();
 NEXTMAP_:
 	if (itstk[op->p2-2] == itstk[op->p2-1]){
-		// done with map
 		ip = op->p1;
 		next();
 	} else {
 		// set top of iterator stack to next map
-		groupTemp = &(itstk[op->p2-2]++)->second;
-		itstk[op->p2]   = groupTemp->getMap()->begin();
-		itstk[op->p2+1] = groupTemp->getMap()->end();
+		auto&& groupTemp = (itstk[op->p2-2]++)->second;
+		itstk[op->p2]   = groupTemp.getMap().begin();
+		itstk[op->p2+1] = groupTemp.getMap().end();
 		++ip;
 		next();
 	}
 NEXTVEC_:
 	if (itstk[op->p2] == itstk[op->p2+1]){
-		// done with map
 		ip = op->p1;
 		next();
 	} else {
-		vecTemp = (itstk[op->p2]++)->second.getRow();
-		midrow = vecTemp->data();
-		midrowSize = vecTemp->size();
+		auto&& vecTemp = (itstk[op->p2]++)->second.getRow();
+		midrow = vecTemp.data();
+		midrowSize = vecTemp.size();
 		++ip;
 		next();
 	}

@@ -31,7 +31,7 @@ enum codes : unsigned char {
 	SAVEPOSI_JMP, SAVEPOSF_JMP, SAVEPOSS_JMP, SORTI, SORTF, SORTS,
 	GETGROUP,
 	SUMI, SUMF, AVGI, AVGF, STDVI, STDVF, COUNT, MINI, MINF, MINS, MAXI, MAXF, MAXS,
-	NEXTMAP, NEXTVEC, ROOTMAP, LDMID, LDPUTMID
+	NEXTMAP, NEXTVEC, ROOTMAP, LDMID, LDPUTMID, LDPUTGRP
 };
 
 //2d array for ops indexed by operation and datatype
@@ -102,34 +102,30 @@ class valPos {
 
 class rowgroup {
 	public:
-		void* data;
 		int type;
-		vector<dat>* getRow(){ return ((vector<dat>*) data); };
-		map<dat, rowgroup>* getMap(){ return ((map<dat, rowgroup>*) data); };
-		rowgroup* nextGroup(dat d){
-			if (!data) {
-				data = new map<dat, rowgroup>;
+		union { vector<dat>* r; map<dat, rowgroup>* m; } data;
+		vector<dat>& getRow(){ return *data.r; };
+		map<dat, rowgroup>& getMap(){ return *data.m; };
+		rowgroup& nextGroup(dat& d){
+			if (!data.m) {
+				data.m = new map<dat, rowgroup>;
 				type = 2;
 			}
-			return &getMap()->insert({d.heap(), rowgroup()}).first->second;
+			return getMap().insert({d.heap(), rowgroup()}).first->second;
 		}
-		vector<dat>* getVector(int size){
-			if (!data) {
-				data = new vector<dat>(size, {{0},NIL,0});
+		vector<dat>& getVector(int size){
+			if (!data.r) {
+				data.r = new vector<dat>(size, dat());
 				type = 1;
 			}
 			return getRow();
 		}
-		rowgroup(){ type = 0; data = 0; }
+		rowgroup(){ type = 0; data = {0}; }
 		~rowgroup(){
 			if (type == 1){
-				cerr << "destruct row\n";
-				if (ISTEXT(*getRow()->begin()))
-					for (auto &d : *getRow()) FREE2(d);
-				delete getRow();
+				delete &getRow();
 			} else if (type == 2) {
-				cerr << "destruct map\n";
-				delete getMap();
+				delete &getMap();
 			}
 		}
 };
