@@ -281,6 +281,7 @@ class dat {
 			d.b = b;
 			d.u.s = u.s;
 		}
+		b &= ~MAL;
 		return d;
 	}
 };

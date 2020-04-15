@@ -66,7 +66,7 @@ PUT_:
 LDPUT_:
 	csvTemp = files[op->p3]->entries[op->p2];
 	FREE1(torow[op->p1]);
-	torow[op->p1] = dat{ { .s = csvTemp.val }, T_STRING, csvTemp.size };
+	torow[op->p1] = dat{ { s: csvTemp.val }, T_STRING, csvTemp.size };
 	++ip;
 	next();
 LDPUTGRP_:
@@ -84,7 +84,7 @@ LDPUTALL_:
 	for (auto &f : files){
 		for (auto &e : f->entries){
 			FREE1(torow[iTemp1]);
-			torow[iTemp1++] = dat{ { .s = e.val }, T_STRING, e.size };
+			torow[iTemp1++] = dat{ { s: e.val }, T_STRING, e.size };
 		}
 	}
 	++ip;
@@ -129,7 +129,7 @@ LDVAR_:
 LDDUR_:
 	push();
 	iTemp1 = parseDuration(files[op->p1]->entries[op->p2].val, &i64Temp);
-	stk0 = dat{ { .i = i64Temp}, T_DURATION};
+	stk0 = dat{ { i: i64Temp}, T_DURATION};
 	if (iTemp1) { SETNULL(stk0); }
 	++ip;
 	next();
@@ -137,14 +137,14 @@ LDDATE_:
 	push();
 	csvTemp = files[op->p1]->entries[op->p2];
 	iTemp1 = dateparse(csvTemp.val, &i64Temp, &iTemp2, csvTemp.size);
-	stk0 = dat{ { .i = i64Temp}, T_DATE, (uint) iTemp2 };
+	stk0 = dat{ { i: i64Temp}, T_DATE, (uint) iTemp2 };
 	if (iTemp1) { SETNULL(stk0); }
 	++ip;
 	next();
 LDTEXT_:
 	push();
 	csvTemp = files[op->p1]->entries[op->p2];
-	stk0 = dat{ { .s = csvTemp.val }, T_STRING, csvTemp.size };
+	stk0 = dat{ { s: csvTemp.val }, T_STRING, csvTemp.size };
 	if (!csvTemp.size) { SETNULL(stk0); }
 	++ip;
 	next();
