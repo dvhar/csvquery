@@ -196,7 +196,7 @@ pair<char*, int> crypter::chachaDecrypt(int i, int len, char* input){
 }
 
 //debug group traverser
-static void trav(rowgroup &r){
+void trav(rowgroup &r){
 	if (r.type == 2){
 		auto&& m = r.getMap();
 		cerr << "new map node\n";
