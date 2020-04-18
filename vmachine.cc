@@ -72,10 +72,7 @@ LDPUT_:
 LDPUTGRP_:
 	csvTemp = files[op->p3]->entries[op->p2];
 	if (ISNULL(torow[op->p1]) && csvTemp.size){
-		dat &t = torow[op->p1];
-		t.z = csvTemp.size;
-		t.b = T_STRING|MAL;
-		t.u.s = newStr(csvTemp.val, t.z);
+		torow[op->p1] = { { s:newStr(csvTemp.val, csvTemp.size) }, T_STRING|MAL, csvTemp.size };
 	}
 	++ip;
 	next();
@@ -98,6 +95,7 @@ LDPUTMID_:
 	next();
 LDMID_:
 	push();
+	FREE2(stk0);
 	stk0 = midrow[op->p1];
 	DISOWN(midrow[op->p1]);
 	++ip;
@@ -827,6 +825,7 @@ ROOTMAP_:
 	//trav(groupTree);
 	itstk[op->p1]   = groupTree.getMap().begin();
 	itstk[op->p1+1] = groupTree.getMap().end();
+	torow = destrow.data();
 	++ip;
 	next();
 NEXTMAP_:
