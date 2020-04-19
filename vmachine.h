@@ -102,29 +102,36 @@ class valPos {
 
 class rowgroup {
 	public:
-		int type;
-		union { vector<dat>* r; map<dat, rowgroup>* m; } data;
-		vector<dat>& getRow(){ return *data.r; };
-		map<dat, rowgroup>& getMap(){ return *data.m; };
+		struct { int type : 3; int malloced : 1; } meta;
+		union { vector<dat>* row; map<dat, rowgroup>* mapp; } data;
+		vector<dat>& getRow(){ return *data.row; };
+		map<dat, rowgroup>& getMap(){ return *data.mapp; };
 		rowgroup& nextGroup(dat& d){
-			if (!data.m) {
-				data.m = new map<dat, rowgroup>;
-				type = 2;
+			if (!data.mapp) {
+				data.mapp = new map<dat, rowgroup>;
+				meta.type = 2;
+				if (ISMAL(d))
+					meta.malloced = 1;
 			}
 			return getMap().insert({d.heap(), rowgroup()}).first->second;
 		}
 		vector<dat>& getVector(int size){
-			if (!data.r) {
-				data.r = new vector<dat>(size, dat{{0},NIL});
-				type = 1;
+			if (!data.row) {
+				data.row = new vector<dat>(size, dat{{0},NIL});
+				meta.type = 1;
 			}
 			return getRow();
 		}
-		rowgroup(){ type = 0; data = {0}; }
+		rowgroup(){ meta = {0}; data = {0}; }
 		~rowgroup(){
-			if (type == 1){
+			if (meta.type == 1){
+				for (auto &d : getRow())
+					FREE2(d);
 				delete &getRow();
-			} else if (type == 2) {
+			} else if (meta.type == 2) {
+				if (meta.malloced)
+					for (auto &m : getMap())
+						free(m.first.u.s);
 				delete &getMap();
 			}
 		}
