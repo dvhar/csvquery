@@ -53,10 +53,17 @@ static int typeConv[6][6] = {
 	{0, CVNO, CVIF, CVER, CVNO, CVDRS},
 	{0, CVSI, CVSF, CVSDT,CVSDR,CVNO},
 };
+
+static int maxops[] = { 0, MAXI, MAXF, MAXI, MAXI, MAXS };
+static int minops[] = { 0, MINI, MINF, MINI, MINI, MINS };
+static int sumops[] = { 0, SUMI, SUMF, 0, SUMI, 0 };
+static int avgops[] = { 0, AVGI, AVGF, AVGI, AVGI, 0 };
+static int stvops[] = { 0, STDVI, STDVF, 0, STDVI, 0 };
+static int pstvops[] = { 0, PUTSTDVI, PUTSTDVF, 0, PUTSTDVI, 0 };
+static int pavgops[] = { 0, PUTAVGI, PUTAVGF, PUTAVGI, PUTAVGI, 0 };
+
 static int sortOps[] = { 0, SORTI, SORTF, SORTI, SORTI, SORTS };
 static int savePosOps[] = { 0, SAVEPOSI_JMP, SAVEPOSF_JMP, SAVEPOSI_JMP, SAVEPOSI_JMP, SAVEPOSS_JMP };
-
-//distinct check types
 static int distinctOps[] = { 0, NDIST, NDIST, NDIST, NDIST, SDIST };
 
 static bool isTrivial(unique_ptr<node> &n){
@@ -706,26 +713,40 @@ static void genFunction(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
 	if (agg_phase == 1) {
 		switch (n->tok1.id){
 		case FN_SUM:
+			addop(v, sumops[n->datatype], select_count);
+			break;
 		case FN_AVG:
+			addop(v, avgops[n->datatype], select_count);
+			break;
 		case FN_STDEV:
 		case FN_STDEVP:
+			addop(v, stvops[n->datatype], select_count);
+			break;
 		case FN_MIN:
+			addop(v, minops[n->datatype], select_count);
+			break;
 		case FN_MAX:
+			addop(v, maxops[n->datatype], select_count);
 			break;
 		case FN_COUNT:
 			addop(v, COUNT, select_count, n->tok2.id ? 1 : 0);
-			select_count++;
 			break;
 		}
+		select_count++;
 	} else if (agg_phase == 2) {
 		switch (n->tok1.id){
-		case FN_SUM:
 		case FN_AVG:
+			addop(v, pavgops[n->datatype], n->tok6.id-1);
+			break;
 		case FN_STDEV:
+			addop(v, pstvops[n->datatype], n->tok6.id-1, 1);
+			break;
 		case FN_STDEVP:
+			addop(v, pstvops[n->datatype], n->tok6.id-1);
+			break;
 		case FN_MIN:
 		case FN_MAX:
-			break;
+		case FN_SUM:
 		case FN_COUNT:
 			addop(v, LDMID, n->tok6.id-1);
 			break;
