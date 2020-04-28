@@ -1,0 +1,1 @@
+select count(*) /  count(c13) * 2 c4 from 'test/country'
