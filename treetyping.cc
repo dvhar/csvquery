@@ -344,6 +344,7 @@ static typer typeFunctionInnerNodes(querySpecs &q, unique_ptr<node> &n){
 	switch (n->tok1.id){
 	case FN_COUNT:
 		n->keep = true;
+		typeInnerNodes(q, n->node1);
 	case FN_INC:
 		innerType = {T_FLOAT, true};
 		break;

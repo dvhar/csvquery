@@ -352,7 +352,7 @@ class querySpecs {
 	int posVecs;
 	int sorting;
 	bool joining;
-	bool grouping;
+	int grouping; //1 = one group, 2 = groups
 	bool whereFiltering;
 	bool havingFiltering;
 	token tok();
