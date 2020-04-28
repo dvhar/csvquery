@@ -36,7 +36,7 @@ void vmachine::run(){
 	char bufTemp[40];
 	bool boolTemp;
 	dat datTemp;
-	auto&& csvTemp = files[0]->entries[0];
+	csvEntry csvTemp;
 
 	//vars for vm operations
 	int numPrinted = 0;

@@ -47,7 +47,6 @@ enum varScopes { NO_FILTER, WHERE_FILTER=1, DISTINCT_FILTER=2, ORDER_FILTER=4, G
 enum varGen { V_ANY, V_INCLUDES, V_EQUALS, V_SCOPE1, V_SCOPE2 };
 
 
-const byte R = 7;
 const byte RMAL = 8; //regex needs regfree() (dataholder vector only)
 const byte MAL = 16; //malloced and responsible for freeing c string
 const byte NIL = 32;
