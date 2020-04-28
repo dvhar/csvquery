@@ -6,9 +6,23 @@
 
 
 fileReader::fileReader(string fname){
+	if ( access( fname.c_str(), F_OK ) == -1 ){
+		if (fname.length() <= 4 
+				|| fname.compare(fname.length() - 4, 4, ".csv") != 0
+				|| fname.compare(fname.length() - 4, 4, ".CSV") != 0){
+			fname += ".csv";
+			if ( access( fname.c_str(), F_OK ) == -1 ){
+				error("Could not open file "+fname);
+			}
+		} else {
+			error("Could not open file "+fname);
+		}
+	}
 	numFields = 0;
 	fs = ifstream(fname);	
-	pos = fs.tellg();
+}
+fileReader::~fileReader(){
+	fs.close();
 }
 void fileReader::print(){
 	for (auto &e : entries){
@@ -17,9 +31,8 @@ void fileReader::print(){
 	cerr << endl;
 }
 int fileReader::readlineat(int64 position){
-	pos = position;
 	fs.clear();
-	fs.seekg(pos);
+	fs.seekg(position);
 	return readline();
 }
 int fileReader::readline(){

@@ -576,10 +576,7 @@ static unique_ptr<node> parseFrom(querySpecs &q) {
 	unique_ptr<node> n = newNode(N_FROM);
 	if (t.lower() != "from") error("Expected 'from'. Found: "+t.val);
 	t = q.nextTok();
-	string filepath = boost::replace_all_copy(t.val, "~/", string(getenv("HOME"))+"/");
-	n->tok1.val = filepath;
-	if ( access( filepath.c_str(), F_OK ) == -1 )
-		error("Could not open file "+filepath);
+	n->tok1.val = boost::replace_all_copy(t.val, "~/", string(getenv("HOME"))+"/");
 	t = q.nextTok();
 	string s = t.lower();
 	if (s == "noheader" || s == "nh" || s == "header" || s == "h") {

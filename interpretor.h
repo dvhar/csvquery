@@ -230,6 +230,7 @@ class fileReader {
 	int readline();
 	int readlineat(int64);
 	fileReader(string);
+	~fileReader();
 };
 
 class opcode {
