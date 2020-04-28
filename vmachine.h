@@ -29,7 +29,7 @@ enum codes : unsigned char {
 	NDIST, SDIST, PUTDIST, LDDIST,
 	FINC, ENCCHA, DECCHA,
 	SAVEPOSI_JMP, SAVEPOSF_JMP, SAVEPOSS_JMP, SORTI, SORTF, SORTS,
-	GETGROUP,
+	GETGROUP, ONEGROUP,
 	SUMI, SUMF, AVGI, AVGF, STDVI, STDVF, COUNT, MINI, MINF, MINS, MAXI, MAXF, MAXS,
 	NEXTMAP, NEXTVEC, ROOTMAP, LDMID, LDPUTMID, LDPUTGRP,
 	PUTSTDVI, PUTSTDVF, PUTAVGI, PUTAVGF
@@ -147,6 +147,7 @@ class vmachine {
 	int torowSize;
 	int quantityLimit;
 	vector<dat> destrow;
+	vector<dat> onegroup;
 	vector<dat> stack;
 	vector<vector<valPos>> posVectors;
 	rowgroup groupTree;

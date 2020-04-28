@@ -152,16 +152,22 @@ void jumpPositions::updateBytecode(vector<opcode> &vec) {
 #define addop1(V,A,B)     if has(n->phase, agg_phase) addop(V, A, B)
 #define addop2(V,A,B,C)   if has(n->phase, agg_phase) addop(V, A, B, C)
 #define addop3(V,A,B,C,D) if has(n->phase, agg_phase) addop(V, A, B, C, D)
+//#define debugAddop cerr << "addop: " << opMap[code] << endl;
+#define debugAddop
 static void addop(vector<opcode> &v, byte code){
+	debugAddop
 	v.push_back({code, 0, 0, 0});
 }
 static void addop(vector<opcode> &v, byte code, int p1){
+	debugAddop
 	v.push_back({code, p1, 0, 0});
 }
 static void addop(vector<opcode> &v, byte code, int p1, int p2){
+	debugAddop
 	v.push_back({code, p1, p2, 0});
 }
 static void addop(vector<opcode> &v, byte code, int p1, int p2, int p3){
+	debugAddop
 	v.push_back({code, p1, p2, p3});
 }
 
@@ -776,11 +782,17 @@ static void genGetGroup(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
 }
 
 static void genIterateGroups(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
-	if (n == nullptr) return;
 	e("iterate groups");
+	if (n == nullptr) {
+		addop(v, ONEGROUP);
+		genSelect(q.tree->node2, v, q);
+		// for debugging:
+		addop(v, PRINT);
+		return;
+	}
 	if (n->label == N_GROUPBY){
-		int depth = 0;
 		int doneGroups = q.jumps.newPlaceholder();
+		int depth = 0;
 		int goWhenDone;
 		int prevmap;
 		addop(v, ROOTMAP, depth);
