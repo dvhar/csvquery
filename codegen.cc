@@ -621,7 +621,7 @@ static void genPredCompare(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q
 	case KW_LIKE:
 		addop2(v, LIKE, q.dataholder.size(), negation);
 		reg.u.r = new regex_t;
-		reg.b = R|RMAL;
+		reg.b = RMAL;
 		boost::replace_all(n->tok3.val, "_", ".");
 		boost::replace_all(n->tok3.val, "%", ".*");
 		if (regcomp(reg.u.r, ("^"+n->tok3.val+"$").c_str(), REG_EXTENDED|REG_ICASE))
