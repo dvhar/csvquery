@@ -66,11 +66,11 @@ vmachine::vmachine(querySpecs &qs){
 		files.push_back(q->files[str2("_f", i)]);
 	}
 
-	destrow.resize(q->colspec.count);
+	destrow.resize(q->colspec.count + q->destrowvars);
 	torow = destrow.data();
-	torowSize = destrow.size();
+	torowSize = q->colspec.count;
 	if (q->grouping == 1){
-		onegroup.resize(q->midcount);
+		onegroup = vector<dat>(q->midcount, {{0},NIL});
 		torow = onegroup.data();
 	}
 
