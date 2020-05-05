@@ -195,17 +195,13 @@ token querySpecs::peekTok() {
 }
 token querySpecs::tok() { return tokArray[tokIdx]; }
 void querySpecs::addVar(string name) {
-	variable var;
-	var.name = name;
-	var.type = 0;
-	var.lit = 0;
-	var.filter = 0;
-	vars.push_back(var);
+	vars.push_back({name,0,0,0,0});
 }
 querySpecs::querySpecs(string &s){
 	queryString = s;
 	btn = bts = tokIdx = options = posVecs = sorting = 
-	midcount = quantityLimit = numFiles = colspec.count = 0;
+	midcount = quantityLimit = numFiles = colspec.count =
+	midrowvars = destrowvars = 0;
 	whereFiltering = havingFiltering = joining = grouping = false;
 }
 bool querySpecs::numIsCol() { return (options & O_C) != 0; }

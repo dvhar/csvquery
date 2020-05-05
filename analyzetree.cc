@@ -8,8 +8,6 @@ static void varUsedInFilter(unique_ptr<node> &n, querySpecs &q){
 	//skip irrelvent subtrees
 	case N_PRESELECT:
 	case N_FROM:
-	case N_GROUPBY:
-	case N_HAVING: //may use this one later
 		break;
 	case N_SELECTIONS:
 		t1 = n->tok1.lower();
@@ -39,13 +37,16 @@ static void varUsedInFilter(unique_ptr<node> &n, querySpecs &q){
 		varUsedInFilter(n->node1, q);
 		filterBranch = NO_FILTER;
 		break;
-	/* maybe not needed
 	case N_GROUPBY:
 		filterBranch = GROUP_FILTER;
 		varUsedInFilter(n->node1, q);
 		filterBranch = NO_FILTER;
 		break;
-	*/
+	case N_HAVING:
+		filterBranch = HAVING_FILTER;
+		varUsedInFilter(n->node1, q);
+		filterBranch = NO_FILTER;
+		break;
 	default:
 		varUsedInFilter(n->node1, q);
 		varUsedInFilter(n->node2, q);
@@ -92,7 +93,7 @@ static void recordResultColumns(unique_ptr<node> &n, querySpecs &q){
 	}
 };
 
-static bool findAgrregates(unique_ptr<node> &n){
+static bool findAgrregates(unique_ptr<node> &n, querySpecs &q){
 	if (n == nullptr) return false;
 	switch (n->label){
 	case N_FUNCTION:
@@ -100,64 +101,81 @@ static bool findAgrregates(unique_ptr<node> &n){
 			return true;
 		}
 		break;
+	case N_VARS:
+		if (findAgrregates(n->node1, q)) //repeated in setnodephase for loose coupling
+			for (auto &v : q.vars)
+				if (n->tok1.val == v.name)
+					v.phase = 2;
+		break;
+	case N_VALUE:
+		if (n->tok2.id == VARIABLE)
+			for (auto &v : q.vars)
+				if (n->tok1.val == v.name && v.phase == 2)
+					return true;
+		return findAgrregates(n->node1, q);
 	default:
 		// no shortcircuit evaluation because need to check semantics
 		return
-		findAgrregates(n->node1) |
-		findAgrregates(n->node2) |
-		findAgrregates(n->node3) |
-		findAgrregates(n->node4);
+		findAgrregates(n->node1, q) |
+		findAgrregates(n->node2, q) |
+		findAgrregates(n->node3, q) |
+		findAgrregates(n->node4, q);
 	}
 	return false;
 }
 
-static void setNodePhase(unique_ptr<node> &n, int phase){
+static void setNodePhase(unique_ptr<node> &n, querySpecs &q, int phase){
 	if (n == nullptr) return;
 	switch (n->label){
 	case N_SELECTIONS:
-		if (findAgrregates(n->node1)){
+		if (findAgrregates(n->node1, q)){
 			//upper nodes of aggregate query are phase 2
 			n->phase = 2;
-			setNodePhase(n->node1, 2);
+			setNodePhase(n->node1, q, 2);
 		} else {
 			//non-aggregate gets queried in phase 1, retrieved again in phase 2
 			n->phase = 1|2;
-			setNodePhase(n->node1, 1);
+			setNodePhase(n->node1, q, 1);
 		}
-		setNodePhase(n->node2, 2);
+		setNodePhase(n->node2, q, 2);
 		break;
 	case N_FUNCTION:
 		if ((n->tok1.id & AGG_BIT) != 0){
 			//nodes below aggregate are phase 1
-			setNodePhase(n->node1, 1);
+			setNodePhase(n->node1, q, 1);
 		} else {
-			setNodePhase(n->node1, phase);
+			setNodePhase(n->node1, q, phase);
 		}
 		break;
 	case N_VARS:
-		if (findAgrregates(n->node1)){
-			setNodePhase(n->node1, 2);
+		if (findAgrregates(n->node1, q)){
+			n->phase = 2;
+			setNodePhase(n->node1, q, 2);
 		} else {
-			setNodePhase(n->node1, 1);
+			n->phase = 1;
+			setNodePhase(n->node1, q, 1);
 		}
-		setNodePhase(n->node2, 0);
+		for (auto &v : q.vars)
+			if (n->tok1.val == v.name)
+				v.phase = n->phase;
+		setNodePhase(n->node2, q, 0);
 		break;
 	case N_GROUPBY:
 	case N_WHERE:
 		n->phase = 1;
-		setNodePhase(n->node1, 1);
+		setNodePhase(n->node1, q, 1);
 		break;
 	case N_HAVING:
 	case N_ORDER:
 		n->phase = 2;
-		setNodePhase(n->node1, 2);
+		setNodePhase(n->node1, q, 2);
 		break;
 	default:
 		n->phase = phase;
-		setNodePhase(n->node1, phase);
-		setNodePhase(n->node2, phase);
-		setNodePhase(n->node3, phase);
-		setNodePhase(n->node4, phase);
+		setNodePhase(n->node1, q, phase);
+		setNodePhase(n->node2, q, phase);
+		setNodePhase(n->node3, q, phase);
+		setNodePhase(n->node4, q, phase);
 	}
 }
 
@@ -165,7 +183,7 @@ static void findMidrowTargets(unique_ptr<node> &n, querySpecs &q){
 	if (n == nullptr || !q.grouping) return;
 	switch (n->label){
 	case N_SELECTIONS:
-		if (findAgrregates(n->node1)){
+		if (findAgrregates(n->node1, q)){
 			findMidrowTargets(n->node1, q);
 		} else {
 			q.midcount++;
@@ -175,17 +193,17 @@ static void findMidrowTargets(unique_ptr<node> &n, querySpecs &q){
 		break;
 	case N_FUNCTION:
 		if ((n->tok1.id & AGG_BIT) != 0){
-			if (findAgrregates(n->node1))
+			if (findAgrregates(n->node1, q))
 				error("Cannot have aggregate function inside another aggregate");
 			q.midcount++;
 			n->tok6.id = q.midcount;
 			return;
 		} else {
-			findAgrregates(n->node1);
+			findAgrregates(n->node1, q);
 		}
 		break;
 	case N_GROUPBY:
-		if (findAgrregates(n->node1))
+		if (findAgrregates(n->node1, q))
 			error("Cannot have aggregate function in groupby clause");
 		break;
 	default:
@@ -196,12 +214,38 @@ static void findMidrowTargets(unique_ptr<node> &n, querySpecs &q){
 	}
 }
 
+static void countVarsPerPhase(unique_ptr<node> &n, querySpecs &q){
+	if (n == nullptr) return;
+	switch (n->label){
+	case N_VARS:
+		if (n->node1.get()){
+			if (n->node1->phase == 2)
+				q.midrowvars++;
+			else
+				q.destrowvars++;
+		}
+		countVarsPerPhase(n->node1, q);
+		countVarsPerPhase(n->node2, q);
+		break;
+	case N_SELECTIONS:
+		return; //don't need to go past var branch
+	default:
+		countVarsPerPhase(n->node1, q);
+		countVarsPerPhase(n->node2, q);
+		countVarsPerPhase(n->node3, q);
+		countVarsPerPhase(n->node4, q);
+	}
+}
+
 //typing done, still need semantics etc
 void analyzeTree(querySpecs &q){
 	varUsedInFilter(q.tree, q);
 	recordResultColumns(q.tree, q);
 	if (q.grouping){
 		findMidrowTargets(q.tree, q);
-		setNodePhase(q.tree, 0);
+		setNodePhase(q.tree, q, 0);
 	}
+	countVarsPerPhase(q.tree, q);
+	q.midcount += q.midrowvars;
+	cerr << "=== midrowvars: " << q.midrowvars << " === destrowvars: " << q.destrowvars << endl;
 }

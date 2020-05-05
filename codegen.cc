@@ -24,7 +24,7 @@ static void genFunction(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q);
 static void genSelectAll(vector<opcode> &v, querySpecs &q);
 static void genSelections(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q);
 static void genTypeConv(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q);
-static void genIterateGroups(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q);
+static void genIterateGroups(unique_ptr<node> &n, varScoper &vs, vector<opcode> &v, querySpecs &q);
 
 //for debugging
 static int ident = 0;
@@ -39,6 +39,8 @@ static int ident = 0;
 
 #define pushvars() for (auto &i : q.vars) addop(v, PUSH);
 #define popvars() for (auto &i : q.vars) addop(v, POP);
+//#define pushvars() for (auto &v : q.vars) { if (v.filter & GROUP_FILTER) addop(v, PUSH) };
+//#define popvars() for (auto &v : q.vars) { if (v.filter & GROUP_FILTER) addop(v, POP) };
 
 static int normal_read;
 static int agg_phase; //0 is not grouping, 1 is first read, 2 is aggregate retrieval
@@ -152,8 +154,8 @@ void jumpPositions::updateBytecode(vector<opcode> &vec) {
 #define addop1(V,A,B)     if has(n->phase, agg_phase) addop(V, A, B)
 #define addop2(V,A,B,C)   if has(n->phase, agg_phase) addop(V, A, B, C)
 #define addop3(V,A,B,C,D) if has(n->phase, agg_phase) addop(V, A, B, C, D)
-//#define debugAddop cerr << "addop: " << opMap[code] << endl;
-#define debugAddop
+#define debugAddop cerr << "addop: " << opMap[code] << endl;
+//#define debugAddop
 static void addop(vector<opcode> &v, byte code){
 	debugAddop
 	v.push_back({code, 0, 0, 0});
@@ -300,14 +302,15 @@ static void genBasicGroupingQuery(unique_ptr<node> &n, vector<opcode> &v, queryS
 	genWhere(n->node4, v, q);
 	genVars(n->node1, v, q, vs.setscope(DISTINCT_FILTER, V_EQUALS, V_SCOPE1));
 	genDistinct(n->node2->node1, v, q, normal_read);
-	genVars(n->node1, v, q, vs.setscope(NO_FILTER, V_ANY, V_SCOPE1));
+	genVars(n->node1, v, q, vs.setscope(GROUP_FILTER, V_INCLUDES, V_SCOPE1));
 	genGetGroup(n->node4->node2, v, q);
+	genVars(n->node1, v, q, vs.setscope(NO_FILTER, V_ANY, V_SCOPE1));
 	genSelect(n->node2, v, q);
 	addop(v, JMP, normal_read);
 	q.jumps.setPlace(getgroups, v.size());
 	agg_phase = 2;
 	select_count = 0; //used as midrow count in phase 1
-	genIterateGroups(n->node4->node2, v, q);
+	genIterateGroups(n->node4->node2, vs, v, q);
 	popvars();
 	addop(v, ENDRUN);
 }
@@ -781,7 +784,7 @@ static void genGetGroup(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
 	}
 }
 
-static void genIterateGroups(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
+static void genIterateGroups(unique_ptr<node> &n, varScoper &vs, vector<opcode> &v, querySpecs &q){
 	e("iterate groups");
 	if (n == nullptr) {
 		addop(v, ONEGROUP);
@@ -809,6 +812,7 @@ static void genIterateGroups(unique_ptr<node> &n, vector<opcode> &v, querySpecs 
 			} else {
 				int nextvec = v.size();
 				addop(v, NEXTVEC, goWhenDone, depth);
+				genVars(n->node1, v, q, vs.setscope(NO_FILTER, V_ANY, V_SCOPE2));
 				genSelect(q.tree->node2, v, q);
 				// for debugging:
 				addop(v, PRINT);
