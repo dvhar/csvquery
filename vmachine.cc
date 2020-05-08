@@ -117,7 +117,7 @@ PUTVAR_:
 //put variable from var vector into stack
 LDVAR_:
 	push();
-	stk0 = stkb(op->p1);
+	stk0 = op->p2 ? torow[op->p1] : stkb(op->p1);
 	DISOWN(stk0); //var vector still owns c string
 	++ip;
 	next();

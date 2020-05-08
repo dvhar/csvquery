@@ -296,6 +296,13 @@ int getNarrowestType(char* value, int startType) {
 	return startType;
 }
 
+int getVarLocation(string lkup, querySpecs &q){
+	for (auto &v : q.vars)
+		if (lkup == v.name)
+			return v.mrindex;
+	error("variable not found");
+	return 0;
+}
 int getVarIdx(string lkup, querySpecs &q){
 	for (int i=0; i<q.vars.size(); i++)
 		if (lkup == q.vars[i].name)
