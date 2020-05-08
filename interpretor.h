@@ -199,6 +199,7 @@ class variable {
 	int lit;
 	int filter;
 	int phase;
+	int mrindex;
 };
 
 class csvEntry {
@@ -384,6 +385,7 @@ void applyTypes(querySpecs &q);
 void analyzeTree(querySpecs &q);
 void codeGen(querySpecs &q);
 void runquery(querySpecs &q);
+int getVarLocation(string lkup, querySpecs &q);
 int getVarIdx(string lkup, querySpecs &q);
 int getVarType(string lkup, querySpecs &q);
 int getFileNo(string s, querySpecs &q);

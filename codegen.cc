@@ -28,7 +28,7 @@ static void genIterateGroups(unique_ptr<node> &n, varScoper &vs, vector<opcode> 
 
 //for debugging
 static int ident = 0;
-//#define e //turn off debug printer
+#define e //turn off debug printer
 #ifndef e
 #define e(A) for (int i=0; i< ident; i++) cerr << "    "; \
 	cerr << A << endl; ident++; \
@@ -329,7 +329,11 @@ static void genVars(unique_ptr<node> &n, vector<opcode> &vec, querySpecs &q, var
 		i = getVarIdx(n->tok1.val, q);
 		if (vs->neededHere(i, q.vars[i].filter)){
 			genExprAll(n->node1, vec, q);
-			addop1(vec, PUTVAR, i);
+			if (q.vars[i].mrindex){
+				addop1(vec, PUT, q.vars[i].mrindex);
+			} else {
+				addop1(vec, PUTVAR, i);
+			}
 		}
 		genVars(n->node2, vec, q, vs);
 		break;
@@ -386,7 +390,7 @@ static void genValue(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
 	if (n == nullptr) return;
 	e("gen value");
 	dat lit;
-	int vtype, op;
+	int vtype, op, mridx;
 	switch (n->tok2.id){
 	case COLUMN:
 		addop2(v, ops[OPLD][n->datatype], getFileNo(n->tok3.val, q), n->tok1.id);
@@ -407,7 +411,12 @@ static void genValue(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
 		}
 		break;
 	case VARIABLE:
-		addop1(v, LDVAR, getVarIdx(n->tok1.val, q));
+		mridx = getVarLocation(n->tok1.val, q);
+		if (mridx){
+			addop2(v, LDVAR, mridx, 1);
+		} else {
+			addop1(v, LDVAR, getVarIdx(n->tok1.val, q));
+		}
 		//variable may be used in operations with different types
 		vtype = getVarType(n->tok1.val, q);
 		op = typeConv[vtype][n->datatype];

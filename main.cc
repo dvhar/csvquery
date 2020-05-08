@@ -40,7 +40,7 @@ int main(int argc, char** argv){
 		else
 			fp = stdin;
 		while (!feof(fp)){
-			fread(cc, 1, 1, fp);
+			if (fread(cc, 1, 1, fp)) error("input error");
 			qs.push_back(*cc);
 		}
 		break;
@@ -61,7 +61,7 @@ int main(int argc, char** argv){
 		openfiles(q, q.tree);
 		applyTypes(q);
 		analyzeTree(q);
-		printTree(q.tree, 0);
+		//printTree(q.tree, 0);
 		codeGen(q);
 		runquery(q);
 	} catch (const invalid_argument& ia) {

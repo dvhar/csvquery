@@ -220,26 +220,25 @@ static void findMidrowTargets(unique_ptr<node> &n, querySpecs &q){
 	}
 }
 
-static void countVarsPerPhase(unique_ptr<node> &n, querySpecs &q){
+static void countMidrowVars(unique_ptr<node> &n, querySpecs &q){
 	if (n == nullptr) return;
 	switch (n->label){
 	case N_VARS:
-		if (n->node1.get()){
-			if (n->node1->phase == 2)
-				q.midrowvars++;
-			else
-				q.destrowvars++;
-		}
-		countVarsPerPhase(n->node1, q);
-		countVarsPerPhase(n->node2, q);
+		for (auto &v : q.vars)
+			if (n->tok1.val == v.name){
+				if (n->node1->phase == 2)
+					v.mrindex = q.midcount + q.midrowvars++;
+			}
+		countMidrowVars(n->node1, q);
+		countMidrowVars(n->node2, q);
 		break;
 	case N_SELECTIONS:
 		return; //don't need to go past var branch
 	default:
-		countVarsPerPhase(n->node1, q);
-		countVarsPerPhase(n->node2, q);
-		countVarsPerPhase(n->node3, q);
-		countVarsPerPhase(n->node4, q);
+		countMidrowVars(n->node1, q);
+		countMidrowVars(n->node2, q);
+		countMidrowVars(n->node3, q);
+		countMidrowVars(n->node4, q);
 	}
 }
 
@@ -250,8 +249,6 @@ void analyzeTree(querySpecs &q){
 	if (q.grouping){
 		findMidrowTargets(q.tree, q);
 		setNodePhase(q.tree, q, 0);
+		countMidrowVars(q.tree, q);
 	}
-	countVarsPerPhase(q.tree, q);
-	q.midcount += q.midrowvars;
-	cerr << "=== midrowvars: " << q.midrowvars << " === destrowvars: " << q.destrowvars << endl;
 }
