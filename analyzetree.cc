@@ -102,11 +102,13 @@ static bool findAgrregates(unique_ptr<node> &n, querySpecs &q){
 		}
 		break;
 	case N_VARS:
-		if (findAgrregates(n->node1, q)) //repeated in setnodephase for loose coupling
+		if (findAgrregates(n->node1, q))
 			for (auto &v : q.vars)
-				if (n->tok1.val == v.name)
-					v.phase = 2;
-		break;
+				if (n->tok1.val == v.name){
+					v.phase = 2; //set node phase later for loose coupling
+					return true;
+				}
+		return false;
 	case N_VALUE:
 		if (n->tok2.id == VARIABLE)
 			for (auto &v : q.vars)
@@ -182,6 +184,10 @@ static void setNodePhase(unique_ptr<node> &n, querySpecs &q, int phase){
 static void findMidrowTargets(unique_ptr<node> &n, querySpecs &q){
 	if (n == nullptr || !q.grouping) return;
 	switch (n->label){
+	case N_VARS:
+		findAgrregates(n, q); //mark variables as aggregate with phase value before doing rest of agg stuff
+		findMidrowTargets(n->node2, q);
+		break;
 	case N_SELECTIONS:
 		if (findAgrregates(n->node1, q)){
 			findMidrowTargets(n->node1, q);

@@ -27,6 +27,9 @@ tests = [
 ["order by string",0,f"select top 10 c1 from {f1} order by c1"],
 ["order by variable",0,f"with c1 + dog as ord select top 10 ord from {f1} order by ord"],
 ["order by variable asc",0,f"with c1 + dog as ord select top 10 ord from {f1} order by ord asc"],
+["operations on counts",0,f"select count(*) /  count(c13) * 2 c4 from {f1}"],
+["count with 1 level groups",0,f"select count(*) c3 from 'test/country.csv' group by c3"],
+["count with nested groups",0,f"select count(*) c3 c4 from 'test/country.csv' group by c3 c4"],
 ]
 
 def runtest(test):
