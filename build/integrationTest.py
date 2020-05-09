@@ -20,6 +20,12 @@ def runtest(test):
     out, err = ret.communicate()
     out = "".join(map(chr,out))
     print(out)
+    with open('test/results/' + test['output'], 'r') as res:
+        if out != res.read():
+            print('Failed. Expected:')
+            print(res.read())
+            print('Got instead:')
+            print(out)
     if ret.returncode != test['code']:
         print(f"Failed! Expected return code {test[1]} but got {ret.returncode}")
         quit()
