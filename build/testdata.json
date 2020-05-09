@@ -2,86 +2,103 @@
 {
 	"title":"Basic top 10",
 	"code":0,
-	"query":"select top 10 from %(f1)s"
+	"query":"select top 10 from %(f1)s",
+	"output":"1.csv"
 },
 {
 	"title":"With int and arithmetic",
 	"code":0,
-	"query":"with c7 as int select top 10 int, c9, int+c9, int+c1, int+c7 c1+c2 as ss, c1+c9 as sf, c1+c7 as si, c7+c9 as if, int+-c5 as ii, int-c5 as ii2 c16, c16+'10 years', c16-'10 years', '10 years'*-2 from %(f1)s"
+	"query":"with c7 as int select top 10 int, c9, int+c9, int+c1, int+c7 c1+c2 as ss, c1+c9 as sf, c1+c7 as si, c7+c9 as if, int+-c5 as ii, int-c5 as ii2 c16, c16+'10 years', c16-'10 years', '10 years'*-2 from %(f1)s",
+	"output":"2.csv"
 },
 {
 	"title":"distinct string, case",
 	"code":0,
-	"query":"select distinct c3 c15 case when c15 like '_F' or c15 like '%%O' then 1 when c15 like '_i' then 2 else 0 end from %(f1)s"
+	"query":"select distinct c3 c15 case when c15 like '_F' or c15 like '%%O' then 1 when c15 like '_i' then 2 else 0 end from %(f1)s",
+	"output":"3.csv"
 },
 {
 	"title":"distinct var",
 	"code":0,
-	"query":"with c5 as int select top 10 distinct int, int from %(f1)s"
+	"query":"with c5 as int select top 10 distinct int, int from %(f1)s",
+	"output":"4.csv"
 },
 {
 	"title":"distinct hidden",
 	"code":0,
-	"query":"with c5 as int select top 10 distinct hidden int, int from %(f1)s"
+	"query":"with c5 as int select top 10 distinct hidden int, int from %(f1)s",
+	"output":"5.csv"
 },
 {
 	"title":"basic where",
 	"code":0,
-	"query":"select top 10 c5 c7 c16 from %(f1)s where c5%%2=0 and c7<200000 and c16 between '1/1/2020' and '1/1/2040'"
+	"query":"select top 10 c5 c7 c16 from %(f1)s where c5%%2=0 and c7<200000 and c16 between '1/1/2020' and '1/1/2040'",
+	"output":"6.csv"
 },
 {
 	"title":"where in",
 	"code":0,
-	"query":"select top 10 c1 from %(f1)s where c1 in (FRA, FRO, FSM, GAB, GBR, GEO, GHA, GIB, GIN)"
+	"query":"select top 10 c1 from %(f1)s where c1 in (FRA, FRO, FSM, GAB, GBR, GEO, GHA, GIB, GIN)",
+	"output":"7.csv"
 },
 {
 	"title":"where not in",
 	"code":0,
-	"query":"select top 10 c1 from %(f1)s where c1 not in (AFG, AGO, AIA, ALB, 'AND', ANT, ARE, ARG, ARM, ASM)"
+	"query":"select top 10 c1 from %(f1)s where c1 not in (AFG, AGO, AIA, ALB, 'AND', ANT, ARE, ARG, ARM, ASM)",
+	"output":"8.csv"
 },
 {
 	"title":"order by int",
 	"code":0,
-	"query":"select top 10 c7 from %(f1)s order by c7"
+	"query":"select top 10 c7 from %(f1)s order by c7",
+	"output":"9.csv"
 },
 {
 	"title":"order by float asc",
 	"code":0,
-	"query":"select top 10 c9 from %(f1)s order by c9 asc where c9 <> 0"
+	"query":"select top 10 c9 from %(f1)s order by c9 asc where c9 <> 0",
+	"output":"10.csv"
 },
 {
 	"title":"order by date",
 	"code":0,
-	"query":"select top 10 c16 from %(f1)s order by c16"
+	"query":"select top 10 c16 from %(f1)s order by c16",
+	"output":"11.csv"
 },
 {
 	"title":"order by string",
 	"code":0,
-	"query":"select top 10 c1 from %(f1)s order by c1"
+	"query":"select top 10 c1 from %(f1)s order by c1",
+	"output":"12.csv"
 },
 {
 	"title":"order by variable",
 	"code":0,
-	"query":"with c1 + dog as ord select top 10 ord from %(f1)s order by ord"
+	"query":"with c1 + dog as ord select top 10 ord from %(f1)s order by ord",
+	"output":"13.csv"
 },
 {
 	"title":"order by variable asc",
 	"code":0,
-	"query":"with c1 + dog as ord select top 10 ord from %(f1)s order by ord asc"
+	"query":"with c1 + dog as ord select top 10 ord from %(f1)s order by ord asc",
+	"output":"14.csv"
 },
 {
 	"title":"operations on counts",
 	"code":0,
-	"query":"select count(*) /  count(c13) * 2 c4 from %(f1)s"
+	"query":"select count(*) /  count(c13) * 2 c4 from %(f1)s",
+	"output":"15.csv"
 },
 {
 	"title":"count with 1 level groups",
 	"code":0,
-	"query":"select count(*) c3 from %(f1)s group by c3"
+	"query":"select count(*) c3 from %(f1)s group by c3",
+	"output":"16.csv"
 },
 {
 	"title":"count with nested groups",
 	"code":0,
-	"query":"select count(*) c3 c4 from %(f1)s group by c3 c4"
+	"query":"select count(*) c3 c4 from %(f1)s group by c3 c4",
+	"output":"17.csv"
 }
 ]
