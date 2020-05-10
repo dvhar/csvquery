@@ -390,7 +390,7 @@ static void genValue(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
 	if (n == nullptr) return;
 	e("gen value");
 	dat lit;
-	int vtype, op, mridx;
+	int vtype, op, aggvar;
 	switch (n->tok2.id){
 	case COLUMN:
 		addop2(v, ops[OPLD][n->datatype], getFileNo(n->tok3.val, q), n->tok1.id);
@@ -411,9 +411,10 @@ static void genValue(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
 		}
 		break;
 	case VARIABLE:
-		mridx = getVarLocation(n->tok1.val, q);
-		if (mridx){
-			addop2(v, LDVAR, mridx, 1);
+		aggvar = varIsAgg(n->tok1.val, q);
+		if (aggvar){
+			addop1(v, LDMID, getVarLocation(n->tok1.val, q));
+			//some agg vars may need to be finished here
 		} else {
 			addop1(v, LDVAR, getVarIdx(n->tok1.val, q));
 		}

@@ -296,6 +296,13 @@ int getNarrowestType(char* value, int startType) {
 	return startType;
 }
 
+int varIsAgg(string lkup, querySpecs &q){
+	for (auto &v : q.vars)
+		if (lkup == v.name)
+			return v.phase;
+	error("variable not found");
+	return 0;
+}
 int getVarLocation(string lkup, querySpecs &q){
 	for (auto &v : q.vars)
 		if (lkup == v.name)

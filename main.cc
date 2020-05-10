@@ -40,7 +40,7 @@ int main(int argc, char** argv){
 		else
 			fp = stdin;
 		while (!feof(fp)){
-			if (fread(cc, 1, 1, fp)) error("input error");
+			fread(cc, 1, 1, fp);
 			qs.push_back(*cc);
 		}
 		break;
