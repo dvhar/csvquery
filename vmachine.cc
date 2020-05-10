@@ -117,8 +117,9 @@ PUTVAR_:
 //put variable from var vector into stack
 LDVAR_:
 	push();
+	FREE2(stk0);
 	stk0 = op->p2 ? torow[op->p1] : stkb(op->p1);
-	DISOWN(stk0); //var vector still owns c string
+	DISOWN(stk0); //var source still owns c string
 	++ip;
 	next();
 //load data from filereader to the stack

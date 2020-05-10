@@ -370,6 +370,7 @@ class querySpecs {
 };
 
 void scanTokens(querySpecs &q);
+int varIsAgg(string lkup, querySpecs &q);
 void parseQuery(querySpecs &q);
 bool is_number(const std::string& s);
 void printTree(unique_ptr<node> &n, int ident);

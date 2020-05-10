@@ -75,7 +75,6 @@ vmachine::vmachine(querySpecs &qs){
 		torow = onegroup.data();
 	}
 
-	//eventually set stack size based on ast
 	stack.resize(100);
 	posVectors.resize(q->posVecs);
 	ops = q->bytecode.data();
