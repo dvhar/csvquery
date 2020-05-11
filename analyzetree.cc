@@ -185,7 +185,9 @@ static void findMidrowTargets(unique_ptr<node> &n, querySpecs &q){
 	if (n == nullptr || !q.grouping) return;
 	switch (n->label){
 	case N_VARS:
-		findAgrregates(n, q); //mark variables as aggregate with phase value before doing rest of agg stuff
+		if (findAgrregates(n, q)) {
+			findMidrowTargets(n->node1, q);
+		}
 		findMidrowTargets(n->node2, q);
 		break;
 	case N_SELECTIONS:
@@ -220,28 +222,6 @@ static void findMidrowTargets(unique_ptr<node> &n, querySpecs &q){
 	}
 }
 
-static void countMidrowVars(unique_ptr<node> &n, querySpecs &q){
-	if (n == nullptr) return;
-	switch (n->label){
-	case N_VARS:
-		for (auto &v : q.vars)
-			if (n->tok1.val == v.name){
-				if (n->node1->phase == 2)
-					v.mrindex = q.midcount + q.midrowvars++;
-			}
-		countMidrowVars(n->node1, q);
-		countMidrowVars(n->node2, q);
-		break;
-	case N_SELECTIONS:
-		return; //don't need to go past var branch
-	default:
-		countMidrowVars(n->node1, q);
-		countMidrowVars(n->node2, q);
-		countMidrowVars(n->node3, q);
-		countMidrowVars(n->node4, q);
-	}
-}
-
 //typing done, still need semantics etc
 void analyzeTree(querySpecs &q){
 	varUsedInFilter(q.tree, q);
@@ -249,6 +229,5 @@ void analyzeTree(querySpecs &q){
 	if (q.grouping){
 		findMidrowTargets(q.tree, q);
 		setNodePhase(q.tree, q, 0);
-		countMidrowVars(q.tree, q);
 	}
 }
