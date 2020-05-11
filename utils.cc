@@ -211,7 +211,7 @@ void printTree(unique_ptr<node> &n, int ident){
 	ident++;
 	string s = "";
 	for (int i=0;i<ident;i++) s += "  ";
-	cout << s << treeMap[n->label] << endl
+	cerr << s << treeMap[n->label] << endl
 		<< s 
 		<< ft("[{} {} {} {} {}] t:{} ph:{}"
 		,n->tok1.val

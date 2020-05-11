@@ -28,7 +28,7 @@ static void genIterateGroups(unique_ptr<node> &n, varScoper &vs, vector<opcode> 
 
 //for debugging
 static int ident = 0;
-#define e //turn off debug printer
+//#define e //turn off debug printer
 #ifndef e
 #define e(A) for (int i=0; i< ident; i++) cerr << "    "; \
 	cerr << A << endl; ident++; \
@@ -61,8 +61,9 @@ static int minops[] = { 0, MINI, MINF, MINI, MINI, MINS };
 static int sumops[] = { 0, SUMI, SUMF, 0, SUMI, 0 };
 static int avgops[] = { 0, AVGI, AVGF, AVGI, AVGI, 0 };
 static int stvops[] = { 0, STDVI, STDVF, 0, STDVI, 0 };
-static int pstvops[] = { 0, PUTSTDVI, PUTSTDVF, 0, PUTSTDVI, 0 };
-static int pavgops[] = { 0, PUTAVGI, PUTAVGF, PUTAVGI, PUTAVGI, 0 };
+//aggregates that need to be finished
+static int ldstdvops[] = { 0, LDSTDVI, LDSTDVF, 0, LDSTDVI, 0 };
+static int ldavgops[] = { 0, LDAVGI, LDAVGF, LDAVGI, LDAVGI, 0 };
 
 static int sortOps[] = { 0, SORTI, SORTF, SORTI, SORTI, SORTS };
 static int savePosOps[] = { 0, SAVEPOSI_JMP, SAVEPOSF_JMP, SAVEPOSI_JMP, SAVEPOSI_JMP, SAVEPOSS_JMP };
@@ -329,11 +330,7 @@ static void genVars(unique_ptr<node> &n, vector<opcode> &vec, querySpecs &q, var
 		i = getVarIdx(n->tok1.val, q);
 		if (vs->neededHere(i, q.vars[i].filter)){
 			genExprAll(n->node1, vec, q);
-			if (q.vars[i].mrindex){
-				addop1(vec, PUT, q.vars[i].mrindex);
-			} else {
-				addop1(vec, PUTVAR, i);
-			}
+			addop1(vec, PUTVAR, i);
 		}
 		genVars(n->node2, vec, q, vs);
 		break;
@@ -411,13 +408,7 @@ static void genValue(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
 		}
 		break;
 	case VARIABLE:
-		aggvar = varIsAgg(n->tok1.val, q);
-		if (aggvar){
-			addop1(v, LDMID, getVarLocation(n->tok1.val, q));
-			//some agg vars may need to be finished here
-		} else {
-			addop1(v, LDVAR, getVarIdx(n->tok1.val, q));
-		}
+		addop1(v, LDVAR, getVarIdx(n->tok1.val, q));
 		//variable may be used in operations with different types
 		vtype = getVarType(n->tok1.val, q);
 		op = typeConv[vtype][n->datatype];
@@ -755,13 +746,13 @@ static void genFunction(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
 	} else if (agg_phase == 2) {
 		switch (n->tok1.id){
 		case FN_AVG:
-			addop(v, pavgops[n->datatype], n->tok6.id-1);
+			addop(v, ldavgops[n->datatype], n->tok6.id-1);
 			break;
 		case FN_STDEV:
-			addop(v, pstvops[n->datatype], n->tok6.id-1, 1);
+			addop(v, ldstdvops[n->datatype], n->tok6.id-1, 1);
 			break;
 		case FN_STDEVP:
-			addop(v, pstvops[n->datatype], n->tok6.id-1);
+			addop(v, ldstdvops[n->datatype], n->tok6.id-1);
 			break;
 		case FN_MIN:
 		case FN_MAX:
@@ -798,6 +789,7 @@ static void genIterateGroups(unique_ptr<node> &n, varScoper &vs, vector<opcode> 
 	e("iterate groups");
 	if (n == nullptr) {
 		addop(v, ONEGROUP);
+		genVars(q.tree->node1, v, q, vs.setscope(NO_FILTER, V_ANY, V_SCOPE2));
 		genSelect(q.tree->node2, v, q);
 		// for debugging:
 		addop(v, PRINT);
@@ -822,7 +814,7 @@ static void genIterateGroups(unique_ptr<node> &n, varScoper &vs, vector<opcode> 
 			} else {
 				int nextvec = v.size();
 				addop(v, NEXTVEC, goWhenDone, depth);
-				genVars(n->node1, v, q, vs.setscope(NO_FILTER, V_ANY, V_SCOPE2));
+				genVars(q.tree->node1, v, q, vs.setscope(NO_FILTER, V_ANY, V_SCOPE2));
 				genSelect(q.tree->node2, v, q);
 				// for debugging:
 				addop(v, PRINT);
