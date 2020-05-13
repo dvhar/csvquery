@@ -23,11 +23,16 @@
 #include <regex.h>
 #endif
 
+#ifdef _APPLE_
+#include "sys/types"
+#else
+#define uint unsigned int
+#endif
+
 #define BUFSIZE  1024*1024
 #define chacha struct chacha20_context
 #define int64 long long
 #define dur_t long long
-#define uint unsigned int
 #define byte unsigned char
 #define ft fmt::format
 //#define pt fmt::print

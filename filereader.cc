@@ -137,6 +137,9 @@ void fileReader::inferTypes() {
 			break;
 		}
 	}
+	for (int i=0; i<entries.size(); ++i)
+		if (!types[i])
+			types[i] = T_STRING; //maybe come up with better way of handling nulls
 	fs.clear();
 	fs.seekg(startData);
 }
