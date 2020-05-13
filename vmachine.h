@@ -111,7 +111,7 @@ class rowgroup {
 			if (!data.mapp) {
 				data.mapp = new map<dat, rowgroup>;
 				meta.type = 2;
-				if (ISMAL(d))
+				if (ISTEXT(d))
 					meta.malloced = 1;
 			}
 			return getMap().insert({d.heap(), rowgroup()}).first->second;

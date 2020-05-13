@@ -429,11 +429,11 @@ TEQ_:
 		FREE2(stkt(op->p1));
 		stkt(op->p1).u.p = boolTemp;
 	} else if (iTemp1 & iTemp2) { //both null
-		stkt(op->p1).u.p = true;
+		stkt(op->p1).u.p = true^op->p2;
 	} else { //one null
 		FREE2(stk0);
 		FREE2(stkt(op->p1));
-		stkt(op->p1).u.p = false;
+		stkt(op->p1).u.p = false^op->p2;
 	}
 	stacktop -= op->p1;
 	++ip;
@@ -489,9 +489,13 @@ TLT_:
 	++ip;
 	next();
 LIKE_:
-	iTemp1 = !regexec(q->dataholder[op->p1].u.r, stk0.u.s, 0, 0, 0)^op->p2;
-	FREE2(stk0);
-	stk0.u.p = iTemp1;
+	if (ISNULL(stk0)){
+		stk0.u.p = op->p1;
+	} else {
+		iTemp1 = !regexec(q->dataholder[op->p1].u.r, stk0.u.s, 0, 0, 0)^op->p2;
+		FREE2(stk0);
+		stk0.u.p = iTemp1;
+	}
 	++ip;
 	next();
 
@@ -740,16 +744,14 @@ LDSTDVF_:
 LDAVGI_:
 	push();
 	FREE2(stk0);
-	datTemp = midrow[op->p1];
-	stk0.u.i = datTemp.u.i / datTemp.z;
+	stk0.u.i = (double)midrow[op->p1].u.i / (double)midrow[op->p1].z;
 	stk0.b = T_INT;
 	++ip;
 	next()
 LDAVGF_:
 	push();
 	FREE2(stk0);
-	datTemp = midrow[op->p1];
-	stk0.u.f = datTemp.u.f / (double)datTemp.z;
+	stk0.u.f = midrow[op->p1].u.f / (double)midrow[op->p1].z;
 	stk0.b = T_FLOAT;
 	++ip;
 	next()
