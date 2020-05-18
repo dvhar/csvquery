@@ -370,6 +370,7 @@ class querySpecs {
 	bool numIsCol();
 	void init(string);
 	void addVar(string);
+	variable& var(string);
 	~querySpecs();
 	querySpecs(string &s);
 };

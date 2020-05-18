@@ -194,6 +194,12 @@ token querySpecs::peekTok() {
 	return tokArray[tokIdx];
 }
 token querySpecs::tok() { return tokArray[tokIdx]; }
+variable& querySpecs::var(string name) {
+	for (auto &v : vars)
+		if (name == v.name)
+			return v;
+	error("Variable not found");
+}
 void querySpecs::addVar(string name) {
 	vars.push_back({name,0,0,0,0});
 }
