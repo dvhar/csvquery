@@ -25,11 +25,7 @@ static void varUsedInFilter(unique_ptr<node> &n, querySpecs &q){
 		break;
 	case N_VALUE:
 		if (filterBranch && n->tok2.id == VARIABLE){
-			for (auto &v : q.vars)
-				if (n->tok1.val == v.name){
-					v.filter |= filterBranch;
-					cerr << n->tok1.val << " used in filter\n";
-				}
+			q.var(n->tok1.val).filter |= filterBranch;
 		}
 		break;
 	case N_ORDER:
@@ -102,18 +98,13 @@ static bool findAgrregates(unique_ptr<node> &n, querySpecs &q){
 		}
 		break;
 	case N_VARS:
-		if (findAgrregates(n->node1, q))
-			for (auto &v : q.vars)
-				if (n->tok1.val == v.name){
-					v.phase = 2; //set node phase later for loose coupling
-					return true;
-				}
+		if (findAgrregates(n->node1, q)){
+			return true;
+		}
 		return false;
 	case N_VALUE:
-		if (n->tok2.id == VARIABLE)
-			for (auto &v : q.vars)
-				if (n->tok1.val == v.name && v.phase == 2)
-					return true;
+		if (n->tok2.id == VARIABLE && (q.var(n->tok1.val).phase & 2))
+			return true;
 		return findAgrregates(n->node1, q);
 	default:
 		// no shortcircuit evaluation because need to check semantics
@@ -124,6 +115,74 @@ static bool findAgrregates(unique_ptr<node> &n, querySpecs &q){
 		findAgrregates(n->node4, q);
 	}
 	return false;
+}
+
+static void setVarPhase(unique_ptr<node> &n, querySpecs &q, int phase, int section){
+	if (n == nullptr) return;
+	switch (n->label){
+	case N_VARS:
+		if (findAgrregates(n, q)){
+			q.var(n->tok1.val).phase |= 2;
+			setVarPhase(n->node2, q, 2, 1);
+		}
+		setVarPhase(n->node2, q, 0, 0);
+		break;
+	case N_SELECTIONS:
+		if (!findAgrregates(n->node1, q))
+			setVarPhase(n->node1, q, 1|2, 2);
+		else
+			setVarPhase(n->node1, q, 2, 2);
+		setVarPhase(n->node2, q, 0, 0);
+		break;
+	case N_FUNCTION:
+		if ((n->tok1.id & AGG_BIT) != 0){
+			setVarPhase(n->node1, q, 1, section);
+		} else {
+			setVarPhase(n->node1, q, phase, section);
+		}
+		break;
+	case N_VALUE:
+		if (n->tok2.id == VARIABLE){
+			switch (section){
+			case 0: 
+				error("invalid variable found");
+			case 1: //var declarations
+			case 2: //selections
+			case 3: //join conditions
+			case 4: //having conditions
+			case 5: //where conditions
+				cerr << "var " << n->tok1.val << " gets phase " << phase << " in section " << section << endl;
+				q.var(n->tok1.val).phase |= phase;
+				break;
+			}
+		}
+		break;
+	case N_JOIN:
+		if (findAgrregates(n->node1, q))
+			error("cannot have aggregates in 'join' clause");
+		setVarPhase(n->node1, q, 1, 3);
+		break;
+	case N_HAVING:
+		if (!findAgrregates(n->node1, q))
+			error("values in 'having' clause must be aggregates");
+		setVarPhase(n->node1, q, 2, 4);
+		break;
+	case N_WHERE:
+		if (findAgrregates(n->node1, q))
+			error("cannot have aggregates in 'where' clause");
+		setVarPhase(n->node1, q, 1, 5);
+		break;
+	case N_ORDER:
+		if (!findAgrregates(n->node1, q))
+			error("cannot sort aggregate query by non-aggregate value");
+		setVarPhase(n->node1, q, 2, 6);
+		break;
+	default:
+		setVarPhase(n->node1, q, phase, section);
+		setVarPhase(n->node2, q, phase, section);
+		setVarPhase(n->node3, q, phase, section);
+		setVarPhase(n->node4, q, phase, section);
+	}
 }
 
 static void setNodePhase(unique_ptr<node> &n, querySpecs &q, int phase){
@@ -157,9 +216,7 @@ static void setNodePhase(unique_ptr<node> &n, querySpecs &q, int phase){
 			n->phase = 1;
 			setNodePhase(n->node1, q, 1);
 		}
-		for (auto &v : q.vars)
-			if (n->tok1.val == v.name)
-				v.phase = n->phase;
+		q.var(n->tok1.val).phase |= n->phase;
 		setNodePhase(n->node2, q, 0);
 		break;
 	case N_GROUPBY:
@@ -187,6 +244,7 @@ static void findMidrowTargets(unique_ptr<node> &n, querySpecs &q){
 	case N_VARS:
 		if (findAgrregates(n, q)) {
 			findMidrowTargets(n->node1, q);
+		} else {
 		}
 		findMidrowTargets(n->node2, q);
 		break;
@@ -194,6 +252,7 @@ static void findMidrowTargets(unique_ptr<node> &n, querySpecs &q){
 		if (findAgrregates(n->node1, q)){
 			findMidrowTargets(n->node1, q);
 		} else {
+			//find out how to do the equivalent for non-agg phase 2 variables
 			q.midcount++;
 			n->tok3.id = q.midcount;
 		}
@@ -227,6 +286,7 @@ void analyzeTree(querySpecs &q){
 	varUsedInFilter(q.tree, q);
 	recordResultColumns(q.tree, q);
 	if (q.grouping){
+		setVarPhase(q.tree, q, 0, 0);
 		findMidrowTargets(q.tree, q);
 		setNodePhase(q.tree, q, 0);
 	}
