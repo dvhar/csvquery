@@ -19,7 +19,7 @@ enum codes : unsigned char {
 	IEXP, FEXP,
 	JMP, JMPCNT, JMPTRUE, JMPFALSE, JMPNOTNULL_ELSEPOP,
 	RDLINE, RDLINE_ORDERED, PREP_REREAD,
-	PUT, LDPUT, LDPUTALL, PUTVAR,
+	PUT, LDPUT, LDPUTALL, PUTVAR, PUTVAR2,
 	LDINT, LDFLOAT, LDTEXT, LDDATE, LDDUR,
 	LDNULL, LDLIT, LDVAR,
 	IEQ, FEQ, TEQ, LIKE,
@@ -114,7 +114,7 @@ class rowgroup {
 				if (ISTEXT(d))
 					meta.malloced = 1;
 			}
-			return getMap().insert({d.heap(), rowgroup()}).first->second;
+			return getMap().insert({d.heap()/*TODO:fix memory leak*/, rowgroup()}).first->second;
 		}
 		vector<dat>& getVector(int size){
 			if (!data.row) {

@@ -330,7 +330,18 @@ static void genVars(unique_ptr<node> &n, vector<opcode> &vec, querySpecs &q, var
 		i = getVarIdx(n->tok1.val, q);
 		if (vs->neededHere(i, q.vars[i].filter)){
 			genExprAll(n->node1, vec, q);
-			addop1(vec, PUTVAR, i);
+			if (n->phase == (1|2)){
+				//non-aggs in phase2
+				if (agg_phase == 1){
+					addop2(vec, PUTVAR2, i, n->tok3.id-1);
+				} else {
+					addop1(vec, LDMID, n->tok3.id-1);
+					addop1(vec, PUTVAR, i);
+				}
+			} else {
+				addop1(vec, PUTVAR, i);
+			}
+			//also put in midrow for 1|2 vars
 		}
 		genVars(n->node2, vec, q, vs);
 		break;
@@ -723,23 +734,23 @@ static void genFunction(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
 	if (agg_phase == 1) {
 		switch (n->tok1.id){
 		case FN_SUM:
-			addop(v, sumops[n->datatype], select_count);
+			addop(v, sumops[n->datatype], n->tok6.id-1);
 			break;
 		case FN_AVG:
-			addop(v, avgops[n->datatype], select_count);
+			addop(v, avgops[n->datatype], n->tok6.id-1);
 			break;
 		case FN_STDEV:
 		case FN_STDEVP:
-			addop(v, stvops[n->datatype], select_count);
+			addop(v, stvops[n->datatype], n->tok6.id-1);
 			break;
 		case FN_MIN:
-			addop(v, minops[n->datatype], select_count);
+			addop(v, minops[n->datatype], n->tok6.id-1);
 			break;
 		case FN_MAX:
-			addop(v, maxops[n->datatype], select_count);
+			addop(v, maxops[n->datatype], n->tok6.id-1);
 			break;
 		case FN_COUNT:
-			addop(v, COUNT, select_count, n->tok2.id ? 1 : 0);
+			addop(v, COUNT, n->tok6.id-1, n->tok2.id ? 1 : 0);
 			break;
 		}
 		select_count++;

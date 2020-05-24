@@ -143,6 +143,7 @@ static unique_ptr<node> parseWith(querySpecs &q) {
 
 //node1 is expr
 //tok1 is id
+//tok3 is midrow index-1 of phase2 non-aggs
 //node2 is vars
 static unique_ptr<node> parseVars(querySpecs &q) {
 	t = q.tok();

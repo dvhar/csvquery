@@ -24,7 +24,7 @@
 	goto *(labels[op->code]);
 
 void vmachine::run(){
-	void* labels[] = { &&CVER_, &&CVNO_, &&CVIF_, &&CVIS_, &&CVFI_, &&CVFS_, &&CVDRS_, &&CVDTS_, &&CVSI_, &&CVSF_, &&CVSDR_, &&CVSDT_, &&IADD_, &&FADD_, &&TADD_, &&DTADD_, &&DRADD_, &&ISUB_, &&FSUB_, &&DTSUB_, &&DRSUB_, &&IMULT_, &&FMULT_, &&DRMULT_, &&IDIV_, &&FDIV_, &&DRDIV_, &&INEG_, &&FNEG_, &&PNEG_, &&IMOD_, &&FMOD_, &&IEXP_, &&FEXP_, &&JMP_, &&JMPCNT_, &&JMPTRUE_, &&JMPFALSE_, &&JMPNOTNULL_ELSEPOP_, &&RDLINE_, &&RDLINE_ORDERED_, &&PREP_REREAD_, &&PUT_, &&LDPUT_, &&LDPUTALL_, &&PUTVAR_, &&LDINT_, &&LDFLOAT_, &&LDTEXT_, &&LDDATE_, &&LDDUR_, &&LDNULL_, &&LDLIT_, &&LDVAR_, &&IEQ_, &&FEQ_, &&TEQ_, &&LIKE_, &&ILEQ_, &&FLEQ_, &&TLEQ_, &&ILT_, &&FLT_, &&TLT_, &&PRINT_, &&PUSH_, &&POP_, &&POPCPY_, &&ENDRUN_, &&NULFALSE1_, &&NULFALSE2_, &&NDIST_, &&SDIST_, &&PUTDIST_, &&LDDIST_, &&FINC_, &&ENCCHA_, &&DECCHA_, &&SAVEPOSI_JMP_, &&SAVEPOSF_JMP_, &&SAVEPOSS_JMP_, &&SORTI_, &&SORTF_, &&SORTS_, &&GETGROUP_, &&ONEGROUP_, &&SUMI_, &&SUMF_, &&AVGI_, &&AVGF_, &&STDVI_, &&STDVF_, &&COUNT_, &&MINI_, &&MINF_, &&MINS_, &&MAXI_, &&MAXF_, &&MAXS_, &&NEXTMAP_, &&NEXTVEC_, &&ROOTMAP_, &&LDMID_, &&LDPUTMID_, &&LDPUTGRP_, &&LDSTDVI_, &&LDSTDVF_, &&LDAVGI_, &&LDAVGF_ };
+	void* labels[] = { &&CVER_, &&CVNO_, &&CVIF_, &&CVIS_, &&CVFI_, &&CVFS_, &&CVDRS_, &&CVDTS_, &&CVSI_, &&CVSF_, &&CVSDR_, &&CVSDT_, &&IADD_, &&FADD_, &&TADD_, &&DTADD_, &&DRADD_, &&ISUB_, &&FSUB_, &&DTSUB_, &&DRSUB_, &&IMULT_, &&FMULT_, &&DRMULT_, &&IDIV_, &&FDIV_, &&DRDIV_, &&INEG_, &&FNEG_, &&PNEG_, &&IMOD_, &&FMOD_, &&IEXP_, &&FEXP_, &&JMP_, &&JMPCNT_, &&JMPTRUE_, &&JMPFALSE_, &&JMPNOTNULL_ELSEPOP_, &&RDLINE_, &&RDLINE_ORDERED_, &&PREP_REREAD_, &&PUT_, &&LDPUT_, &&LDPUTALL_, &&PUTVAR_, &&PUTVAR2_, &&LDINT_, &&LDFLOAT_, &&LDTEXT_, &&LDDATE_, &&LDDUR_, &&LDNULL_, &&LDLIT_, &&LDVAR_, &&IEQ_, &&FEQ_, &&TEQ_, &&LIKE_, &&ILEQ_, &&FLEQ_, &&TLEQ_, &&ILT_, &&FLT_, &&TLT_, &&PRINT_, &&PUSH_, &&POP_, &&POPCPY_, &&ENDRUN_, &&NULFALSE1_, &&NULFALSE2_, &&NDIST_, &&SDIST_, &&PUTDIST_, &&LDDIST_, &&FINC_, &&ENCCHA_, &&DECCHA_, &&SAVEPOSI_JMP_, &&SAVEPOSF_JMP_, &&SAVEPOSS_JMP_, &&SORTI_, &&SORTF_, &&SORTS_, &&GETGROUP_, &&ONEGROUP_, &&SUMI_, &&SUMF_, &&AVGI_, &&AVGF_, &&STDVI_, &&STDVF_, &&COUNT_, &&MINI_, &&MINF_, &&MINS_, &&MAXI_, &&MAXF_, &&MAXS_, &&NEXTMAP_, &&NEXTVEC_, &&ROOTMAP_, &&LDMID_, &&LDPUTMID_, &&LDPUTGRP_, &&LDSTDVI_, &&LDSTDVF_, &&LDAVGI_, &&LDAVGF_ };
 
 
 	//vars for data
@@ -35,6 +35,7 @@ void vmachine::run(){
 	char bufTemp[40];
 	bool boolTemp;
 	dat datTemp;
+	dat *datpTemp;
 	csvEntry csvTemp;
 
 	//vars for vm operations
@@ -45,6 +46,7 @@ void vmachine::run(){
 	dat* midrow;
 	int ip = 0;
 	opcode *op;
+	rowgroup *groupTemp;
 
 	//file writer
 	ostream output(cout.rdbuf());
@@ -105,11 +107,25 @@ PUTDIST_:
 	DISOWN(distinctVal);
 	++ip;
 	next();
-//put variable from stack into var vector
+//put variable from stack into stackbot
 PUTVAR_:
 	FREE1(stkb(op->p1));
 	stkb(op->p1) = stk0;
 	DISOWN(stk0);
+	pop();
+	++ip;
+	next();
+//put variable from stack into midrow and stackbot
+PUTVAR2_:
+	datpTemp = &torow[op->p2];
+	if (ISNULL(*datpTemp) && !ISNULL(stk0)){
+		FREE1(stkb(op->p1));
+		stkb(op->p1) = stk0;
+		DISOWN(stkb(op->p1));
+		FREE1(*datpTemp);
+		*datpTemp = stk0.heap();
+		DISOWN(stk0);
+	}
 	pop();
 	++ip;
 	next();
@@ -840,7 +856,7 @@ MAXS_:
 	++ip;
 	next();
 GETGROUP_:
-	auto groupTemp = &groupTree;
+	groupTemp = &groupTree;
 	for (int i=op->p1; i >= 0; --i){
 		groupTemp = &groupTemp->nextGroup(stkt(i));
 	}
@@ -865,9 +881,9 @@ NEXTMAP_:
 		ip = op->p1;
 	} else {
 		// set top of iterator stack to next map
-		auto&& groupTemp = (itstk[op->p2-2]++)->second;
-		itstk[op->p2]   = groupTemp.getMap().begin();
-		itstk[op->p2+1] = groupTemp.getMap().end();
+		groupTemp = &(itstk[op->p2-2]++)->second;
+		itstk[op->p2]   = groupTemp->getMap().begin();
+		itstk[op->p2+1] = groupTemp->getMap().end();
 		++ip;
 	}
 	next();

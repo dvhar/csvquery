@@ -1,1 +1,1 @@
-with avg(c7) * 2 as dog and c3 as 'group' select avg(c7) dog c7 sum(c7)/91 'group' from 'test/country' group by c3
+with avg(c7) * 2 as dog and c3 as 'group' select avg(c7) dog c7 c1 sum(c7)/91 'group' from 'test/country' group by c3

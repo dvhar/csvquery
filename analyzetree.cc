@@ -155,6 +155,8 @@ static void setVarPhase(unique_ptr<node> &n, querySpecs &q, int phase, int secti
 				q.var(n->tok1.val).phase |= phase;
 				break;
 			}
+		} else {
+			setVarPhase(n->node1, q, phase, section);
 		}
 		break;
 	case N_JOIN:
@@ -213,7 +215,7 @@ static void setNodePhase(unique_ptr<node> &n, querySpecs &q, int phase){
 			n->phase = 2;
 			setNodePhase(n->node1, q, 2);
 		} else {
-			n->phase = 1;
+			n->phase = q.var(n->tok1.val).phase;
 			setNodePhase(n->node1, q, 1);
 		}
 		q.var(n->tok1.val).phase |= n->phase;
@@ -245,6 +247,8 @@ static void findMidrowTargets(unique_ptr<node> &n, querySpecs &q){
 		if (findAgrregates(n, q)) {
 			findMidrowTargets(n->node1, q);
 		} else {
+			q.midcount++;
+			n->tok3.id = q.midcount;
 		}
 		findMidrowTargets(n->node2, q);
 		break;
@@ -260,8 +264,7 @@ static void findMidrowTargets(unique_ptr<node> &n, querySpecs &q){
 		break;
 	case N_FUNCTION:
 		if ((n->tok1.id & AGG_BIT) != 0){
-			if (findAgrregates(n->node1, q))
-				error("Cannot have aggregate function inside another aggregate");
+			//TODO:re-enable nested aggregate check
 			q.midcount++;
 			n->tok6.id = q.midcount;
 			return;
