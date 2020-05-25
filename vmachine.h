@@ -114,7 +114,11 @@ class rowgroup {
 				if (ISTEXT(d))
 					meta.malloced = 1;
 			}
-			return getMap().insert({d.heap()/*TODO:fix memory leak*/, rowgroup()}).first->second;
+			auto heaped = d.heap();
+			auto&& inserted = getMap().insert({heaped, rowgroup()});
+			if (!inserted.second)
+				FREE2(heaped);
+			return inserted.first->second;
 		}
 		vector<dat>& getVector(int size){
 			if (!data.row) {

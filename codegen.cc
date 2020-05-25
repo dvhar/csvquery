@@ -538,7 +538,7 @@ static void genSelections(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q)
 				} break;
 			case 1:
 				for (auto nn = n.get(); nn; nn = nn->node1.get()) if (nn->label == N_VALUE){
-					addop3(v, LDPUTGRP, select_count, nn->tok1.id, getFileNo(nn->tok3.val, q));
+					addop3(v, LDPUTGRP, n->tok3.id-1, nn->tok1.id, getFileNo(nn->tok3.val, q));
 					break;
 				} break;
 			case 2:
