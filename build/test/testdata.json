@@ -100,5 +100,17 @@
 	"code":0,
 	"query":"select count(*) c3 c4 from %(f1)s group by c3 c4",
 	"output":"17.csv"
+},
+{
+	"title":"aggregate variable",
+	"code":0,
+	"query":"with avg(c7) * 2 as dog select avg(c7) dog c7 sum(c7)/91 from 'test/country'",
+	"output":"18.csv"
+},
+{
+	"title":"non-agg phase2 variable",
+	"code":0,
+	"query":"with avg(c7) * 2 as dog and c3 as 'group' select avg(c7) dog c7 c1 sum(c7)/91 'group' from 'test/country' group by c3",
+	"output":"19.csv"
 }
 ]

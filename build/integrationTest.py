@@ -26,10 +26,11 @@ def runtest(test):
         quit()
     with open('test/results/' + test['output'], 'r') as res:
         if out != res.read():
-            print('Failed. Expected:')
+            print(f"Failed. Expected from {test['output']}:")
             print('==>'+res.read()+'<==')
             print('Got instead:')
             print('==>'+out+'<==')
+            quit()
     print("---------------------------------------")
     print(f"Success! return code: {ret.returncode}")
 
