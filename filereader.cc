@@ -1,17 +1,18 @@
 #include <ctype.h>
 #include <fstream>
+#include <filesystem>
 #include <sstream>
 #include <string>
 #include "interpretor.h"
 
 
 fileReader::fileReader(string fname){
-	if ( access( fname.c_str(), F_OK ) == -1 ){
+	if (!filesystem::exists(fname)){
 		if (fname.length() <= 4 
 				|| fname.compare(fname.length() - 4, 4, ".csv") != 0
 				|| fname.compare(fname.length() - 4, 4, ".CSV") != 0){
 			fname += ".csv";
-			if ( access( fname.c_str(), F_OK ) == -1 ){
+			if (!filesystem::exists(fname)){
 				error("Could not open file "+fname);
 			}
 		} else {
