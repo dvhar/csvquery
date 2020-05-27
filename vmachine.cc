@@ -117,11 +117,11 @@ PUTVAR_:
 	next();
 //put variable from stack into midrow and stackbot
 PUTVAR2_:
+	FREE1(stkb(op->p1));
+	stkb(op->p1) = stk0;
+	DISOWN(stkb(op->p1));
 	datpTemp = &torow[op->p2];
 	if (ISNULL(*datpTemp) && !ISNULL(stk0)){
-		FREE1(stkb(op->p1));
-		stkb(op->p1) = stk0;
-		DISOWN(stkb(op->p1));
 		FREE1(*datpTemp);
 		*datpTemp = stk0.heap();
 		DISOWN(stk0);
@@ -506,7 +506,7 @@ TLT_:
 	next();
 LIKE_:
 	if (ISNULL(stk0)){
-		stk0.u.p = op->p1;
+		stk0.u.p = op->p2;
 	} else {
 		iTemp1 = !regexec(q->dataholder[op->p1].u.r, stk0.u.s, 0, 0, 0)^op->p2;
 		FREE2(stk0);
@@ -860,7 +860,7 @@ GETGROUP_:
 	for (int i=op->p1; i >= 0; --i){
 		groupTemp = &groupTemp->nextGroup(stkt(i));
 	}
-	torow = groupTemp->getVector(q->midcount).data();
+	torow = groupTemp->getRow(q->midcount).data();
 	stacktop -= (op->p1 + 1);
 	++ip;
 	next();
@@ -891,7 +891,7 @@ NEXTVEC_:
 	if (itstk[op->p2] == itstk[op->p2+1]){
 		ip = op->p1;
 	} else {
-		auto&& vecTemp = (itstk[op->p2]++)->second.getRow();
+		auto&& vecTemp = (itstk[op->p2]++)->second.getVec();
 		midrow = vecTemp.data();
 		++ip;
 	}

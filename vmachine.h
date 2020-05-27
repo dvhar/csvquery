@@ -103,38 +103,38 @@ class valPos {
 
 class rowgroup {
 	public:
-		struct { int type : 3; int malloced : 1; } meta;
-		union { vector<dat>* row; map<dat, rowgroup>* mapp; } data;
-		vector<dat>& getRow(){ return *data.row; };
+		struct { int rowOrGroup : 3; int mallocedKey : 1; } meta;
+		union { vector<dat>* vecp; map<dat, rowgroup>* mapp; } data;
+		vector<dat>& getVec(){ return *data.vecp; };
 		map<dat, rowgroup>& getMap(){ return *data.mapp; };
 		rowgroup& nextGroup(dat& d){
 			if (!data.mapp) {
 				data.mapp = new map<dat, rowgroup>;
-				meta.type = 2;
+				meta.rowOrGroup = 2;
 				if (ISTEXT(d))
-					meta.malloced = 1;
+					meta.mallocedKey = 1;
 			}
-			auto heaped = d.heap();
-			auto&& inserted = getMap().insert({heaped, rowgroup()});
+			auto key = d.heap();
+			auto&& inserted = getMap().insert({key, rowgroup()});
 			if (!inserted.second)
-				FREE2(heaped);
+				FREE2(key);
 			return inserted.first->second;
 		}
-		vector<dat>& getVector(int size){
-			if (!data.row) {
-				data.row = new vector<dat>(size, dat{{0},NIL});
-				meta.type = 1;
+		vector<dat>& getRow(int size){
+			if (!data.vecp) {
+				data.vecp = new vector<dat>(size, dat{{0},NIL});
+				meta.rowOrGroup = 1;
 			}
-			return getRow();
+			return getVec();
 		}
 		rowgroup(){ meta = {0}; data = {0}; }
 		~rowgroup(){
-			if (meta.type == 1){
-				for (auto &d : getRow())
+			if (meta.rowOrGroup == 1){
+				for (auto &d : getVec())
 					FREE2(d);
-				delete &getRow();
-			} else if (meta.type == 2) {
-				if (meta.malloced)
+				delete &getVec();
+			} else if (meta.rowOrGroup == 2) {
+				if (meta.mallocedKey)
 					for (auto &m : getMap())
 						free(m.first.u.s);
 				delete &getMap();
