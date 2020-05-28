@@ -66,7 +66,6 @@ vmachine::vmachine(querySpecs &qs){
 		files.push_back(q->files[str2("_f", i)]);
 	}
 
-	q->midcount += q->midrowvars;
 	destrow.resize(q->colspec.count);
 	torow = destrow.data();
 	torowSize = q->colspec.count;
