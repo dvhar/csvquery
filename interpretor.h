@@ -9,6 +9,7 @@
 #include <fstream>
 #include <memory>
 #include <sys/time.h>
+#include <sys/types.h>
 #include <regex>
 #include <stdarg.h>
 #include <boost/algorithm/string.hpp>
@@ -23,11 +24,6 @@
 #include <regex.h>
 #endif
 
-#ifdef _APPLE_
-#include "sys/types"
-#else
-#define uint unsigned int
-#endif
 
 #define BUFSIZE  1024*1024
 #define chacha struct chacha20_context
@@ -350,8 +346,6 @@ class querySpecs {
 	resultSpecs colspec;
 	crypter crypt;
 	int midcount;
-	int midrowvars;
-	int destrowvars;
 	int numFiles;
 	int tokIdx;
 	int options;
