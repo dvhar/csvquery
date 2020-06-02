@@ -154,6 +154,7 @@ class vmachine {
 	vector<dat> onegroup;
 	vector<dat> stack;
 	vector<vector<valPos>> posVectors;
+	vector<vector<dat>> sortVectors; //prep for recursive sorting
 	rowgroup groupTree;
 	//separate btrees for performance
 	vector<bset<int64>> bt_nums;
