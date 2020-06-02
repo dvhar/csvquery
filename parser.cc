@@ -30,7 +30,7 @@ static unique_ptr<node> parseWhere(querySpecs &q);
 static unique_ptr<node> parseValue(querySpecs &q);
 static unique_ptr<node> parseFunction(querySpecs &q);
 static unique_ptr<node> parseAfterFrom(querySpecs &q);
-static unique_ptr<node> parseExpressionList(querySpecs &q, bool independant);
+static unique_ptr<node> parseExpressionList(querySpecs &q, bool i, bool s);
 static void parseTop(querySpecs &q);
 static void parseLimit(querySpecs &q);
 static token t;
@@ -503,7 +503,7 @@ static unique_ptr<node> parsePredCompare(querySpecs &q) {
 	} else if (n->tok1.id == KW_IN) {
 		if (t.id != SP_LPAREN) error("Expected opening parenthesis for expression list. Found: "+t.val);
 		q.nextTok();
-		n->node2 = parseExpressionList(q,true);
+		n->node2 = parseExpressionList(q,true,false);
 		if (t.id != SP_RPAREN) error("Expected closing parenthesis after expression list. Found: "+t.val);
 		q.nextTok();
 	} else {
@@ -697,26 +697,18 @@ static unique_ptr<node> parseHaving(querySpecs &q) {
 	return n;
 }
 
-//node1 is sort expr
+//old: node1 is sort expr
+//new: node1 is sort expr list
 //tok1 is asc
 static unique_ptr<node> parseOrder(querySpecs &q) {
 	t = q.tok();
 	e("order");
 	if (t.lower() == "order") {
 		if (q.nextTok().lower() != "by") error("Expected 'by' after 'order'. Found "+q.tok().val);
-		q.sorting = 1; //later change to type
+		q.sorting = 1;
 		q.nextTok();
 		unique_ptr<node> n = newNode(N_ORDER);
-		n->node1 = parseExprAdd(q);
-		if (t.lower() == "asc") {
-			n->tok1 = t;
-			q.nextTok();
-		}
-		/*
-		if _,ok := q.files["_f3"]; ok && q.joining && !q.groupby {
-			return nil, ErrMsg(q.tok(),"Non-grouping ordered queries can only join 2 files")
-		}
-		*/
+		n->node1 = parseExpressionList(q, false, true);
 		return n;
 	}
 	return nullptr;
@@ -753,7 +745,7 @@ static unique_ptr<node> parseFunction(querySpecs &q) {
 		string password;
 		switch (n->tok1.id) {
 		case FN_COALESCE:
-			n->node1 = parseExpressionList(q, true);
+			n->node1 = parseExpressionList(q, true, false);
 			break;
 		case FN_ENCRYPT:
 		case FN_DECRYPT:
@@ -805,13 +797,14 @@ static unique_ptr<node> parseGroupby(querySpecs &q) {
 	unique_ptr<node> n = newNode(N_GROUPBY);
 	q.nextTok();
 	q.nextTok();
-	n->node1 = parseExpressionList(q,false);
+	n->node1 = parseExpressionList(q,false,false);
 	return n;
 }
 
 //node1 is expression
 //node2 is expressionlist
-static unique_ptr<node> parseExpressionList(querySpecs &q, bool interdependant) { //bool arg if expression types are interdependant
+//tok1 is asc for sorting lists
+static unique_ptr<node> parseExpressionList(querySpecs &q, bool interdependant, bool sortlist) { //bool arg if expression types are interdependant
 	t = q.tok();
 	e("exprlist");
 	int label = N_EXPRESSIONS;
@@ -819,6 +812,10 @@ static unique_ptr<node> parseExpressionList(querySpecs &q, bool interdependant) 
 	unique_ptr<node> n = newNode(label);
 	n->node1 = parseExprAdd(q);
 	t = q.tok();
+	if (sortlist && (t.lower() == "asc" || t.lower() == "desc")){
+		n->tok1 = t;
+		t = q.nextTok();
+	}
 	switch (t.id){
 	case SP_COMMA: q.nextTok();
 	case SP_LPAREN:
@@ -826,6 +823,6 @@ static unique_ptr<node> parseExpressionList(querySpecs &q, bool interdependant) 
 	case WORD_TK: break;
 	default: return n;
 	}
-	n->node2 = parseExpressionList(q, interdependant);
+	n->node2 = parseExpressionList(q, interdependant, sortlist);
 	return n;
 }

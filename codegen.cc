@@ -15,6 +15,7 @@ static void genExprNeg(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q);
 static void genExprCase(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q);
 static void genCPredList(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q, int end);
 static void genCWExprList(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q, int end);
+static void genSortList(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q);
 static void genCPred(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q, int end);
 static void genCWExpr(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q, int end);
 static void genPredicates(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q);
@@ -225,8 +226,8 @@ static void genExprAll(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
 	if (n == nullptr) return;
 	switch (n->label){
 	case N_DEXPRESSIONS:
-	case N_EXPRNEG:         genExprNeg     (n, v, q); break;
 	case N_EXPRADD:         genExprAdd     (n, v, q); break;
+	case N_EXPRNEG:         genExprNeg     (n, v, q); break;
 	case N_EXPRMULT:        genExprMult    (n, v, q); break;
 	case N_EXPRCASE:        genExprCase    (n, v, q); break;
 	case N_PREDICATES:      genPredicates  (n, v, q); break;
@@ -269,13 +270,16 @@ static void genNormalOrderedQuery(unique_ptr<node> &n, vector<opcode> &v, queryS
 	addop(v, RDLINE, sorter, 0);
 	genVars(n->node1, v, q, vs.setscope(WHERE_FILTER|ORDER_FILTER, V_INCLUDES, V_SCOPE1));
 	genWhere(n->node4, v, q);
-	genExprAll(n->node4->node4->node1, v, q);
+	// begin sort instructions
+	// redo this in genSortList()
+	genSortList(n->node4->node4->node1, v, q); //sort expressions
 	addop(v, savePosOps[q.sorting], normal_read, 0, 0);
 	q.posVecs = 1;
 	q.jumps.setPlace(sorter, v.size());
-	int asc = n->node4->node4->tok1.lower() == "asc" ? 1 : 0;
+	int asc = n->node4->node4->node1->tok1.lower() == "asc" ? 1 : 0;
 	addop(v, sortOps[q.sorting], 0, asc);
 	addop(v, PREP_REREAD, 0, 0);
+	// done sorting values
 	q.jumps.setPlace(reread, v.size());
 	addop(v, RDLINE_ORDERED, endreread, 0, 0);
 	genVars(n->node1, v, q, vs.setscope(DISTINCT_FILTER, V_EQUALS, V_SCOPE2));
@@ -290,6 +294,8 @@ static void genNormalOrderedQuery(unique_ptr<node> &n, vector<opcode> &v, queryS
 	popvars();
 	addop(v, ENDRUN);
 };
+static void genSortList(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
+}
 static void genBasicGroupingQuery(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
 	e("grouping");
 	agg_phase = 1;
