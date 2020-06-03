@@ -295,6 +295,7 @@ static void genNormalOrderedQuery(unique_ptr<node> &n, vector<opcode> &v, queryS
 	addop(v, ENDRUN);
 };
 static void genSortList(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
+	genExprAdd(n->node1, v, q);
 }
 static void genBasicGroupingQuery(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
 	e("grouping");
@@ -347,7 +348,6 @@ static void genVars(unique_ptr<node> &n, vector<opcode> &vec, querySpecs &q, var
 			} else {
 				addop1(vec, PUTVAR, i);
 			}
-			//also put in midrow for 1|2 vars
 		}
 		genVars(n->node2, vec, q, vs);
 		break;
