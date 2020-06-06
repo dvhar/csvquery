@@ -216,6 +216,7 @@ class fileReader {
 	char* terminator;
 	char buf[BUFSIZE];
 	ifstream fs;
+	streampos prevpos;
 	public:
 		streampos pos;
 		vector<string> colnames;

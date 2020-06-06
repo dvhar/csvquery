@@ -19,7 +19,7 @@ fileReader::fileReader(string fname){
 			error("Could not open file "+fname);
 		}
 	}
-	numFields = 0;
+	pos = prevpos = numFields = 0;
 	fs = ifstream(fname);	
 }
 fileReader::~fileReader(){
@@ -37,7 +37,7 @@ int fileReader::readlineat(int64 position){
 	return readline();
 }
 int fileReader::readline(){
-	pos = fs.tellg();
+	pos = prevpos;
 	fs.getline(buf, BUFSIZE);
 	entries.clear();
 	fieldsFound = 0;
@@ -99,6 +99,7 @@ int fileReader::readline(){
 	return 0;
 }
 int fileReader::checkWidth(){
+	prevpos += (pos2 - buf + 1);
 	//numfields is 0 until first line is done
 	if (numFields == 0)
 		numFields = entries.size();
@@ -143,6 +144,7 @@ void fileReader::inferTypes() {
 			types[i] = T_STRING; //maybe come up with better way of handling nulls
 	fs.clear();
 	fs.seekg(startData);
+	prevpos = startData;
 }
 
 int fileReader::getColIdx(string colname){
