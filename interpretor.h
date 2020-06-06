@@ -216,6 +216,7 @@ class fileReader {
 	char* terminator;
 	char buf[BUFSIZE];
 	ifstream fs;
+	string filename;
 	streampos prevpos;
 	public:
 		streampos pos;
@@ -231,6 +232,7 @@ class fileReader {
 	void print();
 	int getColIdx(string);
 	int readline();
+	int numlines();
 	int readlineat(int64);
 	fileReader(string);
 	~fileReader();
