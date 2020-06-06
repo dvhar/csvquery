@@ -206,7 +206,7 @@ class variable {
 class csvEntry {
 	public:
 	char* val;
-	uint size;
+	char* terminator;
 };
 
 class fileReader {

@@ -118,5 +118,11 @@
 	"code":0,
 	"query":"select avg(c9) c3 from 'test/country' group by c3 having avg(c9) <= 10000",
 	"output":"20.csv"
+},
+{
+	"title":"having agg condition with var",
+	"code":0,
+	"query":"with avg(c9) as a select a c3 from 'test/country' group by c3 having a <= 10000",
+	"output":"20.csv"
 }
 ]

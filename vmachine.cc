@@ -37,6 +37,7 @@ void vmachine::run(){
 	dat datTemp;
 	dat *datpTemp;
 	csvEntry csvTemp;
+	uint sizeTemp;
 
 	//vars for vm operations
 	int numPrinted = 0;
@@ -66,13 +67,14 @@ PUT_:
 LDPUT_:
 	csvTemp = files[op->p3]->entries[op->p2];
 	FREE1(torow[op->p1]);
-	torow[op->p1] = dat{ { s: csvTemp.val }, T_STRING, csvTemp.size };
+	torow[op->p1] = dat{ { s: csvTemp.val }, T_STRING, valSize(csvTemp) };
 	++ip;
 	next();
 LDPUTGRP_:
 	csvTemp = files[op->p3]->entries[op->p2];
-	if (ISNULL(torow[op->p1]) && csvTemp.size){
-		torow[op->p1] = { { s:newStr(csvTemp.val, csvTemp.size) }, T_STRING|MAL, csvTemp.size };
+	sizeTemp = valSize(csvTemp);
+	if (ISNULL(torow[op->p1]) && sizeTemp){
+		torow[op->p1] = { { s:newStr(csvTemp.val, sizeTemp) }, T_STRING|MAL, sizeTemp };
 	}
 	++ip;
 	next();
@@ -81,7 +83,7 @@ LDPUTALL_:
 	for (auto &f : files){
 		for (auto &e : f->entries){
 			FREE1(torow[iTemp1]);
-			torow[iTemp1++] = dat{ { s: e.val }, T_STRING, e.size };
+			torow[iTemp1++] = dat{ { s: e.val }, T_STRING, uint(e.terminator - e.val) };
 		}
 	}
 	++ip;
@@ -142,23 +144,24 @@ LDVAR_:
 LDDUR_:
 	push();
 	iTemp1 = parseDuration(files[op->p1]->entries[op->p2].val, &i64Temp);
-	stk0 = dat{ { i: i64Temp}, T_DURATION};
 	if (iTemp1) { SETNULL(stk0); }
+	else stk0 = dat{ { i: i64Temp}, T_DURATION};
 	++ip;
 	next();
 LDDATE_:
 	push();
 	csvTemp = files[op->p1]->entries[op->p2];
-	iTemp1 = dateparse(csvTemp.val, &i64Temp, &iTemp2, csvTemp.size);
-	stk0 = dat{ { i: i64Temp}, T_DATE, (uint) iTemp2 };
+	iTemp1 = dateparse(csvTemp.val, &i64Temp, &iTemp2, valSize(csvTemp));
 	if (iTemp1) { SETNULL(stk0); }
+	else stk0 = dat{ { i: i64Temp}, T_DATE, (uint) iTemp2 };
 	++ip;
 	next();
 LDTEXT_:
 	push();
 	csvTemp = files[op->p1]->entries[op->p2];
-	stk0 = dat{ { s: csvTemp.val }, T_STRING, csvTemp.size };
-	if (!csvTemp.size) { SETNULL(stk0); }
+	sizeTemp = valSize(csvTemp);
+	if (!sizeTemp) { SETNULL(stk0); }
+	else stk0 = dat{ { s: csvTemp.val }, T_STRING, sizeTemp };
 	++ip;
 	next();
 LDFLOAT_:
@@ -166,7 +169,7 @@ LDFLOAT_:
 	csvTemp = files[op->p1]->entries[op->p2];
 	stk0.u.f = strtof(csvTemp.val, &cstrTemp);
 	stk0.b = T_FLOAT;
-	if (!csvTemp.size || *cstrTemp){ SETNULL(stk0); }
+	if (!valSize(csvTemp) || *cstrTemp){ SETNULL(stk0); }
 	++ip;
 	next();
 LDINT_:
@@ -174,7 +177,7 @@ LDINT_:
 	csvTemp = files[op->p1]->entries[op->p2];
 	stk0.u.i = strtol(csvTemp.val, &cstrTemp, 10);
 	stk0.b = T_INT;
-	if (!csvTemp.size || *cstrTemp) { SETNULL(stk0); }
+	if (!valSize(csvTemp) || *cstrTemp) { SETNULL(stk0); }
 	++ip;
 	next();
 LDNULL_:

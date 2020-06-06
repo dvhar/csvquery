@@ -64,6 +64,8 @@ static dat* datp;
 #define ISMAL(X)  ((X).b & MAL )
 #define SETNULL(X) { (X).b |= NIL; (X).u.i = 0;}
 
+#define valSize(C) uint(C.terminator - C.val)
+
 //free cstring when arg is array[index] and only index it once
 #define FREE1(X) datp = &(X);  \
 	if ( (datp)->b & MAL ){ \
