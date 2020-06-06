@@ -155,6 +155,7 @@ class vmachine {
 	vector<dat> destrow;
 	vector<dat> onegroup;
 	vector<dat> stack;
+	vector<vector<dat>*> aggSorter; //data is already owned by groupTree
 	vector<vector<valPos>> posVectors;
 	vector<vector<dat>> sortVectors; //prep for recursive sorting
 	rowgroup groupTree;

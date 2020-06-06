@@ -804,6 +804,7 @@ static unique_ptr<node> parseGroupby(querySpecs &q) {
 //node1 is expression
 //node2 is expressionlist
 //tok1 is asc for sorting lists
+//tok2.id indicates sort list
 static unique_ptr<node> parseExpressionList(querySpecs &q, bool interdependant, bool sortlist) { //bool arg if expression types are interdependant
 	t = q.tok();
 	e("exprlist");
@@ -816,6 +817,7 @@ static unique_ptr<node> parseExpressionList(querySpecs &q, bool interdependant, 
 		n->tok1 = t;
 		t = q.nextTok();
 	}
+	n->tok2.id = sortlist;
 	switch (t.id){
 	case SP_COMMA: q.nextTok();
 	case SP_LPAREN:
