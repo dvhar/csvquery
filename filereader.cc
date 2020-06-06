@@ -20,6 +20,7 @@ fileReader::fileReader(string fname){
 		}
 	}
 	pos = prevpos = numFields = 0;
+	filename = fname;
 	fs = ifstream(fname);	
 }
 fileReader::~fileReader(){
@@ -150,6 +151,22 @@ int fileReader::getColIdx(string colname){
 		if (colnames[i] == colname)
 			return i;
 	return -1;
+}
+
+int fileReader::numlines(){
+	auto f = fopen(filename.c_str(),"r");
+	int lines=0, nbytes;
+	char *bufp, *bufe;
+	while((nbytes = fread(buf, 1, BUFSIZE, f))){
+		bufp = buf;
+		bufe = buf + nbytes;
+		while((bufp = (char*) memchr(bufp, '\n', bufe-bufp))){
+			++bufp;
+			++lines;
+		}
+	}
+	fclose(f);
+	return lines;
 }
 
 void openfiles(querySpecs &q, unique_ptr<node> &n){
