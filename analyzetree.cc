@@ -247,8 +247,8 @@ static void findMidrowTargets(unique_ptr<node> &n, querySpecs &q){
 		if (findAgrregates(n, q)) {
 			findMidrowTargets(n->node1, q);
 		} else {
-			q.midcount++;
 			n->tok3.id = q.midcount;
+			q.midcount++;
 		}
 		findMidrowTargets(n->node2, q);
 		break;
@@ -256,17 +256,16 @@ static void findMidrowTargets(unique_ptr<node> &n, querySpecs &q){
 		if (findAgrregates(n->node1, q)){
 			findMidrowTargets(n->node1, q);
 		} else {
-			//find out how to do the equivalent for non-agg phase 2 variables
-			q.midcount++;
 			n->tok3.id = q.midcount;
+			q.midcount++;
 		}
 		findMidrowTargets(n->node2, q);
 		break;
 	case N_FUNCTION:
 		if ((n->tok1.id & AGG_BIT) != 0){
 			//TODO:re-enable nested aggregate check
-			q.midcount++;
 			n->tok6.id = q.midcount;
+			q.midcount++;
 			return;
 		} else {
 			findAgrregates(n->node1, q);
