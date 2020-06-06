@@ -112,5 +112,11 @@
 	"code":0,
 	"query":"with avg(c7) * 2 as dog and c3 as 'group' select avg(c7) dog c7 c1 sum(c7)/91 'group' from 'test/country' group by c3",
 	"output":"19.csv"
+},
+{
+	"title":"having agg condition",
+	"code":0,
+	"query":"select avg(c9) c3 from 'test/country' group by c3 having avg(c9) <= 10000",
+	"output":"20.csv"
 }
 ]

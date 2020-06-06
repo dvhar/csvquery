@@ -103,10 +103,7 @@ int fileReader::checkWidth(){
 	//numfields is 0 until first line is done
 	if (numFields == 0)
 		numFields = entries.size();
-	if (fieldsFound != numFields)
-		//error(ft("should have {} fields, found {}", numFields, fieldsFound));
-		return 1;
-	return 0;
+	return fieldsFound - numFields;
 }
 int fileReader::getField(){
 	//trim trailing whitespace and push pointer

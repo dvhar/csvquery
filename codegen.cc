@@ -33,7 +33,7 @@ static int ident = 0;
 #ifndef e
 #define e(A) for (int i=0; i< ident; i++) cerr << "    "; \
 	cerr << A << endl; ident++; \
-	shared_ptr<void> _(nullptr, [](...){ \
+	shared_ptr<void> _(nullptr, [&n](...){ \
 	ident--; for (int i=0; i< ident; i++) cerr << "    "; \
 	cerr << "done " << A << endl; });
 #endif
@@ -309,10 +309,11 @@ static void genBasicGroupingQuery(unique_ptr<node> &n, vector<opcode> &v, queryS
 	genVars(n->node1, v, q, vs.setscope(WHERE_FILTER, V_EQUALS, V_SCOPE1));
 	genWhere(n->node4, v, q);
 	genVars(n->node1, v, q, vs.setscope(DISTINCT_FILTER, V_EQUALS, V_SCOPE1));
-	genDistinct(n->node2->node1, v, q, normal_read);
+	genDistinct(n->node2->node1, v, q, normal_read); //is this needed here?
 	genVars(n->node1, v, q, vs.setscope(GROUP_FILTER, V_INCLUDES, V_SCOPE1));
 	genGetGroup(n->node4->node2, v, q);
 	genVars(n->node1, v, q, vs.setscope(NO_FILTER, V_ANY, V_SCOPE1));
+	genPredicates(n->node4->node3, v, q); //having phase 1
 	genSelect(n->node2, v, q);
 	addop(v, JMP, normal_read);
 	q.jumps.setPlace(getgroups, v.size());
@@ -340,9 +341,9 @@ static void genVars(unique_ptr<node> &n, vector<opcode> &vec, querySpecs &q, var
 			if (n->phase == (1|2)){
 				//non-aggs in phase2
 				if (agg_phase == 1){
-					addop2(vec, PUTVAR2, i, n->tok3.id-1);
+					addop2(vec, PUTVAR2, i, n->tok3.id);
 				} else {
-					addop1(vec, LDMID, n->tok3.id-1);
+					addop1(vec, LDMID, n->tok3.id);
 					addop1(vec, PUTVAR, i);
 				}
 			} else {
@@ -402,7 +403,7 @@ static void genExprNeg(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
 
 static void genValue(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
 	if (n == nullptr) return;
-	e("gen value");
+	e("gen value: "+n->tok1.val);
 	dat lit;
 	int vtype, op, aggvar;
 	switch (n->tok2.id){
@@ -544,11 +545,11 @@ static void genSelections(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q)
 				} break;
 			case 1:
 				for (auto nn = n.get(); nn; nn = nn->node1.get()) if (nn->label == N_VALUE){
-					addop3(v, LDPUTGRP, n->tok3.id-1, nn->tok1.id, getFileNo(nn->tok3.val, q));
+					addop3(v, LDPUTGRP, n->tok3.id, nn->tok1.id, getFileNo(nn->tok3.val, q));
 					break;
 				} break;
 			case 2:
-				addop2(v, LDPUTMID, select_count, n->tok3.id-1);
+				addop2(v, LDPUTMID, select_count, n->tok3.id);
 				break;
 			}
 			incSelectCount();
@@ -740,42 +741,42 @@ static void genFunction(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
 	if (agg_phase == 1) {
 		switch (n->tok1.id){
 		case FN_SUM:
-			addop(v, sumops[n->datatype], n->tok6.id-1);
+			addop(v, sumops[n->datatype], n->tok6.id);
 			break;
 		case FN_AVG:
-			addop(v, avgops[n->datatype], n->tok6.id-1);
+			addop(v, avgops[n->datatype], n->tok6.id);
 			break;
 		case FN_STDEV:
 		case FN_STDEVP:
-			addop(v, stvops[n->datatype], n->tok6.id-1);
+			addop(v, stvops[n->datatype], n->tok6.id);
 			break;
 		case FN_MIN:
-			addop(v, minops[n->datatype], n->tok6.id-1);
+			addop(v, minops[n->datatype], n->tok6.id);
 			break;
 		case FN_MAX:
-			addop(v, maxops[n->datatype], n->tok6.id-1);
+			addop(v, maxops[n->datatype], n->tok6.id);
 			break;
 		case FN_COUNT:
-			addop(v, COUNT, n->tok6.id-1, n->tok2.id ? 1 : 0);
+			addop(v, COUNT, n->tok6.id, n->tok2.id ? 1 : 0);
 			break;
 		}
 		select_count++;
 	} else if (agg_phase == 2) {
 		switch (n->tok1.id){
 		case FN_AVG:
-			addop(v, ldavgops[n->datatype], n->tok6.id-1);
+			addop(v, ldavgops[n->datatype], n->tok6.id);
 			break;
 		case FN_STDEV:
-			addop(v, ldstdvops[n->datatype], n->tok6.id-1, 1);
+			addop(v, ldstdvops[n->datatype], n->tok6.id, 1);
 			break;
 		case FN_STDEVP:
-			addop(v, ldstdvops[n->datatype], n->tok6.id-1);
+			addop(v, ldstdvops[n->datatype], n->tok6.id);
 			break;
 		case FN_MIN:
 		case FN_MAX:
 		case FN_SUM:
 		case FN_COUNT:
-			addop(v, LDMID, n->tok6.id-1);
+			addop(v, LDMID, n->tok6.id);
 			break;
 		}
 	}
@@ -832,6 +833,9 @@ static void genIterateGroups(unique_ptr<node> &n, varScoper &vs, vector<opcode> 
 				int nextvec = v.size();
 				addop(v, NEXTVEC, goWhenDone, depth);
 				genVars(q.tree->node1, v, q, vs.setscope(NO_FILTER, V_ANY, V_SCOPE2));
+				genPredicates(q.tree->node4->node3, v, q);
+				if (q.havingFiltering)
+					addop(v, JMPFALSE, nextvec, 1);
 				genSelect(q.tree->node2, v, q);
 				// for debugging:
 				addop(v, PRINT);

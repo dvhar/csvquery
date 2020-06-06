@@ -653,14 +653,12 @@ JMPCNT_:
 JMPFALSE_:
 	ip = !stk0.u.p ? op->p1 : ip+1;
 	if (op->p2 == 1){
-		FREE2(stk0);
 		pop();
 	}
 	next();
 JMPTRUE_:
 	ip = stk0.u.p ? op->p1 : ip+1;
 	if (op->p2 == 1){
-		FREE2(stk0);
 		pop();
 	}
 	next();
