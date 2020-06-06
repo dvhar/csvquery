@@ -48,6 +48,7 @@ void vmachine::run(){
 	int ip = 0;
 	opcode *op;
 	rowgroup *groupTemp;
+	vector<dat> *vecPtr;
 
 	//file writer
 	ostream output(cout.rdbuf());
@@ -892,8 +893,9 @@ NEXTVEC_:
 	if (itstk[op->p2] == itstk[op->p2+1]){
 		ip = op->p1;
 	} else {
-		auto&& vecTemp = (itstk[op->p2]++)->second.getVec();
-		midrow = vecTemp.data();
+		//set midrow and pointer to its rowgroup
+		groupTemp = &(itstk[op->p2]++)->second;
+		midrow = groupTemp->getVec().data();
 		++ip;
 	}
 	next();
