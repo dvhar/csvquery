@@ -205,7 +205,7 @@ void querySpecs::addVar(string name) {
 }
 querySpecs::querySpecs(string &s){
 	queryString = s;
-	btn = bts = tokIdx = options = posVecs = sorting = 
+	btn = bts = tokIdx = options = posVecs = sorting = sortcount =
 	midcount = quantityLimit = numFiles = colspec.count =
 	whereFiltering = havingFiltering = joining = grouping = false;
 }

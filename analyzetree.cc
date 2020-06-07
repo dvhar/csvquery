@@ -70,7 +70,7 @@ static void recordResultColumns(unique_ptr<node> &n, querySpecs &q){
 		} else if (t1 == "*"){
 			selectAll(q);
 		} else {
-			q.colspec.count++;
+			n->tok4.id = q.colspec.count++;
 			q.colspec.colnames.push_back(n->tok2.val);
 			q.colspec.types.push_back(n->datatype);
 		}
@@ -80,8 +80,16 @@ static void recordResultColumns(unique_ptr<node> &n, querySpecs &q){
 		if (q.colspec.count == 0)
 			selectAll(q);
 		break;
+	case N_EXPRESSIONS:
+		if (n->tok2.id){
+			q.sortcount++;
+			if (q.grouping){
+				n->tok3.id = q.colspec.count + q.sortcount;
+			} else {
+				n->tok3.id = q.sortcount;
+			}
+		}
 	default:
-		def:
 		recordResultColumns(n->node1, q);
 		recordResultColumns(n->node2, q);
 		recordResultColumns(n->node3, q);

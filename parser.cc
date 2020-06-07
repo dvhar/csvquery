@@ -180,7 +180,8 @@ static unique_ptr<node> parseSelect(querySpecs &q) {
 //tok1 is * or distinct or hidden
 //tok2 is alias
 //later stages:
-//  tok3.id will be midrow index+1
+//  tok3.id will be midrow index
+//  tok4.id will be destrow index
 static unique_ptr<node> parseSelections(querySpecs &q) {
 	t = q.tok();
 	e("selections");
@@ -804,7 +805,9 @@ static unique_ptr<node> parseGroupby(querySpecs &q) {
 //node1 is expression
 //node2 is expressionlist
 //tok1 is asc for sorting lists
-//tok2.id indicates sort list
+//tok2.id will be sort list size, initially set to 1
+//tok3.id will be destrow index for aggregate sort values
+//	or sequence number for non-agg sort values
 static unique_ptr<node> parseExpressionList(querySpecs &q, bool interdependant, bool sortlist) { //bool arg if expression types are interdependant
 	t = q.tok();
 	e("exprlist");

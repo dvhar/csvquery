@@ -32,7 +32,8 @@ enum codes : unsigned char {
 	GETGROUP, ONEGROUP,
 	SUMI, SUMF, AVGI, AVGF, STDVI, STDVF, COUNT, MINI, MINF, MINS, MAXI, MAXF, MAXS,
 	NEXTMAP, NEXTVEC, ROOTMAP, LDMID, LDPUTMID, LDPUTGRP,
-	LDSTDVI, LDSTDVF, LDAVGI, LDAVGF
+	LDSTDVI, LDSTDVF, LDAVGI, LDAVGF,
+	GROUPSORTROW, FREEMIDROW
 };
 
 //2d array for ops indexed by operation and datatype
@@ -105,7 +106,7 @@ class valPos {
 
 class rowgroup {
 	public:
-		struct { int rowOrGroup : 3; int mallocedKey : 1; } meta;
+		struct { int rowOrGroup : 3; int mallocedKey : 1; int freed : 1; } meta;
 		union { vector<dat>* vecp; map<dat, rowgroup>* mapp; } data;
 		vector<dat>& getVec(){ return *data.vecp; };
 		map<dat, rowgroup>& getMap(){ return *data.mapp; };
@@ -132,9 +133,11 @@ class rowgroup {
 		rowgroup(){ meta = {0}; data = {0}; }
 		~rowgroup(){
 			if (meta.rowOrGroup == 1){
-				for (auto &d : getVec())
-					FREE2(d);
-				delete &getVec();
+				if (!meta.freed){
+					for (auto &d : getVec())
+						FREE2(d);
+					delete &getVec();
+				}
 			} else if (meta.rowOrGroup == 2) {
 				if (meta.mallocedKey)
 					for (auto &m : getMap())
@@ -151,13 +154,13 @@ class vmachine {
 	dat* torow;
 	dat distinctVal;
 	int torowSize;
+	int sortgroupsize;
 	int quantityLimit;
 	vector<dat> destrow;
 	vector<dat> onegroup;
 	vector<dat> stack;
-	vector<vector<dat>*> aggSorter; //data is already owned by groupTree
 	vector<vector<valPos>> posVectors;
-	vector<vector<dat>> sortVectors; //prep for recursive sorting
+	vector<vector<dat>> sortVectors; //used in different dimentions for normal vs agg
 	rowgroup groupTree;
 	//separate btrees for performance
 	vector<bset<int64>> bt_nums;

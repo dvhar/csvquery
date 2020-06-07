@@ -357,6 +357,7 @@ class querySpecs {
 	int quantityLimit;
 	int posVecs;
 	int sorting;
+	int sortcount;
 	bool joining;
 	int grouping; //1 = one group, 2 = groups
 	bool whereFiltering;
