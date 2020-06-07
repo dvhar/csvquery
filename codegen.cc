@@ -27,7 +27,8 @@ static void genSelectAll(vector<opcode> &v, querySpecs &q);
 static void genSelections(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q);
 static void genTypeConv(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q);
 static void genIterateGroups(unique_ptr<node> &n, varScoper &vs, vector<opcode> &v, querySpecs &q);
-static void genUnsortedGroups(unique_ptr<node> &n, varScoper &vs, vector<opcode> &v, querySpecs &q, int nextgroup);
+static void genUnsortedGroupRow(unique_ptr<node> &n, varScoper &vs, vector<opcode> &v, querySpecs &q, int nextgroup);
+static void genSortedGroupRow(unique_ptr<node> &n, varScoper &vs, vector<opcode> &v, querySpecs &q, int nextgroup);
 
 //for debugging
 static int ident = 0;
@@ -321,7 +322,6 @@ static void genBasicGroupingQuery(unique_ptr<node> &n, vector<opcode> &v, queryS
 	addop(v, JMP, normal_read);
 	q.jumps.setPlace(getgroups, v.size());
 	agg_phase = 2;
-	select_count = 0; //used as midrow count in phase 1
 	genIterateGroups(n->node4->node2, vs, v, q);
 	popvars();
 	addop(v, ENDRUN);
@@ -544,7 +544,7 @@ static void genSelections(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q)
 		if (t1 == "hidden") {
 
 		} else if (t1 == "distinct") {
-			addop1(v, PUTDIST, select_count);
+			addop1(v, PUTDIST, n->tok4.id);
 			incSelectCount();
 
 		} else if (t1 == "*") {
@@ -554,7 +554,7 @@ static void genSelections(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q)
 			switch (agg_phase){
 			case 0:
 				for (auto nn = n.get(); nn; nn = nn->node1.get()) if (nn->label == N_VALUE){
-					addop3(v, LDPUT, select_count, nn->tok1.id, getFileNo(nn->tok3.val, q));
+					addop3(v, LDPUT, n->tok4.id, nn->tok1.id, getFileNo(nn->tok3.val, q));
 					break;
 				} break;
 			case 1:
@@ -563,14 +563,14 @@ static void genSelections(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q)
 					break;
 				} break;
 			case 2:
-				addop2(v, LDPUTMID, select_count, n->tok3.id);
+				addop2(v, LDPUTMID, n->tok4.id, n->tok3.id);
 				break;
 			}
 			incSelectCount();
 
 		} else {
 			genExprAll(n->node1, v, q);
-			addop2(v, PUT, select_count, agg_phase==1?1:0);
+			addop2(v, PUT, n->tok4.id, agg_phase==1?1:0);
 			incSelectCount();
 		}
 		break;
@@ -847,8 +847,9 @@ static void genIterateGroups(unique_ptr<node> &n, varScoper &vs, vector<opcode> 
 				int nextvec = v.size();
 				addop(v, NEXTVEC, goWhenDone, depth);
 				if (q.sorting){
+					genSortedGroupRow(n, vs, v, q, nextvec);
 				} else {
-					genUnsortedGroups(n, vs, v, q, nextvec);
+					genUnsortedGroupRow(n, vs, v, q, nextvec);
 				}
 			}
 		}
@@ -856,12 +857,28 @@ static void genIterateGroups(unique_ptr<node> &n, varScoper &vs, vector<opcode> 
 	}
 }
 
-static void genUnsortedGroups(unique_ptr<node> &n, varScoper &vs, vector<opcode> &v, querySpecs &q, int nextgroup){
+static void genUnsortedGroupRow(unique_ptr<node> &n, varScoper &vs, vector<opcode> &v, querySpecs &q, int nextgroup){
+	e("gen unsorted group row");
 	genVars(q.tree->node1, v, q, vs.setscope(NO_FILTER, V_ANY, V_SCOPE2));
 	genPredicates(q.tree->node4->node3, v, q);
 	if (q.havingFiltering)
 		addop(v, JMPFALSE, nextgroup, 1);
 	genSelect(q.tree->node2, v, q);
+	// for debugging:
+	addop(v, PRINT);
+	addop(v, JMP, nextgroup);
+}
+static void genSortedGroupRow(unique_ptr<node> &n, varScoper &vs, vector<opcode> &v, querySpecs &q, int nextgroup){
+	e("gen sorted group row");
+	genVars(q.tree->node1, v, q, vs.setscope(NO_FILTER, V_ANY, V_SCOPE2));
+	genPredicates(q.tree->node4->node3, v, q);
+	if (q.havingFiltering)
+		addop(v, JMPFALSE, nextgroup, 1);
+	// make new sort vector, finish evaluations, free midrow
+	addop(v, GROUPSORTROW);
+	genSelect(q.tree->node2, v, q);
+	addop(v, FREEMIDROW);
+
 	// for debugging:
 	addop(v, PRINT);
 	addop(v, JMP, nextgroup);
