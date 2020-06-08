@@ -97,6 +97,7 @@ vmachine::~vmachine(){
 			free(it->s);
 		}
 	}
+	for (auto *r : groupSorter) free(r);
 }
 querySpecs::~querySpecs(){
 	for (auto &d : dataholder){
@@ -202,6 +203,7 @@ pair<char*, int> crypter::chachaDecrypt(int i, int len, char* input){
 }
 
 //debug group traverser
+/*
 void trav(rowgroup &r){
 	if (r.meta.rowOrGroup == 2){
 		auto&& m = r.getMap();
@@ -221,4 +223,4 @@ void trav(rowgroup &r){
 		}
 	}
 }
-
+*/

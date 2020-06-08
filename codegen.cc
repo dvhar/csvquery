@@ -680,15 +680,11 @@ static void genSelectAll(vector<opcode> &v, querySpecs &q){
 }
 
 static void genWhere(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
-	if (n == nullptr) return;
 	e("gen where");
-	switch (n->label){
-	case N_QUERY:     genWhere(n->node4, v, q); break;
-	case N_AFTERFROM: genWhere(n->node1, v, q); break;
-	case N_WHERE:
-		genPredicates(n->node1, v, q);
-		addop2(v, JMPFALSE, normal_read, 1);
-	}
+	auto& w = findFirstNode(n, N_WHERE);
+	if (w == nullptr) return;
+	genPredicates(w->node1, v, q);
+	addop2(v, JMPFALSE, normal_read, 1);
 }
 
 static void genDistinct(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q, int gotoIfNot){
@@ -877,6 +873,13 @@ static void genSortedGroupRow(unique_ptr<node> &n, varScoper &vs, vector<opcode>
 	// make new sort vector, finish evaluations, free midrow
 	addop(v, GROUPSORTROW);
 	genSelect(q.tree->node2, v, q);
+	auto& ordnode = findFirstNode(q.tree->node4, N_ORDER);
+	for (auto x = ordnode->node1.get(); x; x = x->node2.get()){
+		cerr << " GSG: put " << x->tok3.id << endl;
+		genExprAll(x->node1, v, q);
+		addop(v, PUT, x->tok3.id);
+		//TODO: handle asc
+	}
 	addop(v, FREEMIDROW);
 
 	// for debugging:
