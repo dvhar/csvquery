@@ -82,12 +82,12 @@ static void recordResultColumns(unique_ptr<node> &n, querySpecs &q){
 		break;
 	case N_EXPRESSIONS:
 		if (n->tok2.id){
-			q.sortcount++;
 			if (q.grouping){
 				n->tok3.id = q.colspec.count + q.sortcount;
 			} else {
 				n->tok3.id = q.sortcount;
 			}
+			q.sortcount++;
 		}
 	default:
 		recordResultColumns(n->node1, q);

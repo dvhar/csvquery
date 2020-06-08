@@ -862,7 +862,7 @@ GETGROUP_:
 	for (int i=op->p1; i >= 0; --i){
 		groupTemp = &groupTemp->nextGroup(stkt(i));
 	}
-	torow = groupTemp->getRow(q->midcount).data();
+	torow = groupTemp->getRow(q->midcount);
 	stacktop -= (op->p1 + 1);
 	++ip;
 	next();
@@ -895,19 +895,19 @@ NEXTVEC_:
 	} else {
 		//set midrow and pointer to its rowgroup
 		groupTemp = &(itstk[op->p2]++)->second;
-		midrow = groupTemp->getVec().data();
+		midrow = groupTemp->getVec();
 		++ip;
 	}
 	next();
 GROUPSORTROW_:
-	sortVectors.push_back(vector<dat>(sortgroupsize, dat{{0},NIL}));
-	torow = sortVectors.back().data();
+	torow = (dat*) malloc(sortgroupsize * sizeof(dat));
+	initarr(torow, sortgroupsize, (dat{{0},NIL}));
+	groupSorter.push_back(torow);
 	++ip;
 	next();
 FREEMIDROW_:
-	for (auto &d : groupTemp->getVec())
-		FREE2(d);
-	delete &groupTemp->getVec();
+	freearr(groupTemp->data.vecp, groupTemp->meta.rowsize);
+	delete groupTemp->getVec();
 	groupTemp->meta.freed = 1;
 	++ip;
 	next();

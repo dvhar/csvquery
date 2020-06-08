@@ -5,6 +5,8 @@
 #define VMACH_H
 
 #define bset btree::btree_set
+#define initarr(A,N,D) for (auto i=0; i<N; ++i) A[i] = D;
+#define freearr(A,N) for (auto i=0; i<N; ++i) FREE1(A[i]);
 
 enum codes : unsigned char {
 	CVER, CVNO,
@@ -106,9 +108,14 @@ class valPos {
 
 class rowgroup {
 	public:
-		struct { int rowOrGroup : 3; int mallocedKey : 1; int freed : 1; } meta;
-		union { vector<dat>* vecp; map<dat, rowgroup>* mapp; } data;
-		vector<dat>& getVec(){ return *data.vecp; };
+		struct {
+			int rowOrGroup : 3;
+			int mallocedKey : 1;
+			int freed : 1;
+			int rowsize : 27;
+		} meta;
+		union { dat* vecp; map<dat, rowgroup>* mapp; } data;
+		dat* getVec(){ return data.vecp; };
 		map<dat, rowgroup>& getMap(){ return *data.mapp; };
 		rowgroup& nextGroup(dat& d){
 			if (!data.mapp) {
@@ -123,10 +130,12 @@ class rowgroup {
 				FREE2(key);
 			return inserted.first->second;
 		}
-		vector<dat>& getRow(int size){
+		dat* getRow(int size){
 			if (!data.vecp) {
-				data.vecp = new vector<dat>(size, dat{{0},NIL});
+				data.vecp = (dat*) malloc(size * sizeof(dat));
+				initarr(data.vecp, size, (dat{{0},NIL}));
 				meta.rowOrGroup = 1;
+				meta.rowsize = size;
 			}
 			return getVec();
 		}
@@ -134,9 +143,8 @@ class rowgroup {
 		~rowgroup(){
 			if (meta.rowOrGroup == 1){
 				if (!meta.freed){
-					for (auto &d : getVec())
-						FREE2(d);
-					delete &getVec();
+					freearr(data.vecp, meta.rowsize);
+					delete getVec();
 				}
 			} else if (meta.rowOrGroup == 2) {
 				if (meta.mallocedKey)
@@ -159,8 +167,8 @@ class vmachine {
 	vector<dat> destrow;
 	vector<dat> onegroup;
 	vector<dat> stack;
+	vector<dat*> groupSorter;
 	vector<vector<valPos>> posVectors;
-	vector<vector<dat>> sortVectors; //used in different dimentions for normal vs agg
 	rowgroup groupTree;
 	//separate btrees for performance
 	vector<bset<int64>> bt_nums;
