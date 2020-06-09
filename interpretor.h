@@ -162,9 +162,6 @@ extern regex cInt;
 extern regex posInt;
 extern regex colNum;
 
-
-int scomp(const char*, const char*);
-
 class token {
 	public:
 	int id;
@@ -272,7 +269,7 @@ class dat {
 			if ((l.b | r.b) & NIL){
 				return (r.b & NIL) < (l.b & NIL);
 			}
-			return scomp(l.u.s, r.u.s) < 0;
+			return strcmp(l.u.s, r.u.s) < 0;
 		} else
 			return l.u.i < r.u.i;
 	}

@@ -92,7 +92,7 @@ class treeCString {
 		treeCString(dat& d);
 		treeCString();
 		friend bool operator<(const treeCString& l, const treeCString& r){
-			return scomp(l.s, r.s) < 0;
+			return strcmp(l.s, r.s) < 0;
 		}
 };
 

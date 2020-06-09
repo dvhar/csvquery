@@ -248,7 +248,7 @@ SORTF_:
 	next();
 SORTS_:
 	sort(execution::par_unseq, posVectors[op->p1].begin(), posVectors[op->p1].end(),
-		[op](const valPos &a, const valPos &b){ return (scomp(a.val.s, b.val.s) > 0)^op->p2; });
+		[op](const valPos &a, const valPos &b){ return (strcmp(a.val.s, b.val.s) > 0)^op->p2; });
 	++ip;
 	next();
 #else
@@ -264,7 +264,7 @@ SORTF_:
 	next();
 SORTS_:
 	sort(posVectors[op->p1].begin(), posVectors[op->p1].end(),
-		[op](const valPos &a, const valPos &b){ return (scomp(a.val.s, b.val.s) > 0)^op->p2; });
+		[op](const valPos &a, const valPos &b){ return (strcmp(a.val.s, b.val.s) > 0)^op->p2; });
 	++ip;
 	next();
 #endif
@@ -444,7 +444,7 @@ TEQ_:
 	iTemp1 = ISNULL(stk0);
 	iTemp2 = ISNULL(stk1);
 	if (!(iTemp1|iTemp2)){ //none null
-		boolTemp = (scomp(stk1.u.s, stk0.u.s) == 0)^op->p2;
+		boolTemp = (strcmp(stk1.u.s, stk0.u.s) == 0)^op->p2;
 		FREE2(stk0);
 		FREE2(stkt(op->p1));
 		stkt(op->p1).u.p = boolTemp;
@@ -475,7 +475,7 @@ TLEQ_:
 		FREE2(stkt(op->p1));
 		stkt(op->p1).u.p = false;
 	} else {
-		boolTemp = (scomp(stk1.u.s, stk0.u.s) <= 0)^op->p2;
+		boolTemp = (strcmp(stk1.u.s, stk0.u.s) <= 0)^op->p2;
 		FREE2(stk0);
 		FREE2(stkt(op->p1));
 		stkt(op->p1).u.p = boolTemp;
@@ -500,7 +500,7 @@ TLT_:
 		FREE2(stkt(op->p1));
 		stkt(op->p1).u.p = false;
 	} else {
-		boolTemp = (scomp(stk1.u.s, stk0.u.s) < 0)^op->p2;
+		boolTemp = (strcmp(stk1.u.s, stk0.u.s) < 0)^op->p2;
 		FREE2(stk0);
 		FREE2(stkt(op->p1));
 		stkt(op->p1).u.p = boolTemp;
@@ -828,7 +828,7 @@ MINF_:
 	++ip;
 	next();
 MINS_:
-	if (ISNULL(torow[op->p1]) || (!ISNULL(stk0) && scomp(torow[op->p1].u.s, stk0.u.s) > 0)){
+	if (ISNULL(torow[op->p1]) || (!ISNULL(stk0) && strcmp(torow[op->p1].u.s, stk0.u.s) > 0)){
 		FREE1(torow[op->p1]);
 		torow[op->p1] = stk0;
 		DISOWN(stk0);
@@ -849,7 +849,7 @@ MAXF_:
 	++ip;
 	next();
 MAXS_:
-	if (ISNULL(torow[op->p1]) || (!ISNULL(stk0) && scomp(torow[op->p1].u.s, stk0.u.s) < 0)){
+	if (ISNULL(torow[op->p1]) || (!ISNULL(stk0) && strcmp(torow[op->p1].u.s, stk0.u.s) < 0)){
 		FREE1(torow[op->p1]);
 		torow[op->p1] = stk0;
 		DISOWN(stk0);
