@@ -232,11 +232,6 @@ void printTree(unique_ptr<node> &n, int ident){
 	printTree(n->node4,ident);
 }
 
-//fast c string compare
-int scomp(const char* s1, const char*s2){
-	while (*s1 && *s1==*s2) { ++s1; ++s2; }
-	return *s1 - *s2;
-}
 //same but lowercase
 int slcomp(const char* s1, const char*s2){
 	while (*s1 && tolower(*s1)==*s2) { ++s1; ++s2; }
@@ -288,7 +283,7 @@ int parseDuration(char* str, date_t* t) {
 
 int getNarrowestType(char* value, int startType) {
 	date_t t;
-	if (!slcomp(value,"null") || !scomp(value,"NA") || value[0] == '\0') {
+	if (!slcomp(value,"null") || !strcmp(value,"NA") || value[0] == '\0') {
 	  startType = max(T_NULL, startType);
 	} else if (!regexec(&leadingZeroString, value, 0, NULL, 0)){ startType = T_STRING;
 	} else if (isInt(value))                       { startType = max(T_INT, startType);
