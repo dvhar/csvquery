@@ -5,6 +5,9 @@
 //parallel sort only available in gcc's libstdc++
 #ifdef _GLIBCXX_EXECUTION
 #include <execution>
+#define parallel() execution::par_unseq,
+#else
+#define parallel()
 #endif
 
 //work with stack data
@@ -212,6 +215,8 @@ PREP_REREAD_:
 	stk0.u.i = 0;
 	++ip;
 	next();
+
+//old sort indexer
 SAVEPOSI_JMP_:
 	posVectors[op->p2].push_back(valPos( stk0.u.i, files[op->p3]->pos ));
 	ip = op->p1;
@@ -235,39 +240,52 @@ SAVEPOSS_JMP_:
 	pop();
 	next();
 
-#ifdef _GLIBCXX_EXECUTION
+//old sorter
 SORTI_:
-	sort(execution::par_unseq, posVectors[op->p1].begin(), posVectors[op->p1].end(),
-		[op](const valPos &a, const valPos &b){ return (a.val.i > b.val.i)^op->p2; });
+	sort(parallel() posVectors[op->p1].begin(), posVectors[op->p1].end(),
+		[&op](const valPos &a, const valPos &b){ return (a.val.i > b.val.i)^op->p2; });
 	++ip;
 	next();
 SORTF_:
-	sort(execution::par_unseq, posVectors[op->p1].begin(), posVectors[op->p1].end(),
-		[op](const valPos &a, const valPos &b){ return (a.val.f > b.val.f)^op->p2; });
+	sort(parallel() posVectors[op->p1].begin(), posVectors[op->p1].end(),
+		[&op](const valPos &a, const valPos &b){ return (a.val.f > b.val.f)^op->p2; });
 	++ip;
 	next();
 SORTS_:
-	sort(execution::par_unseq, posVectors[op->p1].begin(), posVectors[op->p1].end(),
-		[op](const valPos &a, const valPos &b){ return (strcmp(a.val.s, b.val.s) > 0)^op->p2; });
+	sort(parallel() posVectors[op->p1].begin(), posVectors[op->p1].end(),
+		[&op](const valPos &a, const valPos &b){ return (strcmp(a.val.s, b.val.s) > 0)^op->p2; });
 	++ip;
 	next();
-#else
-SORTI_:
-	sort(posVectors[op->p1].begin(), posVectors[op->p1].end(),
-		[op](const valPos &a, const valPos &b){ return (a.val.i > b.val.i)^op->p2; });
+
+//group sorter - p1 is sort index, p2 amount of sort values
+GSORTI_:
+	{
+		int sortVal = op->p1;
+		int prevVal = sortVal - 1;
+		int start = 0, end = 0, last = groupSorter.size()-1;
+		auto comp = [&sortVal](const auto &a, const auto &b) -> bool { return a[sortVal].u.i > b[sortVal].u.i; };
+		auto backcheck = [&start, &end, &prevVal, this](int i) -> bool {
+			int backidx = 0;
+			while (i > 0){
+				if (!(groupSorter[start][prevVal-backidx].u.i == groupSorter[end+1][prevVal-backidx].u.i))
+					return false;
+				--i; ++backidx;
+			}
+			return true;
+		};
+		sort(parallel() groupSorter.begin(), groupSorter.end(), comp);
+		for (int i=1; i<op->p2; i++) {
+			++sortVal; ++prevVal;
+			while (start < last){
+				while (end<last && backcheck(i))
+					++end;
+				sort(parallel() groupSorter.begin()+start, groupSorter.begin()+end, comp);
+				start = end + 1;
+			}
+		}
+	}
 	++ip;
 	next();
-SORTF_:
-	sort(posVectors[op->p1].begin(), posVectors[op->p1].end(),
-		[op](const valPos &a, const valPos &b){ return (a.val.f > b.val.f)^op->p2; });
-	++ip;
-	next();
-SORTS_:
-	sort(posVectors[op->p1].begin(), posVectors[op->p1].end(),
-		[op](const valPos &a, const valPos &b){ return (strcmp(a.val.s, b.val.s) > 0)^op->p2; });
-	++ip;
-	next();
-#endif
 
 //math operations
 IADD_:
@@ -312,6 +330,7 @@ FSUB_:
 	++ip;
 	next();
 DTSUB_:
+	//TODO: handle date-date and date-duration
 	if (ISNULL(stk0) || ISNULL(stk1)) { SETNULL(stk1); }
 	else { stk1.u.i -= stk0.u.i; stk1.b = T_DATE; }
 	pop();

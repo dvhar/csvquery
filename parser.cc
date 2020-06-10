@@ -817,7 +817,7 @@ static unique_ptr<node> parseExpressionList(querySpecs &q, bool interdependant, 
 	n->node1 = parseExprAdd(q);
 	t = q.tok();
 	if (sortlist && (t.lower() == "asc" || t.lower() == "desc")){
-		n->tok1 = t;
+		n->tok1.id = t.lower() == "asc";
 		t = q.nextTok();
 	}
 	n->tok2.id = sortlist;

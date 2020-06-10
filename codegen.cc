@@ -278,7 +278,7 @@ static void genNormalOrderedQuery(unique_ptr<node> &n, vector<opcode> &v, queryS
 	addop(v, savePosOps[q.sorting], normal_read, 0, 0);
 	q.posVecs = 1;
 	q.jumps.setPlace(sorter, v.size());
-	int asc = n->node4->node4->node1->tok1.lower() == "asc" ? 1 : 0;
+	int asc = n->node4->node4->node1->tok1.id;
 	addop(v, sortOps[q.sorting], 0, asc);
 	addop(v, PREP_REREAD, 0, 0);
 	// done sorting values
@@ -870,15 +870,13 @@ static void genSortedGroupRow(unique_ptr<node> &n, varScoper &vs, vector<opcode>
 	genPredicates(q.tree->node4->node3, v, q);
 	if (q.havingFiltering)
 		addop(v, JMPFALSE, nextgroup, 1);
-	// make new sort vector, finish evaluations, free midrow
 	addop(v, GROUPSORTROW);
 	genSelect(q.tree->node2, v, q);
 	auto& ordnode = findFirstNode(q.tree->node4, N_ORDER);
 	for (auto x = ordnode->node1.get(); x; x = x->node2.get()){
-		cerr << " GSG: put " << x->tok3.id << endl;
 		genExprAll(x->node1, v, q);
 		addop(v, PUT, x->tok3.id);
-		//TODO: handle asc
+		q.sortOrders.push_back(x->tok1.id);
 	}
 	addop(v, FREEMIDROW);
 
