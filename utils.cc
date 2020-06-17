@@ -382,9 +382,7 @@ char* durstring(dur_t dur, char* str){
 }
 
 unique_ptr<node>& findFirstNode(unique_ptr<node> &n, int label){
-	static unique_ptr<node> nul(nullptr);
-	if (n == nullptr) return nul;
-	if (n->label == label)
+	if (n == nullptr || n->label == label)
 		return n;
 	return findFirstNode(n->node1, label)
 		?:(findFirstNode(n->node2, label)

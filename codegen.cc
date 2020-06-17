@@ -850,6 +850,12 @@ static void genIterateGroups(unique_ptr<node> &n, varScoper &vs, vector<opcode> 
 			}
 		}
 		q.jumps.setPlace(doneGroups, v.size());
+
+		//maybe put this part in higher level function:
+		if (q.sorting){
+			auto& ordnode1 = findFirstNode(q.tree->node4, N_ORDER)->node1;
+			addop(v, GSORT, ordnode1->tok3.id, q.sortcount);
+		}
 	}
 }
 
@@ -876,7 +882,7 @@ static void genSortedGroupRow(unique_ptr<node> &n, varScoper &vs, vector<opcode>
 	for (auto x = ordnode->node1.get(); x; x = x->node2.get()){
 		genExprAll(x->node1, v, q);
 		addop(v, PUT, x->tok3.id);
-		q.sortOrders.push_back(x->tok1.id);
+		q.sortInfo.push_back({x->tok1.id, x->datatype});
 	}
 	addop(v, FREEMIDROW);
 

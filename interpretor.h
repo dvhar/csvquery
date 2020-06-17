@@ -336,7 +336,7 @@ class querySpecs {
 	string queryString;
 	string password;
 	vector<token> tokArray;
-	vector<int> sortOrders;
+	vector<pair<int,int>> sortInfo; // asc, datatype
 	vector<variable> vars;
 	vector<dat> dataholder;
 	vector<opcode> bytecode;
