@@ -202,6 +202,30 @@ pair<char*, int> crypter::chachaDecrypt(int i, int len, char* input){
 	return pair<char*,int>(finalResult, finalSize);
 }
 
+
+int getSortComparer(querySpecs *q, int i){
+	auto info = q->sortInfo[i];
+	switch (info.second + info.first * 10){
+	case T_INT:
+	case T_DATE:
+	case T_DURATION:
+		return 0;
+	case T_INT + 10:
+	case T_DATE + 10:
+	case T_DURATION + 10:
+		return 3;
+	case T_FLOAT:
+		return 1;
+	case T_FLOAT + 10:
+		return 4;
+	case T_STRING:
+		return 2;
+	case T_STRING + 10:
+		return 5;
+	}
+	error("invalid sort function");
+};
+
 //debug group traverser
 /*
 void trav(rowgroup &r){
