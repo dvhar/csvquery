@@ -804,7 +804,7 @@ static unique_ptr<node> parseGroupby(querySpecs &q) {
 
 //node1 is expression
 //node2 is expressionlist
-//tok1 is asc for sorting lists
+//tok1 id asc for sorting lists
 //tok2.id will be sort list size, initially set to 1
 //tok3.id will be destrow index for aggregate sort values
 //	or sequence number for non-agg sort values

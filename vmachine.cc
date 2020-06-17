@@ -26,8 +26,37 @@
 	debugOpcode \
 	goto *(labels[op->code]);
 
+bool  compi(const dat*a, const dat*b, int sortVal) { return a[sortVal].u.i > b[sortVal].u.i; };
+bool  compf(const dat*a, const dat*b, int sortVal) { return a[sortVal].u.f > b[sortVal].u.f; };
+bool  comps(const dat*a, const dat*b, int sortVal) { return strcmp(a[sortVal].u.s, b[sortVal].u.s) > 0; };
+bool compia(const dat*a, const dat*b, int sortVal) { return a[sortVal].u.i < b[sortVal].u.i; };
+bool compfa(const dat*a, const dat*b, int sortVal) { return a[sortVal].u.f < b[sortVal].u.f; };
+bool compsa(const dat*a, const dat*b, int sortVal) { return strcmp(a[sortVal].u.s, b[sortVal].u.s) < 0; };
+auto getSortComparer = [](querySpecs *q, int i){
+	auto info = q->sortInfo[i];
+	switch (info.second + info.first * 10){
+	case T_INT:
+	case T_DATE:
+	case T_DURATION:
+		return compi;
+	case T_INT + 10:
+	case T_DATE + 10:
+	case T_DURATION + 10:
+		return compia;
+	case T_FLOAT:
+		return compf;
+	case T_FLOAT + 10:
+		return compfa;
+	case T_STRING:
+		return comps;
+	case T_STRING + 10:
+		return compsa;
+	}
+	error("invalid sort function");
+};
+
 void vmachine::run(){
-	void* labels[] = { &&CVER_, &&CVNO_, &&CVIF_, &&CVIS_, &&CVFI_, &&CVFS_, &&CVDRS_, &&CVDTS_, &&CVSI_, &&CVSF_, &&CVSDR_, &&CVSDT_, &&IADD_, &&FADD_, &&TADD_, &&DTADD_, &&DRADD_, &&ISUB_, &&FSUB_, &&DTSUB_, &&DRSUB_, &&IMULT_, &&FMULT_, &&DRMULT_, &&IDIV_, &&FDIV_, &&DRDIV_, &&INEG_, &&FNEG_, &&PNEG_, &&IMOD_, &&FMOD_, &&IEXP_, &&FEXP_, &&JMP_, &&JMPCNT_, &&JMPTRUE_, &&JMPFALSE_, &&JMPNOTNULL_ELSEPOP_, &&RDLINE_, &&RDLINE_ORDERED_, &&PREP_REREAD_, &&PUT_, &&LDPUT_, &&LDPUTALL_, &&PUTVAR_, &&PUTVAR2_, &&LDINT_, &&LDFLOAT_, &&LDTEXT_, &&LDDATE_, &&LDDUR_, &&LDNULL_, &&LDLIT_, &&LDVAR_, &&IEQ_, &&FEQ_, &&TEQ_, &&LIKE_, &&ILEQ_, &&FLEQ_, &&TLEQ_, &&ILT_, &&FLT_, &&TLT_, &&PRINT_, &&PUSH_, &&POP_, &&POPCPY_, &&ENDRUN_, &&NULFALSE1_, &&NULFALSE2_, &&NDIST_, &&SDIST_, &&PUTDIST_, &&LDDIST_, &&FINC_, &&ENCCHA_, &&DECCHA_, &&SAVEPOSI_JMP_, &&SAVEPOSF_JMP_, &&SAVEPOSS_JMP_, &&SORTI_, &&SORTF_, &&SORTS_, &&GETGROUP_, &&ONEGROUP_, &&SUMI_, &&SUMF_, &&AVGI_, &&AVGF_, &&STDVI_, &&STDVF_, &&COUNT_, &&MINI_, &&MINF_, &&MINS_, &&MAXI_, &&MAXF_, &&MAXS_, &&NEXTMAP_, &&NEXTVEC_, &&ROOTMAP_, &&LDMID_, &&LDPUTMID_, &&LDPUTGRP_, &&LDSTDVI_, &&LDSTDVF_, &&LDAVGI_, &&LDAVGF_, &&GROUPSORTROW_, &&FREEMIDROW_ };
+	void* labels[] = { &&CVER_, &&CVNO_, &&CVIF_, &&CVIS_, &&CVFI_, &&CVFS_, &&CVDRS_, &&CVDTS_, &&CVSI_, &&CVSF_, &&CVSDR_, &&CVSDT_, &&IADD_, &&FADD_, &&TADD_, &&DTADD_, &&DRADD_, &&ISUB_, &&FSUB_, &&DTSUB_, &&DRSUB_, &&IMULT_, &&FMULT_, &&DRMULT_, &&IDIV_, &&FDIV_, &&DRDIV_, &&INEG_, &&FNEG_, &&PNEG_, &&IMOD_, &&FMOD_, &&IEXP_, &&FEXP_, &&JMP_, &&JMPCNT_, &&JMPTRUE_, &&JMPFALSE_, &&JMPNOTNULL_ELSEPOP_, &&RDLINE_, &&RDLINE_ORDERED_, &&PREP_REREAD_, &&PUT_, &&LDPUT_, &&LDPUTALL_, &&PUTVAR_, &&PUTVAR2_, &&LDINT_, &&LDFLOAT_, &&LDTEXT_, &&LDDATE_, &&LDDUR_, &&LDNULL_, &&LDLIT_, &&LDVAR_, &&IEQ_, &&FEQ_, &&TEQ_, &&LIKE_, &&ILEQ_, &&FLEQ_, &&TLEQ_, &&ILT_, &&FLT_, &&TLT_, &&PRINT_, &&PUSH_, &&POP_, &&POPCPY_, &&ENDRUN_, &&NULFALSE1_, &&NULFALSE2_, &&NDIST_, &&SDIST_, &&PUTDIST_, &&LDDIST_, &&FINC_, &&ENCCHA_, &&DECCHA_, &&SAVEPOSI_JMP_, &&SAVEPOSF_JMP_, &&SAVEPOSS_JMP_, &&SORTI_, &&SORTF_, &&SORTS_, &&GETGROUP_, &&ONEGROUP_, &&SUMI_, &&SUMF_, &&AVGI_, &&AVGF_, &&STDVI_, &&STDVF_, &&COUNT_, &&MINI_, &&MINF_, &&MINS_, &&MAXI_, &&MAXF_, &&MAXS_, &&NEXTMAP_, &&NEXTVEC_, &&ROOTMAP_, &&LDMID_, &&LDPUTMID_, &&LDPUTGRP_, &&LDSTDVI_, &&LDSTDVF_, &&LDAVGI_, &&LDAVGF_, &&GROUPSORTROW_, &&FREEMIDROW_, &&GSORT_ };
 
 
 	//vars for data
@@ -258,16 +287,19 @@ SORTS_:
 	next();
 
 //group sorter - p1 is sort index, p2 amount of sort values
-GSORTI_:
+//needs to handle all data types
+GSORT_:
 	{
+		cerr << "gsort\n";
 		int sortVal = op->p1;
 		int prevVal = sortVal - 1;
 		int start = 0, end = 0, last = groupSorter.size()-1;
-		auto comp = [&sortVal](const auto &a, const auto &b) -> bool { return a[sortVal].u.i > b[sortVal].u.i; };
-		auto backcheck = [&start, &end, &prevVal, this](int i) -> bool {
+		auto comparer = getSortComparer(q, 0);
+		auto comp = [&sortVal, &comparer](const auto &a, const auto &b) -> bool { return comparer(a,b,sortVal); };
+		auto backcheck = [&start, &end, &prevVal, this](int i) -> bool { //make this work with strings too
 			int backidx = 0;
 			while (i > 0){
-				if (!(groupSorter[start][prevVal-backidx].u.i == groupSorter[end+1][prevVal-backidx].u.i))
+				if (groupSorter[start][prevVal-backidx].u.i != groupSorter[end+1][prevVal-backidx].u.i)
 					return false;
 				--i; ++backidx;
 			}
@@ -276,13 +308,22 @@ GSORTI_:
 		sort(parallel() groupSorter.begin(), groupSorter.end(), comp);
 		for (int i=1; i<op->p2; i++) {
 			++sortVal; ++prevVal;
+			comparer = getSortComparer(q, i);
+			auto comp = [&sortVal, &comparer](const auto &a, const auto &b) -> bool { return comparer(a,b,sortVal); };
 			while (start < last){
 				while (end<last && backcheck(i))
 					++end;
-				sort(parallel() groupSorter.begin()+start, groupSorter.begin()+end, comp);
+				if (end-start)
+					sort(parallel() groupSorter.begin()+start, groupSorter.begin()+end, comp);
 				start = end + 1;
 			}
 		}
+		cerr << "gsort done\n";
+		for (auto &r : groupSorter){
+			for (int i=0; i<torowSize; i++)
+				cerr << r[i].str() << endl;
+		}
+		cerr << "gsort demo done\n";
 	}
 	++ip;
 	next();
