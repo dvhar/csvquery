@@ -258,7 +258,6 @@ SORTS_:
 	next();
 
 //group sorter - p1 is sort index, p2 amount of sort values
-//needs to handle all data types
 GSORT_:
 	{
 		cerr << "gsort\n";
@@ -266,18 +265,23 @@ GSORT_:
 		int prevVal = sortVal - 1;
 		int start = 0, end = 0, last = groupSorter.size()-1;
 		function<bool (const dat*,const dat*)> comparers[] = {
-			[&sortVal](const dat*a, const dat*b) -> bool { return a[sortVal].u.i > b[sortVal].u.i; },
-			[&sortVal](const dat*a, const dat*b) -> bool { return a[sortVal].u.f > b[sortVal].u.f; },
-			[&sortVal](const dat*a, const dat*b) -> bool { return strcmp(a[sortVal].u.s, b[sortVal].u.s) > 0; },
-			[&sortVal](const dat*a, const dat*b) -> bool { return a[sortVal].u.i < b[sortVal].u.i; },
-			[&sortVal](const dat*a, const dat*b) -> bool { return a[sortVal].u.f < b[sortVal].u.f; },
-			[&sortVal](const dat*a, const dat*b) -> bool { return strcmp(a[sortVal].u.s, b[sortVal].u.s) < 0; },
+			[&sortVal](const dat*a, const dat*b) { return a[sortVal].u.i > b[sortVal].u.i; },
+			[&sortVal](const dat*a, const dat*b) { return a[sortVal].u.f > b[sortVal].u.f; },
+			[&sortVal](const dat*a, const dat*b) { return strcmp(a[sortVal].u.s, b[sortVal].u.s) > 0; },
+			[&sortVal](const dat*a, const dat*b) { return a[sortVal].u.i < b[sortVal].u.i; },
+			[&sortVal](const dat*a, const dat*b) { return a[sortVal].u.f < b[sortVal].u.f; },
+			[&sortVal](const dat*a, const dat*b) { return strcmp(a[sortVal].u.s, b[sortVal].u.s) < 0; },
 		};
-		auto backcheck = [&start, &end, &prevVal, this](int i) -> bool { //make this work with strings too
+		auto backcheck = [&](int i) -> bool {
 			int backidx = 0;
 			while (i > 0){
-				if (groupSorter[start][prevVal-backidx].u.i != groupSorter[end+1][prevVal-backidx].u.i)
-					return false;
+				if (q->sortInfo[i].second == T_STRING){
+					if (strcmp(groupSorter[start][prevVal-backidx].u.s, groupSorter[end+1][prevVal-backidx].u.s))
+						return false;
+				} else {
+					if (groupSorter[start][prevVal-backidx].u.i != groupSorter[end+1][prevVal-backidx].u.i)
+						return false;
+				}
 				--i; ++backidx;
 			}
 			return true;
@@ -298,7 +302,8 @@ GSORT_:
 		cerr << "gsort done\n";
 		for (auto &r : groupSorter){
 			for (int i=0; i<torowSize; i++)
-				cerr << r[i].str() << endl;
+				cerr << r[i].str() << ',';
+			cerr << endl;
 		}
 		cerr << "gsort demo done\n";
 	}
