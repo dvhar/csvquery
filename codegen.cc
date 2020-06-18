@@ -148,6 +148,7 @@ void jumpPositions::updateBytecode(vector<opcode> &vec) {
 		case JMPNOTNULL_ELSEPOP:
 		case NEXTMAP:
 		case NEXTVEC:
+		case READ_NEXT_GROUP:
 			if (v.p1 < 0)
 				v.p1 = jumps[v.p1];
 		}
@@ -851,10 +852,18 @@ static void genIterateGroups(unique_ptr<node> &n, varScoper &vs, vector<opcode> 
 		}
 		q.jumps.setPlace(doneGroups, v.size());
 
-		//maybe put this part in higher level function:
+		//maybe put this part in higher level function?
 		if (q.sorting){
 			auto& ordnode1 = findFirstNode(q.tree->node4, N_ORDER)->node1;
+			int doneReadGroups = q.jumps.newPlaceholder();
 			addop(v, GSORT, ordnode1->tok3.id, q.sortcount);
+			addop(v, PUSH_0);
+			int readNext = v.size();
+			addop(v, READ_NEXT_GROUP, doneReadGroups);
+			addop(v, PRINT);
+			addop(v, JMP, readNext);
+			q.jumps.setPlace(doneReadGroups, v.size());
+			addop(v, POP);
 		}
 	}
 }
@@ -876,7 +885,7 @@ static void genSortedGroupRow(unique_ptr<node> &n, varScoper &vs, vector<opcode>
 	genPredicates(q.tree->node4->node3, v, q);
 	if (q.havingFiltering)
 		addop(v, JMPFALSE, nextgroup, 1);
-	addop(v, GROUPSORTROW);
+	addop(v, ADD_GROUPSORT_ROW);
 	genSelect(q.tree->node2, v, q);
 	auto& ordnode = findFirstNode(q.tree->node4, N_ORDER);
 	for (auto x = ordnode->node1.get(); x; x = x->node2.get()){
@@ -885,8 +894,5 @@ static void genSortedGroupRow(unique_ptr<node> &n, varScoper &vs, vector<opcode>
 		q.sortInfo.push_back({x->tok1.id, x->datatype});
 	}
 	addop(v, FREEMIDROW);
-
-	// for debugging:
-	addop(v, PRINT);
 	addop(v, JMP, nextgroup);
 }
