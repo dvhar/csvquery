@@ -110,7 +110,7 @@ int fileReader::getField(){
 	//trim trailing whitespace and push pointer
 	while (isblank(*(terminator-1))) --terminator;
 	*terminator = '\0';
-	entries.push_back({pos1, terminator});
+	entries.emplace_back(csvEntry{pos1, terminator});
 	return 0;
 }
 

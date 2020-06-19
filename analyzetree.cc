@@ -103,6 +103,8 @@ static bool findAgrregates(unique_ptr<node> &n, querySpecs &q){
 	case N_FUNCTION:
 		if ((n->tok1.id & AGG_BIT) != 0){
 			return true;
+		} else {
+			return findAgrregates(n->node1, q);
 		}
 		break;
 	case N_VARS:
@@ -211,6 +213,7 @@ static void setNodePhase(unique_ptr<node> &n, querySpecs &q, int phase){
 		setNodePhase(n->node2, q, 2);
 		break;
 	case N_FUNCTION:
+		n->phase = phase;
 		if ((n->tok1.id & AGG_BIT) != 0){
 			//nodes below aggregate are phase 1
 			setNodePhase(n->node1, q, 1);
