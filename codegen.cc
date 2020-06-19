@@ -748,6 +748,10 @@ static void genFunction(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
 		break;
 	}
 
+	//non-aggregates selected in grouping query
+	if ((n->label & AGG_BIT)==0 && agg_phase == 2 && n->phase == 1)
+		error("cannot select plain non-aggregate functions in aggregate queries");
+
 	//aggregates
 	if (agg_phase == 1) {
 		switch (n->tok1.id){

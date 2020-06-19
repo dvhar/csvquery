@@ -137,7 +137,7 @@ PUTVAR2_:
 	next();
 
 //put variable from var vector into stack
-LDVAR_:
+LDVAR_: // TODO: find storage place for sorted group vars
 	push();
 	FREE2(stk0);
 	stk0 = stkb(op->p1);
@@ -293,8 +293,9 @@ GSORT_:
 			while (start < last){
 				while (end<last && backcheck(i))
 					++end;
-				if (end-start)
-					sort(parallel() groupSorter.begin()+start, groupSorter.begin()+end, comp);
+				if (end > start){
+					sort(parallel() groupSorter.begin()+start, groupSorter.begin()+end+1, comp);
+				}
 				start = end + 1;
 			}
 		}
@@ -891,7 +892,7 @@ MAXF_:
 MAXS_:
 	if (ISNULL(torow[op->p1]) || (!ISNULL(stk0) && strcmp(torow[op->p1].u.s, stk0.u.s) < 0)){
 		FREE1(torow[op->p1]);
-		torow[op->p1] = stk0;
+		torow[op->p1] = stk0.heap();
 		DISOWN(stk0);
 	}
 	pop();

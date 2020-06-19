@@ -54,8 +54,8 @@ int main(int argc, char** argv){
 	if (whatdo != 1){
 	}
 
-	querySpecs q(qs);
 	try {
+		querySpecs q(qs);
 		scanTokens(q);
 		parseQuery(q);
 		openfiles(q, q.tree);
