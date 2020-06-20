@@ -23,7 +23,7 @@ enum codes : unsigned char {
 	RDLINE, RDLINE_ORDERED, PREP_REREAD,
 	PUT, LDPUT, LDPUTALL, PUTVAR, PUTVAR2,
 	LDINT, LDFLOAT, LDTEXT, LDDATE, LDDUR,
-	LDNULL, LDLIT, LDVAR,
+	LDNULL, LDLIT, LDVAR, HOLDVAR,
 	IEQ, FEQ, TEQ, LIKE,
 	ILEQ, FLEQ, TLEQ,
 	ILT, FLT, TLT,
@@ -169,6 +169,7 @@ class vmachine {
 	vector<dat> stack;
 	vector<dat*> groupSorter;
 	vector<vector<valPos>> posVectors;
+	list<char*> groupSortVars;
 	rowgroup groupTree;
 	//separate btrees for performance
 	vector<bset<int64>> bt_nums;

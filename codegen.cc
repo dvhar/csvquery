@@ -363,6 +363,9 @@ static void genVars(unique_ptr<node> &n, vector<opcode> &vec, querySpecs &q, var
 				}
 			} else {
 				addop1(vec, PUTVAR, i);
+				int vartype = getVarType(n->tok1.val, q);
+				if (agg_phase == 2 && q.sorting && vartype == T_STRING)
+					addop0(vec, HOLDVAR);
 			}
 		}
 		genVars(n->node2, vec, q, vs);
