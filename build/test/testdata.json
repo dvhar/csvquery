@@ -124,5 +124,11 @@
 	"code":0,
 	"query":"with avg(c9) as a select a c3 from 'test/country' group by c3 having a <= 10000",
 	"output":"20.csv"
+},
+{
+	"title":"double group sort with var",
+	"code":0,
+	"query":"with max(c1) as m1 select max(c3) m1 from 'test/country' group by inc() order by max(c3) m1 asc",
+	"output":"21.csv"
 }
 ]
