@@ -156,7 +156,7 @@ static unique_ptr<node> parseVars(querySpecs &q) {
 	if (t.id != WORD_TK) error("Expected variable name. Found "+t.val);
 	n->tok1 = t;
 	t = q.nextTok();
-	if (t.lower() == "and") {
+	if (t.lower() == "and" || t.id == SP_COMMA) {
 		q.nextTok();
 		n->node2 = parseVars(q);
 	}

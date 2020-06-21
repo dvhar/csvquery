@@ -138,7 +138,7 @@ PUTVAR2_:
 
 HOLDVAR_:
 	if (ISMAL(stkb(op->p1))){
-		groupSortVars.emplace_back(stkb(op->p1).u.s);
+		groupSortVars.emplace_front(stkb(op->p1).u.s);
 		DISOWN(stkb(op->p1));
 	}
 	++ip;
@@ -295,9 +295,10 @@ GSORT_:
 		sort(parallel() groupSorter.begin(), groupSorter.end(), comp);
 		for (int i=1; i<op->p2; i++) {
 			++sortVal; ++prevVal;
+			start = end = 0;
 			auto comp = comparers[getSortComparer(q, i)];
 			while (start < last){
-				while (end<last && backcheck(i))
+				while (end < last && backcheck(i))
 					++end;
 				if (end > start){
 					sort(parallel() groupSorter.begin()+start, groupSorter.begin()+end+1, comp);

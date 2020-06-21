@@ -130,5 +130,11 @@
 	"code":0,
 	"query":"with max(c1) as m1 select max(c3) m1 from 'test/country' group by inc() order by max(c3) m1 asc",
 	"output":"21.csv"
+},
+{
+	"title":"triple group sort with just vars",
+	"code":0,
+	"query":"with max(c1) as m1, max(c3) as m3, max(c4) as m4 select m3 m4 m1 from 'test/country' group by inc() %% 20 order by m3 m4 asc m1",
+	"output":"22.csv"
 }
 ]
