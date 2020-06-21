@@ -1,6 +1,7 @@
 #include "interpretor.h"
 #include "deps/btree/btree_set.h"
 #include "deps/b64/b64.h"
+#include <forward_list>
 #ifndef VMACH_H
 #define VMACH_H
 
@@ -169,7 +170,7 @@ class vmachine {
 	vector<dat> stack;
 	vector<dat*> groupSorter;
 	vector<vector<valPos>> posVectors;
-	list<char*> groupSortVars;
+	forward_list<char*> groupSortVars;
 	rowgroup groupTree;
 	//separate btrees for performance
 	vector<bset<int64>> bt_nums;
