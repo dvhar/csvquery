@@ -277,7 +277,6 @@ static void genNormalOrderedQuery(unique_ptr<node> &n, vector<opcode> &v, queryS
 	// redo this in genOldSortList()
 	genOldSortList(n->node4->node4->node1, v, q); //sort expressions
 	addop(v, savePosOps[q.sorting], normal_read, 0, 0);
-	q.posVecs = 1;
 	q.jumps.setPlace(sorter, v.size());
 	int asc = n->node4->node4->node1->tok1.id;
 	addop(v, sortOps[q.sorting], 0, asc);

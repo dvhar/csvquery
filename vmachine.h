@@ -36,7 +36,7 @@ enum codes : unsigned char {
 	SUMI, SUMF, AVGI, AVGF, STDVI, STDVF, COUNT, MINI, MINF, MINS, MAXI, MAXF, MAXS,
 	NEXTMAP, NEXTVEC, ROOTMAP, LDMID, LDPUTMID, LDPUTGRP,
 	LDSTDVI, LDSTDVF, LDAVGI, LDAVGF,
-	ADD_GROUPSORT_ROW, FREEMIDROW, GSORT, READ_NEXT_GROUP
+	ADD_GROUPSORT_ROW, FREEMIDROW, GSORT, READ_NEXT_GROUP, ALLOCSORTER
 };
 
 //2d array for ops indexed by operation and datatype
@@ -169,7 +169,7 @@ class vmachine {
 	vector<dat> onegroup;
 	vector<dat> stack;
 	vector<dat*> groupSorter;
-	vector<vector<valPos>> posVectors;
+	vector<valPos> posVector;
 	forward_list<char*> groupSortVars;
 	rowgroup groupTree;
 	//separate btrees for performance

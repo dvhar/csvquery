@@ -153,7 +153,7 @@ int fileReader::getColIdx(string colname){
 	return -1;
 }
 
-int fileReader::numlines(){
+void fileReader::numlines(){
 	auto f = fopen(filename.c_str(),"r");
 	int lines=0, nbytes;
 	char *bufp, *bufe;
@@ -166,7 +166,7 @@ int fileReader::numlines(){
 		}
 	}
 	fclose(f);
-	return lines;
+	linecount = lines - (noheader ? 0 : 1);
 }
 
 void openfiles(querySpecs &q, unique_ptr<node> &n){
