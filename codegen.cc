@@ -27,7 +27,7 @@ static void genSelectAll(vector<opcode> &v, querySpecs &q);
 static void genSelections(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q);
 static void genTypeConv(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q);
 static void genIterateGroups(unique_ptr<node> &n, varScoper &vs, vector<opcode> &v, querySpecs &q);
-static void genUnsortedGroupRow(unique_ptr<node> &n, varScoper &vs, vector<opcode> &v, querySpecs &q, int nextgroup);
+static void genUnsortedGroupRow(unique_ptr<node> &n, varScoper &vs, vector<opcode> &v, querySpecs &q, int nextgroup, int doneGroups);
 static void genSortedGroupRow(unique_ptr<node> &n, varScoper &vs, vector<opcode> &v, querySpecs &q, int nextgroup);
 
 //for debugging
@@ -852,7 +852,7 @@ static void genIterateGroups(unique_ptr<node> &n, varScoper &vs, vector<opcode> 
 				if (q.sorting){
 					genSortedGroupRow(n, vs, v, q, nextvec);
 				} else {
-					genUnsortedGroupRow(n, vs, v, q, nextvec);
+					genUnsortedGroupRow(n, vs, v, q, nextvec, doneGroups);
 				}
 			}
 		}
@@ -867,14 +867,14 @@ static void genIterateGroups(unique_ptr<node> &n, varScoper &vs, vector<opcode> 
 			int readNext = v.size();
 			addop(v, READ_NEXT_GROUP, doneReadGroups);
 			addop(v, PRINT);
-			addop(v, JMP, readNext);
+			addop(v, (q.quantityLimit > 0 ? JMPCNT : JMP), readNext);
 			q.jumps.setPlace(doneReadGroups, v.size());
 			addop(v, POP);
 		}
 	}
 }
 
-static void genUnsortedGroupRow(unique_ptr<node> &n, varScoper &vs, vector<opcode> &v, querySpecs &q, int nextgroup){
+static void genUnsortedGroupRow(unique_ptr<node> &n, varScoper &vs, vector<opcode> &v, querySpecs &q, int nextgroup, int doneGroups){
 	e("gen unsorted group row");
 	genVars(q.tree->node1, v, q, vs.setscope(NO_FILTER, V_ANY, V_SCOPE2));
 	genPredicates(q.tree->node4->node3, v, q);
@@ -883,7 +883,8 @@ static void genUnsortedGroupRow(unique_ptr<node> &n, varScoper &vs, vector<opcod
 	genSelect(q.tree->node2, v, q);
 	// for debugging:
 	addop(v, PRINT);
-	addop(v, JMP, nextgroup);
+	addop(v, (q.quantityLimit > 0 ? JMPCNT : JMP), nextgroup);
+	addop(v, JMP, doneGroups);
 }
 static void genSortedGroupRow(unique_ptr<node> &n, varScoper &vs, vector<opcode> &v, querySpecs &q, int nextgroup){
 	e("gen sorted group row");
@@ -896,6 +897,8 @@ static void genSortedGroupRow(unique_ptr<node> &n, varScoper &vs, vector<opcode>
 	auto& ordnode = findFirstNode(q.tree->node4, N_ORDER);
 	for (auto x = ordnode->node1.get(); x; x = x->node2.get()){
 		genExprAll(x->node1, v, q);
+		if (x->datatype == T_STRING)
+			addop(v, NUL_TO_STR);
 		addop(v, PUT, x->tok3.id);
 		q.sortInfo.push_back({x->tok1.id, x->datatype});
 	}
