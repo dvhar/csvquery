@@ -27,7 +27,7 @@
 	goto *(labels[op->code]);
 
 void vmachine::run(){
-	void* labels[] = { &&CVER_, &&CVNO_, &&CVIF_, &&CVIS_, &&CVFI_, &&CVFS_, &&CVDRS_, &&CVDTS_, &&CVSI_, &&CVSF_, &&CVSDR_, &&CVSDT_, &&IADD_, &&FADD_, &&TADD_, &&DTADD_, &&DRADD_, &&ISUB_, &&FSUB_, &&DTSUB_, &&DRSUB_, &&IMULT_, &&FMULT_, &&DRMULT_, &&IDIV_, &&FDIV_, &&DRDIV_, &&INEG_, &&FNEG_, &&PNEG_, &&IMOD_, &&FMOD_, &&IEXP_, &&FEXP_, &&JMP_, &&JMPCNT_, &&JMPTRUE_, &&JMPFALSE_, &&JMPNOTNULL_ELSEPOP_, &&RDLINE_, &&RDLINE_ORDERED_, &&PREP_REREAD_, &&PUT_, &&LDPUT_, &&LDPUTALL_, &&PUTVAR_, &&PUTVAR2_, &&LDINT_, &&LDFLOAT_, &&LDTEXT_, &&LDDATE_, &&LDDUR_, &&LDNULL_, &&LDLIT_, &&LDVAR_, &&HOLDVAR_, &&IEQ_, &&FEQ_, &&TEQ_, &&LIKE_, &&ILEQ_, &&FLEQ_, &&TLEQ_, &&ILT_, &&FLT_, &&TLT_, &&PRINT_, &&PUSH_, &&PUSH_0_, &&POP_, &&POPCPY_, &&ENDRUN_, &&NULFALSE1_, &&NULFALSE2_, &&NDIST_, &&SDIST_, &&PUTDIST_, &&LDDIST_, &&FINC_, &&ENCCHA_, &&DECCHA_, &&SAVEPOSI_JMP_, &&SAVEPOSF_JMP_, &&SAVEPOSS_JMP_, &&SORTI_, &&SORTF_, &&SORTS_, &&GETGROUP_, &&ONEGROUP_, &&SUMI_, &&SUMF_, &&AVGI_, &&AVGF_, &&STDVI_, &&STDVF_, &&COUNT_, &&MINI_, &&MINF_, &&MINS_, &&MAXI_, &&MAXF_, &&MAXS_, &&NEXTMAP_, &&NEXTVEC_, &&ROOTMAP_, &&LDMID_, &&LDPUTMID_, &&LDPUTGRP_, &&LDSTDVI_, &&LDSTDVF_, &&LDAVGI_, &&LDAVGF_, &&ADD_GROUPSORT_ROW_, &&FREE_MIDROW_, &&GSORT_, &&READ_NEXT_GROUP_ };
+	void* labels[] = { &&CVER_, &&CVNO_, &&CVIF_, &&CVIS_, &&CVFI_, &&CVFS_, &&CVDRS_, &&CVDTS_, &&CVSI_, &&CVSF_, &&CVSDR_, &&CVSDT_, &&IADD_, &&FADD_, &&TADD_, &&DTADD_, &&DRADD_, &&ISUB_, &&FSUB_, &&DTSUB_, &&DRSUB_, &&IMULT_, &&FMULT_, &&DRMULT_, &&IDIV_, &&FDIV_, &&DRDIV_, &&INEG_, &&FNEG_, &&PNEG_, &&IMOD_, &&FMOD_, &&IEXP_, &&FEXP_, &&JMP_, &&JMPCNT_, &&JMPTRUE_, &&JMPFALSE_, &&JMPNOTNULL_ELSEPOP_, &&RDLINE_, &&RDLINE_ORDERED_, &&PREP_REREAD_, &&PUT_, &&LDPUT_, &&LDPUTALL_, &&PUTVAR_, &&PUTVAR2_, &&LDINT_, &&LDFLOAT_, &&LDTEXT_, &&LDDATE_, &&LDDUR_, &&LDNULL_, &&LDLIT_, &&LDVAR_, &&HOLDVAR_, &&IEQ_, &&FEQ_, &&TEQ_, &&LIKE_, &&ILEQ_, &&FLEQ_, &&TLEQ_, &&ILT_, &&FLT_, &&TLT_, &&PRINT_, &&PUSH_, &&PUSH_0_, &&POP_, &&POPCPY_, &&ENDRUN_, &&NULFALSE1_, &&NULFALSE2_, &&NDIST_, &&SDIST_, &&PUTDIST_, &&LDDIST_, &&FINC_, &&ENCCHA_, &&DECCHA_, &&SAVEPOSI_JMP_, &&SAVEPOSF_JMP_, &&SAVEPOSS_JMP_, &&SORTI_, &&SORTF_, &&SORTS_, &&GETGROUP_, &&ONEGROUP_, &&SUMI_, &&SUMF_, &&AVGI_, &&AVGF_, &&STDVI_, &&STDVF_, &&COUNT_, &&MINI_, &&MINF_, &&MINS_, &&MAXI_, &&MAXF_, &&MAXS_, &&NEXTMAP_, &&NEXTVEC_, &&ROOTMAP_, &&LDMID_, &&LDPUTMID_, &&LDPUTGRP_, &&LDSTDVI_, &&LDSTDVF_, &&LDAVGI_, &&LDAVGF_, &&ADD_GROUPSORT_ROW_, &&FREE_MIDROW_, &&GSORT_, &&READ_NEXT_GROUP_, &&ALLOCSORTER_ };
 
 
 	//vars for data
@@ -208,7 +208,7 @@ RDLINE_:
 RDLINE_ORDERED_:
 	//stk0 has current read index, stk1 has vector.size()
 	if (stk0.u.i < stk1.u.i){
-		files[op->p2]->readlineat(posVectors[op->p3][stk0.u.i++].pos);
+		files[op->p2]->readlineat(posVector[stk0.u.i++].pos);
 		++ip;
 	} else {
 		ip = op->p1;
@@ -216,20 +216,23 @@ RDLINE_ORDERED_:
 	next();
 PREP_REREAD_:
 	push();
-	stk0.u.i = posVectors[op->p1].size();
+	stk0.u.i = posVector.size();
 	push();
 	stk0.u.i = 0;
 	++ip;
 	next();
 
+ALLOCSORTER_:
+	++ip;
+	next();
 //old sort indexer
 SAVEPOSI_JMP_:
-	posVectors[op->p2].push_back(valPos( stk0.u.i, files[op->p3]->pos ));
+	posVector.push_back(valPos( stk0.u.i, files[op->p3]->pos ));
 	ip = op->p1;
 	pop();
 	next();
 SAVEPOSF_JMP_:
-	posVectors[op->p2].push_back(valPos( stk0.u.f, files[op->p3]->pos ));
+	posVector.push_back(valPos( stk0.u.f, files[op->p3]->pos ));
 	ip = op->p1;
 	pop();
 	next();
@@ -238,27 +241,31 @@ SAVEPOSS_JMP_:
 		cstrTemp = stk0.u.s;
 		DISOWN(stk0);
 	} else {
-		cstrTemp = (char*) malloc(stk0.z+1);
-		strcpy(cstrTemp, stk0.u.s);
+		if (ISNULL(stk0)){
+			cstrTemp = (char*) calloc(1,1);
+		} else {
+			cstrTemp = (char*) malloc(stk0.z+1);
+			strcpy(cstrTemp, stk0.u.s);
+		}
 	}
-	posVectors[op->p2].push_back(valPos( cstrTemp, files[op->p3]->pos ));
+	posVector.emplace_back(valPos( cstrTemp, files[op->p3]->pos ));
 	ip = op->p1;
 	pop();
 	next();
 
 //old sorter
 SORTI_:
-	sort(parallel() posVectors[op->p1].begin(), posVectors[op->p1].end(),
+	sort(parallel() posVector.begin(), posVector.end(),
 		[&op](const valPos &a, const valPos &b){ return (a.val.i > b.val.i)^op->p2; });
 	++ip;
 	next();
 SORTF_:
-	sort(parallel() posVectors[op->p1].begin(), posVectors[op->p1].end(),
+	sort(parallel() posVector.begin(), posVector.end(),
 		[&op](const valPos &a, const valPos &b){ return (a.val.f > b.val.f)^op->p2; });
 	++ip;
 	next();
 SORTS_:
-	sort(parallel() posVectors[op->p1].begin(), posVectors[op->p1].end(),
+	sort(parallel() posVector.begin(), posVector.end(),
 		[&op](const valPos &a, const valPos &b){ return (strcmp(a.val.s, b.val.s) > 0)^op->p2; });
 	++ip;
 	next();
@@ -728,7 +735,7 @@ PRINT_:
 	iTemp1 = 0;	
 	printfield:
 	torow[iTemp1].appendToBuffer(outbuf);
-	if (outbuf.size() > 900 || 1){ //skip buffering for debug
+	if (outbuf.size() > 900){
 		output << outbuf;
 		outbuf.clear();
 	}
@@ -736,8 +743,7 @@ PRINT_:
 		outbuf += ',';
 		goto printfield;
 	}
-	//outbuf += '\n';
-	output << "\n";
+	outbuf += '\n';
 	++numPrinted;
 	++ip;
 	next();

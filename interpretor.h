@@ -216,6 +216,7 @@ class fileReader {
 	string filename;
 	streampos prevpos;
 	public:
+		int linecount;
 		streampos pos;
 		vector<string> colnames;
 		vector<int> types;
@@ -229,7 +230,7 @@ class fileReader {
 	void print();
 	int getColIdx(string);
 	int readline();
-	int numlines();
+	void numlines();
 	int readlineat(int64);
 	fileReader(string);
 	~fileReader();

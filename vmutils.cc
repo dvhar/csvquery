@@ -78,7 +78,6 @@ vmachine::vmachine(querySpecs &qs){
 	}
 
 	stack.resize(100);
-	posVectors.resize(q->posVecs);
 	ops = q->bytecode.data();
 	quantityLimit = q->quantityLimit;
 	bt_nums.resize(q->btn);
