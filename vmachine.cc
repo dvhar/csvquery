@@ -292,7 +292,7 @@ GSORT_:
 		auto backcheck = [&](int i) -> bool {
 			int backidx = 0;
 			while (i > 0){
-				if (q->sortInfo[i].second == T_STRING){
+				if (q->sortInfo[i-1].second == T_STRING){
 					if (strcmp(groupSorter[start][prevVal-backidx].u.s, groupSorter[end+1][prevVal-backidx].u.s))
 						return false;
 				} else {
