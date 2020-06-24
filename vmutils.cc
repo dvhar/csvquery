@@ -3,7 +3,7 @@
 
 //map for printing opcodes
 map<byte, string> opMap = {
-{CVER,"CVER"}, {CVNO,"CVNO"}, {CVIF,"CVIF"}, {CVIS,"CVIS"}, {CVFI,"CVFI"}, {CVFS,"CVFS"}, {CVDRS,"CVDRS"}, {CVDTS,"CVDTS"}, {CVSI,"CVSI"}, {CVSF,"CVSF"}, {CVSDR,"CVSDR"}, {CVSDT,"CVSDT"}, {IADD,"IADD"}, {FADD,"FADD"}, {TADD,"TADD"}, {DTADD,"DTADD"}, {DRADD,"DRADD"}, {ISUB,"ISUB"}, {FSUB,"FSUB"}, {DTSUB,"DTSUB"}, {DRSUB,"DRSUB"}, {IMULT,"IMULT"}, {FMULT,"FMULT"}, {DRMULT,"DRMULT"}, {IDIV,"IDIV"}, {FDIV,"FDIV"}, {DRDIV,"DRDIV"}, {INEG,"INEG"}, {FNEG,"FNEG"}, {PNEG,"PNEG"}, {IMOD,"IMOD"}, {FMOD,"FMOD"}, {IEXP,"IEXP"}, {FEXP,"FEXP"}, {JMP,"JMP"}, {JMPCNT,"JMPCNT"}, {JMPTRUE,"JMPTRUE"}, {JMPFALSE,"JMPFALSE"}, {JMPNOTNULL_ELSEPOP,"JMPNOTNULL_ELSEPOP"}, {RDLINE,"RDLINE"}, {RDLINE_ORDERED,"RDLINE_ORDERED"}, {PREP_REREAD,"PREP_REREAD"}, {PUT,"PUT"}, {LDPUT,"LDPUT"}, {LDPUTALL,"LDPUTALL"}, {PUTVAR,"PUTVAR"}, {PUTVAR2,"PUTVAR2"}, {LDINT,"LDINT"}, {LDFLOAT,"LDFLOAT"}, {LDTEXT,"LDTEXT"}, {LDDATE,"LDDATE"}, {LDDUR,"LDDUR"}, {LDNULL,"LDNULL"}, {LDLIT,"LDLIT"}, {LDVAR,"LDVAR"}, {IEQ,"IEQ"}, {FEQ,"FEQ"}, {TEQ,"TEQ"}, {LIKE,"LIKE"}, {ILEQ,"ILEQ"}, {FLEQ,"FLEQ"}, {TLEQ,"TLEQ"}, {ILT,"ILT"}, {FLT,"FLT"}, {TLT,"TLT"}, {PRINT,"PRINT"}, {PUSH,"PUSH"}, {POP,"POP"}, {POPCPY,"POPCPY"}, {ENDRUN,"ENDRUN"}, {NULFALSE1,"NULFALSE1"}, {NULFALSE2,"NULFALSE2"}, {NDIST,"NDIST"}, {SDIST,"SDIST"}, {PUTDIST,"PUTDIST"}, {LDDIST,"LDDIST"}, {FINC,"FINC"}, {ENCCHA,"ENCCHA"}, {DECCHA,"DECCHA"}, {SAVEPOSI_JMP,"SAVEPOSI_JMP"}, {SAVEPOSF_JMP,"SAVEPOSF_JMP"}, {SAVEPOSS_JMP,"SAVEPOSS_JMP"}, {SORTI,"SORTI"}, {SORTF,"SORTF"}, {SORTS,"SORTS"}, {GETGROUP,"GETGROUP"}, {ONEGROUP,"ONEGROUP"}, {SUMI,"SUMI"}, {SUMF,"SUMF"}, {AVGI,"AVGI"}, {AVGF,"AVGF"}, {STDVI,"STDVI"}, {STDVF,"STDVF"}, {COUNT,"COUNT"}, {MINI,"MINI"}, {MINF,"MINF"}, {MINS,"MINS"}, {MAXI,"MAXI"}, {MAXF,"MAXF"}, {MAXS,"MAXS"}, {NEXTMAP,"NEXTMAP"}, {NEXTVEC,"NEXTVEC"}, {ROOTMAP,"ROOTMAP"}, {LDMID,"LDMID"}, {LDPUTMID,"LDPUTMID"}, {LDPUTGRP,"LDPUTGRP"}, {LDSTDVI,"LDSTDVI"}, {LDSTDVF,"LDSTDVF"}, {LDAVGI,"LDAVGI"}, {LDAVGF,"LDAVGF"}, {ADD_GROUPSORT_ROW,"ADD_GROUPSORT_ROW"}, {FREEMIDROW,"FREEMIDROW"}, {GSORT,"GSORT"}, {PUSH_0,"PUSH_0"}, {READ_NEXT_GROUP,"READ_NEXT_GROUP"}, {HOLDVAR,"HOLDVAR"}
+	{CVER,"CVER"}, {CVNO,"CVNO"}, {CVIF,"CVIF"}, {CVIS,"CVIS"}, {CVFI,"CVFI"}, {CVFS,"CVFS"}, {CVDRS,"CVDRS"}, {CVDTS,"CVDTS"}, {CVSI,"CVSI"}, {CVSF,"CVSF"}, {CVSDR,"CVSDR"}, {CVSDT,"CVSDT"}, {IADD,"IADD"}, {FADD,"FADD"}, {TADD,"TADD"}, {DTADD,"DTADD"}, {DRADD,"DRADD"}, {ISUB,"ISUB"}, {FSUB,"FSUB"}, {DTSUB,"DTSUB"}, {DRSUB,"DRSUB"}, {IMULT,"IMULT"}, {FMULT,"FMULT"}, {DRMULT,"DRMULT"}, {IDIV,"IDIV"}, {FDIV,"FDIV"}, {DRDIV,"DRDIV"}, {INEG,"INEG"}, {FNEG,"FNEG"}, {PNEG,"PNEG"}, {IMOD,"IMOD"}, {FMOD,"FMOD"}, {IEXP,"IEXP"}, {FEXP,"FEXP"}, {JMP,"JMP"}, {JMPCNT,"JMPCNT"}, {JMPTRUE,"JMPTRUE"}, {JMPFALSE,"JMPFALSE"}, {JMPNOTNULL_ELSEPOP,"JMPNOTNULL_ELSEPOP"}, {RDLINE,"RDLINE"}, {RDLINE_ORDERED,"RDLINE_ORDERED"}, {PREP_REREAD,"PREP_REREAD"}, {PUT,"PUT"}, {LDPUT,"LDPUT"}, {LDPUTALL,"LDPUTALL"}, {PUTVAR,"PUTVAR"}, {PUTVAR2,"PUTVAR2"}, {LDINT,"LDINT"}, {LDFLOAT,"LDFLOAT"}, {LDTEXT,"LDTEXT"}, {LDDATE,"LDDATE"}, {LDDUR,"LDDUR"}, {LDNULL,"LDNULL"}, {LDLIT,"LDLIT"}, {LDVAR,"LDVAR"}, {HOLDVAR,"HOLDVAR"}, {IEQ,"IEQ"}, {FEQ,"FEQ"}, {TEQ,"TEQ"}, {LIKE,"LIKE"}, {ILEQ,"ILEQ"}, {FLEQ,"FLEQ"}, {TLEQ,"TLEQ"}, {ILT,"ILT"}, {FLT,"FLT"}, {TLT,"TLT"}, {PRINT,"PRINT"}, {PUSH,"PUSH"}, {PUSH_0,"PUSH_0"}, {POP,"POP"}, {POPCPY,"POPCPY"}, {ENDRUN,"ENDRUN"}, {NULFALSE1,"NULFALSE1"}, {NULFALSE2,"NULFALSE2"}, {NDIST,"NDIST"}, {SDIST,"SDIST"}, {PUTDIST,"PUTDIST"}, {LDDIST,"LDDIST"}, {FINC,"FINC"}, {ENCCHA,"ENCCHA"}, {DECCHA,"DECCHA"}, {SAVESORTN,"SAVESORTN"}, {SAVESORTS,"SAVESORTS"}, {SAVEPOS,"SAVEPOS"}, {SORT,"SORT"}, {GETGROUP,"GETGROUP"}, {ONEGROUP,"ONEGROUP"}, {SUMI,"SUMI"}, {SUMF,"SUMF"}, {AVGI,"AVGI"}, {AVGF,"AVGF"}, {STDVI,"STDVI"}, {STDVF,"STDVF"}, {COUNT,"COUNT"}, {MINI,"MINI"}, {MINF,"MINF"}, {MINS,"MINS"}, {MAXI,"MAXI"}, {MAXF,"MAXF"}, {MAXS,"MAXS"}, {NEXTMAP,"NEXTMAP"}, {NEXTVEC,"NEXTVEC"}, {ROOTMAP,"ROOTMAP"}, {LDMID,"LDMID"}, {LDPUTMID,"LDPUTMID"}, {LDPUTGRP,"LDPUTGRP"}, {LDSTDVI,"LDSTDVI"}, {LDSTDVF,"LDSTDVF"}, {LDAVGI,"LDAVGI"}, {LDAVGF,"LDAVGF"}, {ADD_GROUPSORT_ROW,"ADD_GROUPSORT_ROW"}, {FREEMIDROW,"FREEMIDROW"}, {GSORT,"GSORT"}, {READ_NEXT_GROUP,"READ_NEXT_GROUP"}, {NUL_TO_STR,"NUL_TO_STR"}
 };
 
 void opcode::print(){
@@ -42,11 +42,6 @@ void dat::appendToBuffer(string &outbuf){
 	}
 }
 
-valPos::valPos(int64 i, int64 p){ val.i = i; pos = p; }
-valPos::valPos(double f, int64 p){ val.f = f; pos = p; }
-valPos::valPos(char* s, int64 p){ val.s = s; pos = p; }
-valPos::valPos(){val={0};pos=0;}
-
 treeCString::treeCString(){
 	s = nullptr;
 }
@@ -73,8 +68,11 @@ vmachine::vmachine(querySpecs &qs){
 		onegroup = vector<dat>(q->midcount, {{0},NIL});
 		torow = onegroup.data();
 	}
-	if (q->grouping && q->sorting){
-		sortgroupsize = q->colspec.count + q->sortcount;
+	if (q->sorting){
+		if (q->grouping)
+			sortgroupsize = q->colspec.count + q->sortcount;
+		else
+			normalSortVals.resize(q->sortcount);
 	}
 
 	stack.resize(100);
@@ -91,13 +89,16 @@ vmachine::~vmachine(){
 	FREE2(distinctVal);
 	for (auto &d : stack)   FREE2(d);
 	for (auto &d : destrow) FREE2(d);
-	for (auto &b : bt_strings){
-		for (auto it = b.begin(); it != b.end(); ++it){
-			free(it->s);
-		}
-	}
+	for (auto &btree : bt_strings)
+		for (auto &tcs : btree)
+			free(tcs.s);
 	for (auto row : groupSorter) free(row);
 	for (auto var : groupSortVars) free(var);
+	int i = 0;
+	for (auto &vec : normalSortVals)
+		if (q->sortInfo[i++].second == T_STRING)
+			for (auto u : vec)
+				free(u.s);
 }
 querySpecs::~querySpecs(){
 	for (auto &d : dataholder){

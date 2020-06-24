@@ -16,7 +16,7 @@ static void genExprNeg(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q);
 static void genExprCase(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q);
 static void genCPredList(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q, int end);
 static void genCWExprList(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q, int end);
-static void genOldSortList(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q);
+static void genNormalSortList(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q);
 static void genCPred(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q, int end);
 static void genCWExpr(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q, int end);
 static void genPredicates(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q);
@@ -69,8 +69,7 @@ static int stvops[] = { 0, STDVI, STDVF, 0, STDVI, 0 };
 static int ldstdvops[] = { 0, LDSTDVI, LDSTDVF, 0, LDSTDVI, 0 };
 static int ldavgops[] = { 0, LDAVGI, LDAVGF, LDAVGI, LDAVGI, 0 };
 
-static int sortOps[] = { 0, SORTI, SORTF, SORTI, SORTI, SORTS };
-static int savePosOps[] = { 0, SAVEPOSI_JMP, SAVEPOSF_JMP, SAVEPOSI_JMP, SAVEPOSI_JMP, SAVEPOSS_JMP };
+static int saveSortOps[] = { 0, SAVESORTN, SAVESORTN, SAVESORTN, SAVESORTN, SAVESORTS };
 static int distinctOps[] = { 0, NDIST, NDIST, NDIST, NDIST, SDIST };
 
 static bool isTrivial(unique_ptr<node> &n){
@@ -273,13 +272,11 @@ static void genNormalOrderedQuery(unique_ptr<node> &n, vector<opcode> &v, queryS
 	addop(v, RDLINE, sorter, 0);
 	genVars(n->node1, v, q, vs.setscope(WHERE_FILTER|ORDER_FILTER, V_INCLUDES, V_SCOPE1));
 	genWhere(n->node4, v, q);
-	// begin sort instructions
-	// redo this in genOldSortList()
-	genOldSortList(n->node4->node4->node1, v, q); //sort expressions
-	addop(v, savePosOps[q.sorting], normal_read, 0, 0);
+	genNormalSortList(n, v, q);
+	addop(v, SAVEPOS);
+	addop(v, JMP, normal_read);
 	q.jumps.setPlace(sorter, v.size());
-	int asc = n->node4->node4->node1->tok1.id;
-	addop(v, sortOps[q.sorting], 0, asc);
+	addop(v, SORT);
 	addop(v, PREP_REREAD, 0, 0);
 	// done sorting values
 	q.jumps.setPlace(reread, v.size());
@@ -297,8 +294,16 @@ static void genNormalOrderedQuery(unique_ptr<node> &n, vector<opcode> &v, queryS
 	addop(v, ENDRUN);
 };
  //update sorter to work with list
-static void genOldSortList(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
-	genExprAdd(n->node1, v, q);
+static void genNormalSortList(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
+	auto& ordnode = findFirstNode(q.tree->node4, N_ORDER);
+	int i = 0;
+	for (auto x = ordnode->node1.get(); x; x = x->node2.get()){
+		genExprAll(x->node1, v, q);
+		if (x->datatype == T_STRING)
+			addop(v, NUL_TO_STR);
+		addop(v, saveSortOps[x->datatype], i++);
+		q.sortInfo.push_back({x->tok1.id, x->datatype});
+	}
 }
 static void genBasicGroupingQuery(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
 	e("grouping");
@@ -862,7 +867,7 @@ static void genIterateGroups(unique_ptr<node> &n, varScoper &vs, vector<opcode> 
 		if (q.sorting){
 			auto& ordnode1 = findFirstNode(q.tree->node4, N_ORDER)->node1;
 			int doneReadGroups = q.jumps.newPlaceholder();
-			addop(v, GSORT, ordnode1->tok3.id, q.sortcount);
+			addop(v, GSORT, ordnode1->tok3.id);
 			addop(v, PUSH_0);
 			int readNext = v.size();
 			addop(v, READ_NEXT_GROUP, doneReadGroups);

@@ -31,13 +31,12 @@ enum codes : unsigned char {
 	PRINT, PUSH, PUSH_0, POP, POPCPY, ENDRUN, NULFALSE1, NULFALSE2,
 	NDIST, SDIST, PUTDIST, LDDIST,
 	FINC, ENCCHA, DECCHA,
-	SAVEPOSI_JMP, SAVEPOSF_JMP, SAVEPOSS_JMP, SORTI, SORTF, SORTS,
+	SAVESORTN, SAVESORTS, SAVEPOS, SORT,
 	GETGROUP, ONEGROUP,
 	SUMI, SUMF, AVGI, AVGF, STDVI, STDVF, COUNT, MINI, MINF, MINS, MAXI, MAXF, MAXS,
 	NEXTMAP, NEXTVEC, ROOTMAP, LDMID, LDPUTMID, LDPUTGRP,
 	LDSTDVI, LDSTDVF, LDAVGI, LDAVGF,
-	ADD_GROUPSORT_ROW, FREEMIDROW, GSORT, READ_NEXT_GROUP, ALLOCSORTER,
-	NUL_TO_STR
+	ADD_GROUPSORT_ROW, FREEMIDROW, GSORT, READ_NEXT_GROUP, NUL_TO_STR
 };
 
 //2d array for ops indexed by operation and datatype
@@ -53,7 +52,7 @@ static int ops[][6] = {
 	{ 0, IEXP, FEXP, 0, 0, 0 },
 	{ 0, INEG, FNEG, 0, INEG, 0 },
 	{ 0, LDINT, LDFLOAT, LDDATE, LDDUR, LDTEXT },
-	{ 0, IEQ, FEQ, IEQ, IEQ, TEQ }, //date and duration comparision uses int operators
+	{ 0, IEQ, FEQ, IEQ, IEQ, TEQ },
 	{ 0, ILEQ, FLEQ, ILEQ, ILEQ, TLEQ },
 	{ 0, ILT, FLT, ILT, ILT, TLT }
 };
@@ -96,16 +95,6 @@ class treeCString {
 		friend bool operator<(const treeCString& l, const treeCString& r){
 			return strcmp(l.s, r.s) < 0;
 		}
-};
-
-class valPos {
-	public:
-		datunion val;
-		int64 pos;
-		valPos(int64, int64);
-		valPos(double, int64);
-		valPos(char*, int64);
-		valPos();
 };
 
 class rowgroup {
@@ -170,7 +159,8 @@ class vmachine {
 	vector<dat> onegroup;
 	vector<dat> stack;
 	vector<dat*> groupSorter;
-	vector<valPos> posVector;
+	vector<int> sortIdxs;
+	vector<vector<datunion>> normalSortVals;
 	forward_list<char*> groupSortVars;
 	rowgroup groupTree;
 	//separate btrees for performance
