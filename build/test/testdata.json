@@ -136,5 +136,11 @@
 	"code":0,
 	"query":"with max(c1) as m1, max(c3) as m3, max(c4) as m4 select m3 m4 m1 from 'test/country' group by inc() %% 20 order by m3 m4 asc m1",
 	"output":"22.csv"
+},
+{
+	"title":"triple plain sort with var",
+	"code":0,
+	"query":"with c7%%10000 as v7 select c3 v7 c9 from 'test/country' order by c3 v7 c9",
+	"output":"23.csv"
 }
 ]

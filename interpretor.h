@@ -220,6 +220,7 @@ class fileReader {
 		streampos pos;
 		vector<string> colnames;
 		vector<int> types;
+		vector<int64> positions;
 		vector<csvEntry> entries;
 		bool noheader;
 		string id;

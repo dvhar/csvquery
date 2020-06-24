@@ -1,6 +1,7 @@
 #include "interpretor.h"
 #include "vmachine.h"
 #include <cmath>
+#include <numeric>
 
 //parallel sort only available in gcc's libstdc++
 #ifdef _GLIBCXX_EXECUTION
@@ -27,7 +28,7 @@
 	goto *(labels[op->code]);
 
 void vmachine::run(){
-	void* labels[] = { &&CVER_, &&CVNO_, &&CVIF_, &&CVIS_, &&CVFI_, &&CVFS_, &&CVDRS_, &&CVDTS_, &&CVSI_, &&CVSF_, &&CVSDR_, &&CVSDT_, &&IADD_, &&FADD_, &&TADD_, &&DTADD_, &&DRADD_, &&ISUB_, &&FSUB_, &&DTSUB_, &&DRSUB_, &&IMULT_, &&FMULT_, &&DRMULT_, &&IDIV_, &&FDIV_, &&DRDIV_, &&INEG_, &&FNEG_, &&PNEG_, &&IMOD_, &&FMOD_, &&IEXP_, &&FEXP_, &&JMP_, &&JMPCNT_, &&JMPTRUE_, &&JMPFALSE_, &&JMPNOTNULL_ELSEPOP_, &&RDLINE_, &&RDLINE_ORDERED_, &&PREP_REREAD_, &&PUT_, &&LDPUT_, &&LDPUTALL_, &&PUTVAR_, &&PUTVAR2_, &&LDINT_, &&LDFLOAT_, &&LDTEXT_, &&LDDATE_, &&LDDUR_, &&LDNULL_, &&LDLIT_, &&LDVAR_, &&HOLDVAR_, &&IEQ_, &&FEQ_, &&TEQ_, &&LIKE_, &&ILEQ_, &&FLEQ_, &&TLEQ_, &&ILT_, &&FLT_, &&TLT_, &&PRINT_, &&PUSH_, &&PUSH_0_, &&POP_, &&POPCPY_, &&ENDRUN_, &&NULFALSE1_, &&NULFALSE2_, &&NDIST_, &&SDIST_, &&PUTDIST_, &&LDDIST_, &&FINC_, &&ENCCHA_, &&DECCHA_, &&SAVEPOSI_JMP_, &&SAVEPOSF_JMP_, &&SAVEPOSS_JMP_, &&SORTI_, &&SORTF_, &&SORTS_, &&GETGROUP_, &&ONEGROUP_, &&SUMI_, &&SUMF_, &&AVGI_, &&AVGF_, &&STDVI_, &&STDVF_, &&COUNT_, &&MINI_, &&MINF_, &&MINS_, &&MAXI_, &&MAXF_, &&MAXS_, &&NEXTMAP_, &&NEXTVEC_, &&ROOTMAP_, &&LDMID_, &&LDPUTMID_, &&LDPUTGRP_, &&LDSTDVI_, &&LDSTDVF_, &&LDAVGI_, &&LDAVGF_, &&ADD_GROUPSORT_ROW_, &&FREE_MIDROW_, &&GSORT_, &&READ_NEXT_GROUP_, &&ALLOCSORTER_, &&NUL_TO_STR_ };
+	void* labels[] = { &&CVER_, &&CVNO_, &&CVIF_, &&CVIS_, &&CVFI_, &&CVFS_, &&CVDRS_, &&CVDTS_, &&CVSI_, &&CVSF_, &&CVSDR_, &&CVSDT_, &&IADD_, &&FADD_, &&TADD_, &&DTADD_, &&DRADD_, &&ISUB_, &&FSUB_, &&DTSUB_, &&DRSUB_, &&IMULT_, &&FMULT_, &&DRMULT_, &&IDIV_, &&FDIV_, &&DRDIV_, &&INEG_, &&FNEG_, &&PNEG_, &&IMOD_, &&FMOD_, &&IEXP_, &&FEXP_, &&JMP_, &&JMPCNT_, &&JMPTRUE_, &&JMPFALSE_, &&JMPNOTNULL_ELSEPOP_, &&RDLINE_, &&RDLINE_ORDERED_, &&PREP_REREAD_, &&PUT_, &&LDPUT_, &&LDPUTALL_, &&PUTVAR_, &&PUTVAR2_, &&LDINT_, &&LDFLOAT_, &&LDTEXT_, &&LDDATE_, &&LDDUR_, &&LDNULL_, &&LDLIT_, &&LDVAR_, &&HOLDVAR_, &&IEQ_, &&FEQ_, &&TEQ_, &&LIKE_, &&ILEQ_, &&FLEQ_, &&TLEQ_, &&ILT_, &&FLT_, &&TLT_, &&PRINT_, &&PUSH_, &&PUSH_0_, &&POP_, &&POPCPY_, &&ENDRUN_, &&NULFALSE1_, &&NULFALSE2_, &&NDIST_, &&SDIST_, &&PUTDIST_, &&LDDIST_, &&FINC_, &&ENCCHA_, &&DECCHA_, &&SAVESORTN_, &&SAVESORTS_, &&SAVEPOS_, &&SORT_, &&GETGROUP_, &&ONEGROUP_, &&SUMI_, &&SUMF_, &&AVGI_, &&AVGF_, &&STDVI_, &&STDVF_, &&COUNT_, &&MINI_, &&MINF_, &&MINS_, &&MAXI_, &&MAXF_, &&MAXS_, &&NEXTMAP_, &&NEXTVEC_, &&ROOTMAP_, &&LDMID_, &&LDPUTMID_, &&LDPUTGRP_, &&LDSTDVI_, &&LDSTDVF_, &&LDAVGI_, &&LDAVGF_, &&ADD_GROUPSORT_ROW_, &&FREE_MIDROW_, &&GSORT_, &&READ_NEXT_GROUP_, &&NUL_TO_STR_ };
 
 
 	//vars for data
@@ -208,7 +209,8 @@ RDLINE_:
 RDLINE_ORDERED_:
 	//stk0 has current read index, stk1 has vector.size()
 	if (stk0.u.i < stk1.u.i){
-		files[op->p2]->readlineat(posVector[stk0.u.i++].pos);
+		auto &f = files[op->p2];
+		f->readlineat(f->positions[sortIdxs[stk0.u.i++]]);
 		++ip;
 	} else {
 		ip = op->p1;
@@ -216,13 +218,9 @@ RDLINE_ORDERED_:
 	next();
 PREP_REREAD_:
 	push();
-	stk0.u.i = posVector.size();
+	stk0.u.i = sortIdxs.size();
 	push();
 	stk0.u.i = 0;
-	++ip;
-	next();
-
-ALLOCSORTER_:
 	++ip;
 	next();
 NUL_TO_STR_:
@@ -230,58 +228,75 @@ NUL_TO_STR_:
 		stk0 = dat{ { .s = (char*) calloc(1,1) }, T_STRING|MAL, 0 };
 	++ip;
 	next();
-//old sort indexer
-SAVEPOSI_JMP_:
-	posVector.push_back(valPos( stk0.u.i, files[op->p3]->pos ));
-	ip = op->p1;
+SAVESORTN_:
+	normalSortVals[op->p1].push_back(stk0.u);
 	pop();
+	++ip;
 	next();
-SAVEPOSF_JMP_:
-	posVector.push_back(valPos( stk0.u.f, files[op->p3]->pos ));
-	ip = op->p1;
+SAVESORTS_:
+	normalSortVals[op->p1].push_back(stk0.heap().u);
+	DISOWN(stk0);
 	pop();
+	++ip;
 	next();
-SAVEPOSS_JMP_:
-	if (ISMAL(stk0)){
-		cstrTemp = stk0.u.s;
-		DISOWN(stk0);
-	} else {
-		if (ISNULL(stk0)){
-			cstrTemp = (char*) calloc(1,1);
-		} else {
-			cstrTemp = (char*) malloc(stk0.z+1);
-			strcpy(cstrTemp, stk0.u.s);
+SAVEPOS_:
+	for (auto &f : files)
+		f->positions.push_back(f->pos);
+	++ip;
+	next();
+//normal sorter
+SORT_:
+	{
+		sortIdxs.resize(files[0]->positions.size());
+		iota(begin(sortIdxs), end(sortIdxs), 0);
+		int sortVal = 0, start = 0, end = 0, last = sortIdxs.size()-1, prevVal = -1;
+		function<bool (const int,const int)> normalComparers[] = {
+			[&](const int a, const int b) { return normalSortVals[sortVal][a].i > normalSortVals[sortVal][b].i; },
+			[&](const int a, const int b) { return normalSortVals[sortVal][a].f > normalSortVals[sortVal][b].f; },
+			[&](const int a, const int b) { return strcmp(normalSortVals[sortVal][a].s, normalSortVals[sortVal][b].s) > 0; },
+			[&](const int a, const int b) { return normalSortVals[sortVal][a].i < normalSortVals[sortVal][b].i; },
+			[&](const int a, const int b) { return normalSortVals[sortVal][a].f < normalSortVals[sortVal][b].f; },
+			[&](const int a, const int b) { return strcmp(normalSortVals[sortVal][a].s, normalSortVals[sortVal][b].s) < 0; },
+		};
+		auto backcheck = [&](int i) -> bool {
+			int backidx = 0;
+			while (i > 0){
+				if (q->sortInfo[i-1].second == T_STRING){
+					if (strcmp(normalSortVals[prevVal-backidx][sortIdxs[start]].s, normalSortVals[prevVal-backidx][sortIdxs[end+1]].s))
+						return false;
+				} else {
+					if (normalSortVals[prevVal-backidx][sortIdxs[start]].i != normalSortVals[prevVal-backidx][sortIdxs[end+1]].i)
+						return false;
+				}
+				--i; ++backidx;
+			}
+			return true;
+		};
+		auto comp = normalComparers[getSortComparer(q, 0)];
+		sort(parallel() sortIdxs.begin(), sortIdxs.end(), comp);
+		for (int i=1; i<q->sortcount; i++) {
+			++sortVal; ++prevVal;
+			start = end = 0;
+			auto comp = normalComparers[getSortComparer(q, i)];
+			while (start < last){
+				while (end < last && backcheck(i))
+					++end;
+				if (end > start){
+					sort(parallel() sortIdxs.begin()+start, sortIdxs.begin()+end+1, comp);
+				}
+				start = end + 1;
+			}
 		}
 	}
-	posVector.emplace_back(valPos( cstrTemp, files[op->p3]->pos ));
-	ip = op->p1;
-	pop();
-	next();
-
-//old sorter
-SORTI_:
-	sort(parallel() posVector.begin(), posVector.end(),
-		[&op](const valPos &a, const valPos &b){ return (a.val.i > b.val.i)^op->p2; });
 	++ip;
 	next();
-SORTF_:
-	sort(parallel() posVector.begin(), posVector.end(),
-		[&op](const valPos &a, const valPos &b){ return (a.val.f > b.val.f)^op->p2; });
-	++ip;
-	next();
-SORTS_:
-	sort(parallel() posVector.begin(), posVector.end(),
-		[&op](const valPos &a, const valPos &b){ return (strcmp(a.val.s, b.val.s) > 0)^op->p2; });
-	++ip;
-	next();
-
-//group sorter - p1 is sort index, p2 amount of sort values
+//group sorter - p1 is sort index
 GSORT_:
 	{
 		int sortVal = op->p1;
 		int prevVal = sortVal - 1;
 		int start = 0, end = 0, last = groupSorter.size()-1;
-		function<bool (const dat*,const dat*)> comparers[] = {
+		function<bool (const dat*,const dat*)> groupComparers[] = {
 			[&sortVal](const dat*a, const dat*b) { return a[sortVal].u.i > b[sortVal].u.i; },
 			[&sortVal](const dat*a, const dat*b) { return a[sortVal].u.f > b[sortVal].u.f; },
 			[&sortVal](const dat*a, const dat*b) { return strcmp(a[sortVal].u.s, b[sortVal].u.s) > 0; },
@@ -303,12 +318,12 @@ GSORT_:
 			}
 			return true;
 		};
-		auto comp = comparers[getSortComparer(q, 0)];
+		auto comp = groupComparers[getSortComparer(q, 0)];
 		sort(parallel() groupSorter.begin(), groupSorter.end(), comp);
-		for (int i=1; i<op->p2; i++) {
+		for (int i=1; i<q->sortcount; i++) {
 			++sortVal; ++prevVal;
 			start = end = 0;
-			auto comp = comparers[getSortComparer(q, i)];
+			auto comp = groupComparers[getSortComparer(q, i)];
 			while (start < last){
 				while (end < last && backcheck(i))
 					++end;
