@@ -687,11 +687,11 @@ static void genSelectAll(vector<opcode> &v, querySpecs &q){
 		select_count += q.files[str2("_f", i)]->numFields;
 }
 
-static void genWhere(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
+static void genWhere(unique_ptr<node> &nn, vector<opcode> &v, querySpecs &q){
+	auto& n = findFirstNode(nn, N_WHERE);
 	e("gen where");
-	auto& w = findFirstNode(n, N_WHERE);
-	if (w == nullptr) return;
-	genPredicates(w->node1, v, q);
+	if (n == nullptr) return;
+	genPredicates(n->node1, v, q);
 	addop2(v, JMPFALSE, normal_read, 1);
 }
 

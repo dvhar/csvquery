@@ -184,7 +184,7 @@ class varScoper {
 		bool neededHere(int, int);
 };
 
-extern map<byte, string> opMap;
+extern map<int, string> opMap;
 void strplus(dat &s1, dat &s2);
 void trav(rowgroup &r);
 int getSortComparer(querySpecs *q, int i);
