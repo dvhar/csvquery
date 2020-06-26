@@ -60,18 +60,6 @@ static int typeConv[6][6] = {
 	{0, CVSI, CVSF, CVSDT,CVSDR,CVNO},
 };
 
-static int maxops[] = { 0, MAXI, MAXF, MAXI, MAXI, MAXS };
-static int minops[] = { 0, MINI, MINF, MINI, MINI, MINS };
-static int sumops[] = { 0, SUMI, SUMF, 0, SUMI, 0 };
-static int avgops[] = { 0, AVGI, AVGF, AVGI, AVGI, 0 };
-static int stvops[] = { 0, STDVI, STDVF, 0, STDVI, 0 };
-//aggregates that need to be finished
-static int ldstdvops[] = { 0, LDSTDVI, LDSTDVF, 0, LDSTDVI, 0 };
-static int ldavgops[] = { 0, LDAVGI, LDAVGF, LDAVGI, LDAVGI, 0 };
-
-static int saveSortOps[] = { 0, SAVESORTN, SAVESORTN, SAVESORTN, SAVESORTN, SAVESORTS };
-static int distinctOps[] = { 0, NDIST, NDIST, NDIST, NDIST, SDIST };
-
 static bool isTrivial(unique_ptr<node> &n){
 	if (n == nullptr) return false;
 	if (n->label == N_VALUE && n->tok3.id)
@@ -187,17 +175,13 @@ static void determinePath(querySpecs &q){
 
 	switch (whatdo){
 	case 0:
-		cerr << "normal\n";
 		genNormalQuery(q.tree, q.bytecode, q);
 		break;
 	case 1:
-		cerr << "sorting\n";
 		genNormalOrderedQuery(q.tree, q.bytecode, q);
 		break;
 	case 1|2:
-		cerr << "ordered grouping\n";
 	case 2:
-		cerr << "basic grouping\n";
 		genBasicGroupingQuery(q.tree, q.bytecode, q);
 		break;
 	case 4:
@@ -278,7 +262,6 @@ static void genNormalOrderedQuery(unique_ptr<node> &n, vector<opcode> &v, queryS
 	q.jumps.setPlace(sorter, v.size());
 	addop(v, SORT);
 	addop(v, PREP_REREAD, 0, 0);
-	// done sorting values
 	q.jumps.setPlace(reread, v.size());
 	addop(v, RDLINE_ORDERED, endreread, 0, 0);
 	genVars(n->node1, v, q, vs.setscope(DISTINCT_FILTER, V_EQUALS, V_SCOPE2));
@@ -301,7 +284,7 @@ static void genNormalSortList(unique_ptr<node> &n, vector<opcode> &v, querySpecs
 		genExprAll(x->node1, v, q);
 		if (x->datatype == T_STRING)
 			addop(v, NUL_TO_STR);
-		addop(v, saveSortOps[x->datatype], i++);
+		addop(v, ops[OPSVSRT][x->datatype], i++);
 		q.sortInfo.push_back({x->tok1.id, x->datatype});
 	}
 }
@@ -701,7 +684,7 @@ static void genDistinct(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q, i
 	if (n->label != N_SELECTIONS) return;
 	if (n->tok1.id == KW_DISTINCT){
 		genExprAll(n->node1, v, q);
-		addop3(v, distinctOps[n->datatype], gotoIfNot, addBtree(n->datatype, q),
+		addop3(v, ops[OPDIST][n->datatype], gotoIfNot, addBtree(n->datatype, q),
 			n->tok1.lower() == "hidden" ? 0 : 1);
 	} else {
 		//there can be only 1 distinct filter
@@ -718,9 +701,9 @@ static void genFunction(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
 	//stuff common to all aggregate functions
 	if ((n->tok1.id & AGG_BIT) != 0 ) {
 		genExprAll(n->node1, v, q);
-		if (n->tok3.val == "distinct"){
-			addop3(v, distinctOps[n->datatype], funcDone, addBtree(n->datatype, q), 1);
-			addop0(v, LDDIST);
+		if (n->tok3.val == "distinct" && agg_phase == 1){
+			addop(v, ops[OPDIST][n->datatype], funcDone, addBtree(n->datatype, q), 1);
+			addop(v, LDDIST);
 		}
 	}
 
@@ -763,20 +746,20 @@ static void genFunction(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
 	if (agg_phase == 1) {
 		switch (n->tok1.id){
 		case FN_SUM:
-			addop(v, sumops[n->datatype], n->tok6.id);
+			addop(v, ops[OPSUM][n->datatype], n->tok6.id);
 			break;
 		case FN_AVG:
-			addop(v, avgops[n->datatype], n->tok6.id);
+			addop(v, ops[OPAVG][n->datatype], n->tok6.id);
 			break;
 		case FN_STDEV:
 		case FN_STDEVP:
-			addop(v, stvops[n->datatype], n->tok6.id);
+			addop(v, ops[OPSTV][n->datatype], n->tok6.id);
 			break;
 		case FN_MIN:
-			addop(v, minops[n->datatype], n->tok6.id);
+			addop(v, ops[OPMIN][n->datatype], n->tok6.id);
 			break;
 		case FN_MAX:
-			addop(v, maxops[n->datatype], n->tok6.id);
+			addop(v, ops[OPMAX][n->datatype], n->tok6.id);
 			break;
 		case FN_COUNT:
 			addop(v, COUNT, n->tok6.id, n->tok2.id ? 1 : 0);
@@ -786,13 +769,13 @@ static void genFunction(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
 	} else if (agg_phase == 2) {
 		switch (n->tok1.id){
 		case FN_AVG:
-			addop(v, ldavgops[n->datatype], n->tok6.id);
+			addop(v, ops[OPLAVG][n->datatype], n->tok6.id);
 			break;
 		case FN_STDEV:
-			addop(v, ldstdvops[n->datatype], n->tok6.id, 1);
+			addop(v, ops[OPLSTV][n->datatype], n->tok6.id, 1);
 			break;
 		case FN_STDEVP:
-			addop(v, ldstdvops[n->datatype], n->tok6.id);
+			addop(v, ops[OPLSTV][n->datatype], n->tok6.id);
 			break;
 		case FN_MIN:
 		case FN_MAX:
