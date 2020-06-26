@@ -385,7 +385,7 @@ unique_ptr<node>& findFirstNode(unique_ptr<node> &n, int label){
 	if (n == nullptr || n->label == label)
 		return n;
 	return findFirstNode(n->node1, label)
-		?:(findFirstNode(n->node2, label)
-		?:(findFirstNode(n->node3, label)
-		?: findFirstNode(n->node4, label)));
+		?: findFirstNode(n->node2, label)
+		?: findFirstNode(n->node3, label)
+		?: findFirstNode(n->node4, label);
 }

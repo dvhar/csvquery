@@ -239,7 +239,7 @@ class fileReader {
 
 class opcode {
 	public:
-	byte code;
+	int code;
 	int p1;
 	int p2;
 	int p3;

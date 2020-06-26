@@ -134,15 +134,17 @@ static void setVarPhase(unique_ptr<node> &n, querySpecs &q, int phase, int secti
 		if (findAgrregates(n, q)){
 			q.var(n->tok1.val).phase |= 2;
 			setVarPhase(n->node2, q, 2, 1);
+		} else {
+			q.var(n->tok1.val).phase |= 1;
 		}
-		setVarPhase(n->node2, q, 0, 0);
+		setVarPhase(n->node2, q, 1, 0);
 		break;
 	case N_SELECTIONS:
 		if (!findAgrregates(n->node1, q))
 			setVarPhase(n->node1, q, 1|2, 2);
 		else
 			setVarPhase(n->node1, q, 2, 2);
-		setVarPhase(n->node2, q, 0, 0);
+		setVarPhase(n->node2, q, 1, 0);
 		break;
 	case N_FUNCTION:
 		if ((n->tok1.id & AGG_BIT) != 0){
@@ -161,7 +163,6 @@ static void setVarPhase(unique_ptr<node> &n, querySpecs &q, int phase, int secti
 			case 3: //join conditions
 			case 4: //having conditions
 			case 5: //where conditions
-				cerr << "var " << n->tok1.val << " gets phase " << phase << " in section " << section << endl;
 				q.var(n->tok1.val).phase |= phase;
 				break;
 			}
@@ -299,8 +300,8 @@ void analyzeTree(querySpecs &q){
 	varUsedInFilter(q.tree, q);
 	recordResultColumns(q.tree, q);
 	if (q.grouping){
-		setVarPhase(q.tree, q, 0, 0);
+		setVarPhase(q.tree, q, 1, 0);
 		findMidrowTargets(q.tree, q);
-		setNodePhase(q.tree, q, 0);
+		setNodePhase(q.tree, q, 1);
 	}
 }
