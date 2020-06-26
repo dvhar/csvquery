@@ -7,7 +7,7 @@
 
 #define bset btree::btree_set
 #define initarr(A,N,D) for (auto i=0; i<N; ++i) A[i] = D;
-#define freearr(A,N) for (auto i=0; i<N; ++i) FREE1(A[i]);
+#define freearr(A,N) for (auto i=0; i<N; ++i) FREE2(A[i]);
 
 enum codes : unsigned char {
 	CVER, CVNO,
@@ -41,7 +41,8 @@ enum codes : unsigned char {
 
 //2d array for ops indexed by operation and datatype
 enum typeOperators {
-	OPADD, OPSUB, OPMULT, OPMOD, OPDIV, OPEXP, OPNEG, OPLD, OPEQ, OPLEQ, OPLT
+	OPADD, OPSUB, OPMULT, OPMOD, OPDIV, OPEXP, OPNEG, OPLD, OPEQ, OPLEQ, OPLT,
+	OPMAX, OPMIN, OPSUM, OPAVG, OPSTV, OPLSTV, OPLAVG, OPSVSRT, OPDIST
 };
 static int ops[][6] = {
 	{ 0, IADD, FADD, DTADD, DRADD, TADD },
@@ -54,8 +55,18 @@ static int ops[][6] = {
 	{ 0, LDINT, LDFLOAT, LDDATE, LDDUR, LDTEXT },
 	{ 0, IEQ, FEQ, IEQ, IEQ, TEQ },
 	{ 0, ILEQ, FLEQ, ILEQ, ILEQ, TLEQ },
-	{ 0, ILT, FLT, ILT, ILT, TLT }
+	{ 0, ILT, FLT, ILT, ILT, TLT },
+	{ 0, MAXI, MAXF, MAXI, MAXI, MAXS },
+	{ 0, MINI, MINF, MINI, MINI, MINS },
+	{ 0, SUMI, SUMF, 0, SUMI, 0 },
+	{ 0, AVGI, AVGF, AVGI, AVGI, 0 },
+	{ 0, STDVI, STDVF, 0, STDVI, 0 },
+	{ 0, LDSTDVI, LDSTDVF, 0, LDSTDVI, 0 },
+	{ 0, LDAVGI, LDAVGF, LDAVGI, LDAVGI, 0 },
+	{ 0, SAVESORTN, SAVESORTN, SAVESORTN, SAVESORTN, SAVESORTS },
+	{ 0, NDIST, NDIST, NDIST, NDIST, SDIST },
 };
+
 static dat* datp;
 
 
@@ -70,13 +81,6 @@ static dat* datp;
 
 #define valSize(C) uint(C.terminator - C.val)
 
-//free cstring when arg is array[index] and only index it once
-#define FREE1(X) datp = &(X);  \
-	if ( (datp)->b & MAL ){ \
-		free((datp)->u.s); \
-		(datp)->b &=(~MAL);\
-	}
-//free cstring with fewer steps if arg has no array indexing
 #define FREE2(X) \
 	if ( (X).b & MAL ){ \
 		free((X).u.s); \

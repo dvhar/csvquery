@@ -62,7 +62,7 @@ void vmachine::run(){
 
 //put data from stack into torow
 PUT_:
-	FREE1(torow[op->p1]);
+	FREE2(torow[op->p1]);
 	torow[op->p1] = stk0;
 	DISOWN(stk0);
 	pop();
@@ -71,7 +71,7 @@ PUT_:
 //put data from filereader directly into torow
 LDPUT_:
 	csvTemp = files[op->p3]->entries[op->p2];
-	FREE1(torow[op->p1]);
+	FREE2(torow[op->p1]);
 	torow[op->p1] = dat{ { s: csvTemp.val }, T_STRING, valSize(csvTemp) };
 	++ip;
 	next();
@@ -87,7 +87,7 @@ LDPUTALL_:
 	iTemp1 = op->p1;
 	for (auto &f : files){
 		for (auto &e : f->entries){
-			FREE1(torow[iTemp1]);
+			FREE2(torow[iTemp1]);
 			torow[iTemp1++] = dat{ { s: e.val }, T_STRING, uint(e.terminator - e.val) };
 		}
 	}
@@ -95,7 +95,7 @@ LDPUTALL_:
 	next();
 //put data from midrow to torow
 LDPUTMID_:
-	FREE1(torow[op->p1]);
+	FREE2(torow[op->p1]);
 	torow[op->p1] = midrow[op->p2];
 	DISOWN(midrow[op->p2]);
 	++ip;
@@ -109,14 +109,14 @@ LDMID_:
 	next();
 
 PUTDIST_:
-	FREE1(torow[op->p1]);
+	FREE2(torow[op->p1]);
 	torow[op->p1] = distinctVal;
 	DISOWN(distinctVal);
 	++ip;
 	next();
 //put variable from stack into stackbot
 PUTVAR_:
-	FREE1(stkb(op->p1));
+	FREE2(stkb(op->p1));
 	stkb(op->p1) = stk0;
 	DISOWN(stk0);
 	pop();
@@ -124,12 +124,12 @@ PUTVAR_:
 	next();
 //put variable from stack into midrow and stackbot
 PUTVAR2_:
-	FREE1(stkb(op->p1));
+	FREE2(stkb(op->p1));
 	stkb(op->p1) = stk0;
 	DISOWN(stkb(op->p1));
 	datpTemp = &torow[op->p2];
 	if (ISNULL(*datpTemp) && !ISNULL(stk0)){
-		FREE1(*datpTemp);
+		FREE2(*datpTemp);
 		*datpTemp = stk0.heap();
 		DISOWN(stk0);
 	}
@@ -903,7 +903,7 @@ MINF_:
 	next();
 MINS_:
 	if (ISNULL(torow[op->p1]) || (!ISNULL(stk0) && strcmp(torow[op->p1].u.s, stk0.u.s) > 0)){
-		FREE1(torow[op->p1]);
+		FREE2(torow[op->p1]);
 		torow[op->p1] = stk0;
 		DISOWN(stk0);
 	}
@@ -924,7 +924,7 @@ MAXF_:
 	next();
 MAXS_:
 	if (ISNULL(torow[op->p1]) || (!ISNULL(stk0) && strcmp(torow[op->p1].u.s, stk0.u.s) < 0)){
-		FREE1(torow[op->p1]);
+		FREE2(torow[op->p1]);
 		torow[op->p1] = stk0.heap();
 		DISOWN(stk0);
 	}
