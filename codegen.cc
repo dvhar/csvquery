@@ -702,7 +702,7 @@ static void genFunction(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
 	if ((n->tok1.id & AGG_BIT) != 0 ) {
 		genExprAll(n->node1, v, q);
 		if (n->tok3.val == "distinct" && agg_phase == 1){
-			addop(v, ops[OPDIST][n->datatype], funcDone, addBtree(n->datatype, q), 1);
+			addop(v, ops[OPDIST][n->node1->datatype], funcDone, addBtree(n->node1->datatype, q), 1);
 			addop(v, LDDIST);
 		}
 	}

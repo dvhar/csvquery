@@ -9,7 +9,7 @@
 #define initarr(A,N,D) for (auto i=0; i<N; ++i) A[i] = D;
 #define freearr(A,N) for (auto i=0; i<N; ++i) FREE2(A[i]);
 
-enum codes : unsigned char {
+enum codes : int {
 	CVER, CVNO,
 	CVIF, CVIS, CVFI, CVFS, CVDRS, CVDTS,
 	CVSI, CVSF, CVSDR, CVSDT,
@@ -66,9 +66,6 @@ static int ops[][6] = {
 	{ 0, SAVESORTN, SAVESORTN, SAVESORTN, SAVESORTN, SAVESORTS },
 	{ 0, NDIST, NDIST, NDIST, NDIST, SDIST },
 };
-
-static dat* datp;
-
 
 #define ISINT(X) ( ((X).b & 7) == T_INT )
 #define ISFLOAT(X) ( ((X).b & 7) == T_FLOAT )

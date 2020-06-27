@@ -37,6 +37,7 @@
 #define str3(A,B,C) ft("{}{}{}",A,B,C)
 #define error(A) throw invalid_argument(A)
 #define printasm(S, L) asm("syscall\n\t"::"a"(1), "D"(1), "S"(S), "d"(L));
+#define SMALLEST ((int64) 1 << 63)
 using namespace std;
 
 

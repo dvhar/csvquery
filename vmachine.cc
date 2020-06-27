@@ -772,11 +772,11 @@ PRINT_:
 LDDIST_:
 	push();
 	stk0 = distinctVal;
-	DISOWN(distinctVal);
 	++ip;
 	next();
 NDIST_:
-	boolTemp = bt_nums[op->p2].insert(stk0.u.i).second;
+	i64Temp = ISNULL(stk0) ? SMALLEST : stk0.u.i;
+	boolTemp = bt_nums[op->p2].insert(i64Temp).second;
 	if (boolTemp) {
 		distinctVal = stk0;
 		++ip;
@@ -786,19 +786,18 @@ NDIST_:
 	pop();
 	next();
 SDIST_:
-	boolTemp = bt_strings[op->p2].insert(treeCString(stk0)).second;
-	if (boolTemp) {
-		if (op->p3){ //not hidden
-			FREE2(distinctVal);
-			distinctVal = stk0;
-			DISOWN(stk0);
+	{
+		treeCString tsc = treeCString(stk0);
+		boolTemp = bt_strings[op->p2].insert(tsc).second;
+		if (boolTemp) {
+			if (op->p3){ //not hidden
+				distinctVal = stk0;
+			}
+			++ip;
 		} else {
-			FREE2(stk0);
+			free(tsc.s);
+			ip = op->p1;
 		}
-		++ip;
-	} else {
-		FREE2(stk0);
-		ip = op->p1;
 	}
 	pop();
 	next();

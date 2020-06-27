@@ -4,9 +4,7 @@ void init();
 
 int main(int argc, char** argv){
 
-	cerr << ft("running {}!\n", argv[0]);
 	init();
-
 	FILE *fp;
 	string qs;
 	int whatdo = 0;;
