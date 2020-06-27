@@ -50,8 +50,12 @@ treeCString::treeCString(dat& d){
 		s = d.u.s;
 		DISOWN(d);
 	} else {
-		s = (char*) malloc(d.z+1);
-		memcpy(s, d.u.s, d.z+1);
+		if (d.b & NIL){
+			s = (char*) calloc(1,1);
+		} else {
+			s = (char*) malloc(d.z+1);
+			memcpy(s, d.u.s, d.z+1);
+		}
 	}
 }
 
