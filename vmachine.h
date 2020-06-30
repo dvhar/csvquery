@@ -81,7 +81,7 @@ static int ops[][6] = {
 #define FREE2(X) \
 	if ( (X).b & MAL ){ \
 		free((X).u.s); \
-		(X).b &=(~MAL); \
+		(X).b = NIL; \
 	}
 
 //passed free() responsibility to another dat
@@ -91,8 +91,22 @@ static int ops[][6] = {
 class treeCString {
 	public:
 		char* s;
-		treeCString(dat& d);
-		treeCString();
+		treeCString(dat& d){
+			if (d.b & MAL){
+				s = d.u.s;
+				DISOWN(d);
+			} else {
+				if (d.b & NIL){
+					s = (char*) calloc(1,1);
+				} else {
+					s = (char*) malloc(d.z+1);
+					memcpy(s, d.u.s, d.z+1);
+				}
+			}
+		}
+		treeCString(){
+			s = nullptr;
+		}
 		friend bool operator<(const treeCString& l, const treeCString& r){
 			return strcmp(l.s, r.s) < 0;
 		}
@@ -164,7 +178,6 @@ class vmachine {
 	vector<vector<datunion>> normalSortVals;
 	forward_list<char*> groupSortVars;
 	rowgroup groupTree;
-	//separate btrees for performance
 	vector<bset<int64>> bt_nums;
 	vector<bset<treeCString>> bt_strings;
 	public:

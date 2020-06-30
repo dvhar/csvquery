@@ -226,14 +226,14 @@ class fileReader {
 		bool noheader;
 		string id;
 		int numFields;
-	int getField();
-	int checkWidth();
+	inline void getField();
+	inline bool checkWidth();
 	void inferTypes();
 	void print();
 	int getColIdx(string);
-	int readline();
+	bool readline();
 	void numlines();
-	int readlineat(int64);
+	bool readlineat(int64);
 	fileReader(string);
 	~fileReader();
 };
