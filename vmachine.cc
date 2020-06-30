@@ -28,7 +28,7 @@
 	goto *(labels[op->code]);
 
 void vmachine::run(){
-	void* labels[] = { &&CVER_, &&CVNO_, &&CVIF_, &&CVIS_, &&CVFI_, &&CVFS_, &&CVDRS_, &&CVDTS_, &&CVSI_, &&CVSF_, &&CVSDR_, &&CVSDT_, &&IADD_, &&FADD_, &&TADD_, &&DTADD_, &&DRADD_, &&ISUB_, &&FSUB_, &&DTSUB_, &&DRSUB_, &&IMULT_, &&FMULT_, &&DRMULT_, &&IDIV_, &&FDIV_, &&DRDIV_, &&INEG_, &&FNEG_, &&PNEG_, &&IMOD_, &&FMOD_, &&IEXP_, &&FEXP_, &&JMP_, &&JMPCNT_, &&JMPTRUE_, &&JMPFALSE_, &&JMPNOTNULL_ELSEPOP_, &&RDLINE_, &&RDLINE_ORDERED_, &&PREP_REREAD_, &&PUT_, &&LDPUT_, &&LDPUTALL_, &&PUTVAR_, &&PUTVAR2_, &&LDINT_, &&LDFLOAT_, &&LDTEXT_, &&LDDATE_, &&LDDUR_, &&LDNULL_, &&LDLIT_, &&LDVAR_, &&HOLDVAR_, &&IEQ_, &&FEQ_, &&TEQ_, &&LIKE_, &&ILEQ_, &&FLEQ_, &&TLEQ_, &&ILT_, &&FLT_, &&TLT_, &&PRINT_, &&PUSH_, &&PUSH_0_, &&POP_, &&POPCPY_, &&ENDRUN_, &&NULFALSE1_, &&NULFALSE2_, &&NDIST_, &&SDIST_, &&PUTDIST_, &&LDDIST_, &&FINC_, &&ENCCHA_, &&DECCHA_, &&SAVESORTN_, &&SAVESORTS_, &&SAVEPOS_, &&SORT_, &&GETGROUP_, &&ONEGROUP_, &&SUMI_, &&SUMF_, &&AVGI_, &&AVGF_, &&STDVI_, &&STDVF_, &&COUNT_, &&MINI_, &&MINF_, &&MINS_, &&MAXI_, &&MAXF_, &&MAXS_, &&NEXTMAP_, &&NEXTVEC_, &&ROOTMAP_, &&LDMID_, &&LDPUTMID_, &&LDPUTGRP_, &&LDSTDVI_, &&LDSTDVF_, &&LDAVGI_, &&LDAVGF_, &&ADD_GROUPSORT_ROW_, &&FREE_MIDROW_, &&GSORT_, &&READ_NEXT_GROUP_, &&NUL_TO_STR_ };
+	constexpr void* labels[] = { &&CVER_, &&CVNO_, &&CVIF_, &&CVIS_, &&CVFI_, &&CVFS_, &&CVDRS_, &&CVDTS_, &&CVSI_, &&CVSF_, &&CVSDR_, &&CVSDT_, &&IADD_, &&FADD_, &&TADD_, &&DTADD_, &&DRADD_, &&ISUB_, &&FSUB_, &&DTSUB_, &&DRSUB_, &&IMULT_, &&FMULT_, &&DRMULT_, &&IDIV_, &&FDIV_, &&DRDIV_, &&INEG_, &&FNEG_, &&PNEG_, &&IMOD_, &&FMOD_, &&IEXP_, &&FEXP_, &&JMP_, &&JMPCNT_, &&JMPTRUE_, &&JMPFALSE_, &&JMPNOTNULL_ELSEPOP_, &&RDLINE_, &&RDLINE_ORDERED_, &&PREP_REREAD_, &&PUT_, &&LDPUT_, &&LDPUTALL_, &&PUTVAR_, &&PUTVAR2_, &&LDINT_, &&LDFLOAT_, &&LDTEXT_, &&LDDATE_, &&LDDUR_, &&LDNULL_, &&LDLIT_, &&LDVAR_, &&HOLDVAR_, &&IEQ_, &&FEQ_, &&TEQ_, &&LIKE_, &&ILEQ_, &&FLEQ_, &&TLEQ_, &&ILT_, &&FLT_, &&TLT_, &&PRINT_, &&PUSH_, &&PUSH_0_, &&POP_, &&POPCPY_, &&ENDRUN_, &&NULFALSE1_, &&NULFALSE2_, &&NDIST_, &&SDIST_, &&PUTDIST_, &&LDDIST_, &&FINC_, &&ENCCHA_, &&DECCHA_, &&SAVESORTN_, &&SAVESORTS_, &&SAVEPOS_, &&SORT_, &&GETGROUP_, &&ONEGROUP_, &&SUMI_, &&SUMF_, &&AVGI_, &&AVGF_, &&STDVI_, &&STDVF_, &&COUNT_, &&MINI_, &&MINF_, &&MINS_, &&MAXI_, &&MAXF_, &&MAXS_, &&NEXTMAP_, &&NEXTVEC_, &&ROOTMAP_, &&LDMID_, &&LDPUTMID_, &&LDPUTGRP_, &&LDSTDVI_, &&LDSTDVF_, &&LDAVGI_, &&LDAVGF_, &&ADD_GROUPSORT_ROW_, &&FREE_MIDROW_, &&GSORT_, &&READ_NEXT_GROUP_, &&NUL_TO_STR_ };
 
 
 	//vars for data
@@ -88,7 +88,7 @@ LDPUTALL_:
 	for (auto &f : files){
 		for (auto &e : f->entries){
 			FREE2(torow[iTemp1]);
-			torow[iTemp1++] = dat{ { s: e.val }, T_STRING, uint(e.terminator - e.val) };
+			torow[iTemp1++] = dat{ { s: e.val }, T_STRING, valSize(e) };
 		}
 	}
 	++ip;
@@ -297,12 +297,12 @@ GSORT_:
 		int prevVal = sortVal - 1;
 		int start = 0, end = 0, last = groupSorter.size()-1;
 		function<bool (const dat*,const dat*)> groupComparers[] = {
-			[&sortVal](const dat*a, const dat*b) { return a[sortVal].u.i > b[sortVal].u.i; },
-			[&sortVal](const dat*a, const dat*b) { return a[sortVal].u.f > b[sortVal].u.f; },
-			[&sortVal](const dat*a, const dat*b) { return strcmp(a[sortVal].u.s, b[sortVal].u.s) > 0; },
-			[&sortVal](const dat*a, const dat*b) { return a[sortVal].u.i < b[sortVal].u.i; },
-			[&sortVal](const dat*a, const dat*b) { return a[sortVal].u.f < b[sortVal].u.f; },
-			[&sortVal](const dat*a, const dat*b) { return strcmp(a[sortVal].u.s, b[sortVal].u.s) < 0; },
+			[&](const dat*a, const dat*b) { return a[sortVal].u.i > b[sortVal].u.i; },
+			[&](const dat*a, const dat*b) { return a[sortVal].u.f > b[sortVal].u.f; },
+			[&](const dat*a, const dat*b) { return strcmp(a[sortVal].u.s, b[sortVal].u.s) > 0; },
+			[&](const dat*a, const dat*b) { return a[sortVal].u.i < b[sortVal].u.i; },
+			[&](const dat*a, const dat*b) { return a[sortVal].u.f < b[sortVal].u.f; },
+			[&](const dat*a, const dat*b) { return strcmp(a[sortVal].u.s, b[sortVal].u.s) < 0; },
 		};
 		auto backcheck = [&](int i) -> bool {
 			int backidx = 0;
@@ -810,19 +810,23 @@ FINC_:
 	++ip;
 	next();
 ENCCHA_:
-	auto&& pt1 = q->crypt.chachaEncrypt(op->p1, stk0.z, stk0.u.s);
-	if (stk0.b & MAL) free(stk0.u.s);
-	stk0.u.s = pt1.first;
-	stk0.z = pt1.second;
-	stk0.b = T_STRING|MAL;
+	{
+		auto&& pt1 = q->crypt.chachaEncrypt(op->p1, stk0.z, stk0.u.s);
+		if (stk0.b & MAL) free(stk0.u.s);
+		stk0.u.s = pt1.first;
+		stk0.z = pt1.second;
+		stk0.b = T_STRING|MAL;
+	}
 	++ip;
 	next();
 DECCHA_:
-	auto&& pt2 = q->crypt.chachaDecrypt(op->p1, stk0.z, stk0.u.s);
-	if (stk0.b & MAL) free(stk0.u.s);
-	stk0.u.s = pt2.first;
-	stk0.z = pt2.second;
-	stk0.b = T_STRING|MAL;
+	{
+		auto&& pt2 = q->crypt.chachaDecrypt(op->p1, stk0.z, stk0.u.s);
+		if (stk0.b & MAL) free(stk0.u.s);
+		stk0.u.s = pt2.first;
+		stk0.z = pt2.second;
+		stk0.b = T_STRING|MAL;
+	}
 	++ip;
 	next();
 //aggregates

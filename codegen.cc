@@ -43,8 +43,6 @@ static int ident = 0;
 
 #define pushvars() for (auto &i : q.vars) addop(v, PUSH);
 #define popvars() for (auto &i : q.vars) addop(v, POP);
-//#define pushvars() for (auto &v : q.vars) { if (v.filter & GROUP_FILTER) addop(v, PUSH) };
-//#define popvars() for (auto &v : q.vars) { if (v.filter & GROUP_FILTER) addop(v, POP) };
 
 static int normal_read;
 static int agg_phase; //0 is not grouping, 1 is first read, 2 is aggregate retrieval

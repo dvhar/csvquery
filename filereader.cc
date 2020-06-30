@@ -32,12 +32,12 @@ void fileReader::print(){
 	}
 	cerr << endl;
 }
-int fileReader::readlineat(int64 position){
+bool fileReader::readlineat(int64 position){
 	fs.clear();
 	fs.seekg(position);
 	return readline();
 }
-int fileReader::readline(){
+bool fileReader::readline(){
 	pos = prevpos;
 	fs.getline(buf, BUFSIZE);
 	entries.clear();
@@ -45,30 +45,25 @@ int fileReader::readline(){
 	pos1 = pos2 = buf;
 	while (1){
 		//trim leading space
-		while (*pos2 && isblank(*pos2)){ ++pos2; }
+		while (*pos2 && isblank(*pos2)) ++pos2;
 		pos1 = pos2;
 		//non-quoted field
 		if (*pos2 != '"'){
-			while(*pos2 && *pos2 != ','){
-				++pos2;
-			}
+			while(*pos2 && *pos2 != ',') ++pos2;
 			if (*pos2 == ','){
 				terminator = pos2;
 				getField();
-				++fieldsFound;
 				pos1 = ++pos2;
 			}
 			if (!(*pos2)){
 				terminator = pos2;
 				getField();
-				++fieldsFound;
-				if (checkWidth())
-					return -1;
-				return 0;
+				return checkWidth();
 			}
 		//quoted field
 		} else {
 			++pos1; ++pos2;
+			inquote:
 			//go to next quote
 			while(*pos2 && *pos2 != '"') ++pos2;
 			//escape character - should compact this
@@ -77,41 +72,37 @@ int fileReader::readline(){
 			// "" escaped quote
 			case '"':
 				++pos2;
-				break;
+				goto inquote;
 			//end of field
 			case ',':
 				terminator = pos2-1;
 				getField();
-				++fieldsFound;
 				pos1 = ++pos2;
 				break;
 			//end of line
 			case '\0':
 				terminator = pos2-1;
 				getField();
-				++fieldsFound;
-				if (checkWidth())
-					return -1;
-				return 0;
+				return checkWidth();
 			}
 		}
 
 	}
 	return 0;
 }
-int fileReader::checkWidth(){
+inline bool fileReader::checkWidth(){
 	prevpos += (pos2 - buf + 1);
 	//numfields is 0 until first line is done
 	if (numFields == 0)
 		numFields = entries.size();
-	return fieldsFound - numFields;
+	return fieldsFound != numFields;
 }
-int fileReader::getField(){
+inline void fileReader::getField(){
 	//trim trailing whitespace and push pointer
 	while (isblank(*(terminator-1))) --terminator;
 	*terminator = '\0';
 	entries.emplace_back(csvEntry{pos1, terminator});
-	return 0;
+	++fieldsFound;
 }
 
 void fileReader::inferTypes() {
