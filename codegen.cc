@@ -682,8 +682,7 @@ static void genDistinct(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q, i
 	if (n->label != N_SELECTIONS) return;
 	if (n->tok1.id == KW_DISTINCT){
 		genExprAll(n->node1, v, q);
-		addop3(v, ops[OPDIST][n->datatype], gotoIfNot, addBtree(n->datatype, q),
-			n->tok1.lower() == "hidden" ? 0 : 1);
+		addop2(v, ops[OPDIST][n->datatype], gotoIfNot, addBtree(n->datatype, q));
 	} else {
 		//there can be only 1 distinct filter
 		genDistinct(n->node2, v, q, gotoIfNot);
@@ -700,7 +699,7 @@ static void genFunction(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
 	if ((n->tok1.id & AGG_BIT) != 0 ) {
 		genExprAll(n->node1, v, q);
 		if (n->tok3.val == "distinct" && agg_phase == 1){
-			addop(v, ops[OPDIST][n->node1->datatype], funcDone, addBtree(n->node1->datatype, q), 1);
+			addop(v, ops[OPDIST][n->node1->datatype], funcDone, n->tok4.id, 1);
 			addop(v, LDDIST);
 		}
 	}

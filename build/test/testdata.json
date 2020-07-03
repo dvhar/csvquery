@@ -142,5 +142,11 @@
 	"code":0,
 	"query":"with c7%%10000 as v7 select c3 v7 c9 from 'test/country' order by c3 v7 c9",
 	"output":"23.csv"
+},
+{
+	"title":"count distinct with groups",
+	"code":0,
+	"query":"select count(distinct c2) c3 from 'test/cities' group by c3 order by max(c3) asc",
+	"output":"24.csv"
 }
 ]

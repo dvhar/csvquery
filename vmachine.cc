@@ -47,7 +47,7 @@ void vmachine::run(){
 	int numPrinted = 0;
 	dat* stacktop = stack.data();
 	dat* stackbot = stack.data();
-	decltype(groupTree.getMap().begin()) itstk[20];
+	decltype(groupTree->getMap().begin()) itstk[20];
 	dat* midrow;
 	int ip = 0;
 	opcode *op;
@@ -380,7 +380,7 @@ FSUB_:
 	++ip;
 	next();
 DTSUB_:
-	//TODO: handle date-date and date-duration
+	//TODO: handle date-date
 	if (ISNULL(stk0) || ISNULL(stk1)) { SETNULL(stk1); }
 	else { stk1.u.i -= stk0.u.i; stk1.b = T_DATE; }
 	pop();
@@ -775,8 +775,9 @@ LDDIST_:
 	++ip;
 	next();
 NDIST_:
+	iTemp1 = op->p3 ? groupTemp->meta.distinctNSetIdx : 0;
 	i64Temp = ISNULL(stk0) ? SMALLEST : stk0.u.i;
-	boolTemp = bt_nums[op->p2].insert(i64Temp).second;
+	boolTemp = bt_nums[op->p2+iTemp1].insert(i64Temp).second;
 	if (boolTemp) {
 		distinctVal = stk0;
 		++ip;
@@ -787,12 +788,11 @@ NDIST_:
 	next();
 SDIST_:
 	{
+		iTemp1 = op->p3 ? groupTemp->meta.distinctSSetIdx : 0;
 		treeCString tsc = treeCString(stk0);
-		boolTemp = bt_strings[op->p2].insert(tsc).second;
+		boolTemp = bt_strings[op->p2+iTemp1].insert(tsc).second;
 		if (boolTemp) {
-			if (op->p3){ //not hidden
-				distinctVal = stk0;
-			}
+			distinctVal = stk0;
 			++ip;
 		} else {
 			free(tsc.s);
@@ -935,11 +935,11 @@ MAXS_:
 	++ip;
 	next();
 GETGROUP_:
-	groupTemp = &groupTree;
+	groupTemp = groupTree.get();
 	for (int i=op->p1; i >= 0; --i){
 		groupTemp = &groupTemp->nextGroup(stkt(i));
 	}
-	torow = groupTemp->getRow(q->midcount);
+	torow = groupTemp->getRow(this);
 	stacktop -= (op->p1 + 1);
 	++ip;
 	next();
@@ -950,8 +950,8 @@ ONEGROUP_:
 	next();
 ROOTMAP_:
 	//trav(groupTree);
-	itstk[op->p1]   = groupTree.getMap().begin();
-	itstk[op->p1+1] = groupTree.getMap().end();
+	itstk[op->p1]   = groupTree->getMap().begin();
+	itstk[op->p1+1] = groupTree->getMap().end();
 	torow = destrow.data();
 	++ip;
 	next();
@@ -983,9 +983,9 @@ ADD_GROUPSORT_ROW_:
 	++ip;
 	next();
 FREE_MIDROW_:
-	freearr(groupTemp->data.vecp, groupTemp->meta.rowsize);
+	freearr(groupTemp->getVec(), groupTemp->meta.rowsize);
 	delete groupTemp->getVec();
-	groupTemp->meta.freed = 1;
+	groupTemp->meta.freed = true;
 	++ip;
 	next();
 

@@ -348,6 +348,8 @@ class querySpecs {
 	jumpPositions jumps;
 	resultSpecs colspec;
 	crypter crypt;
+	int distinctSFuncs;
+	int distinctNFuncs;
 	int midcount;
 	int numFiles;
 	int tokIdx;

@@ -6,8 +6,6 @@
 #define VMACH_H
 
 #define bset btree::btree_set
-#define initarr(A,N,D) for (auto i=0; i<N; ++i) A[i] = D;
-#define freearr(A,N) for (auto i=0; i<N; ++i) FREE2(A[i]);
 
 enum codes : int {
 	CVER, CVNO,
@@ -87,6 +85,9 @@ static int ops[][6] = {
 //passed free() responsibility to another dat
 #define DISOWN(X) (X).b &=(~MAL)
 
+static inline void freearr(dat* arr, int n) { for (auto i=0; i<n; ++i) FREE2(arr[i]); }
+static inline void initarr(dat* arr, int n, dat&& d) { for (auto i=0; i<n; ++i) arr[i] = d; }
+
 //make sure to free manually like normal malloced c strings
 class treeCString {
 	public:
@@ -112,13 +113,41 @@ class treeCString {
 		}
 };
 
+class rowgroup;
+class vmachine {
+	vector<shared_ptr<fileReader>> files;
+	opcode* ops;
+	dat* torow;
+	dat distinctVal;
+	int torowSize;
+	int sortgroupsize;
+	int quantityLimit;
+	vector<dat> destrow;
+	vector<dat> onegroup;
+	vector<dat> stack;
+	vector<dat*> groupSorter;
+	vector<int> sortIdxs;
+	vector<vector<datunion>> normalSortVals;
+	forward_list<char*> groupSortVars;
+	unique_ptr<rowgroup> groupTree;
+	public:
+		vector<bset<int64>> bt_nums;
+		vector<bset<treeCString>> bt_strings;
+		querySpecs* q;
+		void run();
+		vmachine(querySpecs &q);
+		~vmachine();
+};
+
 class rowgroup {
 	public:
 		struct {
-			int rowOrGroup : 3;
-			int mallocedKey : 1;
-			int freed : 1;
-			int rowsize : 27;
+			uint rowOrGroup : 2;
+			uint mallocedKey : 1;
+			bool freed : 1;
+			int distinctNSetIdx : 23;
+			int distinctSSetIdx : 23;
+			int rowsize : 14;
 		} meta;
 		union { dat* vecp; map<dat, rowgroup>* mapp; } data;
 		dat* getVec(){ return data.vecp; };
@@ -136,12 +165,22 @@ class rowgroup {
 				FREE2(key);
 			return inserted.first->second;
 		}
-		dat* getRow(int size){
+		dat* getRow(vmachine *v){
 			if (!data.vecp) {
-				data.vecp = (dat*) malloc(size * sizeof(dat));
-				initarr(data.vecp, size, (dat{{0},NIL}));
+				meta.rowsize = v->q->midcount;
 				meta.rowOrGroup = 1;
-				meta.rowsize = size;
+				data.vecp = (dat*) malloc(meta.rowsize * sizeof(dat));
+				initarr(data.vecp, meta.rowsize, (dat{{0},NIL}));
+				if (v->q->distinctNFuncs){
+					meta.distinctNSetIdx = v->bt_nums.size();
+					for(int i=0; i<v->q->distinctNFuncs; ++i)
+						v->bt_nums.emplace_back(bset<int64>());
+				}
+				if (v->q->distinctSFuncs){
+					meta.distinctSSetIdx = v->bt_strings.size();
+					for(int i=0; i<v->q->distinctSFuncs; ++i)
+						v->bt_strings.emplace_back(bset<treeCString>());
+				}
 			}
 			return getVec();
 		}
@@ -159,31 +198,6 @@ class rowgroup {
 				delete &getMap();
 			}
 		}
-};
-
-class vmachine {
-	querySpecs* q;
-	vector<shared_ptr<fileReader>> files;
-	opcode* ops;
-	dat* torow;
-	dat distinctVal;
-	int torowSize;
-	int sortgroupsize;
-	int quantityLimit;
-	vector<dat> destrow;
-	vector<dat> onegroup;
-	vector<dat> stack;
-	vector<dat*> groupSorter;
-	vector<int> sortIdxs;
-	vector<vector<datunion>> normalSortVals;
-	forward_list<char*> groupSortVars;
-	rowgroup groupTree;
-	vector<bset<int64>> bt_nums;
-	vector<bset<treeCString>> bt_strings;
-	public:
-		void run();
-		vmachine(querySpecs &q);
-		~vmachine();
 };
 
 class varScoper {
