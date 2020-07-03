@@ -55,6 +55,8 @@ vmachine::vmachine(querySpecs &qs){
 		onegroup = vector<dat>(q->midcount, {{0},NIL});
 		torow = onegroup.data();
 	}
+	if (q->grouping)
+		groupTree.reset(new rowgroup());
 	if (q->sorting){
 		if (q->grouping)
 			sortgroupsize = q->colspec.count + q->sortcount;

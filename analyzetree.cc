@@ -102,6 +102,13 @@ static bool findAgrregates(unique_ptr<node> &n, querySpecs &q){
 	switch (n->label){
 	case N_FUNCTION:
 		if ((n->tok1.id & AGG_BIT) != 0){
+			if (n->tok3.lower() == "distinct"){
+				if (n->node1->datatype == T_STRING){
+					n->tok4.id = q.distinctSFuncs++;
+				} else {
+					n->tok4.id = q.distinctNFuncs++;
+				}
+			}
 			return true;
 		} else {
 			return findAgrregates(n->node1, q);

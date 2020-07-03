@@ -717,8 +717,8 @@ static unique_ptr<node> parseOrder(querySpecs &q) {
 
 //tok1 is function id
 //tok2 is * for count(*)
-//tok3 is distinct or cipher
-//tok4 is password
+//tok3 is cipher or distinct
+//tok4 is password or (determined later) count of distinct N or S functions
 //tok5 is paramtype for type conversion
 //tok6 is midrow index +1
 //node1 is expression in parens
