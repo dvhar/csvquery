@@ -48,7 +48,7 @@ vmachine::vmachine(querySpecs &qs){
 		files.push_back(q->files[str2("_f", i)]);
 	}
 
-	destrow.resize(q->colspec.count);
+	destrow.resize(q->colspec.count, {0});
 	torow = destrow.data();
 	torowSize = q->colspec.count;
 	if (q->grouping == 1){
@@ -64,17 +64,19 @@ vmachine::vmachine(querySpecs &qs){
 			normalSortVals.resize(q->sortcount);
 	}
 
-	stack.resize(100);
+	stack.resize(50, {0});
 	ops = q->bytecode.data();
 	quantityLimit = q->quantityLimit;
 	bt_nums.resize(q->btn);
 	bt_strings.resize(q->bts);
 	distinctVal = {0};
-	for (auto &d : stack)   d = {0};
-	for (auto &d : destrow) d = {0};
 }
 
 vmachine::~vmachine(){
+	/* enable when ready for release
+	if (runmode == RUN_SINGLE) //skip garbage collection if one-off query
+		return;
+	*/
 	FREE2(distinctVal);
 	for (auto &d : stack)   FREE2(d);
 	for (auto &d : destrow) FREE2(d);

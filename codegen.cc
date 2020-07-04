@@ -699,7 +699,13 @@ static void genFunction(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
 	if ((n->tok1.id & AGG_BIT) != 0 ) {
 		genExprAll(n->node1, v, q);
 		if (n->tok3.val == "distinct" && agg_phase == 1){
-			addop(v, ops[OPDIST][n->node1->datatype], funcDone, n->tok4.id, 1);
+			int setIndex = n->tok4.id;
+			int separateSets = 1;
+			if (q.grouping == 1){ //when onegroup, btree not indexed by rowgroup
+				setIndex = addBtree(n->node1->datatype, q);
+				separateSets = 0;
+			}
+			addop(v, ops[OPDIST][n->node1->datatype], funcDone, setIndex, separateSets);
 			addop(v, LDDIST);
 		}
 	}

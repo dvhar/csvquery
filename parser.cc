@@ -785,7 +785,9 @@ static unique_ptr<node> parseFunction(querySpecs &q) {
 	if (q.tok().id != SP_RPAREN) error("Expected closing parenthesis after function. Found: "+q.tok().val);
 	q.nextTok();
 	//groupby if aggregate function
-	if ((n->tok1.id & AGG_BIT) != 0) { q.grouping = 1; }
+	if ((n->tok1.id & AGG_BIT) != 0) {
+		q.grouping = max(q.grouping,1);
+	}
 	return n;
 }
 
@@ -794,7 +796,7 @@ static unique_ptr<node> parseGroupby(querySpecs &q) {
 	t = q.tok();
 	e("groupby");
 	if (!(t.lower() == "group" && q.peekTok().lower() == "by")) { return nullptr; }
-	q.grouping = 2;
+	q.grouping = max(q.grouping,2);
 	unique_ptr<node> n = newNode(N_GROUPBY);
 	q.nextTok();
 	q.nextTok();

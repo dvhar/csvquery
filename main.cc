@@ -1,13 +1,13 @@
 #include "interpretor.h"
 #include <iostream>
 void init();
+int runmode = RUN_CMD;
 
 int main(int argc, char** argv){
 
 	init();
 	FILE *fp;
 	string qs;
-	int whatdo = 0;;
 	char cc[1], c;
 
 	while((c = getopt(argc, argv, "c:hs")) != -1)
@@ -15,11 +15,11 @@ int main(int argc, char** argv){
 		//run query from command line argument
 		case 'c':
 			qs = string(optarg);
-			whatdo = 1;
+			runmode = RUN_SINGLE;
 			break;
 		//run http server
 		case 's':
-			whatdo = 2;
+			runmode = RUN_SERVER;
 			break;
 		//help
 		case 'h':
@@ -30,8 +30,8 @@ int main(int argc, char** argv){
 			break;
 		}
 
-	switch (whatdo){
-	case 0:
+	switch (runmode){
+	case RUN_CMD:
 		//get query from file or stdin
 		if (argc == 2)
 			fp = fopen(argv[1], "r");
@@ -42,14 +42,14 @@ int main(int argc, char** argv){
 			qs.push_back(*cc);
 		}
 		break;
-	case 1:
+	case RUN_SINGLE:
 		//already got query string from -c
 		break;
-	case 2:
+	case RUN_SERVER:
 		runServer();
 		return 0;;
 	}
-	if (whatdo != 1){
+	if (runmode != 1){
 	}
 
 	try {
