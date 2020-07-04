@@ -789,7 +789,7 @@ NDIST_:
 SDIST_:
 	{
 		iTemp1 = op->p3 ? groupTemp->meta.distinctSSetIdx : 0;
-		treeCString tsc = treeCString(stk0);
+		treeCString tsc(stk0);
 		boolTemp = bt_strings[op->p2+iTemp1].insert(tsc).second;
 		if (boolTemp) {
 			distinctVal = stk0;

@@ -400,4 +400,7 @@ char* durstring(dur_t dur, char* str);
 void runServer();
 unique_ptr<node>& findFirstNode(unique_ptr<node> &n, int label);
 
+extern int runmode;
+enum runmodes { RUN_CMD, RUN_SINGLE, RUN_SERVER };
+
 #endif
