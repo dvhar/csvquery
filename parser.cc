@@ -427,35 +427,10 @@ static unique_ptr<node> parsePredicates(querySpecs &q) {
 	return n;
 }
 
-//more strict version of parsePredicates for joins
-//node1 is predicate comparison
-static unique_ptr<node> parseJoinPredicates(querySpecs &q) {
-	t = q.tok();
-	e("joinpreds");
-	unique_ptr<node> n = newNode(N_PREDICATES);
-	n->node1 = parseJoinPredCompare(q);
-	t = q.tok();
-	if ((t.id & LOGOP) != 0) error("Only one join condition per file");
-	return n;
-}
-
-//more strict version of parsePredCompare for joins
-static unique_ptr<node> parseJoinPredCompare(querySpecs &q) {
-	t = q.tok();
-	e("joinpredcomp");
-	unique_ptr<node> n = newNode(N_PREDCOMP);
-	n->node1 = parseExprAdd(q);
-	t = q.tok();
-	if (t.id != SP_EQ) error("Expected = operator. Found: "+q.tok().val);
-	n->tok1 = t;
-	q.nextTok();
-	n->node2 = parseExprAdd(q);
-	return n;
-}
-
 //tok1 is [relop, paren] for comparison or more predicates
 //tok2 is negation
 //tok3 is 'like' expression
+//tok4 will be number of node (1,2) for indexable join value
 //node1 is [expr, predicates]
 //node2 is second expr
 //node3 is third expr for betweens
@@ -606,7 +581,7 @@ static unique_ptr<node> parseFrom(querySpecs &q) {
 
 //tok1 is filepath
 //tok2 is join token (join,sjoin,bjoin)
-//tok3 is join details (left/outer or inner). id==0 means non-override big file
+//tok3 is join details (left/outer or inner)
 //tok4 is alias
 //tok5 is noheader
 //node1 is join condition (predicates)
@@ -633,16 +608,8 @@ static unique_ptr<node> parseJoin(querySpecs &q) {
 		error("Expected 'join'. Found:"+q.tok().val);
 	}
 	//file path
-	t.val = boost::replace_all_copy(t.val, "~/", string(getenv("HOME"))+"/");
+	boost::replace_all(t.val, "~/", string(getenv("HOME"))+"/");
 	n->tok1 = t;
-    struct stat stat_buf;
-    int finfo = stat(t.val.c_str(), &stat_buf);
-    finfo = finfo == 0 ? stat_buf.st_size : -1;
-	if (finfo == -1)
-		error("Could not open file "+t.val);
-	//see if file is 100+ megabytes
-	if (!sizeOverride && finfo > 100000000)
-		n->tok3.id = 0;
 	//1st after filepath
 	t = q.nextTok();
 	s = t.lower();
@@ -669,7 +636,7 @@ static unique_ptr<node> parseJoin(querySpecs &q) {
 	}
 	if (t.lower() != "on") error("Expected 'on'. Found: "+t.val);
 	q.nextTok();
-	n->node1 = parseJoinPredicates(q);
+	n->node1 = parsePredicates(q);
 	n->node2 = parseJoin(q);
 	return n;
 }

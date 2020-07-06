@@ -4,6 +4,7 @@
 static void genNormalOrderedQuery(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q);
 static void genNormalQuery(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q);
 static void genBasicGroupingQuery(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q);
+static void genBasicJoiningQuery(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q);
 static void genAggSortList(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q);
 static void genVars(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q, varScoper* vo);
 static void genWhere(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q);
@@ -183,6 +184,7 @@ static void determinePath(querySpecs &q){
 		genBasicGroupingQuery(q.tree, q.bytecode, q);
 		break;
 	case 4:
+		genBasicJoiningQuery(q.tree, q.bytecode, q);
 		break;
 	case 1|4:
 		break;
@@ -224,6 +226,8 @@ static void genExprAll(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
 
 
 //given q.tree as node param
+static void genBasicJoiningQuery(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
+}
 static void genNormalQuery(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
 	e("normal");
 	int endfile = q.jumps.newPlaceholder(); //where to jump when done reading file
@@ -740,10 +744,6 @@ static void genFunction(unique_ptr<node> &n, vector<opcode> &v, querySpecs &q){
 		}
 		break;
 	}
-
-	//non-aggregates selected in grouping query
-	if ((n->label & AGG_BIT)==0 && agg_phase == 2 && n->phase == 1)
-		error("cannot select plain non-aggregate functions in aggregate queries");
 
 	//aggregates
 	if (agg_phase == 1) {

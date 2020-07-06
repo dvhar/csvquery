@@ -302,6 +302,41 @@ static void findMidrowTargets(unique_ptr<node> &n, querySpecs &q){
 	}
 }
 
+//return file number referenced in expression, or -1 if not one file
+static int whichFileReferenced(unique_ptr<node> &n, querySpecs &q){
+	return -1;
+}
+
+static void findIndexableJoinValues(unique_ptr<node> &n, querySpecs &q){
+	if (n == nullptr || !q.joining) return;
+	int e1, e2;
+	switch (n->label){
+	case N_PREDCOMP:
+		switch (n->tok1.id){
+		case SP_LPAREN:
+			findIndexableJoinValues(n->node1, q);
+			break;
+		case SP_EQ:
+			e1 = whichFileReferenced(n->node1, q);
+			e2 = whichFileReferenced(n->node2, q);
+			if (e1 < 0 || e2 < 0)
+				error("Join condition must reference one file on each side of '='");
+			if (e1 == e2)
+				error("Join condition annot reference same file on both sides of '='");
+			break;
+		default:
+			error("Join condition must use '='");
+		}
+		break;
+	case N_JOIN:
+	default:
+		findIndexableJoinValues(n->node1, q);
+		findIndexableJoinValues(n->node2, q);
+		findIndexableJoinValues(n->node3, q);
+		findIndexableJoinValues(n->node4, q);
+	}
+}
+
 //typing done, still need semantics etc
 void analyzeTree(querySpecs &q){
 	varUsedInFilter(q.tree, q);
@@ -310,5 +345,8 @@ void analyzeTree(querySpecs &q){
 		setVarPhase(q.tree, q, 1, 0);
 		findMidrowTargets(q.tree, q);
 		setNodePhase(q.tree, q, 1);
+	}
+	if (q.joining){
+		findIndexableJoinValues(q.tree->node3->node1, q);
 	}
 }
