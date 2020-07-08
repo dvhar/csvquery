@@ -124,15 +124,13 @@ PUTVAR_:
 	next();
 //put variable from stack into midrow and stackbot
 PUTVAR2_:
-	FREE2(stkb(op->p1));
-	stkb(op->p1) = stk0;
-	DISOWN(stkb(op->p1));
 	datpTemp = &torow[op->p2];
 	if (ISNULL(*datpTemp) && !ISNULL(stk0)){
 		FREE2(*datpTemp);
 		*datpTemp = stk0.heap();
-		DISOWN(stk0);
 	}
+	FREE2(stkb(op->p1));
+	stkb(op->p1) = stk0;
 	pop();
 	++ip;
 	next();

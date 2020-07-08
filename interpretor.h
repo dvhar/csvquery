@@ -225,6 +225,7 @@ class fileReader {
 		vector<csvEntry> entries;
 		bool noheader;
 		string id;
+		int fileno;
 		int numFields;
 	inline void getField();
 	inline bool checkWidth();
@@ -361,6 +362,7 @@ class querySpecs {
 	int sorting;
 	int sortcount;
 	bool joining;
+	bool strictJoin; //require 1 file on each side of '='
 	int grouping; //1 = one group, 2 = groups
 	bool whereFiltering;
 	bool havingFiltering;

@@ -1,4 +1,6 @@
 #include "interpretor.h"
+#include<set>
+#include<algorithm>
 
 static void varUsedInFilter(unique_ptr<node> &n, querySpecs &q){
 	if (n == nullptr) return;
@@ -303,37 +305,73 @@ static void findMidrowTargets(unique_ptr<node> &n, querySpecs &q){
 }
 
 //return file number referenced in expression, or -1 if not one file
-static int whichFileReferenced(unique_ptr<node> &n, querySpecs &q){
-	return -1;
+static set<int> whichFilesReferenced(unique_ptr<node> &n, querySpecs &q){
+	if (n == nullptr) return {};
+	switch (n->label){
+		case N_VALUE:
+			if (n->tok2.id == COLUMN)
+				return {q.files[n->tok3.val]->fileno };
+			else
+				return whichFilesReferenced(n->node1, q);
+		default: 
+			{
+				auto s1 = whichFilesReferenced(n->node1, q);
+				auto s2 = whichFilesReferenced(n->node2, q);
+				s1.merge(s2);
+				s2 = whichFilesReferenced(n->node2, q);
+				s1.merge(s2);
+				s2 = whichFilesReferenced(n->node2, q);
+				s1.merge(s2);
+				return s1;
+			}
+	}
 }
 
-static void findIndexableJoinValues(unique_ptr<node> &n, querySpecs &q){
+static void findIndexableJoinValues(unique_ptr<node> &n, querySpecs &q, int fileno){
 	if (n == nullptr || !q.joining) return;
-	int e1, e2;
 	switch (n->label){
-	case N_PREDCOMP:
-		switch (n->tok1.id){
-		case SP_LPAREN:
-			findIndexableJoinValues(n->node1, q);
-			break;
-		case SP_EQ:
-			e1 = whichFileReferenced(n->node1, q);
-			e2 = whichFileReferenced(n->node2, q);
-			if (e1 < 0 || e2 < 0)
-				error("Join condition must reference one file on each side of '='");
-			if (e1 == e2)
-				error("Join condition annot reference same file on both sides of '='");
-			break;
-		default:
-			error("Join condition must use '='");
+	case N_PREDCOMP: {
+			set<int> e1, e2;
+			e1 = whichFilesReferenced(n->node1, q);
+			e2 = whichFilesReferenced(n->node2, q);
+			if (q.strictJoin){
+				if (n->tok1.id != SP_EQ)
+					error("Join condition must use '='");
+				if (e1.size() != 1 && e2.size() != 1)
+					error("Join condition must reference one file on each side of '='");
+			}
+			set<int> intersection;
+			set_intersection(e1.begin(), e1.end(), e2.begin(), e2.end(), inserter(intersection, intersection.begin()));
+			if (intersection.size())
+				error("Join condition annot reference same file on both sides of '"+n->tok1.val+"'");
+			if (e1.size() == 1 && *e1.begin() == fileno)
+				n->tok4.id = 1;
+			else if (e2.size() == 1 && *e2.begin() == fileno)
+				n->tok4.id = 2;
+			else
+				error("One side of join condition must be the joined file and only the joined file");
+
+			switch (n->tok1.id){
+			case SP_LPAREN:
+				findIndexableJoinValues(n->node1, q, fileno);
+				break;
+			case SP_EQ:
+				break;
+			}
 		}
 		break;
 	case N_JOIN:
+		{
+			auto&& f = q.files[n->tok4.val];
+			if (!f)
+				error("Could not find file matching join alias "+n->tok4.val);
+			fileno = f->fileno;
+		}
 	default:
-		findIndexableJoinValues(n->node1, q);
-		findIndexableJoinValues(n->node2, q);
-		findIndexableJoinValues(n->node3, q);
-		findIndexableJoinValues(n->node4, q);
+		findIndexableJoinValues(n->node1, q, fileno);
+		findIndexableJoinValues(n->node2, q, fileno);
+		findIndexableJoinValues(n->node3, q, fileno);
+		findIndexableJoinValues(n->node4, q, fileno);
 	}
 }
 
@@ -347,6 +385,6 @@ void analyzeTree(querySpecs &q){
 		setNodePhase(q.tree, q, 1);
 	}
 	if (q.joining){
-		findIndexableJoinValues(q.tree->node3->node1, q);
+		findIndexableJoinValues(q.tree->node3->node1, q, 0);
 	}
 }
