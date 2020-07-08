@@ -42,6 +42,62 @@ void dat::appendToBuffer(string &outbuf){
 	}
 }
 
+bool isTrivial(unique_ptr<node> &n){
+	if (n == nullptr) return false;
+	if (n->label == N_VALUE && n->tok3.id)
+		return true;
+	return isTrivial(n->node1);
+}
+dat parseIntDat(const char* s){
+	char* end = NULL;
+	dat idat = { { i: strtol(s, &end, 10) }, T_INT };
+	if (*end != 0)
+		error(str3("Could not parse ", s, " as a number."));
+	return idat;
+}
+dat parseFloatDat(const char* s){
+	char* end = NULL;
+	dat fdat = { { f: strtof(s, &end) }, T_FLOAT };
+	if (*end != 0)
+		error(str3("Could not parse ", s, " as a number."));
+	return fdat;
+}
+dat parseDurationDat(const char* s) {
+	date_t dur;
+	if (parseDuration((char*)s, &dur))
+		error(str3("Could not parse ", s, " as duration."));
+	if (dur < 0) dur *= -1;
+	dat ddat = { { i: dur }, T_DURATION };
+	return ddat;
+}
+dat parseDateDat(const char* s) {
+	date_t date;
+	if (dateparse_2(s, &date))
+		error(str3("Could not parse ", s, " as date."));
+	dat ddat = { { i: date }, T_DATE };
+	return ddat;
+}
+dat parseStringDat(const char* s) {
+	//may want to malloc
+	dat ddat = { { s: (char*)s }, T_STRING, (uint) strlen(s) };
+	return ddat;
+}
+int addBtree(int type, querySpecs &q){
+	//returns index of btree
+	switch (type){
+	case T_INT:
+	case T_DATE:
+	case T_DURATION:
+	case T_FLOAT:
+		return q.btn++;
+	case T_STRING:
+		return q.bts++;
+	default:
+		error("invalid btree type");
+	}
+	return 0;
+}
+
 vmachine::vmachine(querySpecs &qs){
 	q = &qs;
 	for (int i=1; i<=q->numFiles; ++i){

@@ -65,6 +65,16 @@ static int ops[][6] = {
 	{ 0, NDIST, NDIST, NDIST, NDIST, SDIST },
 };
 
+//type conversion opcodes - [from][to]
+static int typeConv[6][6] = {
+	{0, 0,  0,  0,  0,  0 },
+	{0, CVNO, CVIF, CVNO, CVNO, CVIS },
+	{0, CVFI, CVNO, CVFI, CVFI, CVFS },
+	{0, CVNO, CVIF, CVNO, CVER, CVDTS},
+	{0, CVNO, CVIF, CVER, CVNO, CVDRS},
+	{0, CVSI, CVSF, CVSDT,CVSDR,CVNO},
+};
+
 #define ISINT(X) ( ((X).b & 7) == T_INT )
 #define ISFLOAT(X) ( ((X).b & 7) == T_FLOAT )
 #define ISDATE(X) ( ((X).b & 7) == T_DATE )
@@ -87,6 +97,13 @@ static int ops[][6] = {
 
 static inline void freearr(dat* arr, int n) { for (auto i=0; i<n; ++i) FREE2(arr[i]); }
 static inline void initarr(dat* arr, int n, dat&& d) { for (auto i=0; i<n; ++i) arr[i] = d; }
+bool isTrivial(unique_ptr<node> &n);
+dat parseIntDat(const char* s);
+dat parseFloatDat(const char* s);
+dat parseDurationDat(const char* s) ;
+dat parseDateDat(const char* s);
+dat parseStringDat(const char* s);
+int addBtree(int type, querySpecs &q);
 
 //make sure to free manually like normal malloced c strings
 class treeCString {
@@ -128,6 +145,7 @@ class vmachine {
 	vector<dat*> groupSorter;
 	vector<int> sortIdxs;
 	vector<vector<datunion>> normalSortVals;
+	vector<bset<int64>> joinStack;
 	forward_list<char*> groupSortVars;
 	unique_ptr<rowgroup> groupTree;
 	public:
@@ -211,8 +229,34 @@ class varScoper {
 		bool checkDuplicates(int);
 		bool neededHere(int, int);
 };
-
 extern map<int, string> opMap;
+
+#define has(A,B) ((A)==(B) || ((A) & (B)))
+#define incSelectCount()  if has(n->phase, agg_phase) select_count++;
+#define addop0(V,A)       if has(n->phase, agg_phase) addop(V, A)
+#define addop1(V,A,B)     if has(n->phase, agg_phase) addop(V, A, B)
+#define addop2(V,A,B,C)   if has(n->phase, agg_phase) addop(V, A, B, C)
+#define addop3(V,A,B,C,D) if has(n->phase, agg_phase) addop(V, A, B, C, D)
+#define debugAddop cerr << "addop: " << opMap[code] << endl;
+//#define debugAddop
+static void addop(vector<opcode> &v, byte code){
+	debugAddop
+	v.push_back({code, 0, 0, 0});
+}
+static void addop(vector<opcode> &v, byte code, int p1){
+	debugAddop
+	v.push_back({code, p1, 0, 0});
+}
+static void addop(vector<opcode> &v, byte code, int p1, int p2){
+	debugAddop
+	v.push_back({code, p1, p2, 0});
+}
+static void addop(vector<opcode> &v, byte code, int p1, int p2, int p3){
+	debugAddop
+	v.push_back({code, p1, p2, p3});
+}
+extern map<int, string> opMap;
+
 void strplus(dat &s1, dat &s2);
 void trav(rowgroup &r);
 int getSortComparer(querySpecs *q, int i);

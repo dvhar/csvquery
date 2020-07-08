@@ -315,14 +315,11 @@ static set<int> whichFilesReferenced(unique_ptr<node> &n, querySpecs &q){
 				return whichFilesReferenced(n->node1, q);
 		default: 
 			{
-				auto s1 = whichFilesReferenced(n->node1, q);
-				auto s2 = whichFilesReferenced(n->node2, q);
-				s1.merge(s2);
-				s2 = whichFilesReferenced(n->node2, q);
-				s1.merge(s2);
-				s2 = whichFilesReferenced(n->node2, q);
-				s1.merge(s2);
-				return s1;
+				auto fileSet = whichFilesReferenced(n->node1, q);
+				fileSet.merge(whichFilesReferenced(n->node2, q));
+				fileSet.merge(whichFilesReferenced(n->node3, q));
+				fileSet.merge(whichFilesReferenced(n->node4, q));
+				return fileSet;
 			}
 	}
 }
@@ -331,9 +328,8 @@ static void findIndexableJoinValues(unique_ptr<node> &n, querySpecs &q, int file
 	if (n == nullptr || !q.joining) return;
 	switch (n->label){
 	case N_PREDCOMP: {
-			set<int> e1, e2;
-			e1 = whichFilesReferenced(n->node1, q);
-			e2 = whichFilesReferenced(n->node2, q);
+			auto e1 = whichFilesReferenced(n->node1, q);
+			auto e2 = whichFilesReferenced(n->node2, q);
 			if (q.strictJoin){
 				if (n->tok1.id != SP_EQ)
 					error("Join condition must use '='");
@@ -343,12 +339,18 @@ static void findIndexableJoinValues(unique_ptr<node> &n, querySpecs &q, int file
 			set<int> intersection;
 			set_intersection(e1.begin(), e1.end(), e2.begin(), e2.end(), inserter(intersection, intersection.begin()));
 			if (intersection.size())
-				error("Join condition annot reference same file on both sides of '"+n->tok1.val+"'");
-			if (e1.size() == 1 && *e1.begin() == fileno)
+				error("Join condition cannot reference same file on both sides of '"+n->tok1.val+"'");
+			if (e1.size() == 1 && *e1.begin() == fileno){
+				for (auto i : e2)
+					if (i > fileno)
+						error("Join condition cannot compare to a file that appears later in the query, only earlier");
 				n->tok4.id = 1;
-			else if (e2.size() == 1 && *e2.begin() == fileno)
+			}else if (e2.size() == 1 && *e2.begin() == fileno){
+				for (auto i : e1)
+					if (i > fileno)
+						error("Join condition cannot compare to a file that appears later in the query, only earlier");
 				n->tok4.id = 2;
-			else
+			}else
 				error("One side of join condition must be the joined file and only the joined file");
 
 			switch (n->tok1.id){
@@ -362,7 +364,7 @@ static void findIndexableJoinValues(unique_ptr<node> &n, querySpecs &q, int file
 		break;
 	case N_JOIN:
 		{
-			auto&& f = q.files[n->tok4.val];
+			auto& f = q.files[n->tok4.val];
 			if (!f)
 				error("Could not find file matching join alias "+n->tok4.val);
 			fileno = f->fileno;

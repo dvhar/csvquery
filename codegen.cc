@@ -49,74 +49,6 @@ static int normal_read;
 static int agg_phase; //0 is not grouping, 1 is first read, 2 is aggregate retrieval
 static int select_count;
 
-//type conversion opcodes - [from][to]
-static int typeConv[6][6] = {
-	{0, 0,  0,  0,  0,  0 },
-	{0, CVNO, CVIF, CVNO, CVNO, CVIS },
-	{0, CVFI, CVNO, CVFI, CVFI, CVFS },
-	{0, CVNO, CVIF, CVNO, CVER, CVDTS},
-	{0, CVNO, CVIF, CVER, CVNO, CVDRS},
-	{0, CVSI, CVSF, CVSDT,CVSDR,CVNO},
-};
-
-static bool isTrivial(unique_ptr<node> &n){
-	if (n == nullptr) return false;
-	if (n->label == N_VALUE && n->tok3.id)
-		return true;
-	return isTrivial(n->node1);
-}
-
-//parse literals and check for errors
-static dat parseIntDat(const char* s){
-	char* end = NULL;
-	dat idat = { { i: strtol(s, &end, 10) }, T_INT };
-	if (*end != 0)
-		error(str3("Could not parse ", s, " as a number."));
-	return idat;
-}
-static dat parseFloatDat(const char* s){
-	char* end = NULL;
-	dat fdat = { { f: strtof(s, &end) }, T_FLOAT };
-	if (*end != 0)
-		error(str3("Could not parse ", s, " as a number."));
-	return fdat;
-}
-static dat parseDurationDat(const char* s) {
-	date_t dur;
-	if (parseDuration((char*)s, &dur))
-		error(str3("Could not parse ", s, " as duration."));
-	if (dur < 0) dur *= -1;
-	dat ddat = { { i: dur }, T_DURATION };
-	return ddat;
-}
-static dat parseDateDat(const char* s) {
-	date_t date;
-	if (dateparse_2(s, &date))
-		error(str3("Could not parse ", s, " as date."));
-	dat ddat = { { i: date }, T_DATE };
-	return ddat;
-}
-static dat parseStringDat(const char* s) {
-	//may want to malloc
-	dat ddat = { { s: (char*)s }, T_STRING, (uint) strlen(s) };
-	return ddat;
-}
-static int addBtree(int type, querySpecs &q){
-	//returns index of btree
-	switch (type){
-	case T_INT:
-	case T_DATE:
-	case T_DURATION:
-	case T_FLOAT:
-		return q.btn++;
-	case T_STRING:
-		return q.bts++;
-	default:
-		error("invalid btree type");
-	}
-	return 0;
-}
-
 
 void jumpPositions::updateBytecode(vector<opcode> &vec) {
 	for (auto &v : vec)
@@ -140,30 +72,6 @@ void jumpPositions::updateBytecode(vector<opcode> &vec) {
 		}
 };
 
-#define has(A,B) ((A)==(B) || ((A) & (B)))
-#define incSelectCount()  if has(n->phase, agg_phase) select_count++;
-#define addop0(V,A)       if has(n->phase, agg_phase) addop(V, A)
-#define addop1(V,A,B)     if has(n->phase, agg_phase) addop(V, A, B)
-#define addop2(V,A,B,C)   if has(n->phase, agg_phase) addop(V, A, B, C)
-#define addop3(V,A,B,C,D) if has(n->phase, agg_phase) addop(V, A, B, C, D)
-#define debugAddop cerr << "addop: " << opMap[code] << endl;
-//#define debugAddop
-static void addop(vector<opcode> &v, byte code){
-	debugAddop
-	v.push_back({code, 0, 0, 0});
-}
-static void addop(vector<opcode> &v, byte code, int p1){
-	debugAddop
-	v.push_back({code, p1, 0, 0});
-}
-static void addop(vector<opcode> &v, byte code, int p1, int p2){
-	debugAddop
-	v.push_back({code, p1, p2, 0});
-}
-static void addop(vector<opcode> &v, byte code, int p1, int p2, int p3){
-	debugAddop
-	v.push_back({code, p1, p2, p3});
-}
 
 static void determinePath(querySpecs &q){
 
