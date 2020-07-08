@@ -170,6 +170,7 @@ void openfiles(querySpecs &q, unique_ptr<node> &n){
 		string id = str2("_f",q.numFiles);
 		shared_ptr<fileReader> fr(new fileReader(path));
 		fr->id = id;
+		fr->fileno = q.numFiles;
 		q.files[id] = fr;
 		if (n->tok4.id)
 			q.files[n->tok4.val] = fr;
