@@ -6,6 +6,7 @@ class cgen {
 	int normal_read;
 	int agg_phase; //0 is not grouping, 1 is first read, 2 is aggregate retrieval
 	int select_count;
+	vector<int> valposTypes;
 	querySpecs* q;
 
 	public:
@@ -186,16 +187,20 @@ void cgen::genBasicJoiningQuery(unique_ptr<node> &n){
 }
 void cgen::genScanJoinFiles(unique_ptr<node> &n){
 	e("scan joins");
+	static int vpSortFuncs[] = { 0,0,1,0,0,2 };
 	auto& joinNode = findFirstNode(n, N_JOIN);
 	for (auto jnode = joinNode.get(); jnode; jnode = jnode->node2.get()){
 		auto& f = q->files[jnode->tok4.val];
 		int afterfile = q->jumps.newPlaceholder();
 		normal_read = v.size();
 		addop(RDLINE, afterfile, f->fileno-1);
+		valposTypes.clear();
 		genScannedJoinExprs(jnode->node1);
-		addop(SAVEVALPOS, f->fileno-1, f->joinValpos.size()-1);
+		addop(SAVEVALPOS, f->fileno-1, f->joinValpos.size());
 		addop(JMP, normal_read);
 		q->jumps.setPlace(afterfile, v.size());
+		for (int i=0; i<valposTypes.size(); i++)
+			addop(SORTVALPOS, f->fileno-1, i, vpSortFuncs[valposTypes[i]]);
 	}
 
 }
@@ -206,11 +211,13 @@ void cgen::genScannedJoinExprs(unique_ptr<node> &n){
 		case N_PREDCOMP:
 			if (n->tok1.id == SP_LPAREN)
 				genScannedJoinExprs(n->node1);
-			else if (n->tok4.id == 1)
+			else if (n->tok4.id == 1){
 				genExprAll(n->node1);
-			else if (n->tok4.id == 2)
+				valposTypes.push_back(n->datatype);
+			}else if (n->tok4.id == 2){
 				genExprAll(n->node2);
-			else
+				valposTypes.push_back(n->datatype);
+			}else
 				error("invalid join comparision");
 			break;
 		default:
@@ -339,16 +346,16 @@ void cgen::genVars(unique_ptr<node> &n, varScoper* vs){
 			if (n->phase == (1|2)){
 				//non-aggs in phase2
 				if (agg_phase == 1){
-					addop2(v, PUTVAR2, i, n->tok3.id);
+					addop2(PUTVAR2, i, n->tok3.id);
 				} else {
-					addop1(v, LDMID, n->tok3.id);
-					addop1(v, PUTVAR, i);
+					addop1(LDMID, n->tok3.id);
+					addop1(PUTVAR, i);
 				}
 			} else {
-				addop1(v, PUTVAR, i);
+				addop1(PUTVAR, i);
 				int vartype = getVarType(n->tok1.val, q);
 				if (agg_phase == 2 && q->sorting && vartype == T_STRING)
-					addop1(v, HOLDVAR, i);
+					addop1(HOLDVAR, i);
 			}
 		}
 		genVars(n->node2, vs);
@@ -364,10 +371,10 @@ void cgen::genExprAdd(unique_ptr<node> &n){
 	genExprAll(n->node2);
 	switch (n->tok1.id){
 	case SP_PLUS:
-		addop0(v, ops[OPADD][n->datatype]);
+		addop0(ops[OPADD][n->datatype]);
 		break;
 	case SP_MINUS:
-		addop0(v, ops[OPSUB][n->datatype]);
+		addop0(ops[OPSUB][n->datatype]);
 		break;
 	}
 }
@@ -380,16 +387,16 @@ void cgen::genExprMult(unique_ptr<node> &n){
 	genExprAll(n->node2);
 	switch (n->tok1.id){
 	case SP_STAR:
-		addop0(v, ops[OPMULT][n->datatype]);
+		addop0(ops[OPMULT][n->datatype]);
 		break;
 	case SP_DIV:
-		addop0(v, ops[OPDIV][n->datatype]);
+		addop0(ops[OPDIV][n->datatype]);
 		break;
 	case SP_CARROT:
-		addop0(v, ops[OPEXP][n->datatype]);
+		addop0(ops[OPEXP][n->datatype]);
 		break;
 	case SP_MOD:
-		addop0(v, ops[OPMOD][n->datatype]);
+		addop0(ops[OPMOD][n->datatype]);
 		break;
 	}
 }
@@ -399,7 +406,7 @@ void cgen::genExprNeg(unique_ptr<node> &n){
 	e("gen neg");
 	genExprAll(n->node1);
 	if (!n->tok1.id) return;
-	addop0(v, ops[OPNEG][n->datatype]);
+	addop0(ops[OPNEG][n->datatype]);
 }
 
 void cgen::genValue(unique_ptr<node> &n){
@@ -409,7 +416,7 @@ void cgen::genValue(unique_ptr<node> &n){
 	int vtype, op, aggvar;
 	switch (n->tok2.id){
 	case COLUMN:
-		addop2(v, ops[OPLD][n->datatype], getFileNo(n->tok3.val, q), n->tok1.id);
+		addop2(ops[OPLD][n->datatype], getFileNo(n->tok3.val, q), n->tok1.id);
 		break;
 	case LITERAL:
 		switch (n->datatype){
@@ -420,21 +427,21 @@ void cgen::genValue(unique_ptr<node> &n){
 		case T_STRING:   lit = parseStringDat(n->tok1.val.c_str());   break;
 		}
 		if (n->tok1.lower() == "null"){
-			addop0(v, LDNULL);
+			addop0(LDNULL);
 		} else {
-			addop1(v, LDLIT, q->dataholder.size());
+			addop1(LDLIT, q->dataholder.size());
 			q->dataholder.push_back(lit);
 		}
 		break;
 	case VARIABLE:
-		addop1(v, LDVAR, getVarIdx(n->tok1.val, q));
+		addop1(LDVAR, getVarIdx(n->tok1.val, q));
 		//variable may be used in operations with different types
 		vtype = getVarType(n->tok1.val, q);
 		op = typeConv[vtype][n->datatype];
 		if (op == CVER)
 			error(ft("Error converting variable of type {} to new type {}", vtype, n->datatype));
 		if (op != CVNO)
-			addop0(v, op);
+			addop0(op);
 		break;
 	case FUNCTION:
 		genExprAll(n->node1);
@@ -454,7 +461,7 @@ void cgen::genExprCase(unique_ptr<node> &n){
 			genCPredList(n->node1, caseEnd);
 			genExprAll(n->node3);
 			if (n->node3 == nullptr)
-				addop0(v, LDNULL);
+				addop0(LDNULL);
 			q->jumps.setPlace(caseEnd, v.size());
 			break;
 		//expression matches expression list
@@ -462,10 +469,10 @@ void cgen::genExprCase(unique_ptr<node> &n){
 		case SP_LPAREN:
 			genExprAll(n->node1);
 			genCWExprList(n->node2, caseEnd);
-			addop0(v, POP); //don't need comparison value anymore
+			addop0(POP); //don't need comparison value anymore
 			genExprAll(n->node3);
 			if (n->node3 == nullptr)
-				addop0(v, LDNULL);
+				addop0(LDNULL);
 			q->jumps.setPlace(caseEnd, v.size());
 			break;
 		}
@@ -486,14 +493,14 @@ void cgen::genCWExprList(unique_ptr<node> &n, int end){
 void cgen::genCWExpr(unique_ptr<node> &n, int end){
 	if (n == nullptr) return;
 	e("gen case w expr");
-	int next = q->jumps.newPlaceholder(); //get jump pos for next try
+	int nextCase = q->jumps.newPlaceholder(); //get jump pos for next try
 	genExprAll(n->node1); //evaluate comparision expression
-	addop1(v, ops[OPEQ][n->tok1.id], 0); //leave '=' result where this comp value was
-	addop2(v, JMPFALSE, next, 1);
-	addop0(v, POP); //don't need comparison value anymore
+	addop1(ops[OPEQ][n->tok1.id], 0); //leave '=' result where this comp value was
+	addop2(JMPFALSE, nextCase, 1);
+	addop0(POP); //don't need comparison value anymore
 	genExprAll(n->node2); //result value if eq
-	addop1(v, JMP, end);
-	q->jumps.setPlace(next, v.size()); //jump here for next try
+	addop1(JMP, end);
+	q->jumps.setPlace(nextCase, v.size()); //jump here for next try
 }
 
 void cgen::genCPredList(unique_ptr<node> &n, int end){
@@ -506,12 +513,12 @@ void cgen::genCPredList(unique_ptr<node> &n, int end){
 void cgen::genCPred(unique_ptr<node> &n, int end){
 	if (n == nullptr) return;
 	e("gen case p");
-	int next = q->jumps.newPlaceholder(); //get jump pos for next try
+	int nextCase = q->jumps.newPlaceholder(); //get jump pos for next try
 	genPredicates(n->node1);
-	addop2(v, JMPFALSE, next, 1);
+	addop2(JMPFALSE, nextCase, 1);
 	genExprAll(n->node2); //result value if true
-	addop1(v, JMP, end);
-	q->jumps.setPlace(next, v.size()); //jump here for next try
+	addop1(JMP, end);
+	q->jumps.setPlace(nextCase, v.size()); //jump here for next try
 }
 
 void cgen::genSelect(unique_ptr<node> &n){
@@ -531,7 +538,7 @@ void cgen::genSelections(unique_ptr<node> &n){
 		if (t1 == "hidden") {
 
 		} else if (t1 == "distinct") {
-			addop1(v, PUTDIST, n->tok4.id);
+			addop1(PUTDIST, n->tok4.id);
 			incSelectCount();
 
 		} else if (t1 == "*") {
@@ -541,23 +548,23 @@ void cgen::genSelections(unique_ptr<node> &n){
 			switch (agg_phase){
 			case 0:
 				for (auto nn = n.get(); nn; nn = nn->node1.get()) if (nn->label == N_VALUE){
-					addop3(v, LDPUT, n->tok4.id, nn->tok1.id, getFileNo(nn->tok3.val, q));
+					addop3(LDPUT, n->tok4.id, nn->tok1.id, getFileNo(nn->tok3.val, q));
 					break;
 				} break;
 			case 1:
 				for (auto nn = n.get(); nn; nn = nn->node1.get()) if (nn->label == N_VALUE){
-					addop3(v, LDPUTGRP, n->tok3.id, nn->tok1.id, getFileNo(nn->tok3.val, q));
+					addop3(LDPUTGRP, n->tok3.id, nn->tok1.id, getFileNo(nn->tok3.val, q));
 					break;
 				} break;
 			case 2:
-				addop2(v, LDPUTMID, n->tok4.id, n->tok3.id);
+				addop2(LDPUTMID, n->tok4.id, n->tok3.id);
 				break;
 			}
 			incSelectCount();
 
 		} else {
 			genExprAll(n->node1);
-			addop2(v, PUT, n->tok4.id, agg_phase==1?1:0);
+			addop2(PUT, n->tok4.id, agg_phase==1?1:0);
 			incSelectCount();
 		}
 		break;
@@ -575,13 +582,13 @@ void cgen::genPredicates(unique_ptr<node> &n){
 	int doneAndOr = q->jumps.newPlaceholder();
 	switch (n->tok1.id){
 	case KW_AND:
-		addop2(v, JMPFALSE, doneAndOr, 0);
-		addop0(v, POP); //don't need old result
+		addop2(JMPFALSE, doneAndOr, 0);
+		addop0(POP); //don't need old result
 		genPredicates(n->node2);
 		break;
 	case KW_OR:
-		addop2(v, JMPTRUE, doneAndOr, 0);
-		addop0(v, POP); //don't need old result
+		addop2(JMPTRUE, doneAndOr, 0);
+		addop0(POP); //don't need old result
 		genPredicates(n->node2);
 		break;
 	case KW_XOR:
@@ -589,7 +596,7 @@ void cgen::genPredicates(unique_ptr<node> &n){
 	}
 	q->jumps.setPlace(doneAndOr, v.size());
 	if (n->tok2.id == SP_NEGATE)
-		addop0(v, PNEG); //can optimize be returning value to genwhere and add opposite jump code
+		addop0(PNEG); //can optimize be returning value to genwhere and add opposite jump code
 }
 
 void cgen::genPredCompare(unique_ptr<node> &n){
@@ -603,52 +610,52 @@ void cgen::genPredCompare(unique_ptr<node> &n){
 	case SP_NOEQ: negation ^= 1;
 	case SP_EQ:
 		genExprAll(n->node2);
-		addop2(v, ops[OPEQ][n->datatype], 1, negation);
+		addop2(ops[OPEQ][n->datatype], 1, negation);
 		break;
 	case SP_GREATEQ: negation ^= 1;
 	case SP_LESS:
 		genExprAll(n->node2);
-		addop2(v, ops[OPLT][n->datatype], 1, negation);
+		addop2(ops[OPLT][n->datatype], 1, negation);
 		break;
 	case SP_GREAT: negation ^= 1;
 	case SP_LESSEQ:
 		genExprAll(n->node2);
-		addop2(v, ops[OPLEQ][n->datatype], 1, negation);
+		addop2(ops[OPLEQ][n->datatype], 1, negation);
 		break;
 	case KW_BETWEEN:
 		endcomp = q->jumps.newPlaceholder();
 		greaterThanExpr3 = q->jumps.newPlaceholder();
-		addop1(v, NULFALSE1, endcomp);
+		addop1(NULFALSE1, endcomp);
 		genExprAll(n->node2);
-		addop1(v, NULFALSE2, endcomp);
-		addop2(v, ops[OPLT][n->datatype], 0, 1);
-		addop2(v, JMPFALSE, greaterThanExpr3, 1);
+		addop1(NULFALSE2, endcomp);
+		addop2(ops[OPLT][n->datatype], 0, 1);
+		addop2(JMPFALSE, greaterThanExpr3, 1);
 		genExprAll(n->node3);
-		addop1(v, NULFALSE2, endcomp);
-		addop2(v, ops[OPLT][n->datatype], 1, negation);
-		addop1(v, JMP, endcomp);
+		addop1(NULFALSE2, endcomp);
+		addop2(ops[OPLT][n->datatype], 1, negation);
+		addop1(JMP, endcomp);
 		q->jumps.setPlace(greaterThanExpr3, v.size());
 		genExprAll(n->node3);
-		addop1(v, NULFALSE2, endcomp);
-		addop2(v, ops[OPLT][n->datatype], 1, negation^1);
+		addop1(NULFALSE2, endcomp);
+		addop2(ops[OPLT][n->datatype], 1, negation^1);
 		q->jumps.setPlace(endcomp, v.size());
 		break;
 	case KW_IN:
 		endcomp = q->jumps.newPlaceholder();
 		for (auto nn=n->node2.get(); nn; nn=nn->node2.get()){
 			genExprAll(nn->node1);
-			addop1(v, ops[OPEQ][n->node1->datatype], 0);
-			addop2(v, JMPTRUE, endcomp, 0);
+			addop1(ops[OPEQ][n->node1->datatype], 0);
+			addop2(JMPTRUE, endcomp, 0);
 			if (nn->node2.get())
-				addop0(v, POP);
+				addop0(POP);
 		}
 		q->jumps.setPlace(endcomp, v.size());
 		if (negation)
-			addop0(v, PNEG);
-		addop0(v, POPCPY); //put result where 1st expr was
+			addop0(PNEG);
+		addop0(POPCPY); //put result where 1st expr was
 		break;
 	case KW_LIKE:
-		addop2(v, LIKE, q->dataholder.size(), negation);
+		addop2(LIKE, q->dataholder.size(), negation);
 		reg.u.r = new regex_t;
 		reg.b = RMAL;
 		boost::replace_all(n->tok3.val, "_", ".");
@@ -671,7 +678,7 @@ void cgen::genWhere(unique_ptr<node> &nn){
 	e("gen where");
 	if (n == nullptr) return;
 	genPredicates(n->node1);
-	addop2(v, JMPFALSE, normal_read, 1);
+	addop2(JMPFALSE, normal_read, 1);
 }
 
 void cgen::genDistinct(unique_ptr<node> &n, int gotoIfNot){
@@ -680,7 +687,7 @@ void cgen::genDistinct(unique_ptr<node> &n, int gotoIfNot){
 	if (n->label != N_SELECTIONS) return;
 	if (n->tok1.id == KW_DISTINCT){
 		genExprAll(n->node1);
-		addop2(v, ops[OPDIST][n->datatype], gotoIfNot, addBtree(n->datatype, q));
+		addop2(ops[OPDIST][n->datatype], gotoIfNot, addBtree(n->datatype, q));
 	} else {
 		//there can be only 1 distinct filter
 		genDistinct(n->node2, gotoIfNot);
@@ -713,19 +720,19 @@ void cgen::genFunction(unique_ptr<node> &n){
 	case FN_COALESCE:
 		for (auto nn = n->node1.get(); nn; nn = nn->node2.get()){
 			genExprAll(nn->node1);
-			addop1(v, JMPNOTNULL_ELSEPOP, funcDone);
+			addop1(JMPNOTNULL_ELSEPOP, funcDone);
 		}
-		addop0(v, LDNULL);
+		addop0(LDNULL);
 		break;
 	case FN_INC:
-		addop1(v, FINC, q->dataholder.size());
+		addop1(FINC, q->dataholder.size());
 		q->dataholder.push_back(dat{ {.f = 0.0}, T_FLOAT});
 		break;
 	case FN_ENCRYPT:
 		genExprAll(n->node1);
 		if (n->tok3.val == "chacha"){
 			idx = q->crypt.newChacha(n->tok4.val);
-			addop1(v, ENCCHA, idx);
+			addop1(ENCCHA, idx);
 		} else /* aes */ {
 		}
 		break;
@@ -733,7 +740,7 @@ void cgen::genFunction(unique_ptr<node> &n){
 		genExprAll(n->node1);
 		if (n->tok3.val == "chacha"){
 			idx = q->crypt.newChacha(n->tok4.val);
-			addop1(v, DECCHA, idx);
+			addop1(DECCHA, idx);
 		} else /* aes */ {
 		}
 		break;
@@ -789,7 +796,7 @@ void cgen::genTypeConv(unique_ptr<node> &n){
 	if (n == nullptr) return;
 	e("type convert");
 	genExprAll(n->node1);
-	addop0(v, typeConv[n->tok1.id][n->datatype]);
+	addop0(typeConv[n->tok1.id][n->datatype]);
 }
 
 void cgen::genGetGroup(unique_ptr<node> &n){
@@ -801,7 +808,7 @@ void cgen::genGetGroup(unique_ptr<node> &n){
 			depth++;
 			genExprAll(nn->node1);
 		}
-		addop1(v, GETGROUP, depth);
+		addop1(GETGROUP, depth);
 	}
 }
 
