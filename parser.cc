@@ -401,6 +401,7 @@ static unique_ptr<node> parsePredicates(querySpecs &q) {
 //tok2 is negation
 //tok3 is 'like' expression
 //tok4 will be number of node (1,2) for indexable join value
+//tok5 will be index of valpos vector for joins
 //node1 is [expr, predicates]
 //node2 is second expr
 //node3 is third expr for betweens

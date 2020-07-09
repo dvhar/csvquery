@@ -345,7 +345,13 @@ set<int> analyzer::whichFilesReferenced(unique_ptr<node> &n){
 void analyzer::findIndexableJoinValues(unique_ptr<node> &n, int fileno){
 	if (n == nullptr || !q->joining) return;
 	switch (n->label){
-	case N_PREDCOMP: {
+	case N_PREDCOMP:
+		switch (n->tok1.id){
+		case SP_LPAREN:
+			findIndexableJoinValues(n->node1, fileno);
+			return;
+		default: //found a comparison
+			{
 			auto e1 = whichFilesReferenced(n->node1);
 			auto e2 = whichFilesReferenced(n->node2);
 			if (q->strictJoin){
@@ -368,15 +374,14 @@ void analyzer::findIndexableJoinValues(unique_ptr<node> &n, int fileno){
 					if (i > fileno)
 						error("Join condition cannot compare to a file that appears later in the query, only earlier");
 				n->tok4.id = 2;
-			}else
+			}else{
 				error("One side of join condition must be the joined file and only the joined file");
+			}
 
-			switch (n->tok1.id){
-			case SP_LPAREN:
-				findIndexableJoinValues(n->node1, fileno);
-				break;
-			case SP_EQ:
-				break;
+			auto& vpv = q->getFileReader(fileno)->joinValpos;
+			n->tok5.id = vpv.size();
+			vpv.push_back(vector<valpos>());
+			return;
 			}
 		}
 		break;

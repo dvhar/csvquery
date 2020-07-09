@@ -9,7 +9,13 @@ class cgen {
 	querySpecs* q;
 
 	public:
+	void addop(int code);
+	void addop(int code, int p1);
+	void addop(int code, int p1, int p2);
+	void addop(int code, int p1, int p2, int p3);
 	void generateCode();
+	void genScanJoinFiles(unique_ptr<node> &n);
+	void genScannedJoinExprs(unique_ptr<node> &n);
 	void genNormalOrderedQuery(unique_ptr<node> &n);
 	void genNormalQuery(unique_ptr<node> &n);
 	void genBasicGroupingQuery(unique_ptr<node> &n);
@@ -50,6 +56,23 @@ class cgen {
 	}
 };
 
+void cgen::addop(int code){
+	debugAddop
+	v.push_back({code, 0, 0, 0});
+}
+void cgen::addop(int code, int p1){
+	debugAddop
+	v.push_back({code, p1, 0, 0});
+}
+void cgen::addop(int code, int p1, int p2){
+	debugAddop
+	v.push_back({code, p1, p2, 0});
+}
+void cgen::addop(int code, int p1, int p2, int p3){
+	debugAddop
+	v.push_back({code, p1, p2, p3});
+}
+
 //for debugging
 static int ident = 0;
 //#define e //turn off debug printer
@@ -61,8 +84,8 @@ static int ident = 0;
 	cerr << "done " << A << endl; });
 #endif
 
-#define pushvars() for (auto &i : q->vars) addop(v, PUSH);
-#define popvars() for (auto &i : q->vars) addop(v, POP);
+#define pushvars() for (auto &i : q->vars) addop(PUSH);
+#define popvars() for (auto &i : q->vars) addop(POP);
 
 
 void jumpPositions::updateBytecode(vector<opcode> &vec) {
@@ -154,14 +177,58 @@ void cgen::genExprAll(unique_ptr<node> &n){
 
 //given q.tree as node param
 void cgen::genBasicJoiningQuery(unique_ptr<node> &n){
+	e("basic join");
+	varScoper vs;
+	pushvars();
+	genScanJoinFiles(n->node3->node1);
+	popvars();
+	addop(ENDRUN);
 }
+void cgen::genScanJoinFiles(unique_ptr<node> &n){
+	e("scan joins");
+	auto& joinNode = findFirstNode(n, N_JOIN);
+	for (auto jnode = joinNode.get(); jnode; jnode = jnode->node2.get()){
+		auto& f = q->files[jnode->tok4.val];
+		int afterfile = q->jumps.newPlaceholder();
+		normal_read = v.size();
+		addop(RDLINE, afterfile, f->fileno-1);
+		genScannedJoinExprs(jnode->node1);
+		addop(SAVEVALPOS, f->fileno-1, f->joinValpos.size()-1);
+		addop(JMP, normal_read);
+		q->jumps.setPlace(afterfile, v.size());
+	}
+
+}
+void cgen::genScannedJoinExprs(unique_ptr<node> &n){
+	e("join exprs");
+	if (n == nullptr) return;
+	switch (n->label){
+		case N_PREDCOMP:
+			if (n->tok1.id == SP_LPAREN)
+				genScannedJoinExprs(n->node1);
+			else if (n->tok4.id == 1)
+				genExprAll(n->node1);
+			else if (n->tok4.id == 2)
+				genExprAll(n->node2);
+			else
+				error("invalid join comparision");
+			break;
+		default:
+			genScannedJoinExprs(n->node1);
+			genScannedJoinExprs(n->node2);
+			genScannedJoinExprs(n->node3);
+			genScannedJoinExprs(n->node4);
+			break;
+	}
+}
+
 void cgen::genNormalQuery(unique_ptr<node> &n){
 	e("normal");
 	int endfile = q->jumps.newPlaceholder(); //where to jump when done reading file
 	varScoper vs;
 	pushvars();
 	normal_read = v.size();
-	addop(v, RDLINE, endfile, 0);
+	addop(RDLINE, endfile, 0);
 	genVars(n->node1, vs.setscope(WHERE_FILTER|DISTINCT_FILTER, V_EQUALS, V_SCOPE1));
 	genVars(n->node1, vs.setscope(WHERE_FILTER, V_EQUALS, V_SCOPE1));
 	genWhere(n->node4);
@@ -169,11 +236,11 @@ void cgen::genNormalQuery(unique_ptr<node> &n){
 	genDistinct(n->node2->node1, normal_read);
 	genVars(n->node1, vs.setscope(NO_FILTER, V_ANY, V_SCOPE1));
 	genSelect(n->node2);
-	addop(v, PRINT);
-	addop(v, (q->quantityLimit > 0 ? JMPCNT : JMP), normal_read);
+	addop(PRINT);
+	addop((q->quantityLimit > 0 ? JMPCNT : JMP), normal_read);
 	q->jumps.setPlace(endfile, v.size());
 	popvars();
-	addop(v, ENDRUN);
+	addop(ENDRUN);
 }
 void cgen::genNormalOrderedQuery(unique_ptr<node> &n){
 	int sorter = q->jumps.newPlaceholder(); //where to jump when done scanning file
@@ -182,28 +249,28 @@ void cgen::genNormalOrderedQuery(unique_ptr<node> &n){
 	varScoper vs;
 	pushvars();
 	normal_read = v.size();
-	addop(v, RDLINE, sorter, 0);
+	addop(RDLINE, sorter, 0);
 	genVars(n->node1, vs.setscope(WHERE_FILTER|ORDER_FILTER, V_INCLUDES, V_SCOPE1));
 	genWhere(n->node4);
 	genNormalSortList(n);
-	addop(v, SAVEPOS);
-	addop(v, JMP, normal_read);
+	addop(SAVEPOS);
+	addop(JMP, normal_read);
 	q->jumps.setPlace(sorter, v.size());
-	addop(v, SORT);
-	addop(v, PREP_REREAD, 0, 0);
+	addop(SORT);
+	addop(PREP_REREAD, 0, 0);
 	q->jumps.setPlace(reread, v.size());
-	addop(v, RDLINE_ORDERED, endreread, 0, 0);
+	addop(RDLINE_ORDERED, endreread, 0, 0);
 	genVars(n->node1, vs.setscope(DISTINCT_FILTER, V_EQUALS, V_SCOPE2));
 	genDistinct(n->node2->node1, reread);
 	genVars(n->node1, vs.setscope(NO_FILTER, V_ANY, V_SCOPE2));
 	genSelect(n->node2);
-	addop(v, PRINT);
-	addop(v, (q->quantityLimit > 0 ? JMPCNT : JMP), reread);
+	addop(PRINT);
+	addop((q->quantityLimit > 0 ? JMPCNT : JMP), reread);
 	q->jumps.setPlace(endreread, v.size());
-	addop(v, POP); //rereader used 2 stack spaces
-	addop(v, POP);
+	addop(POP); //rereader used 2 stack spaces
+	addop(POP);
 	popvars();
-	addop(v, ENDRUN);
+	addop(ENDRUN);
 };
  //update sorter to work with list
 void cgen::genNormalSortList(unique_ptr<node> &n){
@@ -212,8 +279,8 @@ void cgen::genNormalSortList(unique_ptr<node> &n){
 	for (auto x = ordnode->node1.get(); x; x = x->node2.get()){
 		genExprAll(x->node1);
 		if (x->datatype == T_STRING)
-			addop(v, NUL_TO_STR);
-		addop(v, ops[OPSVSRT][x->datatype], i++);
+			addop(NUL_TO_STR);
+		addop(ops[OPSVSRT][x->datatype], i++);
 		q->sortInfo.push_back({x->tok1.id, x->datatype});
 	}
 }
@@ -224,7 +291,7 @@ void cgen::genBasicGroupingQuery(unique_ptr<node> &n){
 	varScoper vs;
 	pushvars();
 	normal_read = v.size();
-	addop(v, RDLINE, getgroups, 0);
+	addop(RDLINE, getgroups, 0);
 	genVars(n->node1, vs.setscope(WHERE_FILTER|DISTINCT_FILTER, V_EQUALS, V_SCOPE1));
 	genVars(n->node1, vs.setscope(WHERE_FILTER, V_EQUALS, V_SCOPE1));
 	genWhere(n->node4);
@@ -236,12 +303,12 @@ void cgen::genBasicGroupingQuery(unique_ptr<node> &n){
 	genPredicates(n->node4->node3); //having phase 1
 	genSelect(n->node2);
 	genAggSortList(n); //figure out how to do phase 2
-	addop(v, JMP, normal_read);
+	addop(JMP, normal_read);
 	q->jumps.setPlace(getgroups, v.size());
 	agg_phase = 2;
 	genIterateGroups(n->node4->node2, vs);
 	popvars();
-	addop(v, ENDRUN);
+	addop(ENDRUN);
 }
 
 void cgen::genAggSortList(unique_ptr<node> &n){
@@ -594,7 +661,7 @@ void cgen::genPredCompare(unique_ptr<node> &n){
 }
 
 void cgen::genSelectAll(){
-	addop(v, LDPUTALL, select_count);
+	addop(LDPUTALL, select_count);
 	for (int i=1; i<=q->numFiles; ++i)
 		select_count += q->files[str2("_f", i)]->numFields;
 }
@@ -636,8 +703,8 @@ void cgen::genFunction(unique_ptr<node> &n){
 				setIndex = addBtree(n->node1->datatype, q);
 				separateSets = 0;
 			}
-			addop(v, ops[OPDIST][n->node1->datatype], funcDone, setIndex, separateSets);
-			addop(v, LDDIST);
+			addop(ops[OPDIST][n->node1->datatype], funcDone, setIndex, separateSets);
+			addop(LDDIST);
 		}
 	}
 
@@ -676,42 +743,42 @@ void cgen::genFunction(unique_ptr<node> &n){
 	if (agg_phase == 1) {
 		switch (n->tok1.id){
 		case FN_SUM:
-			addop(v, ops[OPSUM][n->datatype], n->tok6.id);
+			addop(ops[OPSUM][n->datatype], n->tok6.id);
 			break;
 		case FN_AVG:
-			addop(v, ops[OPAVG][n->datatype], n->tok6.id);
+			addop(ops[OPAVG][n->datatype], n->tok6.id);
 			break;
 		case FN_STDEV:
 		case FN_STDEVP:
-			addop(v, ops[OPSTV][n->datatype], n->tok6.id);
+			addop(ops[OPSTV][n->datatype], n->tok6.id);
 			break;
 		case FN_MIN:
-			addop(v, ops[OPMIN][n->datatype], n->tok6.id);
+			addop(ops[OPMIN][n->datatype], n->tok6.id);
 			break;
 		case FN_MAX:
-			addop(v, ops[OPMAX][n->datatype], n->tok6.id);
+			addop(ops[OPMAX][n->datatype], n->tok6.id);
 			break;
 		case FN_COUNT:
-			addop(v, COUNT, n->tok6.id, n->tok2.id ? 1 : 0);
+			addop(COUNT, n->tok6.id, n->tok2.id ? 1 : 0);
 			break;
 		}
 		select_count++;
 	} else if (agg_phase == 2) {
 		switch (n->tok1.id){
 		case FN_AVG:
-			addop(v, ops[OPLAVG][n->datatype], n->tok6.id);
+			addop(ops[OPLAVG][n->datatype], n->tok6.id);
 			break;
 		case FN_STDEV:
-			addop(v, ops[OPLSTV][n->datatype], n->tok6.id, 1);
+			addop(ops[OPLSTV][n->datatype], n->tok6.id, 1);
 			break;
 		case FN_STDEVP:
-			addop(v, ops[OPLSTV][n->datatype], n->tok6.id);
+			addop(ops[OPLSTV][n->datatype], n->tok6.id);
 			break;
 		case FN_MIN:
 		case FN_MAX:
 		case FN_SUM:
 		case FN_COUNT:
-			addop(v, LDMID, n->tok6.id);
+			addop(LDMID, n->tok6.id);
 			break;
 		}
 	}
@@ -741,11 +808,11 @@ void cgen::genGetGroup(unique_ptr<node> &n){
 void cgen::genIterateGroups(unique_ptr<node> &n, varScoper &vs){
 	e("iterate groups");
 	if (n == nullptr) {
-		addop(v, ONEGROUP);
+		addop(ONEGROUP);
 		genVars(q->tree->node1, vs.setscope(NO_FILTER, V_ANY, V_SCOPE2));
 		genSelect(q->tree->node2);
 		// for debugging:
-		addop(v, PRINT);
+		addop(PRINT);
 		return;
 	}
 	if (n->label == N_GROUPBY){
@@ -753,7 +820,7 @@ void cgen::genIterateGroups(unique_ptr<node> &n, varScoper &vs){
 		int depth = 0;
 		int goWhenDone;
 		int prevmap;
-		addop(v, ROOTMAP, depth);
+		addop(ROOTMAP, depth);
 		for (auto nn=n->node1.get(); nn; nn=nn->node2.get()){
 			if (depth == 0) {
 				goWhenDone = doneGroups;
@@ -763,10 +830,10 @@ void cgen::genIterateGroups(unique_ptr<node> &n, varScoper &vs){
 			if (nn->node2.get()){
 				depth += 2;
 				prevmap = v.size();
-				addop(v, NEXTMAP, goWhenDone, depth);
+				addop(NEXTMAP, goWhenDone, depth);
 			} else {
 				int nextvec = v.size();
-				addop(v, NEXTVEC, goWhenDone, depth);
+				addop(NEXTVEC, goWhenDone, depth);
 				if (q->sorting){
 					genSortedGroupRow(n, vs, nextvec);
 				} else {
@@ -780,14 +847,14 @@ void cgen::genIterateGroups(unique_ptr<node> &n, varScoper &vs){
 		if (q->sorting){
 			auto& ordnode1 = findFirstNode(q->tree->node4, N_ORDER)->node1;
 			int doneReadGroups = q->jumps.newPlaceholder();
-			addop(v, GSORT, ordnode1->tok3.id);
-			addop(v, PUSH_0);
+			addop(GSORT, ordnode1->tok3.id);
+			addop(PUSH_0);
 			int readNext = v.size();
-			addop(v, READ_NEXT_GROUP, doneReadGroups);
-			addop(v, PRINT);
-			addop(v, (q->quantityLimit > 0 ? JMPCNT : JMP), readNext);
+			addop(READ_NEXT_GROUP, doneReadGroups);
+			addop(PRINT);
+			addop((q->quantityLimit > 0 ? JMPCNT : JMP), readNext);
 			q->jumps.setPlace(doneReadGroups, v.size());
-			addop(v, POP);
+			addop(POP);
 		}
 	}
 }
@@ -797,29 +864,29 @@ void cgen::genUnsortedGroupRow(unique_ptr<node> &n, varScoper &vs, int nextgroup
 	genVars(q->tree->node1, vs.setscope(NO_FILTER, V_ANY, V_SCOPE2));
 	genPredicates(q->tree->node4->node3);
 	if (q->havingFiltering)
-		addop(v, JMPFALSE, nextgroup, 1);
+		addop(JMPFALSE, nextgroup, 1);
 	genSelect(q->tree->node2);
 	// for debugging:
-	addop(v, PRINT);
-	addop(v, (q->quantityLimit > 0 ? JMPCNT : JMP), nextgroup);
-	addop(v, JMP, doneGroups);
+	addop(PRINT);
+	addop((q->quantityLimit > 0 ? JMPCNT : JMP), nextgroup);
+	addop(JMP, doneGroups);
 }
 void cgen::genSortedGroupRow(unique_ptr<node> &n, varScoper &vs, int nextgroup){
 	e("gen sorted group row");
 	genVars(q->tree->node1, vs.setscope(NO_FILTER, V_ANY, V_SCOPE2));
 	genPredicates(q->tree->node4->node3);
 	if (q->havingFiltering)
-		addop(v, JMPFALSE, nextgroup, 1);
-	addop(v, ADD_GROUPSORT_ROW);
+		addop(JMPFALSE, nextgroup, 1);
+	addop(ADD_GROUPSORT_ROW);
 	genSelect(q->tree->node2);
 	auto& ordnode = findFirstNode(q->tree->node4, N_ORDER);
 	for (auto x = ordnode->node1.get(); x; x = x->node2.get()){
 		genExprAll(x->node1);
 		if (x->datatype == T_STRING)
-			addop(v, NUL_TO_STR);
-		addop(v, PUT, x->tok3.id);
+			addop(NUL_TO_STR);
+		addop(PUT, x->tok3.id);
 		q->sortInfo.push_back({x->tok1.id, x->datatype});
 	}
-	addop(v, FREEMIDROW);
-	addop(v, JMP, nextgroup);
+	addop(FREEMIDROW);
+	addop(JMP, nextgroup);
 }

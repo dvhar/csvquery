@@ -207,6 +207,7 @@ class csvEntry {
 	char* terminator;
 };
 
+class valpos;
 class fileReader {
 	int fieldsFound;
 	char* pos1;
@@ -222,6 +223,7 @@ class fileReader {
 		vector<string> colnames;
 		vector<int> types;
 		vector<int64> positions;
+		vector<vector<valpos>> joinValpos;
 		vector<csvEntry> entries;
 		bool noheader;
 		string id;
@@ -292,6 +294,13 @@ class dat {
 		return d;
 	}
 };
+
+class valpos {
+	public:
+	datunion val;
+	int64 pos;
+};
+
 
 //placeholder for jmp positions that can't be determined until later
 class jumpPositions {
@@ -372,6 +381,7 @@ class querySpecs {
 	bool numIsCol();
 	void init(string);
 	void addVar(string);
+	shared_ptr<fileReader>& getFileReader(int);
 	variable& var(string);
 	~querySpecs();
 	querySpecs(string &s);
