@@ -34,7 +34,8 @@ enum codes : int {
 	SUMI, SUMF, AVGI, AVGF, STDVI, STDVF, COUNT, MINI, MINF, MINS, MAXI, MAXF, MAXS,
 	NEXTMAP, NEXTVEC, ROOTMAP, LDMID, LDPUTMID, LDPUTGRP,
 	LDSTDVI, LDSTDVF, LDAVGI, LDAVGF,
-	ADD_GROUPSORT_ROW, FREEMIDROW, GSORT, READ_NEXT_GROUP, NUL_TO_STR
+	ADD_GROUPSORT_ROW, FREEMIDROW, GSORT, READ_NEXT_GROUP, NUL_TO_STR,
+	SORTVALPOS
 };
 
 //2d array for ops indexed by operation and datatype
@@ -233,10 +234,10 @@ extern map<int, string> opMap;
 
 #define has(A,B) ((A)==(B) || ((A) & (B)))
 #define incSelectCount()  if has(n->phase, agg_phase) select_count++;
-#define addop0(V,A)       if has(n->phase, agg_phase) addop(A)
-#define addop1(V,A,B)     if has(n->phase, agg_phase) addop(A, B)
-#define addop2(V,A,B,C)   if has(n->phase, agg_phase) addop(A, B, C)
-#define addop3(V,A,B,C,D) if has(n->phase, agg_phase) addop(A, B, C, D)
+#define addop0(A)       if has(n->phase, agg_phase) addop(A)
+#define addop1(A,B)     if has(n->phase, agg_phase) addop(A, B)
+#define addop2(A,B,C)   if has(n->phase, agg_phase) addop(A, B, C)
+#define addop3(A,B,C,D) if has(n->phase, agg_phase) addop(A, B, C, D)
 #define debugAddop cerr << "addop: " << opMap[code] << endl;
 //#define debugAddop
 extern map<int, string> opMap;
