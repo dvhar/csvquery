@@ -597,7 +597,6 @@ PUSH_:
 	++ip;
 	next();
 POP_:
-	FREE2(stk0);
 	pop();
 	++ip;
 	next();
@@ -610,14 +609,12 @@ POPCPY_:
 	next();
 NULFALSE1_:
 	if (ISNULL(stk0)){
-		FREE2(stk0);
 		stk0.u.p = false;
 		ip = op->p1;
 	} else ++ip;
 	next();
 NULFALSE2_:
 	if (ISNULL(stk0)){
-		FREE2(stk0);
 		pop();
 		FREE2(stk0);
 		stk0.u.p = false;

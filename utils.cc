@@ -296,38 +296,38 @@ int getNarrowestType(char* value, int startType) {
 	return startType;
 }
 
-int varIsAgg(string lkup, querySpecs &q){
-	for (auto &v : q.vars)
+int varIsAgg(string lkup, querySpecs *q){
+	for (auto &v : q->vars)
 		if (lkup == v.name)
 			return v.phase;
 	error("variable not found");
 	return 0;
 }
-int getVarLocation(string lkup, querySpecs &q){
-	for (auto &v : q.vars)
+int getVarLocation(string lkup, querySpecs *q){
+	for (auto &v : q->vars)
 		if (lkup == v.name)
 			return v.mrindex;
 	error("variable not found");
 	return 0;
 }
-int getVarIdx(string lkup, querySpecs &q){
-	for (int i=0; i<q.vars.size(); i++)
-		if (lkup == q.vars[i].name)
+int getVarIdx(string lkup, querySpecs *q){
+	for (int i=0; i<q->vars.size(); i++)
+		if (lkup == q->vars[i].name)
 			return i;
 	error("variable not found");
 	return 0;
 }
-int getVarType(string lkup, querySpecs &q){
-	for (auto &v : q.vars)
+int getVarType(string lkup, querySpecs *q){
+	for (auto &v : q->vars)
 		if (lkup == v.name)
 			return v.type;
 	error("variable not found");
 	return 0;
 }
 
-int getFileNo(string s, querySpecs &q){
-	for (int i=1; i<=q.numFiles; ++i)
-		if (q.files[str2("_f", i)]->id == q.files[s]->id)
+int getFileNo(string s, querySpecs *q){
+	for (int i=1; i<=q->numFiles; ++i)
+		if (q->files[str2("_f", i)]->id == q->files[s]->id)
 			return i-1;
 	error("file number not founde");
 	return -1;
