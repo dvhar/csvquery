@@ -103,7 +103,7 @@ dat parseFloatDat(const char* s);
 dat parseDurationDat(const char* s) ;
 dat parseDateDat(const char* s);
 dat parseStringDat(const char* s);
-int addBtree(int type, querySpecs &q);
+int addBtree(int type, querySpecs *q);
 
 //make sure to free manually like normal malloced c strings
 class treeCString {

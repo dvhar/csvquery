@@ -1,11 +1,7 @@
-#include <string>
-#include <iostream>
-#include <stdio.h>
 #include "interpretor.h"
 
 template<class T>
-constexpr size_t len(T &a)
-{
+constexpr size_t len(T &a) {
     return sizeof(a) / sizeof(typename std::remove_all_extents<T>::type);
 }
 
@@ -78,60 +74,60 @@ void initable(){
 	for (i='A'; i<='Z'; i++) { table[STATE_WORD][i] = STATE_WORD; }
 	for (i='0'; i<='9'; i++) { table[STATE_WORD][i] = STATE_WORD; }
 
-	/*
-	for i=0; i< NUM_STATES; i++{
-		for j=0; j< 255; j++{
-			Printf("[ %d ][ %c ]=%-34s",i,j,enumMap[table[i][j]])
-		}
-		Printf("\n")
-	}
-	*/
 	tabinit = true;
 }
 
-class StringLookahead {
+class stringLookahead {
 	public:
 	string Str;
 	int idx;
 	int getc();
 	int peek();
 };
-int StringLookahead::getc() {
+int stringLookahead::getc() {
 	if (idx >= Str.length()) { return EOS; }
 	idx++;
 	return (int) Str[idx-1];
 }
-int StringLookahead::peek() {
+int stringLookahead::peek() {
 	if (idx >= Str.length()) { return EOS; }
 	return (int) Str[idx];
 }
 
-token scanner(StringLookahead &s) {
-	initable();
-	static int lineNo = 1;
-	static int colNo = 1;
-	static int waitForQuote;
+class scanner {
+	int lineNo = 1;
+	int colNo = 1;
+	int waitForQuote = 0;
+	stringLookahead input;
+	public:
+		token scanToken();
+		scanner(querySpecs &q){
+			initable();
+			input = {q.queryString, 0};
+		}
+};
+
+token scanner::scanToken() {
 	int state = STATE_INITAL;
 	int nextState, nextchar;
 	string S;
 
 	while ( (state & FINAL) == 0 && state < NUM_STATES ) {
-		nextState = table[state][s.peek()];
+		nextState = table[state][input.peek()];
 		if ((nextState & ERROR_STATE) != 0) {
 		//end of string
 			if (state == 255) return { 255, "END", lineNo, colNo, false };
-			stringstream e;
-			e << "line: " << lineNo << ", col: " << colNo << ", char: " << (char) s.peek();
-			return { ERROR_STATE, e.str(), lineNo, colNo, false };
+			auto err = ft("line: {}, col: {}, char: {}", lineNo, colNo, (char)input.peek());
+			return { ERROR_STATE, err, lineNo, colNo, false };
 		}
 		if ((nextState & FINAL) != 0) {
 			//see if keyword or regular word
 			if (nextState == WORD_TK) {
-				string s = S;
-				boost::to_lower(s);
-				if (keywordMap.count(s) && waitForQuote == 0) {
+				string tokStr = S;
+				boost::to_lower(tokStr);
+				if (keywordMap.count(tokStr) && waitForQuote == 0) {
 					//return keyword token
-					return { keywordMap[s], S, lineNo, colNo, false };
+					return { keywordMap[tokStr], S, lineNo, colNo, false };
 				} else {
 					//return word token
 					return { nextState, S, lineNo, colNo, false };
@@ -149,9 +145,8 @@ token scanner(StringLookahead &s) {
 					//return special token
 					return { sp, S, lineNo, colNo, false };
 				} else {
-					stringstream e;
-					e << "line: " << lineNo << ", col: " << colNo << ", char: " << (char) s.peek();
-					return { ERROR_STATE, e.str(), lineNo, colNo, false };
+					auto err = ft("line: {}, col: {}, char: {}", lineNo, colNo, (char)input.peek());
+					return { ERROR_STATE, err, lineNo, colNo, false };
 				}
 			} else {
 				return { nextState, S, lineNo, colNo, false };
@@ -159,7 +154,7 @@ token scanner(StringLookahead &s) {
 
 		} else {
 			state = nextState;
-			nextchar = s.getc();
+			nextchar = input.getc();
 			colNo++;
 			//include whitespace in the token when waiting for a closing quote
 			if (waitForQuote != 0) {
@@ -179,16 +174,14 @@ token scanner(StringLookahead &s) {
 
 
 void scanTokens(querySpecs &q) {
-	int lineNo = 1;
-	int colNo = 1;
-	StringLookahead input = {q.queryString, 0};
+	scanner sc(q);
 	while(1) {
-		token t = scanner(input);
+		token t = sc.scanToken();
 		//turn tokens inside quotes into single token
 		if (t.id == SP_SQUOTE || t.id == SP_DQUOTE) {
 			int quote = t.id;
 			string S = "";
-			for (token t = scanner(input); t.id != quote && t.id != EOS ; t = scanner(input)) {
+			for (token t = sc.scanToken(); t.id != quote && t.id != EOS ; t = sc.scanToken()) {
 				if (t.id == ERROR_STATE) error("scanner error: "+t.val);
 				S += t.val;
 			}

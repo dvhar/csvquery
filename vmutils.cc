@@ -82,16 +82,16 @@ dat parseStringDat(const char* s) {
 	dat ddat = { { s: (char*)s }, T_STRING, (uint) strlen(s) };
 	return ddat;
 }
-int addBtree(int type, querySpecs &q){
+int addBtree(int type, querySpecs *q){
 	//returns index of btree
 	switch (type){
 	case T_INT:
 	case T_DATE:
 	case T_DURATION:
 	case T_FLOAT:
-		return q.btn++;
+		return q->btn++;
 	case T_STRING:
-		return q.bts++;
+		return q->bts++;
 	default:
 		error("invalid btree type");
 	}
