@@ -210,6 +210,12 @@ querySpecs::querySpecs(string &s){
 	distinctNFuncs = whereFiltering = havingFiltering = joining = grouping = false;
 }
 bool querySpecs::numIsCol() { return (options & O_C) != 0; }
+shared_ptr<fileReader>& querySpecs::getFileReader(int i) {
+	for (auto &f : files)
+		if (f.second->fileno == i)
+			return f.second;
+	error("File not found");
+}
 
 void printTree(unique_ptr<node> &n, int ident){
 	if (n == nullptr) return;

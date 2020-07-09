@@ -29,7 +29,7 @@ enum codes : int {
 	PRINT, PUSH, PUSH_0, POP, POPCPY, ENDRUN, NULFALSE1, NULFALSE2,
 	NDIST, SDIST, PUTDIST, LDDIST,
 	FINC, ENCCHA, DECCHA,
-	SAVESORTN, SAVESORTS, SAVEPOS, SORT,
+	SAVESORTN, SAVESORTS, SAVEVALPOS, SAVEPOS, SORT,
 	GETGROUP, ONEGROUP,
 	SUMI, SUMF, AVGI, AVGF, STDVI, STDVF, COUNT, MINI, MINF, MINS, MAXI, MAXF, MAXS,
 	NEXTMAP, NEXTVEC, ROOTMAP, LDMID, LDPUTMID, LDPUTGRP,
@@ -233,28 +233,12 @@ extern map<int, string> opMap;
 
 #define has(A,B) ((A)==(B) || ((A) & (B)))
 #define incSelectCount()  if has(n->phase, agg_phase) select_count++;
-#define addop0(V,A)       if has(n->phase, agg_phase) addop(V, A)
-#define addop1(V,A,B)     if has(n->phase, agg_phase) addop(V, A, B)
-#define addop2(V,A,B,C)   if has(n->phase, agg_phase) addop(V, A, B, C)
-#define addop3(V,A,B,C,D) if has(n->phase, agg_phase) addop(V, A, B, C, D)
+#define addop0(V,A)       if has(n->phase, agg_phase) addop(A)
+#define addop1(V,A,B)     if has(n->phase, agg_phase) addop(A, B)
+#define addop2(V,A,B,C)   if has(n->phase, agg_phase) addop(A, B, C)
+#define addop3(V,A,B,C,D) if has(n->phase, agg_phase) addop(A, B, C, D)
 #define debugAddop cerr << "addop: " << opMap[code] << endl;
 //#define debugAddop
-static void addop(vector<opcode> &v, byte code){
-	debugAddop
-	v.push_back({code, 0, 0, 0});
-}
-static void addop(vector<opcode> &v, byte code, int p1){
-	debugAddop
-	v.push_back({code, p1, 0, 0});
-}
-static void addop(vector<opcode> &v, byte code, int p1, int p2){
-	debugAddop
-	v.push_back({code, p1, p2, 0});
-}
-static void addop(vector<opcode> &v, byte code, int p1, int p2, int p3){
-	debugAddop
-	v.push_back({code, p1, p2, p3});
-}
 extern map<int, string> opMap;
 
 void strplus(dat &s1, dat &s2);
