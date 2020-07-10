@@ -85,7 +85,7 @@ static int typeConv[6][6] = {
 #define ISMAL(X)  ((X).b & MAL )
 #define SETNULL(X) { (X).b |= NIL; (X).u.i = 0;}
 
-#define valSize(C) uint(C.terminator - C.val)
+#define valSize(C) (unsigned int)(C.terminator - C.val)
 
 #define FREE2(X) \
 	if ( (X).b & MAL ){ \
@@ -161,8 +161,8 @@ class vmachine {
 class rowgroup {
 	public:
 		struct {
-			uint rowOrGroup : 2;
-			uint mallocedKey : 1;
+			unsigned int rowOrGroup : 2;
+			unsigned int mallocedKey : 1;
 			bool freed : 1;
 			int distinctNSetIdx : 23;
 			int distinctSSetIdx : 23;

@@ -41,7 +41,7 @@ void vmachine::run(){
 	dat datTemp;
 	dat *datpTemp;
 	csvEntry csvTemp;
-	uint sizeTemp;
+	unsigned int sizeTemp;
 
 	//vars for vm operations
 	int numPrinted = 0;
@@ -162,7 +162,7 @@ LDDATE_:
 	csvTemp = files[op->p1]->entries[op->p2];
 	iTemp1 = dateparse(csvTemp.val, &i64Temp, &iTemp2, valSize(csvTemp));
 	if (iTemp1) { SETNULL(stk0); }
-	else stk0 = dat{ { i: i64Temp}, T_DATE, (uint) iTemp2 };
+	else stk0 = dat{ { i: i64Temp}, T_DATE, (unsigned int) iTemp2 };
 	++ip;
 	next();
 LDTEXT_:

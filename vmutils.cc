@@ -79,7 +79,7 @@ dat parseDateDat(const char* s) {
 }
 dat parseStringDat(const char* s) {
 	//may want to malloc
-	dat ddat = { { s: (char*)s }, T_STRING, (uint) strlen(s) };
+	dat ddat = { { s: (char*)s }, T_STRING, (unsigned int) strlen(s) };
 	return ddat;
 }
 int addBtree(int type, querySpecs *q){
