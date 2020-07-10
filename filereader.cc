@@ -184,8 +184,8 @@ void openfiles(querySpecs &q, unique_ptr<node> &n){
 			fr->noheader = true;
 		else
 			fr->noheader = false;
-		if (n->tok3.id){
-			string s = n->tok3.lower();
+		if (n->tok5.id){
+			string s = n->tok5.lower();
 			if (s == "nh" || s == "noheader")
 				fr->noheader = true;
 			if (s == "h" || s == "header")
