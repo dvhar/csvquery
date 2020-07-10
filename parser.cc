@@ -511,8 +511,8 @@ static void parseLimit(querySpecs &q) {
 }
 
 //tok1 is file path
-//tok3 is noheader
 //tok4 is alias
+//tok5 is noheader
 //node1 is joins
 static unique_ptr<node> parseFrom(querySpecs &q) {
 	token t = q.tok();
@@ -523,7 +523,7 @@ static unique_ptr<node> parseFrom(querySpecs &q) {
 	t = q.nextTok();
 	string s = t.lower();
 	if (s == "noheader" || s == "nh" || s == "header" || s == "h") {
-		n->tok3 = t;
+		n->tok5 = t;
 		t = q.nextTok();
 	}
 	switch (t.id) {
@@ -538,7 +538,7 @@ static unique_ptr<node> parseFrom(querySpecs &q) {
 	t = q.tok();
 	s = t.lower();
 	if (s == "noheader" || s == "nh" || s == "header" || s == "h") {
-		n->tok3 = t;
+		n->tok5 = t;
 		q.nextTok();
 	}
 	n->node1 = parseJoin(q);
