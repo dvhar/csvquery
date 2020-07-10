@@ -207,16 +207,17 @@ void cgen::genScanJoinFiles(unique_ptr<node> &n){
 void cgen::genScannedJoinExprs(unique_ptr<node> &n){
 	e("join exprs");
 	if (n == nullptr) return;
+	bool gotExpr = false;
 	switch (n->label){
 		case N_PREDCOMP:
 			if (n->tok1.id == SP_LPAREN)
 				genScannedJoinExprs(n->node1);
 			else if (n->tok4.id == 1){
 				genExprAll(n->node1);
-				valposTypes.push_back(n->datatype);
+				gotExpr = true;
 			}else if (n->tok4.id == 2){
 				genExprAll(n->node2);
-				valposTypes.push_back(n->datatype);
+				gotExpr = true;
 			}else
 				error("invalid join comparision");
 			break;
@@ -226,6 +227,11 @@ void cgen::genScannedJoinExprs(unique_ptr<node> &n){
 			genScannedJoinExprs(n->node3);
 			genScannedJoinExprs(n->node4);
 			break;
+	}
+	if (gotExpr){
+		valposTypes.push_back(n->datatype);
+		if (n->datatype == T_STRING)
+			addop(NUL_TO_STR);
 	}
 }
 

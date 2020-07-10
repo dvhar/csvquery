@@ -1,15 +1,1 @@
-select
-
-case c4
-when "Caribbean" then 1.2
-when c3 then 89
-when c3 + c11 then 839*c7
-else 100.23
-end
-
-case 
-when c1 = BFA then dog
-when c5 > 20000 or c7 < 10000000 then cat
-end
-
-from 'test/country.csv' nh r
+select from 'test/country' o nh join 'test/cities' nh t on t.c3=o.c1
