@@ -266,8 +266,8 @@ inline static char* newStr(char* src, int size){
 class dat {
 	public:
 	union datunion u;
-	uint b; // metadata bit array
-	uint z; // string size
+	unsigned int b; // metadata bit array
+	unsigned int z; // string size
 	void appendToBuffer(string&);
 	string str(){ string st; appendToBuffer(st); return st; }
 	friend bool operator<(const dat& l, const dat& r){
