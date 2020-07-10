@@ -222,8 +222,9 @@ PREP_REREAD_:
 	++ip;
 	next();
 NUL_TO_STR_:
-	if (ISNULL(stk0))
+	if (ISNULL(stk0)){
 		stk0 = dat{ { .s = (char*) calloc(1,1) }, T_STRING|MAL, 0 };
+	}
 	++ip;
 	next();
 SAVESORTN_:
@@ -242,7 +243,8 @@ SAVEVALPOS_:
 		iTemp1 = op->p2-1;
 		auto& f = files[op->p1];
 		for (auto& vpv : f->joinValpos){
-			vpv.push_back(valpos{stkt(iTemp1--).heap().u, f->pos});
+			vpv.push_back(valpos{stkt(iTemp1).heap().u, f->pos});
+			--iTemp1;
 		}
 		stacktop -= op->p2;
 	}
@@ -256,10 +258,13 @@ SAVEPOS_:
 SORTVALPOS_:
 	{
 		auto& vpvector = files[op->p1]->joinValpos[op->p2];
-		function<bool (const int,const int)> valposComparers[] = {
-			[&](const int a, const int b) { return vpvector[a].val.i > vpvector[b].val.i; },
-			[&](const int a, const int b) { return vpvector[a].val.f > vpvector[b].val.f; },
-			[&](const int a, const int b) { return strcmp(vpvector[a].val.s, vpvector[b].val.s); },
+		function<bool (const valpos&,const valpos&)> valposComparers[] = {
+			[&](const valpos &a, const valpos &b) { return a.val.i > b.val.i; },
+			[&](const valpos &a, const valpos &b) { return a.val.f > b.val.f; },
+			[&](const valpos &a, const valpos &b) {
+				return a.val.s && b.val.s && strcmp(a.val.s, b.val.s);
+				//find out how a null is getting in here
+			},
 		};
 		sort(parallel() vpvector.begin(), vpvector.end(), valposComparers[op->p3]);
 	}
