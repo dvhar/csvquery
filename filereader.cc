@@ -25,6 +25,14 @@ fileReader::fileReader(string fname){
 }
 fileReader::~fileReader(){
 	fs.close();
+	int i;
+	for (auto t: vpTypes){
+		if (t == T_STRING)
+			for (auto &vp: joinValpos[i])
+				free(vp.val.s);
+		i++;
+	}
+
 }
 void fileReader::print(){
 	for (auto &e : entries){

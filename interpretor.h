@@ -224,6 +224,7 @@ class fileReader {
 		vector<int> types;
 		vector<int64> positions;
 		vector<vector<valpos>> joinValpos;
+		vector<int> vpTypes;
 		vector<csvEntry> entries;
 		bool noheader;
 		string id;

@@ -1,4 +1,5 @@
 #include "interpretor.h"
+#include <boost/algorithm/string/replace.hpp>
 
 static void parseOptions(querySpecs &q);
 static unique_ptr<node> parsePreSelect(querySpecs &q);
@@ -573,7 +574,7 @@ static unique_ptr<node> parseJoin(querySpecs &q) {
 		error("Expected 'join'. Found:"+q.tok().val);
 	}
 	//file path
-	boost::replace_all(t.val, "~/", string(getenv("HOME"))+"/");
+	boost::replace_first(t.val, "~/", string(getenv("HOME"))+"/");
 	n->tok1 = t;
 	//1st after filepath
 	t = q.nextTok();
@@ -582,7 +583,6 @@ static unique_ptr<node> parseJoin(querySpecs &q) {
 		n->tok5 = t;
 		t = q.nextTok();
 	}
-	cerr << "should be alias: " << t.val << endl;
 	//alias
 	switch (t.id) {
 	case KW_AS:
