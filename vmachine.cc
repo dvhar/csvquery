@@ -250,6 +250,11 @@ SAVEVALPOS_:
 	}
 	++ip;
 	next();
+GET_SET_EQ_:
+	{
+	}
+	++ip;
+	next();
 SAVEPOS_:
 	for (auto &f : files)
 		f->positions.push_back(f->pos);

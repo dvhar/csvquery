@@ -1,4 +1,5 @@
 #include "interpretor.h"
+#include <boost/algorithm/string/case_conv.hpp>
 
 template<class T>
 constexpr size_t len(T &a) {
@@ -6,9 +7,7 @@ constexpr size_t len(T &a) {
 }
 
 string token::lower() {
-	string s = val;
-	boost::to_lower(s);
-	return s;
+	return boost::to_lower_copy(val);
 }
 void token::print() {
 	cout << "    id: " << id << " -> " << enumMap[id] << endl
@@ -181,9 +180,9 @@ void scanTokens(querySpecs &q) {
 		if (t.id == SP_SQUOTE || t.id == SP_DQUOTE) {
 			int quote = t.id;
 			string S = "";
-			for (token t = sc.scanToken(); t.id != quote && t.id != EOS ; t = sc.scanToken()) {
-				if (t.id == ERROR_STATE) error("scanner error: "+t.val);
-				S += t.val;
+			for (token tk = sc.scanToken(); tk.id != quote && tk.id != EOS ; tk = sc.scanToken()) {
+				if (tk.id == ERROR_STATE) error("scanner error: "+tk.val);
+				S += tk.val;
 			}
 			if (t.id != quote)  error("Quote was not terminated");
 			t = {WORD_TK,S,t.line,t.col,true};

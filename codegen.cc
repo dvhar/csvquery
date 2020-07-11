@@ -6,6 +6,8 @@ class cgen {
 	int normal_read;
 	int agg_phase; //0 is not grouping, 1 is first read, 2 is aggregate retrieval
 	int select_count;
+	int numJoinCompares;
+	int joinFileIdx;;
 	vector<int> valposTypes;
 	querySpecs* q;
 
@@ -15,6 +17,10 @@ class cgen {
 	void addop(int code, int p1, int p2);
 	void addop(int code, int p1, int p2, int p3);
 	void generateCode();
+	void genJoinPredicates(unique_ptr<node> &n);
+	void genJoinCompare(unique_ptr<node> &n);
+	void genJoinSets(unique_ptr<node> &n);
+	void genTraverseJoins(unique_ptr<node> &n);
 	void genScanJoinFiles(unique_ptr<node> &n);
 	void genScannedJoinExprs(unique_ptr<node> &n);
 	void genNormalOrderedQuery(unique_ptr<node> &n);
@@ -54,6 +60,8 @@ class cgen {
 		q = &qs;
 		select_count = 0;
 		agg_phase = 0;
+		numJoinCompares = 0;
+		joinFileIdx = 0;
 	}
 };
 
@@ -182,8 +190,52 @@ void cgen::genBasicJoiningQuery(unique_ptr<node> &n){
 	varScoper vs;
 	pushvars();
 	genScanJoinFiles(n->node3->node1);
+	genTraverseJoins(n->node3);
 	popvars();
 	addop(ENDRUN);
+}
+//given 'from' node
+void cgen::genTraverseJoins(unique_ptr<node> &n){
+	if (n == nullptr) return;
+	//start with base file
+	int endfile1 = q->jumps.newPlaceholder();
+	normal_read = v.size();
+	addop(RDLINE, endfile1, 0);
+	genJoinSets(n->node1);
+}
+//given 'join' node
+void cgen::genJoinSets(unique_ptr<node> &n){
+	if (n == nullptr) return;
+	genJoinPredicates(n->node1);
+	//recurse to next file (foreach in set?)
+	joinFileIdx++;
+	genJoinSets(n->node2);
+}
+//given 'predicates' node
+void cgen::genJoinPredicates(unique_ptr<node> &n){
+	if (n == nullptr) return;
+	genJoinPredicates(n->node2);
+	genJoinCompare(n->node1);
+}
+//given predicate comparison node
+void cgen::genJoinCompare(unique_ptr<node> &n){
+	if (n == nullptr) return;
+	if (n->tok1.id == SP_LPAREN){
+		genJoinCompare(n->node1);
+		return;
+	}
+	if (n->tok4.id == 1){
+		genExprAll(n->node1);
+	} else if (n->tok4.id == 2){
+		genExprAll(n->node2);
+	}
+	switch (n->label){
+		case SP_EQ:
+			addop(GET_SET_EQ, joinFileIdx, n->tok5.id);
+			break;
+		default:
+			error("only = joins implemented so far");
+	}
 }
 void cgen::genScanJoinFiles(unique_ptr<node> &n){
 	e("scan joins");
@@ -194,6 +246,7 @@ void cgen::genScanJoinFiles(unique_ptr<node> &n){
 		int afterfile = q->jumps.newPlaceholder();
 		normal_read = v.size();
 		addop(RDLINE, afterfile, f->fileno-1);
+		f->vpTypes = move(valposTypes);
 		valposTypes.clear();
 		genScannedJoinExprs(jnode->node1);
 		addop(SAVEVALPOS, f->fileno-1, f->joinValpos.size());
@@ -229,6 +282,7 @@ void cgen::genScannedJoinExprs(unique_ptr<node> &n){
 			break;
 	}
 	if (gotExpr){
+		numJoinCompares++;
 		valposTypes.push_back(n->datatype);
 		if (n->datatype == T_STRING)
 			addop(NUL_TO_STR);
