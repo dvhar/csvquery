@@ -7,7 +7,8 @@ class cgen {
 	int agg_phase; //0 is not grouping, 1 is first read, 2 is aggregate retrieval
 	int select_count;
 	int numJoinCompares;
-	int joinFileIdx;;
+	int joinFileIdx;
+	int prevJoinRead;
 	vector<int> valposTypes;
 	querySpecs* q;
 
@@ -114,6 +115,7 @@ void jumpPositions::updateBytecode(vector<opcode> &vec) {
 		case NEXTMAP:
 		case NEXTVEC:
 		case READ_NEXT_GROUP:
+		case JOINSET_TRAV:
 			if (v.p1 < 0)
 				v.p1 = jumps[v.p1];
 		}
@@ -200,15 +202,29 @@ void cgen::genTraverseJoins(unique_ptr<node> &n){
 	//start with base file
 	int endfile1 = q->jumps.newPlaceholder();
 	normal_read = v.size();
+	prevJoinRead = normal_read;
 	addop(RDLINE, endfile1, 0);
+	//TODO:eval join vars
 	genJoinSets(n->node1);
+	q->jumps.setPlace(endfile1, v.size());
 }
 //given 'join' node
 void cgen::genJoinSets(unique_ptr<node> &n){
-	if (n == nullptr) return;
-	joinFileIdx++;
+	if (n == nullptr) {
+		//copied from normalquery, still needs vars
+		genWhere(q->tree->node4);
+		genDistinct(q->tree->node2->node1, normal_read);
+		genSelect(q->tree->node2);
+		addop(PRINT);
+		addop((q->quantityLimit > 0 ? JMPCNT : JMP), prevJoinRead);
+		return;
+	}
+	joinFileIdx++; //0 is base file, not join file
 	genJoinPredicates(n->node1);
-	//recurse to next file (foreach in set?)
+	addop(JOINSET_INIT, joinFileIdx-1);
+	int goWhenDone = prevJoinRead;
+	prevJoinRead = v.size();
+	addop(JOINSET_TRAV, goWhenDone, (joinFileIdx-1)*2, joinFileIdx);
 	genJoinSets(n->node2);
 }
 //given 'predicates' node
@@ -216,6 +232,7 @@ void cgen::genJoinPredicates(unique_ptr<node> &n){
 	if (n == nullptr) return;
 	genJoinPredicates(n->node2);
 	genJoinCompare(n->node1);
+	//TODO:then combine sets according to logop
 }
 //given predicate comparison node
 void cgen::genJoinCompare(unique_ptr<node> &n){
@@ -224,10 +241,11 @@ void cgen::genJoinCompare(unique_ptr<node> &n){
 		genJoinCompare(n->node1);
 		return;
 	}
+	//evaluate the one not scanned
 	if (n->tok4.id == 1){
-		genExprAll(n->node1);
-	} else if (n->tok4.id == 2){
 		genExprAll(n->node2);
+	} else if (n->tok4.id == 2){
+		genExprAll(n->node1);
 	}
 	switch (n->tok1.id){
 		case SP_EQ:

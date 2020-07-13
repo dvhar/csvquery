@@ -1,1 +1,4 @@
-select from 'test/country' o nh join 'test/cities' nh t on t.c3=o.c1
+select t.c3,o.c1,* from
+'test/cities' nh t
+join
+'test/country' o nh on t.c3=o.c1
