@@ -206,9 +206,9 @@ void cgen::genTraverseJoins(unique_ptr<node> &n){
 //given 'join' node
 void cgen::genJoinSets(unique_ptr<node> &n){
 	if (n == nullptr) return;
+	joinFileIdx++;
 	genJoinPredicates(n->node1);
 	//recurse to next file (foreach in set?)
-	joinFileIdx++;
 	genJoinSets(n->node2);
 }
 //given 'predicates' node
@@ -229,9 +229,9 @@ void cgen::genJoinCompare(unique_ptr<node> &n){
 	} else if (n->tok4.id == 2){
 		genExprAll(n->node2);
 	}
-	switch (n->label){
+	switch (n->tok1.id){
 		case SP_EQ:
-			addop(GET_SET_EQ, joinFileIdx, n->tok5.id);
+			addop(GET_SET_EQ, joinFileIdx, n->tok5.id, valposTypes[n->tok5.id]);
 			break;
 		default:
 			error("only = joins implemented so far");
