@@ -201,7 +201,7 @@ variable& querySpecs::var(string name) {
 	error("Variable not found");
 }
 void querySpecs::addVar(string name) {
-	vars.push_back({name,0,0,0,0});
+	vars.push_back({name,0,0,0,0,{}});
 }
 querySpecs::querySpecs(string &s){
 	queryString = s;

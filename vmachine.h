@@ -35,7 +35,7 @@ enum codes : int {
 	NEXTMAP, NEXTVEC, ROOTMAP, LDMID, LDPUTMID, LDPUTGRP,
 	LDSTDVI, LDSTDVF, LDAVGI, LDAVGF,
 	ADD_GROUPSORT_ROW, FREEMIDROW, GSORT, READ_NEXT_GROUP, NUL_TO_STR,
-	SORTVALPOS, GET_SET_EQ, JOINSET_INIT, JOINSET_TRAV
+	SORTVALPOS, GET_SET_EQ, JOINSET_INIT, JOINSET_TRAV, AND_SET, OR_SET
 };
 
 //2d array for ops indexed by operation and datatype
@@ -146,7 +146,7 @@ class vmachine {
 	vector<dat*> groupSorter;
 	vector<int> sortIdxs;
 	vector<vector<datunion>> normalSortVals;
-	vector<bset<int64>> joinStack;
+	vector<bset<int64>> joinSetStack;
 	forward_list<char*> groupSortVars;
 	unique_ptr<rowgroup> groupTree;
 	public:
@@ -224,9 +224,11 @@ class varScoper {
 		int filter;
 		int policy;
 		int scope;
+		int fileno;
 		//map[scope][index] = already evaluated
 		map<int,map<int,int>> duplicates;
 		varScoper* setscope(int, int, int);
+		varScoper* setscope(int, int, int, int);
 		bool checkDuplicates(int);
 		bool neededHere(int, int);
 };
