@@ -28,7 +28,7 @@
 	goto *(labels[op->code]);
 
 void vmachine::run(){
-	constexpr void* labels[] = { &&CVER_, &&CVNO_, &&CVIF_, &&CVIS_, &&CVFI_, &&CVFS_, &&CVDRS_, &&CVDTS_, &&CVSI_, &&CVSF_, &&CVSDR_, &&CVSDT_, &&IADD_, &&FADD_, &&TADD_, &&DTADD_, &&DRADD_, &&ISUB_, &&FSUB_, &&DTSUB_, &&DRSUB_, &&IMULT_, &&FMULT_, &&DRMULT_, &&IDIV_, &&FDIV_, &&DRDIV_, &&INEG_, &&FNEG_, &&PNEG_, &&IMOD_, &&FMOD_, &&IEXP_, &&FEXP_, &&JMP_, &&JMPCNT_, &&JMPTRUE_, &&JMPFALSE_, &&JMPNOTNULL_ELSEPOP_, &&RDLINE_, &&RDLINE_ORDERED_, &&PREP_REREAD_, &&PUT_, &&LDPUT_, &&LDPUTALL_, &&PUTVAR_, &&PUTVAR2_, &&LDINT_, &&LDFLOAT_, &&LDTEXT_, &&LDDATE_, &&LDDUR_, &&LDNULL_, &&LDLIT_, &&LDVAR_, &&HOLDVAR_, &&IEQ_, &&FEQ_, &&TEQ_, &&LIKE_, &&ILEQ_, &&FLEQ_, &&TLEQ_, &&ILT_, &&FLT_, &&TLT_, &&PRINT_, &&PUSH_, &&PUSH_0_, &&POP_, &&POPCPY_, &&ENDRUN_, &&NULFALSE1_, &&NULFALSE2_, &&NDIST_, &&SDIST_, &&PUTDIST_, &&LDDIST_, &&FINC_, &&ENCCHA_, &&DECCHA_, &&SAVESORTN_, &&SAVESORTS_, &&SAVEVALPOS_, &&SAVEPOS_, &&SORT_, &&GETGROUP_, &&ONEGROUP_, &&SUMI_, &&SUMF_, &&AVGI_, &&AVGF_, &&STDVI_, &&STDVF_, &&COUNT_, &&MINI_, &&MINF_, &&MINS_, &&MAXI_, &&MAXF_, &&MAXS_, &&NEXTMAP_, &&NEXTVEC_, &&ROOTMAP_, &&LDMID_, &&LDPUTMID_, &&LDPUTGRP_, &&LDSTDVI_, &&LDSTDVF_, &&LDAVGI_, &&LDAVGF_, &&ADD_GROUPSORT_ROW_, &&FREE_MIDROW_, &&GSORT_, &&READ_NEXT_GROUP_, &&NUL_TO_STR_, &&SORTVALPOS_, &&GET_SET_EQ_, &&JOINSET_INIT_, &&JOINSET_TRAV_ };
+	constexpr void* labels[] = { &&CVER_, &&CVNO_, &&CVIF_, &&CVIS_, &&CVFI_, &&CVFS_, &&CVDRS_, &&CVDTS_, &&CVSI_, &&CVSF_, &&CVSDR_, &&CVSDT_, &&IADD_, &&FADD_, &&TADD_, &&DTADD_, &&DRADD_, &&ISUB_, &&FSUB_, &&DTSUB_, &&DRSUB_, &&IMULT_, &&FMULT_, &&DRMULT_, &&IDIV_, &&FDIV_, &&DRDIV_, &&INEG_, &&FNEG_, &&PNEG_, &&IMOD_, &&FMOD_, &&IEXP_, &&FEXP_, &&JMP_, &&JMPCNT_, &&JMPTRUE_, &&JMPFALSE_, &&JMPNOTNULL_ELSEPOP_, &&RDLINE_, &&RDLINE_ORDERED_, &&PREP_REREAD_, &&PUT_, &&LDPUT_, &&LDPUTALL_, &&PUTVAR_, &&PUTVAR2_, &&LDINT_, &&LDFLOAT_, &&LDTEXT_, &&LDDATE_, &&LDDUR_, &&LDNULL_, &&LDLIT_, &&LDVAR_, &&HOLDVAR_, &&IEQ_, &&FEQ_, &&TEQ_, &&LIKE_, &&ILEQ_, &&FLEQ_, &&TLEQ_, &&ILT_, &&FLT_, &&TLT_, &&PRINT_, &&PUSH_, &&PUSH_0_, &&POP_, &&POPCPY_, &&ENDRUN_, &&NULFALSE1_, &&NULFALSE2_, &&NDIST_, &&SDIST_, &&PUTDIST_, &&LDDIST_, &&FINC_, &&ENCCHA_, &&DECCHA_, &&SAVESORTN_, &&SAVESORTS_, &&SAVEVALPOS_, &&SAVEPOS_, &&SORT_, &&GETGROUP_, &&ONEGROUP_, &&SUMI_, &&SUMF_, &&AVGI_, &&AVGF_, &&STDVI_, &&STDVF_, &&COUNT_, &&MINI_, &&MINF_, &&MINS_, &&MAXI_, &&MAXF_, &&MAXS_, &&NEXTMAP_, &&NEXTVEC_, &&ROOTMAP_, &&LDMID_, &&LDPUTMID_, &&LDPUTGRP_, &&LDSTDVI_, &&LDSTDVF_, &&LDAVGI_, &&LDAVGF_, &&ADD_GROUPSORT_ROW_, &&FREE_MIDROW_, &&GSORT_, &&READ_NEXT_GROUP_, &&NUL_TO_STR_, &&SORTVALPOS_, &&GET_SET_EQ_, &&JOINSET_INIT_, &&JOINSET_TRAV_, &&AND_SET_, &&OR_SET_ };
 
 
 	//vars for data
@@ -48,7 +48,7 @@ void vmachine::run(){
 	dat* stacktop = stack.data();
 	dat* stackbot = stack.data();
 	decltype(groupTree->getMap().begin()) groupItstk[20];
-	typedef decltype(joinStack[0].begin()) jnit ;
+	typedef decltype(joinSetStack[0].begin()) jnit ;
 	vector<jnit> setItstk((q->numFiles-1)*2);
 	dat* midrow;
 	int ip = 0;
@@ -270,7 +270,7 @@ GET_SET_EQ_:
 		int r = vpvector.size()-1;
 		int l = 0;
 		int m;
-		joinStack.push_back(bset<int64>());
+		joinSetStack.push_back(bset<int64>());
 		while (l < r){
 			m = (l+r)/2;
 			if (lessfunc(vpvector[m]))
@@ -279,21 +279,41 @@ GET_SET_EQ_:
 				r = m;
 		}
 		while (l < vpvector.size() && vpEqFuncs[fi](vpvector[l])){
-			joinStack.back().insert(vpvector[l++].pos);
+			joinSetStack.back().insert(vpvector[l++].pos);
 		}
 	}
 	pop();
 	++ip;
 	next();
+AND_SET_:
+	{
+		auto& topset = joinSetStack.back();
+		auto& target = *(joinSetStack.end()-2);
+		bset<int64> tempset(move(target));
+		set_intersection(tempset.begin(), tempset.end(), topset.begin(), topset.end(),
+				inserter(target, target.begin()));
+		joinSetStack.pop_back();
+	}
+	++ip;
+	next();
+OR_SET_:
+	{
+		auto& target = *(joinSetStack.end()-2);
+		for (auto& loc : joinSetStack.back())
+			target.insert(loc);
+		joinSetStack.pop_back();
+	}
+	++ip;
+	next();
 JOINSET_INIT_:
-	setItstk[op->p1*2] = joinStack[op->p1].begin();
-	setItstk[op->p1*2+1] = joinStack[op->p1].end();
+	setItstk[op->p1*2] = joinSetStack[op->p1].begin();
+	setItstk[op->p1*2+1] = joinSetStack[op->p1].end();
 	++ip;
 	next(); //don't need goto since next is always trav?
 JOINSET_TRAV_:
 	if (setItstk[op->p2] == setItstk[op->p2+1]){
 		ip = op->p1;
-		joinStack.pop_back();
+		joinSetStack.pop_back();
 	} else {
 		files[op->p3]->readlineat(*(setItstk[op->p2]++));
 		++ip;

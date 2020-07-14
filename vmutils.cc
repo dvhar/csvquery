@@ -157,10 +157,18 @@ querySpecs::~querySpecs(){
 	}
 }
 
+varScoper* varScoper::setscope(int f, int p, int s, int f2){
+	filter = f;
+	policy = p;
+	scope = s;
+	fileno = f2; //must have read at least this fileno (not impl yet)
+	return this;
+}
 varScoper* varScoper::setscope(int f, int p, int s){
 	filter = f;
 	policy = p;
 	scope = s;
+	fileno = 0;
 	return this;
 }
 bool varScoper::neededHere(int i, int f){
@@ -172,6 +180,9 @@ bool varScoper::neededHere(int i, int f){
 		match = f == filter; break;
 	case V_ANY:
 		match = 1; break;
+	}
+	if (filter == JOIN_FILTER){
+		//check file number and scanned value
 	}
 	return match && checkDuplicates(i);
 }

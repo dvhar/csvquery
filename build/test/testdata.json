@@ -148,5 +148,11 @@
 	"code":0,
 	"query":"select count(distinct c2) c3 from 'test/cities' group by c3 order by max(c3) asc",
 	"output":"24.csv"
+},
+{
+	"title":"single basic join",
+	"code":0,
+	"query":"select t.c3,o.c1,t.c2 from 'test/cities.csv' nh t join 'test/country.csv' o nh on t.c3=o.c1 limit 10",
+	"output":"25.csv"
 }
 ]

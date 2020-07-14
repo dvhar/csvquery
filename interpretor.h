@@ -199,6 +199,7 @@ class variable {
 	int filter;
 	int phase;
 	int mrindex;
+	set<int> filesReferenced;
 };
 
 class csvEntry {

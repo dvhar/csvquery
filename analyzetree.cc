@@ -19,14 +19,18 @@ class analyzer {
 		void setNodePhase(unique_ptr<node> &n, int phase);
 		void findIndexableJoinValues(unique_ptr<node> &n, int fileno);
 		set<int> whichFilesReferenced(unique_ptr<node> &n);
+		void clearFilter(){ filterBranch = NO_FILTER; };
 };
 
 void analyzer::varUsedInFilter(unique_ptr<node> &n){
 	if (n == nullptr) return;
 	string t1;
 	switch (n->label){
-	//skip irrelvent subtrees
-	case N_PRESELECT:
+	//vars case just adds files referenced info to variable for joins
+	case N_VARS:
+		q->var(n->tok1.val).filesReferenced = whichFilesReferenced(n->node1);
+		varUsedInFilter(n->node2);
+		break;
 	case N_FROM:
 		break;
 	case N_SELECTIONS:
@@ -34,14 +38,14 @@ void analyzer::varUsedInFilter(unique_ptr<node> &n){
 		if (t1 == "hidden" || t1 == "distinct"){
 			filterBranch = DISTINCT_FILTER;
 			varUsedInFilter(n->node1);
-			filterBranch = NO_FILTER;
+			clearFilter();
 		}
 		varUsedInFilter(n->node2);
 		break;
 	case N_WHERE:
 		filterBranch = WHERE_FILTER;
 		varUsedInFilter(n->node1);
-		filterBranch = NO_FILTER;
+		clearFilter();
 		break;
 	case N_VALUE:
 		if (filterBranch && n->tok2.id == VARIABLE){
@@ -51,17 +55,17 @@ void analyzer::varUsedInFilter(unique_ptr<node> &n){
 	case N_ORDER:
 		filterBranch = ORDER_FILTER;
 		varUsedInFilter(n->node1);
-		filterBranch = NO_FILTER;
+		clearFilter();
 		break;
 	case N_GROUPBY:
 		filterBranch = GROUP_FILTER;
 		varUsedInFilter(n->node1);
-		filterBranch = NO_FILTER;
+		clearFilter();
 		break;
 	case N_HAVING:
 		filterBranch = HAVING_FILTER;
 		varUsedInFilter(n->node1);
-		filterBranch = NO_FILTER;
+		clearFilter();
 		break;
 	default:
 		varUsedInFilter(n->node1);
@@ -322,13 +326,15 @@ void analyzer::findMidrowTargets(unique_ptr<node> &n){
 	}
 }
 
-//return file number referenced in expression, or -1 if not one file
+//return file numbers referenced in expression
 set<int> analyzer::whichFilesReferenced(unique_ptr<node> &n){
 	if (n == nullptr) return {};
 	switch (n->label){
 		case N_VALUE:
 			if (n->tok2.id == COLUMN)
 				return {q->files[n->tok3.val]->fileno };
+			else if (n->tok2.id == VARIABLE)
+				return q->var(n->tok1.val).filesReferenced;
 			else
 				return whichFilesReferenced(n->node1);
 		default: 
@@ -361,7 +367,8 @@ void analyzer::findIndexableJoinValues(unique_ptr<node> &n, int fileno){
 					error("Join condition must reference one file on each side of '='");
 			}
 			set<int> intersection;
-			set_intersection(e1.begin(), e1.end(), e2.begin(), e2.end(), inserter(intersection, intersection.begin()));
+			set_intersection(e1.begin(), e1.end(), e2.begin(), e2.end(),
+					inserter(intersection, intersection.begin()));
 			if (intersection.size())
 				error("Join condition cannot reference same file on both sides of '"+n->tok1.val+"'");
 			if (e1.size() == 1 && *e1.begin() == fileno){
