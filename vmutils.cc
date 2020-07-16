@@ -100,7 +100,7 @@ int addBtree(int type, querySpecs *q){
 
 vmachine::vmachine(querySpecs &qs){
 	q = &qs;
-	for (int i=1; i<=q->numFiles; ++i){
+	for (int i=0; i<q->numFiles; ++i){
 		files.push_back(q->files[str2("_f", i)]);
 	}
 

@@ -178,7 +178,6 @@ void openfiles(querySpecs &q, unique_ptr<node> &n){
 		return;
 	if (n->label == N_FROM || n->label == N_JOIN){
 		//initialize and put in map
-		++q.numFiles;
 		string path = n->tok1.val;
 		string id = str2("_f",q.numFiles);
 		shared_ptr<fileReader> fr(new fileReader(path));
@@ -204,6 +203,7 @@ void openfiles(querySpecs &q, unique_ptr<node> &n){
 			if (s == "h" || s == "header")
 				fr->noheader = false;
 		}
+		++q.numFiles;
 		//get types
 		fr->inferTypes();
 	}
