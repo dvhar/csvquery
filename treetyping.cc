@@ -211,23 +211,23 @@ static void typeInitialValue(querySpecs &q, unique_ptr<node> &n, bool trivial){
 		}
 		if (!n->tok1.quoted && regex_match(val, cInt)){
 			i = stoi(val.substr(1))-1;
-			auto f = q.files["_f1"];
+			auto f = q.files["_f0"];
 			if (i <= f->numFields){
 				//found column idx without file alias
 				n->tok1.id = i;
 				n->tok2.id = COLUMN;
-				n->tok3.val = "_f1";
+				n->tok3.val = "_f0";
 				n->datatype = f->types[i];
 				goto donetyping;
 			}
 		} else if (!n->tok1.quoted && q.numIsCol() && regex_match(val, posInt)){
 			i = stoi(val)-1;
-			auto f = q.files["_f1"];
+			auto f = q.files["_f0"];
 			if (i <= f->numFields){
 				//found column idx without file alias
 				n->tok1.id = i;
 				n->tok2.id = COLUMN;
-				n->tok3.val = "_f1";
+				n->tok3.val = "_f0";
 				n->datatype = f->types[i];
 				goto donetyping;
 			}

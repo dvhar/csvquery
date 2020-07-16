@@ -29,12 +29,11 @@ void analyzer::varUsedInFilter(unique_ptr<node> &n){
 	//vars case just adds files referenced info to variable for joins and finds max
 	case N_VARS:
 		{
-			int maxref = 0;
 			auto& var = q->var(n->tok1.val);
 			var.filesReferenced = whichFilesReferenced(n->node1);
+			var.maxfileno = 0;
 			for (auto r: var.filesReferenced)
-				maxref = max(r, maxref);
-			var.maxfileno = maxref;
+				var.maxfileno = max(r, var.maxfileno);
 			varUsedInFilter(n->node2);
 		}
 		break;
@@ -83,7 +82,7 @@ void analyzer::varUsedInFilter(unique_ptr<node> &n){
 }
 
 void analyzer::selectAll(){
-	for (int i=1; i<=q->numFiles; ++i){
+	for (int i=0; i<q->numFiles; ++i){
 		auto f = q->files[str2("_f", i)];
 		for (auto &c : f->types){
 			q->colspec.colnames.push_back(str2("col",++q->colspec.count));

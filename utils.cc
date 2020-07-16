@@ -332,11 +332,11 @@ int getVarType(string lkup, querySpecs *q){
 }
 
 int getFileNo(string s, querySpecs *q){
-	for (int i=1; i<=q->numFiles; ++i)
+	for (int i=0; i<q->numFiles; ++i)
 		if (q->files[str2("_f", i)]->id == q->files[s]->id)
-			return i-1;
+			return i;
 	error("file number not founde");
-	return -1;
+	return 0;
 }
 
 //use static buf if null arg, otherwise make sure size 24

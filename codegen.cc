@@ -267,15 +267,15 @@ void cgen::genScanJoinFiles(unique_ptr<node> &n){
 		auto& f = q->files[jnode->tok4.val];
 		int afterfile = q->jumps.newPlaceholder();
 		normal_read = v.size();
-		addop(RDLINE, afterfile, f->fileno-1);
+		addop(RDLINE, afterfile, f->fileno);
 		f->vpTypes = move(valposTypes);
 		valposTypes.clear();
 		genScannedJoinExprs(jnode->node1);
-		addop(SAVEVALPOS, f->fileno-1, f->joinValpos.size());
+		addop(SAVEVALPOS, f->fileno, f->joinValpos.size());
 		addop(JMP, normal_read);
 		q->jumps.setPlace(afterfile, v.size());
 		for (int i=0; i<valposTypes.size(); i++)
-			addop(SORTVALPOS, f->fileno-1, i, vpSortFuncs[valposTypes[i]]);
+			addop(SORTVALPOS, f->fileno, i, vpSortFuncs[valposTypes[i]]);
 	}
 
 }
@@ -760,7 +760,7 @@ void cgen::genPredCompare(unique_ptr<node> &n){
 
 void cgen::genSelectAll(){
 	addop(LDPUTALL, select_count);
-	for (int i=1; i<=q->numFiles; ++i)
+	for (int i=0; i<q->numFiles; ++i)
 		select_count += q->files[str2("_f", i)]->numFields;
 }
 
