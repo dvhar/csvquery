@@ -26,10 +26,17 @@ void analyzer::varUsedInFilter(unique_ptr<node> &n){
 	if (n == nullptr) return;
 	string t1;
 	switch (n->label){
-	//vars case just adds files referenced info to variable for joins
+	//vars case just adds files referenced info to variable for joins and finds max
 	case N_VARS:
-		q->var(n->tok1.val).filesReferenced = whichFilesReferenced(n->node1);
-		varUsedInFilter(n->node2);
+		{
+			int maxref = 0;
+			auto& var = q->var(n->tok1.val);
+			var.filesReferenced = whichFilesReferenced(n->node1);
+			for (auto r: var.filesReferenced)
+				maxref = max(r, maxref);
+			var.maxfileno = maxref;
+			varUsedInFilter(n->node2);
+		}
 		break;
 	case N_FROM:
 		break;

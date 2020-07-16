@@ -947,7 +947,7 @@ void cgen::genIterateGroups(unique_ptr<node> &n){
 			auto& ordnode1 = findFirstNode(q->tree->node4, N_ORDER)->node1;
 			int doneReadGroups = q->jumps.newPlaceholder();
 			addop(GSORT, ordnode1->tok3.id);
-			addop(PUSH_0);
+			addop(PUSH_N, 0);
 			int readNext = v.size();
 			addop(READ_NEXT_GROUP, doneReadGroups);
 			addop(PRINT);

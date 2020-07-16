@@ -200,6 +200,7 @@ class variable {
 	int phase;
 	int mrindex;
 	set<int> filesReferenced;
+	int maxfileno;
 };
 
 class csvEntry {
