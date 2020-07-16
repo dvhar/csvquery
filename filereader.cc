@@ -75,6 +75,11 @@ bool fileReader::readline(){
 			//go to next quote
 			while(*pos2 && *pos2 != '"') ++pos2;
 			//escape character - should compact this
+			if (pos2>buf && *(pos2-1) == '\\'){
+				*(pos2-1) = '"';
+				++pos2;
+				goto inquote;
+			}
 			++pos2;
 			switch (*pos2){
 			// "" escaped quote
