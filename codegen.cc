@@ -9,6 +9,7 @@ class cgen {
 	int numJoinCompares;
 	int joinFileIdx;
 	int prevJoinRead;
+	int wherenot;
 	vector<int> valposTypes;
 	varScoper vs;
 	querySpecs* q;
@@ -221,6 +222,7 @@ void cgen::genJoinSets(unique_ptr<node> &n){
 	addop(JOINSET_INIT, joinFileIdx-1);
 	int goWhenDone = prevJoinRead;
 	prevJoinRead = v.size();
+	wherenot = prevJoinRead;
 	addop(JOINSET_TRAV, goWhenDone, (joinFileIdx-1)*2, joinFileIdx);
 	genJoinSets(n->node2);
 }
@@ -316,6 +318,7 @@ void cgen::genNormalQuery(unique_ptr<node> &n){
 	int endfile = q->jumps.newPlaceholder(); //where to jump when done reading file
 	pushvars();
 	normal_read = v.size();
+	wherenot = normal_read;
 	addop(RDLINE, endfile, 0);
 	vs.setscope(WHERE_FILTER|DISTINCT_FILTER, V_EQUALS, V_SCOPE1);
 	genVars(n->node1);
@@ -340,6 +343,7 @@ void cgen::genNormalOrderedQuery(unique_ptr<node> &n){
 	int endreread = q->jumps.newPlaceholder();
 	pushvars();
 	normal_read = v.size();
+	wherenot = normal_read;
 	addop(RDLINE, sorter, 0);
 	vs.setscope(WHERE_FILTER|ORDER_FILTER, V_INCLUDES, V_SCOPE1);
 	genVars(n->node1);
@@ -384,6 +388,7 @@ void cgen::genBasicGroupingQuery(unique_ptr<node> &n){
 	int getgroups = q->jumps.newPlaceholder();
 	pushvars();
 	normal_read = v.size();
+	wherenot = normal_read;
 	addop(RDLINE, getgroups, 0);
 	vs.setscope(WHERE_FILTER|DISTINCT_FILTER, V_EQUALS, V_SCOPE1);
 	genVars(n->node1);
@@ -423,33 +428,34 @@ void cgen::genAggSortList(unique_ptr<node> &n){
 void cgen::genVars(unique_ptr<node> &n){
 	if (n == nullptr) return;
 	e("gen vars");
-	int i;
-	int match = 0;
 	switch (n->label){
 	case N_PRESELECT: //currently only has 'with' branch
 	case N_WITH:
 		genVars(n->node1);
 		break;
 	case N_VARS:
-		i = getVarIdx(n->tok1.val, q);
-		if (vs.neededHere(i, q->vars[i].filter)){
-			genExprAll(n->node1);
-			if (n->phase == (1|2)){
-				//non-aggs in phase2
-				if (agg_phase == 1){
-					addop2(PUTVAR2, i, n->tok3.id);
+		{
+			int i = getVarIdx(n->tok1.val, q);
+			auto& var = q->vars[i];
+			if (vs.neededHere(i, var.filter, var.maxfileno)){
+				genExprAll(n->node1);
+				if (n->phase == (1|2)){
+					//non-aggs in phase2
+					if (agg_phase == 1){
+						addop2(PUTVAR2, i, n->tok3.id);
+					} else {
+						addop1(LDMID, n->tok3.id);
+						addop1(PUTVAR, i);
+					}
 				} else {
-					addop1(LDMID, n->tok3.id);
 					addop1(PUTVAR, i);
+					int vartype = getVarType(n->tok1.val, q);
+					if (agg_phase == 2 && q->sorting && vartype == T_STRING)
+						addop1(HOLDVAR, i);
 				}
-			} else {
-				addop1(PUTVAR, i);
-				int vartype = getVarType(n->tok1.val, q);
-				if (agg_phase == 2 && q->sorting && vartype == T_STRING)
-					addop1(HOLDVAR, i);
 			}
+			genVars(n->node2);
 		}
-		genVars(n->node2);
 		break;
 	}
 }
@@ -769,7 +775,7 @@ void cgen::genWhere(unique_ptr<node> &nn){
 	e("gen where");
 	if (n == nullptr) return;
 	genPredicates(n->node1);
-	addop2(JMPFALSE, normal_read, 1);
+	addop2(JMPFALSE, wherenot, 1);
 }
 
 void cgen::genDistinct(unique_ptr<node> &n, int gotoIfNot){

@@ -3,14 +3,13 @@
 #include<algorithm>
 
 class analyzer {
-	int filterBranch;
 	public:
 		querySpecs* q;
 		analyzer(querySpecs& qs){
 			q = &qs;
-			filterBranch = NO_FILTER;
 		}
 		void varUsedInFilter(unique_ptr<node> &n);
+		void setSubtreeVarFilter(unique_ptr<node> &n, int filter);
 		void selectAll();
 		void recordResultColumns(unique_ptr<node> &n);
 		bool findAgrregates(unique_ptr<node> &n);
@@ -19,9 +18,26 @@ class analyzer {
 		void setNodePhase(unique_ptr<node> &n, int phase);
 		void findIndexableJoinValues(unique_ptr<node> &n, int fileno);
 		set<int> whichFilesReferenced(unique_ptr<node> &n);
-		void clearFilter(){ filterBranch = NO_FILTER; };
 };
 
+void analyzer::setSubtreeVarFilter(unique_ptr<node> &n, int filter){
+	if (n == nullptr) return;
+	switch (n->label){
+	case N_VALUE:
+		if (n->tok2.id == VARIABLE){
+			auto& var = q->var(n->tok1.val);
+			var.filter |= filter;
+		} else {
+			setSubtreeVarFilter(n->node1, filter);
+		}
+		break;
+	default:
+		setSubtreeVarFilter(n->node1, filter);
+		setSubtreeVarFilter(n->node2, filter);
+		setSubtreeVarFilter(n->node3, filter);
+		setSubtreeVarFilter(n->node4, filter);
+	}
+}
 void analyzer::varUsedInFilter(unique_ptr<node> &n){
 	if (n == nullptr) return;
 	string t1;
@@ -37,41 +53,28 @@ void analyzer::varUsedInFilter(unique_ptr<node> &n){
 			varUsedInFilter(n->node2);
 		}
 		break;
-	case N_FROM:
-		break;
 	case N_SELECTIONS:
 		t1 = n->tok1.lower();
 		if (t1 == "hidden" || t1 == "distinct"){
-			filterBranch = DISTINCT_FILTER;
-			varUsedInFilter(n->node1);
-			clearFilter();
+			setSubtreeVarFilter(n->node1, DISTINCT_FILTER);
 		}
 		varUsedInFilter(n->node2);
 		break;
-	case N_WHERE:
-		filterBranch = WHERE_FILTER;
-		varUsedInFilter(n->node1);
-		clearFilter();
+	case N_JOIN:
+		setSubtreeVarFilter(n->node1, JOIN_FILTER);
+		varUsedInFilter(n->node2);
 		break;
-	case N_VALUE:
-		if (filterBranch && n->tok2.id == VARIABLE){
-			q->var(n->tok1.val).filter |= filterBranch;
-		}
+	case N_WHERE:
+		setSubtreeVarFilter(n->node1, WHERE_FILTER);
 		break;
 	case N_ORDER:
-		filterBranch = ORDER_FILTER;
-		varUsedInFilter(n->node1);
-		clearFilter();
+		setSubtreeVarFilter(n->node1, ORDER_FILTER);
 		break;
 	case N_GROUPBY:
-		filterBranch = GROUP_FILTER;
-		varUsedInFilter(n->node1);
-		clearFilter();
+		setSubtreeVarFilter(n->node1, GROUP_FILTER);
 		break;
 	case N_HAVING:
-		filterBranch = HAVING_FILTER;
-		varUsedInFilter(n->node1);
-		clearFilter();
+		setSubtreeVarFilter(n->node1, HAVING_FILTER);
 		break;
 	default:
 		varUsedInFilter(n->node1);
@@ -382,11 +385,13 @@ void analyzer::findIndexableJoinValues(unique_ptr<node> &n, int fileno){
 					if (i > fileno)
 						error("Join condition cannot compare to a file that appears later in the query, only earlier");
 				n->tok4.id = 1;
+				setSubtreeVarFilter(n->node1, JSCAN_FILTER);
 			}else if (e2.size() == 1 && *e2.begin() == fileno){
 				for (auto i : e1)
 					if (i > fileno)
 						error("Join condition cannot compare to a file that appears later in the query, only earlier");
 				n->tok4.id = 2;
+				setSubtreeVarFilter(n->node2, JSCAN_FILTER);
 			}else{
 				error("One side of join condition must be the joined file and only the joined file");
 			}

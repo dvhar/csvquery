@@ -221,7 +221,7 @@ class rowgroup {
 
 class varScoper {
 	public:
-		int filter;
+		int scopefilter;
 		int policy;
 		int scope;
 		int fileno;
@@ -230,7 +230,7 @@ class varScoper {
 		varScoper* setscope(int, int, int);
 		varScoper* setscope(int, int, int, int);
 		bool checkDuplicates(int);
-		bool neededHere(int, int);
+		bool neededHere(int, int, int);
 };
 extern map<int, string> opMap;
 
