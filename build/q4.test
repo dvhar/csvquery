@@ -1,6 +1,8 @@
-with t.c3 as v1, o.c1 as v2
+with t.c3 as v1, o.c1 as v2,
+t.c2 as dog, o.c2 as cat
 
-select t.c3,o.c1,* from
+select distinct v1,v2,dog,cat from
 'test/country' o nh
 join
 'test/cities' nh t on v1=v2
+where dog like 'm%'

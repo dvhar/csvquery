@@ -203,16 +203,20 @@ void cgen::genTraverseJoins(unique_ptr<node> &n){
 	normal_read = v.size();
 	prevJoinRead = normal_read;
 	addop(RDLINE, endfile1, 0);
-	//TODO:eval join vars
 	genJoinSets(n->node1);
 	q->jumps.setPlace(endfile1, v.size());
 }
 //given 'join' node
 void cgen::genJoinSets(unique_ptr<node> &n){
 	if (n == nullptr) {
-		//copied from normalquery, still needs vars
+		vs.setscope(WHERE_FILTER, V_INCLUDES, V_SCOPE1);
+		genVars(q->tree->node1);
 		genWhere(q->tree->node4);
-		genDistinct(q->tree->node2->node1, normal_read);
+		vs.setscope(DISTINCT_FILTER, V_INCLUDES, V_SCOPE1);
+		genVars(q->tree->node1);
+		genDistinct(q->tree->node2->node1, wherenot);
+		vs.setscope(NO_FILTER, V_ANY, V_SCOPE1);
+		genVars(q->tree->node1);
 		genSelect(q->tree->node2);
 		addop(PRINT);
 		addop((q->quantityLimit > 0 ? JMPCNT : JMP), prevJoinRead);
@@ -256,6 +260,8 @@ void cgen::genJoinCompare(unique_ptr<node> &n){
 	} else if (n->tok4.id == 2){
 		genExprAll(n->node1);
 	}
+	if (n->datatype == T_STRING)
+		addop(NUL_TO_STR);
 	switch (n->tok1.id){
 		case SP_EQ:
 			addop(GET_SET_EQ, joinFileIdx, n->tok5.id, valposTypes[n->tok5.id]);
@@ -276,7 +282,7 @@ void cgen::genScanJoinFiles(unique_ptr<node> &n){
 		joinFileIdx++;
 		f->vpTypes = move(valposTypes);
 		valposTypes.clear();
-		vs.setscope(JOIN_FILTER|JSCAN_FILTER, V_EQUALS, V_SCOPE1);
+		vs.setscope(JSCAN_FILTER, V_INCLUDES, V_SCANSCOPE);
 		genVars(q->tree->node1);
 		genScannedJoinExprs(jnode->node1);
 		addop(SAVEVALPOS, f->fileno, f->joinValpos.size());
