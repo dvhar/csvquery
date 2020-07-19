@@ -6,32 +6,27 @@ import json
 picky = False
 picks= [3,4] #which tests to run when picky
 
-f1 = "'test/country.csv' nh"
-f2 = "'test/cities.csv'"
-
 def runtest(test):
-    q = test['query'] % {'f1':f1, 'f2':f2}
+    q = test['query']
     print("===============================================================")
     print(test['title'])
     print("---------------------------------------")
     print(q)
     ret = subprocess.Popen(["./cql","-c", q], stdout = subprocess.PIPE, stderr = subprocess.PIPE)
     out, err = ret.communicate()
-    out = "".join(map(chr,out))
-    err = "".join(map(chr,err))
     print("---------------------------------------")
-    print(out)
+    print("".join(map(chr,out)))
     if ret.returncode != test['code']:
         print(f"Failed! Expected return code {test[1]} but got {ret.returncode}")
         print(err)
         quit()
-    with open('test/results/' + test['output'], 'r') as res:
+    with open('test/results/' + test['output'], 'rb') as res:
         expected = res.read()
         if out != expected:
             print(f"Failed. Expected from {test['output']}:")
-            print('==>'+expected+'<==')
+            print('==>'+"".join(map(chr,expected))+'<==')
             print('Got instead:')
-            print('==>'+out+'<==')
+            print('==>'+"".join(map(chr,out))+'<==')
             quit()
     print("---------------------------------------")
     print(f"Success! return code: {ret.returncode}")
