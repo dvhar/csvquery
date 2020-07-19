@@ -64,7 +64,6 @@ class cgen {
 		select_count = 0;
 		agg_phase = 0;
 		numJoinCompares = 0;
-		joinFileIdx = 0;
 	}
 };
 
@@ -189,7 +188,9 @@ void cgen::genExprAll(unique_ptr<node> &n){
 void cgen::genBasicJoiningQuery(unique_ptr<node> &n){
 	e("basic join");
 	pushvars();
+	joinFileIdx = 0;
 	genScanJoinFiles(n->node3->node1);
+	joinFileIdx = 0;
 	genTraverseJoins(n->node3);
 	popvars();
 	addop(ENDRUN);
@@ -218,6 +219,8 @@ void cgen::genJoinSets(unique_ptr<node> &n){
 		return;
 	}
 	joinFileIdx++; //0 is base file, not join file
+	vs.setscope(JOIN_FILTER, V_EQUALS, V_SCOPE1);
+	genVars(q->tree->node1);
 	genJoinPredicates(n->node1);
 	addop(JOINSET_INIT, joinFileIdx-1);
 	int goWhenDone = prevJoinRead;
@@ -270,8 +273,11 @@ void cgen::genScanJoinFiles(unique_ptr<node> &n){
 		int afterfile = q->jumps.newPlaceholder();
 		normal_read = v.size();
 		addop(RDLINE, afterfile, f->fileno);
+		joinFileIdx++;
 		f->vpTypes = move(valposTypes);
 		valposTypes.clear();
+		vs.setscope(JOIN_FILTER|JSCAN_FILTER, V_EQUALS, V_SCOPE1);
+		genVars(q->tree->node1);
 		genScannedJoinExprs(jnode->node1);
 		addop(SAVEVALPOS, f->fileno, f->joinValpos.size());
 		addop(JMP, normal_read);
