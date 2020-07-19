@@ -3,13 +3,8 @@
 #include <cmath>
 #include <numeric>
 
-//parallel sort only available in gcc's libstdc++
-#ifdef _GLIBCXX_EXECUTION
 #include <execution>
 #define parallel() execution::par_unseq,
-#else
-#define parallel()
-#endif
 
 //work with stack data
 #define stk0 (*stacktop)
