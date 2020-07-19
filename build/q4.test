@@ -1,4 +1,6 @@
+with t.c3 as v1, o.c1 as v2
+
 select t.c3,o.c1,* from
-'test/cities' nh t
+'test/country' o nh
 join
-'test/country' o nh on t.c3=o.c1
+'test/cities' nh t on v1=v2

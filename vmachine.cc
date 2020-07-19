@@ -313,6 +313,7 @@ JOINSET_INIT_:
 	setItstk[op->p1*2] = joinSetStack[op->p1].begin();
 	setItstk[op->p1*2+1] = joinSetStack[op->p1].end();
 	op = ops+ ++ip;
+	debugOpcode;
 JOINSET_TRAV_:
 	if (setItstk[op->p2] == setItstk[op->p2+1]){
 		ip = op->p1;
