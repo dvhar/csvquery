@@ -157,31 +157,21 @@ querySpecs::~querySpecs(){
 	}
 }
 
-varScoper* varScoper::setscope(int f, int p, int s, int f2){
+varScoper* varScoper::setscope(int f, int s, int f2){
 	scopefilter = f;
-	policy = p;
 	scope = s;
-	fileno = f2; //must have read at least this fileno (not impl yet)
+	fileno = f2;
 	return this;
 }
-varScoper* varScoper::setscope(int f, int p, int s){
+varScoper* varScoper::setscope(int f, int s){
 	scopefilter = f;
-	policy = p;
 	scope = s;
 	fileno = 0;
 	return this;
 }
 bool varScoper::neededHere(int index, int varfilter, int havefile){
-	int match;
-	switch (policy){
-	case V_INCLUDES:
-		match = varfilter & scopefilter; break;
-	case V_EQUALS:
-		match = varfilter == scopefilter; break;
-	case V_ANY:
-		match = 1; break;
-	}
-	if (scopefilter & JOIN_FILTER){
+	int match = varfilter & scopefilter;
+	if (scopefilter & (JSCAN_FILTER|JCOMP_FILTER)){
 		if (fileno > havefile)
 			match = 0;
 	}
