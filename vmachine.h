@@ -106,6 +106,17 @@ dat parseDateDat(const char* s);
 dat parseStringDat(const char* s);
 int addBtree(int type, querySpecs *q);
 
+//placeholder for jmp positions that can't be determined until later
+class jumpPositions {
+	map<int, int> jumps;
+	int uniqueKey;
+	public:
+	int newPlaceholder() { return --uniqueKey; };
+	void setPlace(int k, int v) { jumps[k] = v; };
+	void updateBytecode(vector<opcode> &vec);
+	jumpPositions() { uniqueKey = -1; };
+};
+
 //make sure to free manually like normal malloced c strings
 class treeCString {
 	public:

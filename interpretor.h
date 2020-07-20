@@ -304,18 +304,6 @@ class valpos {
 	int64 pos;
 };
 
-
-//placeholder for jmp positions that can't be determined until later
-class jumpPositions {
-	map<int, int> jumps;
-	int uniqueKey;
-	public:
-	int newPlaceholder() { return --uniqueKey; };
-	void setPlace(int k, int v) { jumps[k] = v; };
-	void updateBytecode(vector<opcode> &vec);
-	jumpPositions() { uniqueKey = -1; };
-};
-
 class resultSpecs {
 	public:
 	int count;
@@ -358,7 +346,6 @@ class querySpecs {
 	vector<opcode> bytecode;
 	map<string, shared_ptr<fileReader>> files;
 	unique_ptr<node> tree;
-	jumpPositions jumps;
 	resultSpecs colspec;
 	crypter crypt;
 	int distinctSFuncs;
