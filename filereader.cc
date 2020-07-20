@@ -41,6 +41,11 @@ void fileReader::print(){
 	cerr << endl;
 }
 bool fileReader::readlineat(int64 position){
+	static char blank = 0;
+	if (position < 0){
+		fill(entries.begin(), entries.end(), csvEntry{&blank,&blank});
+		return 0;
+	}
 	fs.clear();
 	fs.seekg(position);
 	return readline();

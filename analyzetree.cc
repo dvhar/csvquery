@@ -393,8 +393,8 @@ void analyzer::findIndexableJoinValues(unique_ptr<node> &n, int fileno){
 					if (i > fileno)
 						error("Join condition cannot compare to a file that appears later in the query, only earlier");
 				n->tok4.id = 2;
-				setSubtreeVarFilter(n->node1, JSCAN_FILTER);
-				setSubtreeVarFilter(n->node2, JCOMP_FILTER);
+				setSubtreeVarFilter(n->node2, JSCAN_FILTER);
+				setSubtreeVarFilter(n->node1, JCOMP_FILTER);
 			}else{
 				error("One side of join condition must be the joined file and only the joined file");
 			}
