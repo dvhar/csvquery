@@ -571,7 +571,7 @@ unique_ptr<node> parser::parseJoin() {
 	if (joinMap.count(s) == 0)
 		return nullptr;
 	q->joining = true;
-	if (s == "left" || s == "inner" || s == "outer"){
+	if (s == "left" || s == "inner"){
 		n->tok3 = t;
 		q->nextTok();
 	}
