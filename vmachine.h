@@ -227,8 +227,8 @@ class varScoper {
 		int fileno;
 		//map[scope][index] = already evaluated
 		map<int,map<int,int>> duplicates;
+		varScoper* setscope(int, int);
 		varScoper* setscope(int, int, int);
-		varScoper* setscope(int, int, int, int);
 		bool checkDuplicates(int);
 		bool neededHere(int, int, int);
 };

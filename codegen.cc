@@ -209,21 +209,21 @@ void cgen::genTraverseJoins(unique_ptr<node> &n){
 //given 'join' node
 void cgen::genJoinSets(unique_ptr<node> &n){
 	if (n == nullptr) {
-		vs.setscope(WHERE_FILTER, V_INCLUDES, V_SCOPE1);
+		vs.setscope(WHERE_FILTER, V_SCOPE1);
 		genVars(q->tree->node1);
 		genWhere(q->tree->node4);
-		vs.setscope(DISTINCT_FILTER, V_INCLUDES, V_SCOPE1);
+		vs.setscope(DISTINCT_FILTER, V_SCOPE1);
 		genVars(q->tree->node1);
 		genDistinct(q->tree->node2->node1, wherenot);
-		vs.setscope(NO_FILTER, V_ANY, V_SCOPE1);
+		vs.setscope(SELECT_FILTER, V_SCOPE1);
 		genVars(q->tree->node1);
 		genSelect(q->tree->node2);
 		addop(PRINT);
 		addop((q->quantityLimit > 0 ? JMPCNT : JMP), prevJoinRead);
 		return;
 	}
-	joinFileIdx++; //0 is base file, not join file
-	vs.setscope(JOIN_FILTER, V_EQUALS, V_SCOPE1);
+	joinFileIdx++;
+	vs.setscope(JCOMP_FILTER, V_SCOPE1);
 	genVars(q->tree->node1);
 	genJoinPredicates(n->node1);
 	addop(JOINSET_INIT, joinFileIdx-1);
@@ -251,7 +251,7 @@ void cgen::genJoinPredicates(unique_ptr<node> &n){
 void cgen::genJoinCompare(unique_ptr<node> &n){
 	if (n == nullptr) return;
 	if (n->tok1.id == SP_LPAREN){
-		genJoinCompare(n->node1);
+		genJoinPredicates(n->node1);
 		return;
 	}
 	//evaluate the one not scanned
@@ -282,7 +282,7 @@ void cgen::genScanJoinFiles(unique_ptr<node> &n){
 		joinFileIdx++;
 		f->vpTypes = move(valposTypes);
 		valposTypes.clear();
-		vs.setscope(JSCAN_FILTER, V_INCLUDES, V_SCANSCOPE);
+		vs.setscope(JSCAN_FILTER, V_SCANSCOPE);
 		genVars(q->tree->node1);
 		genScannedJoinExprs(jnode->node1);
 		addop(SAVEVALPOS, f->fileno, f->joinValpos.size());
@@ -332,15 +332,13 @@ void cgen::genNormalQuery(unique_ptr<node> &n){
 	normal_read = v.size();
 	wherenot = normal_read;
 	addop(RDLINE, endfile, 0);
-	vs.setscope(WHERE_FILTER|DISTINCT_FILTER, V_EQUALS, V_SCOPE1);
-	genVars(n->node1);
-	vs.setscope(WHERE_FILTER, V_EQUALS, V_SCOPE1);
+	vs.setscope(WHERE_FILTER, V_SCOPE1);
 	genVars(n->node1);
 	genWhere(n->node4);
-	vs.setscope(DISTINCT_FILTER, V_EQUALS, V_SCOPE1);
+	vs.setscope(DISTINCT_FILTER, V_SCOPE1);
 	genVars(n->node1);
 	genDistinct(n->node2->node1, normal_read);
-	vs.setscope(NO_FILTER, V_ANY, V_SCOPE1);
+	vs.setscope(SELECT_FILTER, V_SCOPE1);
 	genVars(n->node1);
 	genSelect(n->node2);
 	addop(PRINT);
@@ -357,9 +355,11 @@ void cgen::genNormalOrderedQuery(unique_ptr<node> &n){
 	normal_read = v.size();
 	wherenot = normal_read;
 	addop(RDLINE, sorter, 0);
-	vs.setscope(WHERE_FILTER|ORDER_FILTER, V_INCLUDES, V_SCOPE1);
+	vs.setscope(WHERE_FILTER, V_SCOPE1);
 	genVars(n->node1);
 	genWhere(n->node4);
+	vs.setscope(ORDER_FILTER, V_SCOPE1);
+	genVars(n->node1);
 	genNormalSortList(n);
 	addop(SAVEPOS);
 	addop(JMP, normal_read);
@@ -368,10 +368,10 @@ void cgen::genNormalOrderedQuery(unique_ptr<node> &n){
 	addop(PREP_REREAD, 0, 0);
 	q->jumps.setPlace(reread, v.size());
 	addop(RDLINE_ORDERED, endreread, 0, 0);
-	vs.setscope(DISTINCT_FILTER, V_EQUALS, V_SCOPE2);
+	vs.setscope(DISTINCT_FILTER, V_SCOPE2);
 	genVars(n->node1);
 	genDistinct(n->node2->node1, reread);
-	vs.setscope(NO_FILTER, V_ANY, V_SCOPE2);
+	vs.setscope(SELECT_FILTER, V_SCOPE2);
 	genVars(n->node1);
 	genSelect(n->node2);
 	addop(PRINT);
@@ -402,18 +402,16 @@ void cgen::genBasicGroupingQuery(unique_ptr<node> &n){
 	normal_read = v.size();
 	wherenot = normal_read;
 	addop(RDLINE, getgroups, 0);
-	vs.setscope(WHERE_FILTER|DISTINCT_FILTER, V_EQUALS, V_SCOPE1);
-	genVars(n->node1);
-	vs.setscope(WHERE_FILTER, V_EQUALS, V_SCOPE1);
+	vs.setscope(WHERE_FILTER, V_SCOPE1);
 	genVars(n->node1);
 	genWhere(n->node4);
-	vs.setscope(DISTINCT_FILTER, V_EQUALS, V_SCOPE1);
+	vs.setscope(DISTINCT_FILTER, V_SCOPE1);
 	genVars(n->node1);
 	genDistinct(n->node2->node1, normal_read); //is this needed here?
-	vs.setscope(GROUP_FILTER, V_INCLUDES, V_SCOPE1);
+	vs.setscope(GROUP_FILTER, V_SCOPE1);
 	genVars(n->node1);
 	genGetGroup(n->node4->node2);
-	vs.setscope(NO_FILTER, V_ANY, V_SCOPE1);
+	vs.setscope(SELECT_FILTER, V_SCOPE1);
 	genVars(n->node1);
 	genPredicates(n->node4->node3); //having phase 1
 	genSelect(n->node2);
@@ -925,7 +923,7 @@ void cgen::genIterateGroups(unique_ptr<node> &n){
 	e("iterate groups");
 	if (n == nullptr) {
 		addop(ONEGROUP);
-		vs.setscope(NO_FILTER, V_ANY, V_SCOPE2);
+		vs.setscope(SELECT_FILTER, V_SCOPE2);
 		genVars(q->tree->node1);
 		genSelect(q->tree->node2);
 		// for debugging:
@@ -978,7 +976,7 @@ void cgen::genIterateGroups(unique_ptr<node> &n){
 
 void cgen::genUnsortedGroupRow(unique_ptr<node> &n, int nextgroup, int doneGroups){
 	e("gen unsorted group row");
-	vs.setscope(NO_FILTER, V_ANY, V_SCOPE2);
+	vs.setscope(SELECT_FILTER|HAVING_FILTER, V_SCOPE2);
 	genVars(q->tree->node1);
 	genPredicates(q->tree->node4->node3);
 	if (q->havingFiltering)
@@ -991,12 +989,14 @@ void cgen::genUnsortedGroupRow(unique_ptr<node> &n, int nextgroup, int doneGroup
 }
 void cgen::genSortedGroupRow(unique_ptr<node> &n, int nextgroup){
 	e("gen sorted group row");
-	vs.setscope(NO_FILTER, V_ANY, V_SCOPE2);
+	vs.setscope(HAVING_FILTER, V_SCOPE2);
 	genVars(q->tree->node1);
 	genPredicates(q->tree->node4->node3);
 	if (q->havingFiltering)
 		addop(JMPFALSE, nextgroup, 1);
 	addop(ADD_GROUPSORT_ROW);
+	vs.setscope(SELECT_FILTER, V_SCOPE2);
+	genVars(q->tree->node1);
 	genSelect(q->tree->node2);
 	auto& ordnode = findFirstNode(q->tree->node4, N_ORDER);
 	for (auto x = ordnode->node1.get(); x; x = x->node2.get()){

@@ -57,11 +57,11 @@ void analyzer::varUsedInFilter(unique_ptr<node> &n){
 		t1 = n->tok1.lower();
 		if (t1 == "hidden" || t1 == "distinct"){
 			setSubtreeVarFilter(n->node1, DISTINCT_FILTER);
+			if (t1 != "hidden")
+				setSubtreeVarFilter(n->node1, SELECT_FILTER);
+		} else {
+			setSubtreeVarFilter(n->node1, SELECT_FILTER);
 		}
-		varUsedInFilter(n->node2);
-		break;
-	case N_JOIN:
-		setSubtreeVarFilter(n->node1, JOIN_FILTER);
 		varUsedInFilter(n->node2);
 		break;
 	case N_WHERE:
@@ -76,6 +76,7 @@ void analyzer::varUsedInFilter(unique_ptr<node> &n){
 	case N_HAVING:
 		setSubtreeVarFilter(n->node1, HAVING_FILTER);
 		break;
+	//joins handled later to distinguish scan vs comp values
 	default:
 		varUsedInFilter(n->node1);
 		varUsedInFilter(n->node2);
@@ -385,13 +386,15 @@ void analyzer::findIndexableJoinValues(unique_ptr<node> &n, int fileno){
 					if (i > fileno)
 						error("Join condition cannot compare to a file that appears later in the query, only earlier");
 				n->tok4.id = 1;
+				setSubtreeVarFilter(n->node2, JCOMP_FILTER);
 				setSubtreeVarFilter(n->node1, JSCAN_FILTER);
 			}else if (e2.size() == 1 && *e2.begin() == fileno){
 				for (auto i : e1)
 					if (i > fileno)
 						error("Join condition cannot compare to a file that appears later in the query, only earlier");
 				n->tok4.id = 2;
-				setSubtreeVarFilter(n->node2, JSCAN_FILTER);
+				setSubtreeVarFilter(n->node1, JSCAN_FILTER);
+				setSubtreeVarFilter(n->node2, JCOMP_FILTER);
 			}else{
 				error("One side of join condition must be the joined file and only the joined file");
 			}
