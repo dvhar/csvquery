@@ -547,7 +547,7 @@ void cgen::genValue(unique_ptr<node> &n){
 		vtype = getVarType(n->tok1.val, q);
 		op = typeConv[vtype][n->datatype];
 		if (op == CVER)
-			error(ft("Error converting variable of type {} to new type {}", vtype, n->datatype));
+			error((ft("Error converting variable of type %1% to new type %2%")%vtype%n->datatype).str());
 		if (op != CVNO)
 			addop0(op);
 		break;
@@ -778,7 +778,7 @@ void cgen::genPredCompare(unique_ptr<node> &n){
 void cgen::genSelectAll(){
 	addop(LDPUTALL, select_count);
 	for (int i=0; i<q->numFiles; ++i)
-		select_count += q->files[str2("_f", i)]->numFields;
+		select_count += q->files[st("_f", i)]->numFields;
 }
 
 void cgen::genWhere(unique_ptr<node> &nn){
@@ -977,11 +977,14 @@ void cgen::genIterateGroups(unique_ptr<node> &n){
 
 void cgen::genUnsortedGroupRow(unique_ptr<node> &n, int nextgroup, int doneGroups){
 	e("gen unsorted group row");
-	vs.setscope(SELECT_FILTER|HAVING_FILTER, V_SCOPE2);
+	vs.setscope(HAVING_FILTER, V_SCOPE2);
 	genVars(q->tree->node1);
 	genPredicates(q->tree->node4->node3);
 	if (q->havingFiltering)
 		addop(JMPFALSE, nextgroup, 1);
+	vs.setscope(SELECT_FILTER, V_SCOPE2);
+	genVars(q->tree->node1);
+	genPredicates(q->tree->node4->node3);
 	genSelect(q->tree->node2);
 	// for debugging:
 	addop(PRINT);

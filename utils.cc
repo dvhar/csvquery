@@ -224,14 +224,14 @@ void printTree(unique_ptr<node> &n, int ident){
 	for (int i=0;i<ident;i++) s += "  ";
 	cerr << s << treeMap[n->label] << endl
 		<< s 
-		<< ft("[{} {} {} {} {}] t:{} ph:{}"
-		,n->tok1.val
-		,n->tok2.val
-		,n->tok3.val
-		,n->tok4.val
-		,n->tok5.val
-		,n->datatype
-		,n->phase) << endl;
+		<< ft("[%1% %2% %3% %4% %5%] t:%6% ph:%7%")
+		% n->tok1.val
+		% n->tok2.val
+		% n->tok3.val
+		% n->tok4.val
+		% n->tok5.val
+		% n->datatype
+		% n->phase << endl;
 	printTree(n->node1,ident);
 	printTree(n->node2,ident);
 	printTree(n->node3,ident);
@@ -333,7 +333,7 @@ int getVarType(string lkup, querySpecs *q){
 
 int getFileNo(string s, querySpecs *q){
 	for (int i=0; i<q->numFiles; ++i)
-		if (q->files[str2("_f", i)]->id == q->files[s]->id)
+		if (q->files[st("_f", i)]->id == q->files[s]->id)
 			return i;
 	error("file number not founde");
 	return 0;
