@@ -305,10 +305,13 @@ OR_SET_:
 	++ip;
 	next();
 JOINSET_INIT_:
-	if (op->p3 && joinSetStack[op->p1].begin() == joinSetStack[op->p1].end())
-		joinSetStack[op->p1].insert(-1); //blank row for left join without match
-	setItstk[op->p2] = joinSetStack[op->p1].begin();
-	setItstk[op->p2+1] = joinSetStack[op->p1].end();
+	{
+		auto& jset = joinSetStack[op->p1];
+		if (op->p3 && jset.empty())
+			jset.insert(-1); //blank row for left join without match
+		setItstk[op->p2] = jset.begin();
+		setItstk[op->p2+1] = jset.end();
+	}
 	op = ops+ ++ip;
 	debugOpcode;
 JOINSET_TRAV_:

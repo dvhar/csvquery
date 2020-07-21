@@ -13,7 +13,7 @@
 #include <regex>
 #include <stdarg.h>
 #include <boost/algorithm/string.hpp>
-#include <fmt/format.h>
+#include <boost/format.hpp>
 #include "deps/dateparse/dateparse.h"
 #include "deps/chacha/chacha20.h"
 
@@ -30,13 +30,8 @@
 #define int64 long long
 #define dur_t long long
 #define byte unsigned char
-#define ft fmt::format
-//#define pt fmt::print
-#define str1(A) ft("{}",A)
-#define str2(A,B) ft("{}{}",A,B)
-#define str3(A,B,C) ft("{}{}{}",A,B,C)
+#define ft boost::format
 #define error(A) throw invalid_argument(A)
-#define printasm(S, L) asm("syscall\n\t"::"a"(1), "D"(1), "S"(S), "d"(L));
 #define SMALLEST ((int64) 1 << 63)
 using namespace std;
 
@@ -402,6 +397,18 @@ char* durstring(dur_t dur, char* str);
 void runServer();
 unique_ptr<node>& findFirstNode(unique_ptr<node> &n, int label);
 
+template<typename T>
+static string st(T v) {
+	stringstream ss;
+	ss << v;
+	return ss.str();
+}
+template<typename T, typename... Args>
+static string st(T first, Args... args) {
+	stringstream ss;
+	ss << first << st(args...);
+	return ss.str();
+}
 extern int runmode;
 enum runmodes { RUN_CMD, RUN_SINGLE, RUN_SERVER };
 

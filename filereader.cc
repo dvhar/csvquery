@@ -129,7 +129,7 @@ void fileReader::inferTypes() {
 	//get col names and initialize blank types
 	for (int i=0; i<entries.size(); ++i) {
 		if (noheader)
-			colnames.push_back(str2("col",i+1));
+			colnames.push_back(st("col",i+1));
 		else
 			colnames.push_back(string(entries[i].val));
 		types.push_back(0);
@@ -184,7 +184,7 @@ void openfiles(querySpecs &q, unique_ptr<node> &n){
 	if (n->label == N_FROM || n->label == N_JOIN){
 		//initialize and put in map
 		string path = n->tok1.val;
-		string id = str2("_f",q.numFiles);
+		string id = st("_f",q.numFiles);
 		shared_ptr<fileReader> fr(new fileReader(path));
 		fr->id = id;
 		fr->fileno = q.numFiles;

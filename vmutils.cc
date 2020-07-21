@@ -7,7 +7,7 @@ map<int, string> opMap = {
 };
 
 void opcode::print(){
-	cerr << ft("code: {: <18}  [{: <2}  {: <2}  {: <2}]\n", opMap[code], p1, p2, p3);
+	cerr << ft("code: %-18s  [%-2d  %-2d  %-2d]\n")% opMap[code]% p1% p2% p3;
 }
 
 void dat::appendToBuffer(string &outbuf){
@@ -52,20 +52,20 @@ dat parseIntDat(const char* s){
 	char* end = NULL;
 	dat idat = { { i: strtol(s, &end, 10) }, T_INT };
 	if (*end != 0)
-		error(str3("Could not parse ", s, " as a number."));
+		error(st("Could not parse ", s, " as a number."));
 	return idat;
 }
 dat parseFloatDat(const char* s){
 	char* end = NULL;
 	dat fdat = { { f: strtof(s, &end) }, T_FLOAT };
 	if (*end != 0)
-		error(str3("Could not parse ", s, " as a number."));
+		error(st("Could not parse ", s, " as a number."));
 	return fdat;
 }
 dat parseDurationDat(const char* s) {
 	date_t dur;
 	if (parseDuration((char*)s, &dur))
-		error(str3("Could not parse ", s, " as duration."));
+		error(st("Could not parse ", s, " as duration."));
 	if (dur < 0) dur *= -1;
 	dat ddat = { { i: dur }, T_DURATION };
 	return ddat;
@@ -73,7 +73,7 @@ dat parseDurationDat(const char* s) {
 dat parseDateDat(const char* s) {
 	date_t date;
 	if (dateparse_2(s, &date))
-		error(str3("Could not parse ", s, " as date."));
+		error(st("Could not parse ", s, " as date."));
 	dat ddat = { { i: date }, T_DATE };
 	return ddat;
 }
@@ -101,7 +101,7 @@ int addBtree(int type, querySpecs *q){
 vmachine::vmachine(querySpecs &qs){
 	q = &qs;
 	for (int i=0; i<q->numFiles; ++i){
-		files.push_back(q->files[str2("_f", i)]);
+		files.push_back(q->files[st("_f", i)]);
 	}
 
 	destrow.resize(q->colspec.count, {0});

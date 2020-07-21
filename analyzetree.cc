@@ -87,9 +87,9 @@ void analyzer::varUsedInFilter(unique_ptr<node> &n){
 
 void analyzer::selectAll(){
 	for (int i=0; i<q->numFiles; ++i){
-		auto f = q->files[str2("_f", i)];
+		auto f = q->files[st("_f", i)];
 		for (auto &c : f->types){
-			q->colspec.colnames.push_back(str2("col",++q->colspec.count));
+			q->colspec.colnames.push_back(st("col",++q->colspec.count));
 			q->colspec.types.push_back(T_STRING);
 		}
 	}
