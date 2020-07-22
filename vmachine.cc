@@ -16,7 +16,7 @@
 
 #define debugOpcode
 #ifndef debugOpcode
-#define debugOpcode  cerr << ft("ip {} opcode {} stack {}\n", ip, opMap[op->code], stacktop-stack.data());
+#define debugOpcode  cerr << ft("ip %1% opcode %2% stack %3%\n")% ip% opMap[op->code]% (stacktop-stack.data());
 #endif
 //jump to next operation
 #define next() \
@@ -218,8 +218,8 @@ RDLINE_:
 RDLINE_ORDERED_:
 	//stk0 has current read index, stk1 has vector.size()
 	if (stk0.u.i < stk1.u.i){
-		auto &f = files[op->p2];
-		f->readlineat(f->positions[sortIdxs[stk0.u.i++]]);
+		for (auto &f : files)
+			f->readlineat(f->positions[sortIdxs[stk0.u.i++]]);
 		++ip;
 	} else {
 		ip = op->p1;
@@ -298,7 +298,7 @@ AND_SET_:
 OR_SET_:
 	{
 		auto& target = *(joinSetStack.end()-2);
-		for (auto& loc : joinSetStack.back())
+		for (auto loc : joinSetStack.back())
 			target.insert(loc);
 		joinSetStack.pop_back();
 	}

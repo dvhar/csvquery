@@ -15,7 +15,7 @@ def runtest(test):
     ret = subprocess.Popen(["./cql","-c", q], stdout = subprocess.PIPE, stderr = subprocess.PIPE)
     out, err = ret.communicate()
     print("---------------------------------------")
-    print("".join(map(chr,out)))
+    print(out.decode('UTF-8'))
     if ret.returncode != test['code']:
         print(f"Failed! Expected return code {test[1]} but got {ret.returncode}")
         print(err)
@@ -24,9 +24,9 @@ def runtest(test):
         expected = res.read()
         if out != expected:
             print(f"Failed. Expected from {test['output']}:")
-            print('==>'+"".join(map(chr,expected))+'<==')
+            print('==>'+expected.decode('UTF-8')+'<==')
             print('Got instead:')
-            print('==>'+"".join(map(chr,out))+'<==')
+            print('==>'+out.decode('UTF-8')+'<==')
             quit()
     print("---------------------------------------")
     print(f"Success! return code: {ret.returncode}")
@@ -40,4 +40,4 @@ with open('test/testdata.json') as testfile:
         else:
             runtest(test)
 
-print("All tests passed!")
+print("All tests passed")

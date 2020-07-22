@@ -275,26 +275,3 @@ int getSortComparer(querySpecs *q, int i){
 	}
 	error("invalid sort function");
 };
-
-//debug group traverser
-/*
-void trav(rowgroup &r){
-	if (r.meta.rowOrGroup == 2){
-		auto&& m = r.getMap();
-		cerr << "new map node\n";
-		for (auto &e : m){
-			auto&& d = (dat) e.first;
-			cerr << "    key: " << d.str() << endl;
-		}
-		for (auto &e : m){
-			trav(e.second);
-		}
-	}
-	if (r.meta.rowOrGroup == 1){
-		auto&& v = r.getVec();
-		for (auto &e : v){
-			cerr << "  v: " << e.str() << endl;
-		}
-	}
-}
-*/
