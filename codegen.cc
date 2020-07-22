@@ -256,7 +256,7 @@ void cgen::genJoinSets(unique_ptr<node> &n){
 	vs.setscope(JCOMP_FILTER, V_READ1_SCOPE);
 	genVars(q->tree->node1);
 	genJoinPredicates(n->node1);
-	addop(JOINSET_INIT, joinFileIdx-1, (joinFileIdx-1)*2, n->tok3.lower() == "left");
+	addop(JOINSET_INIT, (joinFileIdx-1)*2, n->tok3.lower() == "left");
 	int goWhenDone = prevJoinRead;
 	prevJoinRead = v.size();
 	wherenot = prevJoinRead;

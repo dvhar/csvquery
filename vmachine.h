@@ -157,7 +157,7 @@ class vmachine {
 	vector<dat*> groupSorter;
 	vector<int> sortIdxs;
 	vector<vector<datunion>> normalSortVals;
-	vector<bset<int64>> joinSetStack;
+	list<bset<int64>> joinSetStack;
 	forward_list<char*> groupSortVars;
 	unique_ptr<rowgroup> groupTree;
 	public:

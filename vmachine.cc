@@ -16,7 +16,7 @@
 
 #define debugOpcode
 #ifndef debugOpcode
-#define debugOpcode  cerr << ft("ip %1% opcode %2% stack %3%\n")% ip% opMap[op->code]% (stacktop-stack.data());
+#define debugOpcode  cerr << ft("\nip %1% opcode %2% stack %3%")% ip% opMap[op->code]% (stacktop-stack.data());
 #endif
 //jump to next operation
 #define next() \
@@ -46,7 +46,7 @@ void vmachine::run(){
 	dat* stacktop = stack.data();
 	dat* stackbot = stack.data();
 	decltype(groupTree->getMap().begin()) groupItstk[20];
-	typedef decltype(joinSetStack[0].begin()) jnit ;
+	typedef decltype(joinSetStack.front().begin()) jnit ;
 	vector<jnit> setItstk((q->numFiles-1)*2);
 	dat* midrow;
 	int ip = 0;
@@ -286,31 +286,33 @@ GET_SET_EQ_:
 	next();
 AND_SET_:
 	{
-		auto& topset = joinSetStack.back();
-		auto& target = *(joinSetStack.end()-2);
-		bset<int64> tempset(move(target));
-		set_intersection(tempset.begin(), tempset.end(), topset.begin(), topset.end(),
-				inserter(target, target.begin()));
+		;
+		bset<int64> tempset1(move(joinSetStack.back()));
 		joinSetStack.pop_back();
+		auto& target = joinSetStack.back();
+		bset<int64> tempset2(move(target));
+		set_intersection(tempset1.begin(), tempset1.end(), tempset2.begin(), tempset2.end(),
+				inserter(target, target.begin()));
 	}
 	++ip;
 	next();
 OR_SET_:
 	{
-		auto& target = *(joinSetStack.end()-2);
-		for (auto loc : joinSetStack.back())
-			target.insert(loc);
+		bset<int64> tempset(move(joinSetStack.back()));
 		joinSetStack.pop_back();
+		auto& target = joinSetStack.back();
+		for (auto loc : tempset)
+			target.insert(loc);
 	}
 	++ip;
 	next();
 JOINSET_INIT_:
 	{
-		auto& jset = joinSetStack[op->p1];
-		if (op->p3 && jset.empty())
+		auto& jset = joinSetStack.back();
+		if (op->p2 && jset.empty())
 			jset.insert(-1); //blank row for left join without match
-		setItstk[op->p2] = jset.begin();
-		setItstk[op->p2+1] = jset.end();
+		setItstk[op->p1] = jset.begin();
+		setItstk[op->p1+1] = jset.end();
 	}
 	op = ops+ ++ip;
 	debugOpcode;
