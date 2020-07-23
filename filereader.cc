@@ -19,6 +19,8 @@ fileReader::fileReader(string fname){
 			error("Could not open file "+fname);
 		}
 	}
+	small = filesystem::file_size(fname) < 100*1024*1024;
+	buf = buf1;
 	pos = prevpos = numFields = 0;
 	filename = fname;
 	fs = ifstream(fname);	
@@ -42,6 +44,9 @@ void fileReader::print(){
 }
 bool fileReader::readlineat(int64 position){
 	static char blank = 0;
+	if (inmemory){
+	} else {
+	}
 	if (position < 0){
 		fill(entries.begin(), entries.end(), csvEntry{&blank,&blank});
 		return 0;
@@ -51,8 +56,18 @@ bool fileReader::readlineat(int64 position){
 	return readline();
 }
 bool fileReader::readline(){
-	pos = prevpos;
-	fs.getline(buf, BUFSIZE);
+	if (inmemory){
+		pos = (streampos) gotrows.size();
+		fs.getline(buf1, BUFSIZE);
+		gotbuffers.push_front({});
+		auto& newbuf = gotbuffers.front();
+		newbuf.reset(new char[fs.gcount()]);
+		buf = newbuf.get();
+		strcpy(buf, buf1);
+	} else {
+		pos = prevpos;
+		fs.getline(buf, BUFSIZE);
+	}
 	entries.clear();
 	fieldsFound = 0;
 	pos1 = pos2 = buf;
@@ -62,8 +77,8 @@ bool fileReader::readline(){
 		pos1 = pos2;
 		//non-quoted field
 		if (*pos2 != '"'){
-			while(*pos2 && *pos2 != ',') ++pos2;
-			if (*pos2 == ','){
+			while(*pos2 && *pos2 != delim) ++pos2;
+			if (*pos2 == delim){
 				terminator = pos2;
 				getField();
 				pos1 = ++pos2;
@@ -91,17 +106,17 @@ bool fileReader::readline(){
 			case '"':
 				++pos2;
 				goto inquote;
-			//end of field
-			case ',':
-				terminator = pos2-1;
-				getField();
-				pos1 = ++pos2;
-				break;
 			//end of line
 			case '\0':
 				terminator = pos2-1;
 				getField();
 				return checkWidth();
+			}
+			//end of field
+			if (*pos2 == delim){
+				terminator = pos2-1;
+				getField();
+				pos1 = ++pos2;
 			}
 		}
 
@@ -113,6 +128,9 @@ inline bool fileReader::checkWidth(){
 	//numfields is 0 until first line is done
 	if (numFields == 0)
 		numFields = entries.size();
+	if (inmemory){
+		gotrows.push_back(entries);
+	}
 	return fieldsFound != numFields;
 }
 inline void fileReader::getField(){
@@ -196,6 +214,11 @@ void openfiles(querySpecs &q, unique_ptr<node> &n){
 		path = path.substr(a, b);
 		q.files[path] = fr;
 
+		if (q.options & O_S)
+			fr->delim = ' ';
+		else
+			fr->delim = ',';
+
 		//header options
 		if ((q.options & O_NH) != 0)
 			fr->noheader = true;
@@ -211,6 +234,9 @@ void openfiles(querySpecs &q, unique_ptr<node> &n){
 		++q.numFiles;
 		//get types
 		fr->inferTypes();
+		if (fr->small){
+			//fr->inmemory = true;
+		}
 	}
 	openfiles(q, n->node1);
 	openfiles(q, n->node2);

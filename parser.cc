@@ -116,6 +116,8 @@ void parser::parseOptions() {
 		q->options |= O_NH;
 	} else if (s == "h" || s == "header") {
 		q->options |= O_H;
+	} else if (s == "s") {
+		q->options |= O_S;
 	} else {
 		return;
 	}
