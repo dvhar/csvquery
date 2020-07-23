@@ -16,6 +16,7 @@
 #include <boost/format.hpp>
 #include "deps/dateparse/dateparse.h"
 #include "deps/chacha/chacha20.h"
+#include <forward_list>
 
 #ifdef __MINGW32__
 #include <getopt.h>
@@ -142,6 +143,7 @@ const int STATE_WORD =      4;
 const int O_C = 1;
 const int O_NH = 2;
 const int O_H = 4;
+const int O_S = 8;
 
 extern map<int, string> enumMap;
 extern map<int, string> treeMap;
@@ -210,11 +212,17 @@ class fileReader {
 	char* pos1;
 	char* pos2;
 	char* terminator;
-	char buf[BUFSIZE];
+	char* buf;
+	char buf1[BUFSIZE];
 	ifstream fs;
 	string filename;
 	streampos prevpos;
+	vector<vector<csvEntry>> gotrows;
+	forward_list<unique_ptr<char>> gotbuffers;
 	public:
+		bool small;
+		bool inmemory;
+		char delim;
 		int linecount;
 		streampos pos;
 		vector<string> colnames;
@@ -222,7 +230,7 @@ class fileReader {
 		vector<int64> positions;
 		vector<vector<valpos>> joinValpos;
 		vector<int> vpTypes;
-		vector<csvEntry> entries;
+		vector<csvEntry> entries; // TODO: make this a pointer
 		bool noheader;
 		string id;
 		int fileno;

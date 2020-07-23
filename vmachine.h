@@ -1,7 +1,6 @@
 #include "interpretor.h"
 #include "deps/btree/btree_set.h"
 #include "deps/b64/b64.h"
-#include <forward_list>
 #ifndef VMACH_H
 #define VMACH_H
 
