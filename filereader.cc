@@ -19,7 +19,8 @@ fileReader::fileReader(string fname){
 			error("Could not open file "+fname);
 		}
 	}
-	small = filesystem::file_size(fname) < 100*1024*1024;
+	//filesize optimizations less beneficial for file 0
+	small = filesystem::file_size(fname) < (fileno>0? 100:1)*1024*1024;
 	buf = buf1;
 	memidx = pos = prevpos = numFields = 0;
 	filename = fname;
@@ -164,9 +165,12 @@ void fileReader::inferTypes() {
 		startData = pos;
 	}
 	if (small){
-		for (;;) {
-			for (int i=0; i<entriesVec.size(); ++i)
-				types[i] = getNarrowestType(entriesVec[i].val, types[i]);
+		for (int j=0;;) {
+			if (j<10000){
+				for (int i=0; i<entriesVec.size(); ++i)
+					types[i] = getNarrowestType(entriesVec[i].val, types[i]);
+				++j;
+			}
 			gotrows.push_back(entriesVec);
 			++numrows;
 			if (readline())
