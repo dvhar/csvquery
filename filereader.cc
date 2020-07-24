@@ -21,10 +21,11 @@ fileReader::fileReader(string fname){
 	}
 	small = filesystem::file_size(fname) < 100*1024*1024;
 	buf = buf1;
-	pos = prevpos = numFields = 0;
+	memidx = pos = prevpos = numFields = 0;
 	filename = fname;
 	fs = ifstream(fname);	
 }
+char fileReader::blank = 0;
 fileReader::~fileReader(){
 	fs.close();
 	int i;
@@ -36,39 +37,45 @@ fileReader::~fileReader(){
 	}
 
 }
-void fileReader::print(){
-	for (auto &e : entries){
-		cerr << "[" << e.val << "]";
-	}
-	cerr << endl;
-}
 bool fileReader::readlineat(int64 position){
-	static char blank = 0;
 	if (inmemory){
-	} else {
-	}
-	if (position < 0){
-		fill(entries.begin(), entries.end(), csvEntry{&blank,&blank});
+		if (position < 0){
+			entries = entriesVec.data();
+			return 0;
+		}
+		entries = gotrows[position].data();
 		return 0;
+	} else {
+		if (position < 0){
+			fill(entriesVec.begin(), entriesVec.end(), csvEntry{&blank,&blank});
+			return 0;
+		}
+		fs.clear();
+		fs.seekg(position);
+		return readline();
 	}
-	fs.clear();
-	fs.seekg(position);
-	return readline();
 }
 bool fileReader::readline(){
-	if (inmemory){
-		pos = (streampos) gotrows.size();
-		fs.getline(buf1, BUFSIZE);
-		gotbuffers.push_front({});
-		auto& newbuf = gotbuffers.front();
-		newbuf.reset(new char[fs.gcount()]);
-		buf = newbuf.get();
-		strcpy(buf, buf1);
+	if (small){
+		if (inmemory){
+			if (memidx >= numrows)
+				return 1;
+			pos = memidx;
+			entries = gotrows[memidx++].data();
+			return 0;
+		} else { //haven't loaded into memory yet (infertypes)
+			fs.getline(buf1, BUFSIZE);
+			gotbuffers.push_front({});
+			auto& newbuf = gotbuffers.front();
+			newbuf.reset(new char[fs.gcount()]);
+			buf = newbuf.get();
+			strcpy(buf, buf1);
+		}
 	} else {
 		pos = prevpos;
 		fs.getline(buf, BUFSIZE);
 	}
-	entries.clear();
+	entriesVec.clear();
 	fieldsFound = 0;
 	pos1 = pos2 = buf;
 	while (1){
@@ -127,29 +134,28 @@ inline bool fileReader::checkWidth(){
 	prevpos += (pos2 - buf + 1);
 	//numfields is 0 until first line is done
 	if (numFields == 0)
-		numFields = entries.size();
-	if (inmemory){
-		gotrows.push_back(entries);
-	}
+		numFields = entriesVec.size();
+	entries = entriesVec.data();
 	return fieldsFound != numFields;
 }
 inline void fileReader::getField(){
 	//trim trailing whitespace and push pointer
 	while (isblank(*(terminator-1))) --terminator;
 	*terminator = '\0';
-	entries.emplace_back(csvEntry{pos1, terminator});
+	entriesVec.emplace_back(csvEntry{pos1, terminator});
 	++fieldsFound;
 }
 
+//initial scan also loads file into mem if small file
 void fileReader::inferTypes() {
 	readline();
 	auto startData = pos;
 	//get col names and initialize blank types
-	for (int i=0; i<entries.size(); ++i) {
+	for (int i=0; i<entriesVec.size(); ++i) {
 		if (noheader)
 			colnames.push_back(st("col",i+1));
 		else
-			colnames.push_back(string(entries[i].val));
+			colnames.push_back(string(entriesVec[i].val));
 		types.push_back(0);
 	}
 	//get samples and infer types from them
@@ -157,19 +163,32 @@ void fileReader::inferTypes() {
 		readline();
 		startData = pos;
 	}
-	for (int j=0; j<10000; ++j) {
-		for (int i=0; i<entries.size(); ++i)
-			types[i] = getNarrowestType(entries[i].val, types[i]);
-		if (readline()){
-			break;
+	if (small){
+		for (;;) {
+			for (int i=0; i<entriesVec.size(); ++i)
+				types[i] = getNarrowestType(entriesVec[i].val, types[i]);
+			gotrows.push_back(entriesVec);
+			++numrows;
+			if (readline())
+				break;
+		}
+		inmemory = true;
+	} else {
+		for (int j=0; j<10000; ++j) {
+			for (int i=0; i<entriesVec.size(); ++i)
+				types[i] = getNarrowestType(entriesVec[i].val, types[i]);
+			if (readline())
+				break;
 		}
 	}
-	for (int i=0; i<entries.size(); ++i)
+	for (int i=0; i<entriesVec.size(); ++i)
 		if (!types[i])
 			types[i] = T_STRING; //maybe come up with better way of handling nulls
 	fs.clear();
 	fs.seekg(startData);
 	prevpos = startData;
+	if (small)
+		fill(entriesVec.begin(), entriesVec.end(), csvEntry{&blank,&blank});
 }
 
 int fileReader::getColIdx(string colname){
@@ -232,11 +251,7 @@ void openfiles(querySpecs &q, unique_ptr<node> &n){
 				fr->noheader = false;
 		}
 		++q.numFiles;
-		//get types
 		fr->inferTypes();
-		if (fr->small){
-			//fr->inmemory = true;
-		}
 	}
 	openfiles(q, n->node1);
 	openfiles(q, n->node2);
