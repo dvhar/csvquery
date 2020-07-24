@@ -219,7 +219,11 @@ class fileReader {
 	streampos prevpos;
 	vector<vector<csvEntry>> gotrows;
 	forward_list<unique_ptr<char>> gotbuffers;
+	vector<csvEntry> entriesVec;
+	int memidx;
+	int numrows;
 	public:
+		static char blank;
 		bool small;
 		bool inmemory;
 		char delim;
@@ -230,7 +234,8 @@ class fileReader {
 		vector<int64> positions;
 		vector<vector<valpos>> joinValpos;
 		vector<int> vpTypes;
-		vector<csvEntry> entries; // TODO: make this a pointer
+		csvEntry* entries;
+		csvEntry* eend;
 		bool noheader;
 		string id;
 		int fileno;
@@ -238,7 +243,6 @@ class fileReader {
 	inline void getField();
 	inline bool checkWidth();
 	void inferTypes();
-	void print();
 	int getColIdx(string);
 	bool readline();
 	void numlines();

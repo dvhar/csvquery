@@ -97,9 +97,9 @@ LDPUTGRP_:
 LDPUTALL_:
 	iTemp1 = op->p1;
 	for (auto &f : files){
-		for (auto &e : f->entries){
+		for (auto e=f->entries, end=f->entries+f->numFields; e<end; ++e){
 			FREE2(torow[iTemp1]);
-			torow[iTemp1++] = dat{ { s: e.val }, T_STRING, valSize(e) };
+			torow[iTemp1++] = dat{ { s: e->val }, T_STRING, valSize((*e)) };
 		}
 	}
 	++ip;
