@@ -172,5 +172,11 @@
 	"code":0,
 	"query":"select distinct hidden c1 from 'test/country.csv' o join 'test/lang.csv' l on o.c1=l.c1 join 'test/cities.csv' t on l.c1=t.c3 limit 10",
 	"output":"28.csv"
+},
+{
+	"title":"sorting group join",
+	"code":0,
+	"query":"with count(*) as k select c1 l.c2 k from 'test/country.csv' o join 'test/lang.csv' l on o.c1=l.c1 group by l.c1 order by k limit 10",
+	"output":"29.csv"
 }
 ]
