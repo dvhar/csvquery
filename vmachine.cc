@@ -89,7 +89,7 @@ LDPUT_:
 LDPUTGRP_:
 	csvTemp = files[op->p3]->entries[op->p2];
 	sizeTemp = valSize(csvTemp);
-	if (ISNULL(torow[op->p1]) && sizeTemp){
+	if (sizeTemp && ISNULL(torow[op->p1])){
 		torow[op->p1] = { { s:newStr(csvTemp.val, sizeTemp) }, T_STRING|MAL, sizeTemp };
 	}
 	++ip;

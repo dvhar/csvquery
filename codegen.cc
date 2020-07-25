@@ -141,11 +141,9 @@ void cgen::generateCode(){
 		break;
 	case 4:
 	case 1|4:
-		genBasicJoiningQuery(q->tree);
-		break;
-	case 1|2|4:
-		break;
 	case 2|4:
+	case 1|2|4:
+		genBasicJoiningQuery(q->tree);
 		break;
 	}
 
@@ -192,7 +190,10 @@ void cgen::genBasicJoiningQuery(unique_ptr<node> &n){
 	genScanJoinFiles(n->node3->node1);
 	joinFileIdx = 0;
 	genTraverseJoins(n->node3);
-	if (q->sorting){
+	if (q->grouping){ // includes group sorting
+		agg_phase = 2;
+		genIterateGroups(n->node4->node2);
+	} else if (q->sorting){
 		int reread = jumps.newPlaceholder();
 		int endreread = jumps.newPlaceholder();
 		addop(SORT);
@@ -228,7 +229,19 @@ void cgen::genTraverseJoins(unique_ptr<node> &n){
 //given 'join' node
 void cgen::genJoinSets(unique_ptr<node> &n){
 	if (n == nullptr) {
-		if (q->sorting){
+		if (q->grouping){ // includes group sorting
+			vs.setscope(WHERE_FILTER, V_READ1_SCOPE);
+			genVars(q->tree->node1);
+			genWhere(q->tree->node4);
+			vs.setscope(GROUP_FILTER, V_READ1_SCOPE);
+			genVars(n->node1);
+			genGetGroup(n->node4->node2);
+			vs.setscope(SELECT_FILTER|ORDER_FILTER|HAVING_FILTER, V_READ1_SCOPE);
+			genVars(q->tree->node1);
+			genSelect(q->tree->node2);
+			genAggSortList(q->tree->node4);
+			genPredicates(n->node4->node3); //having phase 1
+		} else if (q->sorting){
 			vs.setscope(WHERE_FILTER, V_READ1_SCOPE);
 			genVars(q->tree->node1);
 			genWhere(q->tree->node4);
@@ -252,6 +265,7 @@ void cgen::genJoinSets(unique_ptr<node> &n){
 		}
 		return;
 	}
+	// could genwhere per file
 	joinFileIdx++;
 	vs.setscope(JCOMP_FILTER, V_READ1_SCOPE);
 	genVars(q->tree->node1);
@@ -441,11 +455,11 @@ void cgen::genBasicGroupingQuery(unique_ptr<node> &n){
 	vs.setscope(GROUP_FILTER, V_READ1_SCOPE);
 	genVars(n->node1);
 	genGetGroup(n->node4->node2);
-	vs.setscope(SELECT_FILTER, V_READ1_SCOPE);
+	vs.setscope(SELECT_FILTER|HAVING_FILTER|ORDER_FILTER, V_READ1_SCOPE);
 	genVars(n->node1);
 	genPredicates(n->node4->node3); //having phase 1
 	genSelect(n->node2);
-	genAggSortList(n); //figure out how to do phase 2
+	genAggSortList(n);
 	addop(JMP, normal_read);
 	jumps.setPlace(getgroups, v.size());
 	agg_phase = 2;
