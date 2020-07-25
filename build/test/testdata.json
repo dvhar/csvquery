@@ -166,5 +166,11 @@
 	"code":0,
 	"query":"with t.c3 as v1 select v1,o.c1,t.c2 from 'test/cities.csv' nh t left join 'test/country.csv' o nh on v1=o.c1 limit 10",
 	"output":"27.csv"
+},
+{
+	"title":"triple join with distinct",
+	"code":0,
+	"query":"select distinct hidden c1 from 'test/country.csv' o join 'test/lang.csv' l on o.c1=l.c1 join 'test/cities.csv' t on l.c1=t.c3 limit 10",
+	"output":"28.csv"
 }
 ]

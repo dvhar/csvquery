@@ -19,7 +19,7 @@ fileReader::fileReader(string fname){
 			error("Could not open file "+fname);
 		}
 	}
-	//filesize optimizations less beneficial for file 0
+	//filesize optimizations more beneficial for joined files
 	small = filesystem::file_size(fname) < (fileno>0? 100:1)*1024*1024;
 	buf = buf1;
 	memidx = pos = prevpos = numFields = 0;
