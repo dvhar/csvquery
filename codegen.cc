@@ -1030,7 +1030,6 @@ void cgen::genUnsortedGroupRow(unique_ptr<node> &n, int nextgroup, int doneGroup
 		addop(JMPFALSE, nextgroup, 1);
 	vs.setscope(SELECT_FILTER, V_GROUP_SCOPE);
 	genVars(q->tree->node1);
-	genPredicates(q->tree->node4->node3);
 	genSelect(q->tree->node2);
 	// for debugging:
 	addop(PRINT);

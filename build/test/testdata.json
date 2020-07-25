@@ -146,7 +146,7 @@
 {
 	"title":"count distinct with groups",
 	"code":0,
-	"query":"select count(distinct c2) c3 from 'test/cities' group by c3 order by max(c3) asc",
+	"query":"select count(distinct c2) c3 from 'test/cities' nh group by c3 order by max(c3) asc limit 10",
 	"output":"24.csv"
 },
 {
@@ -170,13 +170,19 @@
 {
 	"title":"triple join with distinct",
 	"code":0,
-	"query":"select distinct hidden c1 from 'test/country.csv' o join 'test/lang.csv' l on o.c1=l.c1 join 'test/cities.csv' t on l.c1=t.c3 limit 10",
+	"query":"select distinct hidden c1 from 'test/country.csv' nh o join 'test/lang.csv' l nh on o.c1=l.c1 join 'test/cities.csv' t nh on l.c1=t.c3 limit 10",
 	"output":"28.csv"
 },
 {
 	"title":"sorting group join",
 	"code":0,
-	"query":"with count(*) as k select c1 l.c2 k from 'test/country.csv' o join 'test/lang.csv' l on o.c1=l.c1 group by l.c1 order by k limit 10",
+	"query":"with count(*) as k select c1 l.c2 k from 'test/country.csv' o nh join 'test/lang.csv' l nh on o.c1=l.c1 group by l.c1 order by k limit 10",
 	"output":"29.csv"
+},
+{
+	"title":"sorting group join with having var",
+	"code":0,
+	"query":"with count(*) as k select c1 l.c2 k from 'test/country.csv' o nh join 'test/lang.csv' l nh on o.c1=l.c1 group by l.c1 order by k having k between 10 and 5",
+	"output":"30.csv"
 }
 ]
