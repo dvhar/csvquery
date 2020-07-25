@@ -187,6 +187,8 @@ void cgen::genBasicJoiningQuery(unique_ptr<node> &n){
 	e("basic join");
 	pushvars();
 	joinFileIdx = 0;
+	if (q->grouping)
+		agg_phase = 1;
 	genScanJoinFiles(n->node3->node1);
 	joinFileIdx = 0;
 	genTraverseJoins(n->node3);
@@ -234,13 +236,14 @@ void cgen::genJoinSets(unique_ptr<node> &n){
 			genVars(q->tree->node1);
 			genWhere(q->tree->node4);
 			vs.setscope(GROUP_FILTER, V_READ1_SCOPE);
-			genVars(n->node1);
-			genGetGroup(n->node4->node2);
+			genVars(q->tree->node1);
+			genGetGroup(q->tree->node4->node2);
 			vs.setscope(SELECT_FILTER|ORDER_FILTER|HAVING_FILTER, V_READ1_SCOPE);
 			genVars(q->tree->node1);
 			genSelect(q->tree->node2);
 			genAggSortList(q->tree->node4);
-			genPredicates(n->node4->node3); //having phase 1
+			genPredicates(q->tree->node4->node3); //having phase 1
+			addop(JMP, prevJoinRead);
 		} else if (q->sorting){
 			vs.setscope(WHERE_FILTER, V_READ1_SCOPE);
 			genVars(q->tree->node1);
