@@ -1,6 +1,7 @@
 #include "interpretor.h"
 #include "deps/btree/btree_set.h"
 #include "deps/b64/b64.h"
+#include <math.h>
 #ifndef VMACH_H
 #define VMACH_H
 
@@ -141,6 +142,30 @@ class treeCString {
 		}
 };
 
+class stddev {
+	public:
+	forward_list<double> numbers;
+	double sample;
+	stddev(double samp, double num){
+		sample = samp;
+		numbers.push_front(num);
+	}
+	dat eval(){
+		double count = 0.0, avg = 0.0, sum = 0.0;
+		for (auto d: numbers){
+			avg += d;
+			++count;
+		}
+		if (!count)
+			return {{0},NIL};
+		avg /= count;
+		for (auto d: numbers)
+			sum += pow((d-avg),2.0);
+		numbers.clear();
+		return {{f:pow(sum/(count-sample),0.5)},T_FLOAT};
+	}
+};
+
 class rowgroup;
 class vmachine {
 	vector<shared_ptr<fileReader>> files;
@@ -150,6 +175,7 @@ class vmachine {
 	int torowSize;
 	int sortgroupsize;
 	int quantityLimit;
+	vector<stddev> stdvs;
 	vector<dat> destrow;
 	vector<dat> onegroup;
 	vector<dat> stack;

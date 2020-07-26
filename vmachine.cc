@@ -933,6 +933,11 @@ LDSTDVI_:
 	++ip;
 	next()
 LDSTDVF_:
+	push();
+	if (!ISNULL(midrow[op->p1]))
+		stk0 = stdvs[midrow[op->p1].u.i].eval();
+	else
+		SETNULL(stk0);
 	++ip;
 	next()
 LDAVGI_:
@@ -972,8 +977,20 @@ SUMF_:
 	++ip;
 	next();
 STDVI_:
+	//TODO - duration
+	pop();
+	++ip;
+	next();
 STDVF_:
-	//TODO
+	{
+		if (!ISNULL(stk0))
+			if (ISNULL(torow[op->p1])){
+				torow[op->p1] = {{i:(int64)stdvs.size()},T_INT};
+				stdvs.emplace_back(stddev(op->p2, stk0.u.f));
+			} else {
+				stdvs[torow[op->p1].u.i].numbers.push_front(stk0.u.f);
+			}
+	}
 	pop();
 	++ip;
 	next();
@@ -1083,7 +1100,7 @@ ADD_GROUPSORT_ROW_:
 	next();
 FREE_MIDROW_:
 	freearr(groupTemp->getVec(), groupTemp->meta.rowsize);
-	delete groupTemp->getVec();
+	free(groupTemp->getVec());
 	groupTemp->meta.freed = true;
 	++ip;
 	next();
