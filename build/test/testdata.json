@@ -184,5 +184,11 @@
 	"code":0,
 	"query":"with count(*) as k select c1 l.c2 k from 'test/country.csv' o nh join 'test/lang.csv' l nh on o.c1=l.c1 group by l.c1 order by k having k between 10 and 5",
 	"output":"30.csv"
+},
+{
+	"title":"distinct aggregate",
+	"code":0,
+	"query":"select distinct count(*) c3 from 'test/country' nh group by c3",
+	"output":"31.csv"
 }
 ]
