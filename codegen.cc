@@ -880,6 +880,8 @@ void cgen::genFunction(unique_ptr<node> &n){
 			addop(ops[OPAVG][n->datatype], n->tok6.id);
 			break;
 		case FN_STDEV:
+			addop(ops[OPSTV][n->datatype], n->tok6.id, 1);
+			break;
 		case FN_STDEVP:
 			addop(ops[OPSTV][n->datatype], n->tok6.id);
 			break;

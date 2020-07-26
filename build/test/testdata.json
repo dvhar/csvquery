@@ -98,13 +98,13 @@
 {
 	"title":"count with nested groups",
 	"code":0,
-	"query":"select count(*) c3 c4 from 'test/country.csv' nh group by c3 c4",
+	"query":"select count(*) c3 c4 stdev(c7) from 'test/country.csv' nh group by c3 c4",
 	"output":"17.csv"
 },
 {
 	"title":"aggregate variable",
 	"code":0,
-	"query":"with avg(c7) * 2 as dog select avg(c7) dog c7 sum(c7)/91 from 'test/country' nh",
+	"query":"with avg(c7) * 2 as dog, stdevp(c9) as cat select avg(c7) dog cat c7 sum(c7)/91 from 'test/country' nh",
 	"output":"18.csv"
 },
 {

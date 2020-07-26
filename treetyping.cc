@@ -372,6 +372,12 @@ static typer typeFunctionInnerNodes(querySpecs &q, unique_ptr<node> &n){
 		typeInnerNodes(q, n->node1);
 		innerType = {T_DATE, true};
 		break;
+	case FN_STDEV:
+	case FN_STDEVP:
+	case FN_AVG:
+		typeInnerNodes(q, n->node1);
+		innerType.type = T_FLOAT;
+		break;
 	default:
 		innerType = typeInnerNodes(q, n->node1);
 	}
