@@ -67,20 +67,14 @@ class cgen {
 		numJoinCompares = 0;
 	}
 };
-
-void cgen::addop(int code){
-	addop(code,0,0,0);
-}
-void cgen::addop(int code, int p1){
-	addop(code,p1,0,0);
-}
-void cgen::addop(int code, int p1, int p2){
-	addop(code,p1,p2,0);
-}
+void cgen::addop(int code){ addop(code,0,0,0); }
+void cgen::addop(int code, int p1){ addop(code,p1,0,0); }
+void cgen::addop(int code, int p1, int p2){ addop(code,p1,p2,0); }
 void cgen::addop(int code, int p1, int p2, int p3){
 	debugAddop
 	v.push_back({code, p1, p2, p3});
 }
+static array<int,6> vpFuncTypes  = { 0,0,1,0,0,2 };
 
 //for debugging
 static int ident = 0;
@@ -284,17 +278,29 @@ void cgen::genJoinCompare(unique_ptr<node> &n){
 	}
 	if (n->datatype == T_STRING)
 		addop(NUL_TO_STR);
+	int equals = 0;
 	switch (n->tok1.id){
 		case SP_EQ:
-			addop(GET_SET_EQ, joinFileIdx, n->tok5.id, valposTypes[n->tok5.id]);
+			addop(GET_SET_EQ, joinFileIdx, n->tok5.id, vpFuncTypes[valposTypes[n->tok5.id]]);
+			break;
+		case SP_LESSEQ:
+			equals = 1;
+		case SP_LESS:
+			addop(PUSH_N, equals);
+			addop(GET_SET_LESS, joinFileIdx, n->tok5.id, vpFuncTypes[valposTypes[n->tok5.id]]);
+			break;
+		case SP_GREATEQ:
+			equals = 1;
+		case SP_GREAT:
+			addop(PUSH_N, equals);
+			addop(GET_SET_GRT, joinFileIdx, n->tok5.id, vpFuncTypes[valposTypes[n->tok5.id]]);
 			break;
 		default:
-			error("only = joins implemented so far");
+			error("joins with '"+n->tok1.val+"' operator not implemented");
 	}
 }
 void cgen::genScanJoinFiles(unique_ptr<node> &n){
 	e("scan joins");
-	static int vpSortFuncs[] = { 0,0,1,0,0,2 };
 	auto& joinNode = findFirstNode(n, N_JOIN);
 	for (auto jnode = joinNode.get(); jnode; jnode = jnode->node2.get()){
 		auto& f = q->files[jnode->tok4.val];
@@ -311,7 +317,7 @@ void cgen::genScanJoinFiles(unique_ptr<node> &n){
 		addop(JMP, normal_read);
 		jumps.setPlace(afterfile, v.size());
 		for (int i=0; i<valposTypes.size(); i++)
-			addop(SORTVALPOS, f->fileno, i, vpSortFuncs[valposTypes[i]]);
+			addop(SORTVALPOS, f->fileno, i, vpFuncTypes[valposTypes[i]]);
 	}
 
 }
