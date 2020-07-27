@@ -76,27 +76,20 @@ static int typeConv[6][6] = {
 	{0, CVSI, CVSF, CVSDT,CVSDR,CVNO},
 };
 
-#define ISINT(X) ( ((X).b & 7) == T_INT )
-#define ISFLOAT(X) ( ((X).b & 7) == T_FLOAT )
-#define ISDATE(X) ( ((X).b & 7) == T_DATE )
-#define ISDUR(X) ( ((X).b & 7) == T_DURATION )
-#define ISTEXT(X) ( ((X).b & 7) == T_STRING )
-#define ISNULL(X) ((X).b & NIL )
-#define ISMAL(X)  ((X).b & MAL )
-#define SETNULL(X) { (X).b |= NIL; (X).u.i = 0;}
-
-#define valSize(C) (unsigned int)(C.terminator - C.val)
-
-#define FREE2(X) \
-	if ( (X).b & MAL ){ \
-		free((X).u.s); \
-		(X).b = NIL; \
+inline static bool istext(dat& d){ return (d.b & 7) == T_STRING; }
+inline static bool isnull(dat& d){ return d.b & NIL; }
+inline static bool ismal(dat& d){ return d.b & MAL; }
+inline static void setnull(dat& d){ d.b = NIL; d.u.i = 0; }
+inline static unsigned int valSize(csvEntry& d){ return (unsigned int)(d.terminator - d.val); }
+inline static void disown(dat& d){ d.b &=(~MAL); }
+inline static void freedat(dat& d){
+	if ( d.b & MAL ){
+		free(d.u.s);
+		d.b = NIL;
 	}
+}
 
-//passed free() responsibility to another dat
-#define DISOWN(X) (X).b &=(~MAL)
-
-static inline void freearr(dat* arr, int n) { for (auto i=0; i<n; ++i) FREE2(arr[i]); }
+static inline void freearr(dat* arr, int n) { for (auto i=0; i<n; ++i) freedat(arr[i]); }
 static inline void initarr(dat* arr, int n, dat&& d) { for (auto i=0; i<n; ++i) arr[i] = d; }
 bool isTrivial(unique_ptr<node> &n);
 dat parseIntDat(const char* s);
@@ -124,7 +117,7 @@ class treeCString {
 		treeCString(dat& d){
 			if (d.b & MAL){
 				s = d.u.s;
-				DISOWN(d);
+				disown(d);
 			} else {
 				if (d.b & NIL){
 					s = (char*) calloc(1,1);
@@ -182,7 +175,7 @@ class vmachine {
 	vector<dat*> groupSorter;
 	vector<int> sortIdxs;
 	vector<vector<datunion>> normalSortVals;
-	list<bset<int64>> joinSetStack;
+	forward_list<bset<int64>> joinSetStack;
 	forward_list<char*> groupSortVars;
 	unique_ptr<rowgroup> groupTree;
 	public:
@@ -211,13 +204,13 @@ class rowgroup {
 			if (!data.mapp) {
 				data.mapp = new map<dat, rowgroup>;
 				meta.rowOrGroup = 2;
-				if (ISTEXT(d))
+				if (istext(d))
 					meta.mallocedKey = 1;
 			}
 			auto key = d.heap();
 			auto&& inserted = getMap().insert({key, rowgroup()});
 			if (!inserted.second)
-				FREE2(key);
+				freedat(key);
 			return inserted.first->second;
 		}
 		dat* getRow(vmachine *v){
