@@ -79,7 +79,7 @@ dat parseDateDat(const char* s) {
 }
 dat parseStringDat(const char* s) {
 	//may want to malloc
-	dat ddat = { { s: (char*)s }, T_STRING, (unsigned int) strlen(s) };
+	dat ddat = { { s: (char*)s }, T_STRING, static_cast<unsigned int>(strlen(s)) };
 	return ddat;
 }
 int addBtree(int type, querySpecs *q){
@@ -133,9 +133,9 @@ vmachine::~vmachine(){
 	if (runmode == RUN_SINGLE) //skip garbage collection if one-off query
 		return;
 	*/
-	FREE2(distinctVal);
-	for (auto &d : stack)   FREE2(d);
-	for (auto &d : destrow) FREE2(d);
+	freedat(distinctVal);
+	for (auto &d : stack)   freedat(d);
+	for (auto &d : destrow) freedat(d);
 	for (auto &btree : bt_strings)
 		for (auto &tcs : btree)
 			free(tcs.s);
@@ -149,7 +149,7 @@ vmachine::~vmachine(){
 }
 querySpecs::~querySpecs(){
 	for (auto &d : dataholder){
-		FREE2(d);
+		freedat(d);
 		if (d.b & RMAL){
 			regfree(d.u.r);
 			delete d.u.r;
@@ -187,10 +187,10 @@ bool varScoper::checkDuplicates(int index){
 
 //add s2 to s1
 void strplus(dat &s1, dat &s2){
-	if (ISNULL(s1)) { s1 = s2; DISOWN(s2); return; }
-	if (ISNULL(s2)) return;
+	if (isnull(s1)) { s1 = s2; disown(s2); return; }
+	if (isnull(s2)) return;
 	int newlen = s1.z+s2.z+1;
-	if (ISMAL(s1)){
+	if (ismal(s1)){
 		s1.u.s = (char*) realloc(s1.u.s, newlen);
 		strcat(s1.u.s+s1.z-1, s2.u.s);
 	} else {
@@ -199,7 +199,7 @@ void strplus(dat &s1, dat &s2){
 		strcat(ns+s1.z-1, s2.u.s);
 		s1.u.s = ns;
 	}
-	FREE2(s2);
+	freedat(s2);
 	s1.b |= MAL;
 	s1.z = newlen;
 }
