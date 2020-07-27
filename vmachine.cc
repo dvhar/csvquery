@@ -26,7 +26,7 @@
 
 void vmachine::run(){
 	ios::sync_with_stdio(false);
-	constexpr void* labels[] = { &&CVER_, &&CVNO_, &&CVIF_, &&CVIS_, &&CVFI_, &&CVFS_, &&CVDRS_, &&CVDTS_, &&CVSI_, &&CVSF_, &&CVSDR_, &&CVSDT_, &&IADD_, &&FADD_, &&TADD_, &&DTADD_, &&DRADD_, &&ISUB_, &&FSUB_, &&DTSUB_, &&DRSUB_, &&IMULT_, &&FMULT_, &&DRMULT_, &&IDIV_, &&FDIV_, &&DRDIV_, &&INEG_, &&FNEG_, &&PNEG_, &&IMOD_, &&FMOD_, &&IEXP_, &&FEXP_, &&JMP_, &&JMPCNT_, &&JMPTRUE_, &&JMPFALSE_, &&JMPNOTNULL_ELSEPOP_, &&RDLINE_, &&RDLINE_ORDERED_, &&PREP_REREAD_, &&PUT_, &&LDPUT_, &&LDPUTALL_, &&PUTVAR_, &&PUTVAR2_, &&LDINT_, &&LDFLOAT_, &&LDTEXT_, &&LDDATE_, &&LDDUR_, &&LDNULL_, &&LDLIT_, &&LDVAR_, &&HOLDVAR_, &&IEQ_, &&FEQ_, &&TEQ_, &&LIKE_, &&ILEQ_, &&FLEQ_, &&TLEQ_, &&ILT_, &&FLT_, &&TLT_, &&PRINT_, &&PUSH_, &&PUSH_N_, &&POP_, &&POPCPY_, &&ENDRUN_, &&NULFALSE1_, &&NULFALSE2_, &&NDIST_, &&SDIST_, &&PUTDIST_, &&LDDIST_, &&FINC_, &&ENCCHA_, &&DECCHA_, &&SAVESORTN_, &&SAVESORTS_, &&SAVEVALPOS_, &&SAVEPOS_, &&SORT_, &&GETGROUP_, &&ONEGROUP_, &&SUMI_, &&SUMF_, &&AVGI_, &&AVGF_, &&STDVI_, &&STDVF_, &&COUNT_, &&MINI_, &&MINF_, &&MINS_, &&MAXI_, &&MAXF_, &&MAXS_, &&NEXTMAP_, &&NEXTVEC_, &&ROOTMAP_, &&LDMID_, &&LDPUTMID_, &&LDPUTGRP_, &&LDSTDVI_, &&LDSTDVF_, &&LDAVGI_, &&LDAVGF_, &&ADD_GROUPSORT_ROW_, &&FREE_MIDROW_, &&GSORT_, &&READ_NEXT_GROUP_, &&NUL_TO_STR_, &&SORTVALPOS_, &&GET_SET_EQ_, &&JOINSET_INIT_, &&JOINSET_TRAV_, &&AND_SET_, &&OR_SET_ };
+	constexpr void* labels[] = { &&CVER_, &&CVNO_, &&CVIF_, &&CVIS_, &&CVFI_, &&CVFS_, &&CVDRS_, &&CVDTS_, &&CVSI_, &&CVSF_, &&CVSDR_, &&CVSDT_, &&IADD_, &&FADD_, &&TADD_, &&DTADD_, &&DRADD_, &&ISUB_, &&FSUB_, &&DTSUB_, &&DRSUB_, &&IMULT_, &&FMULT_, &&DRMULT_, &&IDIV_, &&FDIV_, &&DRDIV_, &&INEG_, &&FNEG_, &&PNEG_, &&IMOD_, &&FMOD_, &&IEXP_, &&FEXP_, &&JMP_, &&JMPCNT_, &&JMPTRUE_, &&JMPFALSE_, &&JMPNOTNULL_ELSEPOP_, &&RDLINE_, &&RDLINE_ORDERED_, &&PREP_REREAD_, &&PUT_, &&LDPUT_, &&LDPUTALL_, &&PUTVAR_, &&PUTVAR2_, &&LDINT_, &&LDFLOAT_, &&LDTEXT_, &&LDDATE_, &&LDDUR_, &&LDNULL_, &&LDLIT_, &&LDVAR_, &&HOLDVAR_, &&IEQ_, &&FEQ_, &&TEQ_, &&LIKE_, &&ILEQ_, &&FLEQ_, &&TLEQ_, &&ILT_, &&FLT_, &&TLT_, &&PRINT_, &&PUSH_, &&PUSH_N_, &&POP_, &&POPCPY_, &&ENDRUN_, &&NULFALSE1_, &&NULFALSE2_, &&NDIST_, &&SDIST_, &&PUTDIST_, &&LDDIST_, &&FINC_, &&ENCCHA_, &&DECCHA_, &&SAVESORTN_, &&SAVESORTS_, &&SAVEVALPOS_, &&SAVEPOS_, &&SORT_, &&GETGROUP_, &&ONEGROUP_, &&SUMI_, &&SUMF_, &&AVGI_, &&AVGF_, &&STDVI_, &&STDVF_, &&COUNT_, &&MINI_, &&MINF_, &&MINS_, &&MAXI_, &&MAXF_, &&MAXS_, &&NEXTMAP_, &&NEXTVEC_, &&ROOTMAP_, &&LDMID_, &&LDPUTMID_, &&LDPUTGRP_, &&LDSTDVI_, &&LDSTDVF_, &&LDAVGI_, &&LDAVGF_, &&ADD_GROUPSORT_ROW_, &&FREE_MIDROW_, &&GSORT_, &&READ_NEXT_GROUP_, &&NUL_TO_STR_, &&SORTVALPOS_, &&GET_SET_EQ_, &&GET_SET_LESS_, &&GET_SET_GRT_, &&JOINSET_INIT_, &&JOINSET_TRAV_, &&AND_SET_, &&OR_SET_ };
 
 
 	//vars for data
@@ -53,17 +53,21 @@ void vmachine::run(){
 	opcode *op;
 	rowgroup *groupTemp;
 
-	function<bool (const valpos&)> vpLessFuncs[] = {
-		[&](const valpos& v){ return v.val.i < stk0.u.i; },
-		[&](const valpos& v){ return v.val.f < stk0.u.f; },
-		[&](const valpos& v){ return strcmp(v.val.s, stk0.u.s)<0; },
+	function<bool (const valpos&, const dat&)> vpLessFuncs[] = {
+		[](const valpos& v, const dat& d){ return v.val.i < d.u.i; },
+		[](const valpos& v, const dat& d){ return v.val.f < d.u.f; },
+		[](const valpos& v, const dat& d){ return strcmp(v.val.s, d.u.s)<0; },
 	};
-	function<bool (const valpos&)> vpEqFuncs[] = {
-		[&](const valpos& v){ return v.val.i == stk0.u.i; },
-		[&](const valpos& v){ return v.val.f == stk0.u.f; },
-		[&](const valpos& v){ return !strcmp(v.val.s, stk0.u.s); },
+	function<bool (const valpos&, const dat&)> vpGrtFuncs[] = {
+		[](const valpos& v, const dat& d){ return v.val.i > d.u.i; },
+		[](const valpos& v, const dat& d){ return v.val.f > d.u.f; },
+		[](const valpos& v, const dat& d){ return strcmp(v.val.s, d.u.s)>0; },
 	};
-	static int vpFIdx[] = { 0,0,1,0,0,2 };
+	function<bool (const valpos&, const dat&)> vpEqFuncs[] = {
+		[](const valpos& v, const dat& d){ return v.val.i == d.u.i; },
+		[](const valpos& v, const dat& d){ return v.val.f == d.u.f; },
+		[](const valpos& v, const dat& d){ return !strcmp(v.val.s, d.u.s); },
+	};
 
 	//file writer
 	ostream output(cout.rdbuf());
@@ -261,10 +265,9 @@ SAVEVALPOS_:
 	}
 	++ip;
 	next();
-GET_SET_EQ_:
+GET_SET_GRT_:
 	{
-		int fi = vpFIdx[op->p3];
-		auto& lessfunc = vpLessFuncs[fi];
+		auto& grtfunc = vpGrtFuncs[op->p3];
 		auto& vpvector = files[op->p1]->joinValpos[op->p2];
 		int r = vpvector.size()-1;
 		int l = 0;
@@ -272,14 +275,70 @@ GET_SET_EQ_:
 		joinSetStack.push_front(bset<int64>());
 		while (l < r){
 			m = (l+r)/2;
-			if (lessfunc(vpvector[m]))
+			if (grtfunc(vpvector[m], stk1))
+				r = m;
+			else
+				l = m + 1;
+		}
+		--r;
+		if (vpEqFuncs[op->p3](vpvector[r], stk1)){
+			if (stk0.u.i) // >=
+				for (m = r; m >= 0 && vpEqFuncs[op->p3](vpvector[m], stk1); --m)
+					joinSetStack.front().insert(vpvector[m].pos);
+			++r;
+		}
+		while (r < vpvector.size())
+			joinSetStack.front().insert(vpvector[r++].pos);
+	}
+	pop(); //stk0 tells if GTE
+	pop(); //comp value in stk1
+	++ip;
+	next();
+GET_SET_LESS_:
+	{
+		auto& lessfunc = vpLessFuncs[op->p3];
+		auto& vpvector = files[op->p1]->joinValpos[op->p2];
+		int r = vpvector.size()-1;
+		int l = 0;
+		int m;
+		joinSetStack.push_front(bset<int64>());
+		while (l < r){
+			m = (l+r)/2;
+			if (lessfunc(vpvector[m], stk1))
 				l = m + 1;
 			else
 				r = m;
 		}
-		while (l < vpvector.size() && vpEqFuncs[fi](vpvector[l])){
-			joinSetStack.front().insert(vpvector[l++].pos);
+		if (vpEqFuncs[op->p3](vpvector[l], stk1)){
+			if (stk0.u.i) // <=
+				for (m = l; m < vpvector.size() && vpEqFuncs[op->p3](vpvector[m], stk1); ++m)
+					joinSetStack.front().insert(vpvector[m].pos);
+			--l;
 		}
+		while (l >= 0)
+			joinSetStack.front().insert(vpvector[l--].pos);
+	}
+	pop(); //stk0 tells if LTE
+	pop(); //comp value in stk1
+	++ip;
+	next();
+GET_SET_EQ_:
+	{
+		auto& lessfunc = vpLessFuncs[op->p3];
+		auto& vpvector = files[op->p1]->joinValpos[op->p2];
+		int r = vpvector.size()-1;
+		int l = 0;
+		int m;
+		joinSetStack.push_front(bset<int64>());
+		while (l < r){
+			m = (l+r)/2;
+			if (lessfunc(vpvector[m], stk0))
+				l = m + 1;
+			else
+				r = m;
+		}
+		while (l < vpvector.size() && vpEqFuncs[op->p3](vpvector[l], stk0))
+			joinSetStack.front().insert(vpvector[l++].pos);
 	}
 	pop();
 	++ip;
