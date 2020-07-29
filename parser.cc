@@ -411,7 +411,7 @@ unique_ptr<node> parser::parsePredicates() {
 	return n;
 }
 
-//tok1 is [relop, paren] for comparison or more predicates
+//tok1 is [relop, lparen] for comparison or more predicates
 //tok2 is negation
 //tok3 is 'like' expression
 //tok4 will be number of node (1,2) for indexable join value
