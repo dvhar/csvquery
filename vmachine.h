@@ -149,7 +149,7 @@ class stddev {
 			avg += d;
 			++count;
 		}
-		if (!count)
+		if (count <= 1)
 			return {{0},NIL};
 		avg /= count;
 		for (auto d: numbers)
