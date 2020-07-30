@@ -995,7 +995,7 @@ LDSTDVF_:
 	push();
 	freedat(stk0);
 	if (!isnull(midrow[op->p1]))
-		stk0 = stdvs[midrow[op->p1].u.i].eval();
+		stk0 = stdvs[midrow[op->p1].u.i].eval(op->p2);
 	++ip;
 	next()
 LDAVGI_:
@@ -1050,7 +1050,7 @@ STDVF_:
 		if (!isnull(stk0))
 			if (isnull(torow[op->p1])){
 				torow[op->p1] = {{i:static_cast<int64>(stdvs.size())},T_INT};
-				stdvs.emplace_back(stddev(op->p2, stk0.u.f));
+				stdvs.emplace_back(stddev(stk0.u.f));
 			} else {
 				stdvs[torow[op->p1].u.i].numbers.push_front(stk0.u.f);
 			}

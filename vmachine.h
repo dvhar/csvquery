@@ -138,22 +138,20 @@ class treeCString {
 class stddev {
 	public:
 	forward_list<double> numbers;
-	double sample;
-	stddev(double samp, double num){
-		sample = samp;
+	stddev(double num){
 		numbers.push_front(num);
 	}
-	dat eval(){
+	dat eval(int sample){
 		double count = 0.0, avg = 0.0, sum = 0.0;
-		for (auto d: numbers){
-			avg += d;
+		for (auto n: numbers){
+			avg += n;
 			++count;
 		}
 		if (count <= 1)
 			return {{0},NIL};
 		avg /= count;
-		for (auto d: numbers)
-			sum += pow((d-avg),2.0);
+		for (auto n: numbers)
+			sum += pow((n-avg),2.0);
 		numbers.clear();
 		return {{f:pow(sum/(count-sample),0.5)},T_FLOAT};
 	}
