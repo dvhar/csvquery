@@ -33,7 +33,7 @@
 #define byte unsigned char
 #define ft boost::format
 #define error(A) throw invalid_argument(A)
-#define SMALLEST ((int64) 1 << 63)
+#define SMALLEST numeric_limits<int64>::min()
 using namespace std;
 
 
@@ -207,6 +207,7 @@ class csvEntry {
 };
 
 class valpos;
+class andchain;
 class fileReader {
 	int fieldsFound;
 	char* pos1;
@@ -233,6 +234,7 @@ class fileReader {
 		vector<int> types;
 		vector<int64> positions;
 		vector<vector<valpos>> joinValpos;
+		vector<andchain> andchains;
 		vector<int> vpTypes;
 		csvEntry* entries;
 		csvEntry* eend;
@@ -303,6 +305,12 @@ class dat {
 		b &= ~MAL;
 		return d;
 	}
+};
+
+class andchain {
+	vector<int> indexes;
+	vector<int64> positiions;
+	vector<vector<datunion>> values;
 };
 
 class valpos {
@@ -410,15 +418,18 @@ void runServer();
 unique_ptr<node>& findFirstNode(unique_ptr<node> &n, int label);
 
 template<typename T>
-static string st(T v) {
-	stringstream ss;
+static void __st(stringstream& ss, T v) {
 	ss << v;
-	return ss.str();
+}
+template<typename T, typename... Args>
+static void __st(stringstream& ss, T first, Args... args) {
+	ss << first;
+	__st(ss, args...);
 }
 template<typename T, typename... Args>
 static string st(T first, Args... args) {
 	stringstream ss;
-	ss << first << st(args...);
+	__st(ss, first, args...);
 	return ss.str();
 }
 extern int runmode;

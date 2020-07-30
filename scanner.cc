@@ -116,8 +116,8 @@ token scanner::scanToken() {
 		if ((nextState & ERROR_STATE) != 0) {
 		//end of string
 			if (state == 255) return { 255, "END", lineNo, colNo, false };
-			auto err = ft("line: %1%, col: %2%, char: %3%")%lineNo%colNo%(char)input.peek();
-			return { ERROR_STATE, err.str(), lineNo, colNo, false };
+			auto err = st("line: ",lineNo," col: ",colNo," char: ",(char)input.peek());
+			return { ERROR_STATE, err, lineNo, colNo, false };
 		}
 		if ((nextState & FINAL) != 0) {
 			//see if keyword or regular word
@@ -144,8 +144,8 @@ token scanner::scanToken() {
 					//return special token
 					return { sp, S, lineNo, colNo, false };
 				} else {
-					auto err = ft("line: %1%, col: %2%, char: %3%")%lineNo%colNo%(char)input.peek();
-					return { ERROR_STATE, err.str(), lineNo, colNo, false };
+					auto err = st("line: ",lineNo," col: ",colNo," char: ",(char)input.peek());
+					return { ERROR_STATE, err, lineNo, colNo, false };
 				}
 			} else {
 				return { nextState, S, lineNo, colNo, false };

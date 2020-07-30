@@ -3,6 +3,7 @@
 #include<algorithm>
 
 class analyzer {
+	int andChainSize;
 	public:
 		querySpecs* q;
 		analyzer(querySpecs& qs){
@@ -18,6 +19,7 @@ class analyzer {
 		void setNodePhase(unique_ptr<node> &n, int phase);
 		void findIndexableJoinValues(unique_ptr<node> &n, int fileno);
 		set<int> whichFilesReferenced(unique_ptr<node> &n);
+		bool findJoinAndChains(unique_ptr<node> &n, int predno);
 };
 
 void analyzer::setSubtreeVarFilter(unique_ptr<node> &n, int filter){
@@ -358,12 +360,44 @@ set<int> analyzer::whichFilesReferenced(unique_ptr<node> &n){
 	}
 }
 
+bool analyzer::findJoinAndChains(unique_ptr<node> &n, int predno){
+	if (n == nullptr) return 1;
+	if (n->label != N_PREDICATES)
+		error("predicates analysis error");
+	if (predno == 0)
+		andChainSize = 0;
+	bool simpleCompare = n->node1->tok1.id != SP_LPAREN; // is this valid?
+	switch (n->tok1.id){
+	case KW_AND:
+		if  (findJoinAndChains(n->node2, predno+1) && simpleCompare){
+			n->node1->tok6.id = 1;
+			n->tok3.id = 2;
+			andChainSize++;
+			if (predno == 0){
+				n->tok4.id = andChainSize;
+			}
+		}
+		return n->tok3.id;
+	case KW_OR:
+		return 0;
+	case 0:
+		if (simpleCompare && predno){
+			n->node1->tok6.id = 1;
+			n->tok3.id = 1;
+			andChainSize++;
+		}
+		return n->tok3.id;
+	}
+	error("Join condition cannot have '"+n->tok1.val+"' operator");
+}
+
 void analyzer::findIndexableJoinValues(unique_ptr<node> &n, int fileno){
 	if (n == nullptr || !q->joining) return;
 	switch (n->label){
 	case N_PREDCOMP:
 		switch (n->tok1.id){
 		case SP_LPAREN:
+			findJoinAndChains(n->node1,0);
 			findIndexableJoinValues(n->node1, fileno);
 			return;
 		default: //found a comparison
@@ -399,6 +433,7 @@ void analyzer::findIndexableJoinValues(unique_ptr<node> &n, int fileno){
 				error("One side of join condition must be the joined file and only the joined file");
 			}
 
+			//TODO: add valpos vector only if not part of and chain
 			auto& vpv = q->getFileReader(fileno)->joinValpos;
 			n->tok5.id = vpv.size();
 			vpv.push_back(vector<valpos>());
@@ -412,6 +447,7 @@ void analyzer::findIndexableJoinValues(unique_ptr<node> &n, int fileno){
 			if (!f)
 				error("Could not find file matching join alias "+n->tok4.val);
 			fileno = f->fileno;
+			findJoinAndChains(n->node1,0);
 		}
 	default:
 		findIndexableJoinValues(n->node1, fileno);
