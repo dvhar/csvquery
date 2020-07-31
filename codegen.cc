@@ -26,7 +26,8 @@ class cgen {
 	void genJoinSets(unique_ptr<node> &n);
 	void genTraverseJoins(unique_ptr<node> &n);
 	void genScanJoinFiles(unique_ptr<node> &n);
-	void genScannedJoinExprs(unique_ptr<node> &n);
+	void genScannedJoinExprs(unique_ptr<node> &n, bool simple);
+	void genScannedJoinAndchains(unique_ptr<node> &n);
 	void genNormalOrderedQuery(unique_ptr<node> &n);
 	void genNormalQuery(unique_ptr<node> &n);
 	void genGroupingQuery(unique_ptr<node> &n);
@@ -312,8 +313,10 @@ void cgen::genScanJoinFiles(unique_ptr<node> &n){
 		valposTypes.clear();
 		vs.setscope(JSCAN_FILTER, V_SCAN_SCOPE);
 		genVars(q->tree->node1);
-		genScannedJoinExprs(jnode->node1);
+		genScannedJoinExprs(jnode->node1, false);
 		addop(SAVEVALPOS, f->fileno, f->joinValpos.size());
+		genScannedJoinExprs(jnode->node1, true);
+		//TODO: save values for andchain
 		addop(JMP, normal_read);
 		jumps.setPlace(afterfile, v.size());
 		for (int i=0; i<valposTypes.size(); i++)
@@ -321,14 +324,17 @@ void cgen::genScanJoinFiles(unique_ptr<node> &n){
 	}
 
 }
-void cgen::genScannedJoinExprs(unique_ptr<node> &n){
+
+void cgen::genScannedJoinExprs(unique_ptr<node> &n, bool andchain){
 	e("join exprs");
 	if (n == nullptr) return;
 	bool gotExpr = false;
 	switch (n->label){
 		case N_PREDCOMP:
+			if ((andchain && n->tok6.id==0) || (!andchain && n->tok6.id))
+				goto skip;
 			if (n->tok1.id == SP_LPAREN)
-				genScannedJoinExprs(n->node1);
+				genScannedJoinExprs(n->node1, andchain);
 			else if (n->tok4.id == 1){
 				genExprAll(n->node1);
 				gotExpr = true;
@@ -338,11 +344,16 @@ void cgen::genScannedJoinExprs(unique_ptr<node> &n){
 			}else
 				error("invalid join comparision");
 			break;
+		case N_PREDICATES:
+			if (andchain && n->tok4.id){
+				//first of andchain
+			}
 		default:
-			genScannedJoinExprs(n->node1);
-			genScannedJoinExprs(n->node2);
-			genScannedJoinExprs(n->node3);
-			genScannedJoinExprs(n->node4);
+			skip:
+			genScannedJoinExprs(n->node1, andchain);
+			genScannedJoinExprs(n->node2, andchain);
+			genScannedJoinExprs(n->node3, andchain);
+			genScannedJoinExprs(n->node4, andchain);
 			break;
 	}
 	if (gotExpr){

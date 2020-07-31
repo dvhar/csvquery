@@ -387,6 +387,32 @@ char* durstring(dur_t dur, char* str){
 	return dest;
 }
 
+node& node::operator=(const node& other){
+	tok1 = other.tok1;
+	tok2 = other.tok2;
+	tok3 = other.tok3;
+	tok4 = other.tok4;
+	tok5 = other.tok5;
+	label = other.label;
+	phase = other.phase;
+	datatype = other.datatype;
+	keep = other.keep;
+	return *this;
+}
+node::node(){
+	tok1 = tok2 = tok3 = tok4 = tok5 = token{};
+	label = phase = datatype = 0;
+	keep = false;
+}
+node::node(int l){
+	tok1 = tok2 = tok3 = tok4 = tok5 = token{};
+	label = l;
+	phase = datatype = 0;
+	keep = false;
+}
+node::~node(){
+}
+
 unique_ptr<node>& findFirstNode(unique_ptr<node> &n, int label){
 	if (n == nullptr || n->label == label)
 		return n;

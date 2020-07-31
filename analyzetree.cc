@@ -19,7 +19,7 @@ class analyzer {
 		void setNodePhase(unique_ptr<node> &n, int phase);
 		void findIndexableJoinValues(unique_ptr<node> &n, int fileno);
 		set<int> whichFilesReferenced(unique_ptr<node> &n);
-		bool findJoinAndChains(unique_ptr<node> &n, int predno);
+		bool findJoinAndChains(unique_ptr<node> &n, int predno, int fileno);
 };
 
 void analyzer::setSubtreeVarFilter(unique_ptr<node> &n, int filter){
@@ -360,31 +360,45 @@ set<int> analyzer::whichFilesReferenced(unique_ptr<node> &n){
 	}
 }
 
-bool analyzer::findJoinAndChains(unique_ptr<node> &n, int predno){
+bool analyzer::findJoinAndChains(unique_ptr<node> &n, int predno, int fileno){
 	if (n == nullptr) return 1;
 	if (n->label != N_PREDICATES)
 		error("predicates analysis error");
+	if (n->tok3.id)
+		return 0; //skip nodes that were already analyzed
 	if (predno == 0)
 		andChainSize = 0;
-	bool simpleCompare = n->node1->tok1.id != SP_LPAREN; // is this valid?
+	bool simpleCompare = n->node1->tok1.id != SP_LPAREN;
+	if (n->node1->tok1.id != SP_LPAREN){
+		simpleCompare = true;
+	} else {
+		findJoinAndChains(n->node1->node1, 0, fileno);
+	}
 	switch (n->tok1.id){
 	case KW_AND:
-		if  (findJoinAndChains(n->node2, predno+1) && simpleCompare){
+		if  (findJoinAndChains(n->node2, predno+1, fileno) && simpleCompare){
 			n->node1->tok6.id = 1;
 			n->tok3.id = 2;
 			andChainSize++;
 			if (predno == 0){
 				n->tok4.id = andChainSize;
+				if (n->tok4.id){
+					//add andchain to file reader
+					q->getFileReader(fileno)->andchains.push_back(andchain(n->tok4.id));
+				}
 			}
+			q->getFileReader(fileno)->andchains.back().datatypes.push_back(n->node1->datatype);
 		}
 		return n->tok3.id;
 	case KW_OR:
+		findJoinAndChains(n->node2, 0, fileno);
 		return 0;
 	case 0:
 		if (simpleCompare && predno){
 			n->node1->tok6.id = 1;
 			n->tok3.id = 1;
 			andChainSize++;
+			q->getFileReader(fileno)->andchains.back().datatypes.push_back(n->node1->datatype);
 		}
 		return n->tok3.id;
 	}
@@ -397,7 +411,6 @@ void analyzer::findIndexableJoinValues(unique_ptr<node> &n, int fileno){
 	case N_PREDCOMP:
 		switch (n->tok1.id){
 		case SP_LPAREN:
-			findJoinAndChains(n->node1,0);
 			findIndexableJoinValues(n->node1, fileno);
 			return;
 		default: //found a comparison
@@ -433,10 +446,12 @@ void analyzer::findIndexableJoinValues(unique_ptr<node> &n, int fileno){
 				error("One side of join condition must be the joined file and only the joined file");
 			}
 
-			//TODO: add valpos vector only if not part of and chain
-			auto& vpv = q->getFileReader(fileno)->joinValpos;
-			n->tok5.id = vpv.size();
-			vpv.push_back(vector<valpos>());
+			//add valpos vector only if not part of and chain
+			if (n->tok6.id == 0){
+				auto& vpv = q->getFileReader(fileno)->joinValpos;
+				n->tok5.id = vpv.size();
+				vpv.push_back(vector<valpos>());
+			}
 			return;
 			}
 		}
@@ -447,9 +462,12 @@ void analyzer::findIndexableJoinValues(unique_ptr<node> &n, int fileno){
 			if (!f)
 				error("Could not find file matching join alias "+n->tok4.val);
 			fileno = f->fileno;
-			findJoinAndChains(n->node1,0);
 		}
+		goto def;
+	case N_PREDICATES:
+		findJoinAndChains(n,0, fileno);
 	default:
+		def:
 		findIndexableJoinValues(n->node1, fileno);
 		findIndexableJoinValues(n->node2, fileno);
 		findIndexableJoinValues(n->node3, fileno);

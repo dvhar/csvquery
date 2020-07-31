@@ -539,7 +539,7 @@ static void typeFunctionFinalNodes(querySpecs &q, unique_ptr<node> &n, int final
 		//add type conversion node if needed
 		if (n->tok5.id){
 			typeFinalValues(q, n->node1, n->tok5.id);
-			convNode = new node;
+			convNode = new node();
 			*convNode = {0};
 			convNode->label = N_TYPECONV;
 			convNode->keep = true;
