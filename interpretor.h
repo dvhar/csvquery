@@ -186,6 +186,10 @@ class node {
 	token tok4;
 	token tok5;
 	token tok6;
+	~node();
+	node(int);
+	node();
+	node& operator=(const node&);
 	void print();
 };
 class variable {
@@ -308,9 +312,14 @@ class dat {
 };
 
 class andchain {
+	public:
 	vector<int> indexes;
+	vector<int> datatypes;
 	vector<int64> positiions;
 	vector<vector<datunion>> values;
+	andchain(int size){
+		values.resize(size);
+	}
 };
 
 class valpos {

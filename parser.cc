@@ -2,11 +2,7 @@
 #include <boost/algorithm/string/replace.hpp>
 
 unique_ptr<node> newNode(int l){
-	unique_ptr<node> n(new node);
-	n->tok1 = n->tok2 = n->tok3 = n->tok4 = n->tok5 = token{};
-	n->label = l;
-	n->phase = n->datatype = 0;
-	n->keep = false;
+	unique_ptr<node> n(new node(l));
 	return n;
 }
 
