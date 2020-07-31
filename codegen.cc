@@ -282,19 +282,19 @@ void cgen::genJoinCompare(unique_ptr<node> &n){
 	int equals = 0;
 	switch (n->tok1.id){
 		case SP_EQ:
-			addop(GET_SET_EQ, joinFileIdx, n->tok5.id, vpFuncTypes[valposTypes[n->tok5.id]]);
+			addop(GET_SET_EQ, joinFileIdx, n->info[VALPOSIDX], vpFuncTypes[valposTypes[n->info[VALPOSIDX]]]);
 			break;
 		case SP_LESSEQ:
 			equals = 1;
 		case SP_LESS:
 			addop(PUSH_N, equals);
-			addop(GET_SET_LESS, joinFileIdx, n->tok5.id, vpFuncTypes[valposTypes[n->tok5.id]]);
+			addop(GET_SET_LESS, joinFileIdx, n->info[VALPOSIDX], vpFuncTypes[valposTypes[n->info[VALPOSIDX]]]);
 			break;
 		case SP_GREATEQ:
 			equals = 1;
 		case SP_GREAT:
 			addop(PUSH_N, equals);
-			addop(GET_SET_GRT, joinFileIdx, n->tok5.id, vpFuncTypes[valposTypes[n->tok5.id]]);
+			addop(GET_SET_GRT, joinFileIdx, n->info[VALPOSIDX], vpFuncTypes[valposTypes[n->info[VALPOSIDX]]]);
 			break;
 		default:
 			error("joins with '"+n->tok1.val+"' operator not implemented");
@@ -331,7 +331,7 @@ void cgen::genScannedJoinExprs(unique_ptr<node> &n, bool andchain){
 	bool gotExpr = false;
 	switch (n->label){
 		case N_PREDCOMP:
-			if ((andchain && n->tok6.id==0) || (!andchain && n->tok6.id))
+			if ((andchain && n->info[ANDCHAIN]==0) || (!andchain && n->info[ANDCHAIN]))
 				goto skip;
 			if (n->tok1.id == SP_LPAREN)
 				genScannedJoinExprs(n->node1, andchain);
@@ -891,42 +891,42 @@ void cgen::genFunction(unique_ptr<node> &n){
 	if (agg_phase == 1) {
 		switch (n->tok1.id){
 		case FN_SUM:
-			addop(ops[OPSUM][n->datatype], n->tok6.id);
+			addop(ops[OPSUM][n->datatype], n->info[MIDIDX]);
 			break;
 		case FN_AVG:
-			addop(ops[OPAVG][n->datatype], n->tok6.id);
+			addop(ops[OPAVG][n->datatype], n->info[MIDIDX]);
 			break;
 		case FN_STDEV:
 		case FN_STDEVP:
-			addop(ops[OPSTV][n->datatype], n->tok6.id);
+			addop(ops[OPSTV][n->datatype], n->info[MIDIDX]);
 			break;
 		case FN_MIN:
-			addop(ops[OPMIN][n->datatype], n->tok6.id);
+			addop(ops[OPMIN][n->datatype], n->info[MIDIDX]);
 			break;
 		case FN_MAX:
-			addop(ops[OPMAX][n->datatype], n->tok6.id);
+			addop(ops[OPMAX][n->datatype], n->info[MIDIDX]);
 			break;
 		case FN_COUNT:
-			addop(COUNT, n->tok6.id, n->tok2.id ? 1 : 0);
+			addop(COUNT, n->info[MIDIDX], n->tok2.id ? 1 : 0);
 			break;
 		}
 		select_count++;
 	} else if (agg_phase == 2) {
 		switch (n->tok1.id){
 		case FN_AVG:
-			addop(ops[OPLAVG][n->datatype], n->tok6.id);
+			addop(ops[OPLAVG][n->datatype], n->info[MIDIDX]);
 			break;
 		case FN_STDEV:
-			addop(ops[OPLSTV][n->datatype], n->tok6.id, 1);
+			addop(ops[OPLSTV][n->datatype], n->info[MIDIDX], 1);
 			break;
 		case FN_STDEVP:
-			addop(ops[OPLSTV][n->datatype], n->tok6.id);
+			addop(ops[OPLSTV][n->datatype], n->info[MIDIDX]);
 			break;
 		case FN_MIN:
 		case FN_MAX:
 		case FN_SUM:
 		case FN_COUNT:
-			addop(LDMID, n->tok6.id);
+			addop(LDMID, n->info[MIDIDX]);
 			break;
 		}
 	}

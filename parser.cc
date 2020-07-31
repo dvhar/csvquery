@@ -418,8 +418,8 @@ unique_ptr<node> parser::parsePredicates() {
 //node3 is third expr for betweens
 //later:
 //  tok4.id will be number of node (1,2) for indexable join value
-//  tok5.id will be index of valpos vector for joins
-//  tok6.id will be 1 if part of simple and chain
+//  [VALPOSIDX] is index of valpos vector for joins
+//  [ANDCHAIN] is 1 if part of simple and chain
 unique_ptr<node> parser::parsePredCompare() {
 	token t = q->tok();
 	unique_ptr<node> n = newNode(N_PREDCOMP);
@@ -663,7 +663,7 @@ unique_ptr<node> parser::parseOrder() {
 //tok3 is cipher or distinct
 //tok4 is password or (determined later) count of distinct N or S functions
 //tok5 is paramtype for type conversion
-//tok6 is midrow index +1
+//[MIDIDX] is midrow index
 //node1 is expression in parens
 unique_ptr<node> parser::parseFunction() {
 	token t = q->tok();
