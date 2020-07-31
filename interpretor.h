@@ -170,6 +170,13 @@ class token {
 	string lower();
 	void print();
 };
+//node info keys
+enum: int {
+	SCANVAL=1,
+	VALPOSIDX,
+	ANDCHAIN,
+	MIDIDX
+};
 class node {
 	public:
 	int label;
@@ -185,7 +192,7 @@ class node {
 	token tok3;
 	token tok4;
 	token tok5;
-	token tok6;
+	map<int,int> info;
 	~node();
 	node(int);
 	node();

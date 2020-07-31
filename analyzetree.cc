@@ -319,7 +319,7 @@ void analyzer::findMidrowTargets(unique_ptr<node> &n){
 	case N_FUNCTION:
 		if ((n->tok1.id & AGG_BIT) != 0){
 			//TODO:re-enable nested aggregate check
-			n->tok6.id = q->midcount;
+			n->info[MIDIDX] = q->midcount;
 			q->midcount++;
 			return;
 		} else {
@@ -377,7 +377,7 @@ bool analyzer::findJoinAndChains(unique_ptr<node> &n, int predno, int fileno){
 	switch (n->tok1.id){
 	case KW_AND:
 		if  (findJoinAndChains(n->node2, predno+1, fileno) && simpleCompare){
-			n->node1->tok6.id = 1;
+			n->node1->info[ANDCHAIN] = 1;
 			n->tok3.id = 2;
 			andChainSize++;
 			if (predno == 0){
@@ -395,7 +395,7 @@ bool analyzer::findJoinAndChains(unique_ptr<node> &n, int predno, int fileno){
 		return 0;
 	case 0:
 		if (simpleCompare && predno){
-			n->node1->tok6.id = 1;
+			n->node1->info[ANDCHAIN] = 1;
 			n->tok3.id = 1;
 			andChainSize++;
 			q->getFileReader(fileno)->andchains.back().datatypes.push_back(n->node1->datatype);
@@ -447,7 +447,7 @@ void analyzer::findIndexableJoinValues(unique_ptr<node> &n, int fileno){
 			}
 
 			//add valpos vector only if not part of and chain
-			if (n->tok6.id == 0){
+			if (n->info[ANDCHAIN] == 0){
 				auto& vpv = q->getFileReader(fileno)->joinValpos;
 				n->tok5.id = vpv.size();
 				vpv.push_back(vector<valpos>());
