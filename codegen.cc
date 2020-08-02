@@ -21,13 +21,14 @@ class cgen {
 	void addop(int code, int p1, int p2);
 	void addop(int code, int p1, int p2, int p3);
 	void generateCode();
+	void genSingleAndChain(unique_ptr<node> &n);
+	void genScanJoinAndChains(unique_ptr<node> &n, int fileno);
 	void genJoinPredicates(unique_ptr<node> &n);
 	void genJoinCompare(unique_ptr<node> &n);
 	void genJoinSets(unique_ptr<node> &n);
 	void genTraverseJoins(unique_ptr<node> &n);
 	void genScanJoinFiles(unique_ptr<node> &n);
-	void genScannedJoinExprs(unique_ptr<node> &n, bool simple);
-	void genScannedJoinAndchains(unique_ptr<node> &n);
+	void genValposJoinExprs(unique_ptr<node> &n);
 	void genNormalOrderedQuery(unique_ptr<node> &n);
 	void genNormalQuery(unique_ptr<node> &n);
 	void genGroupingQuery(unique_ptr<node> &n);
@@ -272,29 +273,29 @@ void cgen::genJoinCompare(unique_ptr<node> &n){
 		return;
 	}
 	//evaluate the one not scanned
-	if (n->tok4.id == 1){
+	if (n->info[TOSCAN] == 1){
 		genExprAll(n->node2);
-	} else if (n->tok4.id == 2){
+	} else if (n->info[TOSCAN] == 2){
 		genExprAll(n->node1);
 	}
 	if (n->datatype == T_STRING)
 		addop(NUL_TO_STR);
-	int equals = 0;
+	int orEquals = 0, vpidx = n->info[VALPOSIDX];
 	switch (n->tok1.id){
 		case SP_EQ:
-			addop(GET_SET_EQ, joinFileIdx, n->info[VALPOSIDX], vpFuncTypes[valposTypes[n->info[VALPOSIDX]]]);
+			addop(GET_SET_EQ, joinFileIdx, vpidx, vpFuncTypes[valposTypes[vpidx]]);
 			break;
 		case SP_LESSEQ:
-			equals = 1;
+			orEquals = 1;
 		case SP_LESS:
-			addop(PUSH_N, equals);
-			addop(GET_SET_LESS, joinFileIdx, n->info[VALPOSIDX], vpFuncTypes[valposTypes[n->info[VALPOSIDX]]]);
+			addop(PUSH_N, orEquals);
+			addop(GET_SET_LESS, joinFileIdx, vpidx, vpFuncTypes[valposTypes[vpidx]]);
 			break;
 		case SP_GREATEQ:
-			equals = 1;
+			orEquals = 1;
 		case SP_GREAT:
-			addop(PUSH_N, equals);
-			addop(GET_SET_GRT, joinFileIdx, n->info[VALPOSIDX], vpFuncTypes[valposTypes[n->info[VALPOSIDX]]]);
+			addop(PUSH_N, orEquals);
+			addop(GET_SET_GRT, joinFileIdx, vpidx, vpFuncTypes[valposTypes[vpidx]]);
 			break;
 		default:
 			error("joins with '"+n->tok1.val+"' operator not implemented");
@@ -313,10 +314,9 @@ void cgen::genScanJoinFiles(unique_ptr<node> &n){
 		valposTypes.clear();
 		vs.setscope(JSCAN_FILTER, V_SCAN_SCOPE);
 		genVars(q->tree->node1);
-		genScannedJoinExprs(jnode->node1, false);
+		genValposJoinExprs(jnode->node1);
 		addop(SAVEVALPOS, f->fileno, f->joinValpos.size());
-		genScannedJoinExprs(jnode->node1, true);
-		//TODO: save values for andchain
+		genScanJoinAndChains(jnode->node1, f->fileno);
 		addop(JMP, normal_read);
 		jumps.setPlace(afterfile, v.size());
 		for (int i=0; i<valposTypes.size(); i++)
@@ -325,39 +325,78 @@ void cgen::genScanJoinFiles(unique_ptr<node> &n){
 
 }
 
-void cgen::genScannedJoinExprs(unique_ptr<node> &n, bool andchain){
+void cgen::genScanJoinAndChains(unique_ptr<node> &n, int fileno){
+	e("join ands");
+	if (n == nullptr) return;
+	switch (n->label){
+		case N_PREDICATES:
+			if (n->info[CHAINSIZE]){
+				genSingleAndChain(n);
+				addop(SAVEANDCHAIN, n->info[CHAINIDX], fileno);
+			}
+		default:
+			genScanJoinAndChains(n->node1, fileno);
+			genScanJoinAndChains(n->node2, fileno);
+			genScanJoinAndChains(n->node3, fileno);
+			genScanJoinAndChains(n->node4, fileno);
+	}
+}
+void cgen::genSingleAndChain(unique_ptr<node> &n){
+	e("join ands");
+	if (n == nullptr || n->info[ANDCHAIN] == 0) return;
+	bool gotExpr = false;
+	switch (n->label){
+		case N_PREDICATES:
+			genSingleAndChain(n->node1);
+			genSingleAndChain(n->node2);
+			break;
+		case N_PREDCOMP:
+			if (n->info[TOSCAN] == 1){
+				genExprAll(n->node1);
+				gotExpr = true;
+			}else if (n->info[TOSCAN] == 2){
+				genExprAll(n->node2);
+				gotExpr = true;
+			}
+			break;
+	}
+	if (gotExpr){
+		if (n->datatype == T_STRING)
+			addop(NUL_TO_STR);
+	} else {
+		error("andchain expression not found");
+	}
+}
+
+void cgen::genValposJoinExprs(unique_ptr<node> &n){
 	e("join exprs");
 	if (n == nullptr) return;
 	bool gotExpr = false;
 	switch (n->label){
 		case N_PREDCOMP:
-			if ((andchain && n->info[ANDCHAIN]==0) || (!andchain && n->info[ANDCHAIN]))
+			if (n->info[ANDCHAIN]) //this is just for valpos joins
 				goto skip;
 			if (n->tok1.id == SP_LPAREN)
-				genScannedJoinExprs(n->node1, andchain);
-			else if (n->tok4.id == 1){
+				genValposJoinExprs(n->node1);
+			else if (n->info[TOSCAN] == 1){
 				genExprAll(n->node1);
 				gotExpr = true;
-			}else if (n->tok4.id == 2){
+			}else if (n->info[TOSCAN] == 2){
 				genExprAll(n->node2);
 				gotExpr = true;
 			}else
 				error("invalid join comparision");
 			break;
-		case N_PREDICATES:
-			if (andchain && n->tok4.id){
-				//first of andchain
-			}
 		default:
 			skip:
-			genScannedJoinExprs(n->node1, andchain);
-			genScannedJoinExprs(n->node2, andchain);
-			genScannedJoinExprs(n->node3, andchain);
-			genScannedJoinExprs(n->node4, andchain);
+			genValposJoinExprs(n->node1);
+			genValposJoinExprs(n->node2);
+			genValposJoinExprs(n->node3);
+			genValposJoinExprs(n->node4);
 			break;
 	}
 	if (gotExpr){
-		numJoinCompares++;
+		numJoinCompares++; //is this ever used?
 		valposTypes.push_back(n->datatype);
 		if (n->datatype == T_STRING)
 			addop(NUL_TO_STR);

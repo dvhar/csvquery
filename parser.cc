@@ -394,8 +394,9 @@ unique_ptr<node> parser::parseCasePredicate() {
 //node1 is predicate comparison
 //node2 is next predicates node
 //later:
-//	tok3.id is 2 or 1 if part of simple 'and' chain
-//	tok4.id is number of chained expressions to scan if first of join chain
+//	[ANDCHAIN] is 2 or 1 if part of simple 'and' chain
+//	[CHAINSIZE] is number of chained expressions to scan if first of join chain
+//	[CHAINIDX] is index of andchain
 unique_ptr<node> parser::parsePredicates() {
 	token t = q->tok();
 	unique_ptr<node> n = newNode(N_PREDICATES);
@@ -417,7 +418,7 @@ unique_ptr<node> parser::parsePredicates() {
 //node2 is second expr
 //node3 is third expr for betweens
 //later:
-//  tok4.id will be number of node (1,2) for indexable join value
+//  [TOSCAN] will be number of node (1,2) for indexable join value
 //  [VALPOSIDX] is index of valpos vector for joins
 //  [ANDCHAIN] is 1 if part of simple and chain
 unique_ptr<node> parser::parsePredCompare() {
