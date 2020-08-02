@@ -360,11 +360,12 @@ set<int> analyzer::whichFilesReferenced(unique_ptr<node> &n){
 	}
 }
 
+//TODO: split this into separate funcs for full traversal and single chain
 bool analyzer::findJoinAndChains(unique_ptr<node> &n, int predno, int fileno){
 	if (n == nullptr) return 1;
 	if (n->label != N_PREDICATES)
 		error("predicates analysis error");
-	if (n->tok3.id)
+	if (n->info[ANDCHAIN])
 		return 0; //skip nodes that were already analyzed
 	if (predno == 0)
 		andChainSize = 0;
@@ -374,33 +375,39 @@ bool analyzer::findJoinAndChains(unique_ptr<node> &n, int predno, int fileno){
 	} else {
 		findJoinAndChains(n->node1->node1, 0, fileno);
 	}
+	auto& chainvec = q->getFileReader(fileno)->andchains;
 	switch (n->tok1.id){
 	case KW_AND:
-		if  (findJoinAndChains(n->node2, predno+1, fileno) && simpleCompare){
+		if  (simpleCompare && findJoinAndChains(n->node2, predno+1, fileno)){
 			n->node1->info[ANDCHAIN] = 1;
-			n->tok3.id = 2;
+			n->info[ANDCHAIN] = 2;
 			andChainSize++;
 			if (predno == 0){
-				n->tok4.id = andChainSize;
-				if (n->tok4.id){
+				n->info[CHAINSIZE] = andChainSize;
+				if (n->info[CHAINSIZE]){
 					//add andchain to file reader
-					q->getFileReader(fileno)->andchains.push_back(andchain(n->tok4.id));
+					n->info[CHAINIDX] = chainvec.size();
+					chainvec.push_back(andchain(n->info[CHAINSIZE]));
 				}
 			}
-			q->getFileReader(fileno)->andchains.back().datatypes.push_back(n->node1->datatype);
+			chainvec.back().datatypes.push_back(n->node1->datatype);
+			chainvec.back().relops.push_back(n->node1->tok1.id);
+		} else {
+			findJoinAndChains(n->node2, 0, fileno);
 		}
-		return n->tok3.id;
+		return n->info[ANDCHAIN];
 	case KW_OR:
 		findJoinAndChains(n->node2, 0, fileno);
 		return 0;
 	case 0:
 		if (simpleCompare && predno){
 			n->node1->info[ANDCHAIN] = 1;
-			n->tok3.id = 1;
+			n->info[ANDCHAIN] = 1;
 			andChainSize++;
-			q->getFileReader(fileno)->andchains.back().datatypes.push_back(n->node1->datatype);
+			chainvec.back().datatypes.push_back(n->node1->datatype);
+			chainvec.back().relops.push_back(n->node1->tok1.id);
 		}
-		return n->tok3.id;
+		return n->info[ANDCHAIN];
 	}
 	error("Join condition cannot have '"+n->tok1.val+"' operator");
 }
@@ -432,14 +439,14 @@ void analyzer::findIndexableJoinValues(unique_ptr<node> &n, int fileno){
 				for (auto i : e2)
 					if (i > fileno)
 						error("Join condition cannot compare to a file that appears later in the query, only earlier");
-				n->tok4.id = 1;
+				n->info[TOSCAN] = 1;
 				setSubtreeVarFilter(n->node2, JCOMP_FILTER);
 				setSubtreeVarFilter(n->node1, JSCAN_FILTER);
 			}else if (e2.size() == 1 && *e2.begin() == fileno){
 				for (auto i : e1)
 					if (i > fileno)
 						error("Join condition cannot compare to a file that appears later in the query, only earlier");
-				n->tok4.id = 2;
+				n->info[TOSCAN] = 2;
 				setSubtreeVarFilter(n->node2, JSCAN_FILTER);
 				setSubtreeVarFilter(n->node1, JCOMP_FILTER);
 			}else{

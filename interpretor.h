@@ -175,7 +175,11 @@ enum: int {
 	SCANVAL=1,
 	VALPOSIDX,
 	ANDCHAIN,
-	MIDIDX
+	MIDIDX,
+	CHAINSIZE,
+	CHAINIDX,
+	FILENO,
+	TOSCAN
 };
 class node {
 	public:
@@ -322,6 +326,7 @@ class andchain {
 	public:
 	vector<int> indexes;
 	vector<int> datatypes;
+	vector<int> relops;
 	vector<int64> positiions;
 	vector<vector<datunion>> values;
 	andchain(int size){
