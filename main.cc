@@ -58,8 +58,11 @@ int main(int argc, char** argv){
 		parseQuery(q);
 		openfiles(q, q.tree);
 		applyTypes(q);
-		analyzeTree(q);
+		cerr << "final type tree:\n";
 		printTree(q.tree, 0);
+		cerr << "analyzing\n";
+		analyzeTree(q);
+		cerr << "gen\n";
 		codeGen(q);
 		runquery(q);
 	} catch (const invalid_argument& ia) {
