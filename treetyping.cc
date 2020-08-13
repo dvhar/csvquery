@@ -654,6 +654,5 @@ void applyTypes(querySpecs &q){
 	typeInitialValue(q, q.tree, false);
 	typeInnerNodes(q, q.tree);
 	typeFinalValues(q, q.tree, -1);
-	cerr << "final type tree:\n";
 }
 
