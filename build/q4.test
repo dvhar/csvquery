@@ -1,4 +1,4 @@
 select
 distinct o.c1 l.c1
 from 'test/country.csv' o join 'test/lang.csv' l 
-on o.c1=l.c1 and o.c1 <> GUM
+on o.c1=l.c1 and l.c1 <> GUM
