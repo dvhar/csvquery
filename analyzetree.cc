@@ -447,8 +447,7 @@ void analyzer::findIndexableJoinValues(unique_ptr<node> &n, int fileno){
 				setSubtreeVarFilter(n->node2, JSCAN_FILTER);
 				setSubtreeVarFilter(n->node1, JCOMP_FILTER);
 			}else{
-				if (rules)
-					error("One side of join condition must be the joined file and only the joined file");
+				error("One side of join condition must be the joined file and only the joined file");
 			}
 
 			//add valpos vector only if not part of and chain
