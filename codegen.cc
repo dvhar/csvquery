@@ -10,6 +10,7 @@ class cgen {
 	int prevJoinRead;
 	int wherenot;
 	vector<int> valposTypes;
+	vector<opcode> v;
 	jumpPositions jumps;
 	varScoper vs;
 	querySpecs* q;
@@ -20,7 +21,8 @@ class cgen {
 	void addop(int code, int p1, int p2);
 	void addop(int code, int p1, int p2, int p3);
 	void generateCode();
-	void genSingleAndChain(unique_ptr<node> &n, int fileno);
+	void genScanAndChain(unique_ptr<node> &n, int fileno);
+	void genAndChainSet(unique_ptr<node> &n);
 	void genJoinPredicates(unique_ptr<node> &n);
 	void genJoinCompare(unique_ptr<node> &n);
 	void genJoinSets(unique_ptr<node> &n);
@@ -59,7 +61,6 @@ class cgen {
 	void genSortedGroupRow(unique_ptr<node> &n, int nextgroup);
 	void finish();
 
-	vector<opcode> v;
 	cgen(querySpecs &qs){
 		q = &qs;
 		select_count = 0;
@@ -248,9 +249,26 @@ void cgen::genJoinSets(unique_ptr<node> &n){
 	addop(JOINSET_TRAV, goWhenDone, (joinFileIdx-1)*2, joinFileIdx);
 	genJoinSets(n->node2);
 }
+void cgen::genAndChainSet(unique_ptr<node> &n){
+	auto nn = n.get();
+	for (int i=0; i<n->info[CHAINSIZE]; ++i){
+		auto& prednode = nn->node1;
+		if (prednode->info[TOSCAN] == 1){
+			genExprAll(prednode->node2);
+		}else if (prednode->info[TOSCAN] == 2){
+			genExprAll(prednode->node1);
+		}
+		nn = nn->node2.get();
+	}
+	addop(GET_SET_ANDS, n->info[FILENO], n->info[CHAINIDX]);
+}
 //given 'predicates' node
 void cgen::genJoinPredicates(unique_ptr<node> &n){
 	if (n == nullptr) return;
+	if (n->info[ANDCHAIN]){
+		genAndChainSet(n);
+		return;
+	}
 	genJoinPredicates(n->node2);
 	genJoinCompare(n->node1);
 	switch (n->tok1.id){
@@ -322,7 +340,7 @@ void cgen::genScanJoinFiles(unique_ptr<node> &n){
 
 }
 
-void cgen::genSingleAndChain(unique_ptr<node> &n, int fileno){
+void cgen::genScanAndChain(unique_ptr<node> &n, int fileno){
 	if (n == nullptr || n->info[ANDCHAIN] == 0) return;
 	e("join ands");
 
@@ -339,13 +357,6 @@ void cgen::genSingleAndChain(unique_ptr<node> &n, int fileno){
 	addop(SAVEANDCHAIN, n->info[CHAINIDX], fileno);
 }
 
-unique_ptr<node>& getPassedAnds(unique_ptr<node> &n){
-	if (n == nullptr) return n;
-	if (n->info[ANDCHAIN])
-		return getPassedAnds(n->node2);
-	else
-		return n;
-}
 void cgen::genScannedJoinExprs(unique_ptr<node> &n, int fileno){
 	if (n == nullptr) return;
 	e("join exprs");
@@ -372,8 +383,7 @@ void cgen::genScannedJoinExprs(unique_ptr<node> &n, int fileno){
 			break;
 		case N_PREDICATES:
 			if (n->info[ANDCHAIN]){ //handle andchains separately
-				genSingleAndChain(n, fileno);
-				genScannedJoinExprs(getPassedAnds(n), fileno);
+				genScanAndChain(n, fileno);
 				return;
 			}
 		default:
