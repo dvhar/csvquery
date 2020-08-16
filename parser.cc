@@ -397,6 +397,7 @@ unique_ptr<node> parser::parseCasePredicate() {
 //	[ANDCHAIN] is 1 if part of simple 'and' chain
 //	[CHAINSIZE] is number of chained expressions to scan if first of join chain
 //	[CHAINIDX] is index of andchain
+//	[FILENO] is file number
 unique_ptr<node> parser::parsePredicates() {
 	token t = q->tok();
 	unique_ptr<node> n = newNode(N_PREDICATES);

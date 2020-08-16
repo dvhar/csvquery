@@ -20,7 +20,7 @@ class analyzer {
 		void findIndexableJoinValues(unique_ptr<node> &n, int fileno);
 		set<int> whichFilesReferenced(unique_ptr<node> &n);
 		void findJoinAndChains(unique_ptr<node> &n, int fileno);
-		void ischain(unique_ptr<node> &n, int &predno);
+		bool ischain(unique_ptr<node> &n, int &predno);
 };
 
 void analyzer::setSubtreeVarFilter(unique_ptr<node> &n, int filter){
@@ -362,17 +362,19 @@ set<int> analyzer::whichFilesReferenced(unique_ptr<node> &n){
 }
 
 //only called on predicates nodes
-void analyzer::ischain(unique_ptr<node> &n, int &predno){
-	if (n == nullptr || n->label == KW_OR) return;
+bool analyzer::ischain(unique_ptr<node> &n, int &predno){
+	if (n == nullptr) return predno >= 2;
+	if (n->label == KW_OR) return false;
 	bool simpleCompare = n->node1->tok1.id != SP_LPAREN;
 	if (simpleCompare){
 		++predno;
-		ischain(n->node2, predno);
-		if (predno >= 2){
+		if (ischain(n->node2, predno)){
 			n->info[ANDCHAIN] = 1;
 			n->node1->info[ANDCHAIN] = 1;
+			return true;
 		}
 	}
+	return false;
 }
 
 void analyzer::findJoinAndChains(unique_ptr<node> &n, int fileno){
@@ -387,10 +389,10 @@ void analyzer::findJoinAndChains(unique_ptr<node> &n, int fileno){
 			if (n->tok1.id == KW_AND){
 				bool first = n->info[ANDCHAIN] != 1;
 				int chainsize = 0;
-				ischain(n, chainsize);
-				if (chainsize > 1 && first){
+				if (ischain(n, chainsize) && first){
 					n->info[CHAINSIZE] = chainsize;
 					n->info[CHAINIDX] = chainvec.size();
+					n->info[FILENO] = fileno;
 					chainvec.push_back(andchain(n->info[CHAINSIZE]));
 				}
 			}
@@ -408,6 +410,18 @@ void analyzer::findJoinAndChains(unique_ptr<node> &n, int fileno){
 	}
 }
 
+// flip operator when scanned op comes last
+int flipOp(int op){
+	static map<int,int> flipOperatorMap = {
+		{SP_GREAT, SP_LESS},
+		{SP_GREATEQ, SP_LESSEQ},
+		{SP_LESS, SP_GREAT},
+		{SP_LESSEQ, SP_GREATEQ},
+	};
+	int flipped = flipOperatorMap[op];
+	return flipped ?: op;
+}
+
 void analyzer::findIndexableJoinValues(unique_ptr<node> &n, int fileno){
 	if (n == nullptr || !q->joining) return;
 	switch (n->label){
@@ -418,19 +432,18 @@ void analyzer::findIndexableJoinValues(unique_ptr<node> &n, int fileno){
 			return;
 		default: //found a comparison
 			{
-			bool rules = n->info[ANDCHAIN] != 2;
 			auto e1 = whichFilesReferenced(n->node1);
 			auto e2 = whichFilesReferenced(n->node2);
 			if (q->strictJoin){
-				if (rules && n->tok1.id != SP_EQ)
+				if (n->tok1.id != SP_EQ)
 					error("Join condition must use '='");
-				if (rules && e1.size() != 1 && e2.size() != 1)
+				if (e1.size() != 1 && e2.size() != 1)
 					error("Join condition must reference one file on each side of '='");
 			}
 			set<int> intersection;
 			set_intersection(e1.begin(), e1.end(), e2.begin(), e2.end(),
 					inserter(intersection, intersection.begin()));
-			if (rules && intersection.size())
+			if (intersection.size())
 				error("Join condition cannot reference same file on both sides of '"+n->tok1.val+"'");
 			if (e1.size() == 1 && *e1.begin() == fileno){
 				for (auto i : e2)
@@ -444,6 +457,7 @@ void analyzer::findIndexableJoinValues(unique_ptr<node> &n, int fileno){
 					if (i > fileno)
 						error("Join condition cannot compare to a file that appears later in the query, only earlier");
 				n->info[TOSCAN] = 2;
+				n->tok1.id = flipOp(n->tok1.id);
 				setSubtreeVarFilter(n->node2, JSCAN_FILTER);
 				setSubtreeVarFilter(n->node1, JCOMP_FILTER);
 			}else{
