@@ -327,6 +327,7 @@ class andchain {
 	vector<int> indexes;
 	vector<int> datatypes;
 	vector<int> relops;
+	vector<bool> negations;
 	vector<int64> positiions;
 	vector<vector<datunion>> values;
 	andchain(int size){
