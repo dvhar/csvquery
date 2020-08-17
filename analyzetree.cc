@@ -397,8 +397,6 @@ void analyzer::findJoinAndChains(unique_ptr<node> &n, int fileno){
 				}
 			}
 			if (n->info[ANDCHAIN]){
-				chainvec.back().datatypes.push_back(n->node1->datatype);
-				chainvec.back().relops.push_back(n->node1->tok1.id);
 				if (n->info[CHAINSIZE] == 0){ //not first
 					n->node1->info[ANDCHAIN] = 2;
 				}

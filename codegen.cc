@@ -23,6 +23,7 @@ class cgen {
 	void generateCode();
 	void genScanAndChain(unique_ptr<node> &n, int fileno);
 	void genAndChainSet(unique_ptr<node> &n);
+	void genSortAnds(unique_ptr<node> &n);
 	void genJoinPredicates(unique_ptr<node> &n);
 	void genJoinCompare(unique_ptr<node> &n);
 	void genJoinSets(unique_ptr<node> &n);
@@ -74,7 +75,7 @@ void cgen::addop(int code, int p1, int p2, int p3){
 	debugAddop
 	v.push_back({code, p1, p2, p3});
 }
-static array<int,6> vpFuncTypes  = { 0,0,1,0,0,2 };
+static int vpFuncTypes[]  = { 0,0,1,0,0,2 };
 
 //for debugging
 static int ident = 0;
@@ -250,17 +251,24 @@ void cgen::genJoinSets(unique_ptr<node> &n){
 	genJoinSets(n->node2);
 }
 void cgen::genAndChainSet(unique_ptr<node> &n){
+	int cz = n->info[CHAINSIZE];
+	int ci = n->info[CHAINIDX];
+	int fi = n->info[FILENO];
+	auto& chain = q->getFileReader(fi)->andchains[ci];
 	auto nn = n.get();
-	for (int i=0; i<n->info[CHAINSIZE]; ++i){
+	for (int i=0; i<cz; ++i){
 		auto& prednode = nn->node1;
 		if (prednode->info[TOSCAN] == 1){
 			genExprAll(prednode->node2);
 		}else if (prednode->info[TOSCAN] == 2){
 			genExprAll(prednode->node1);
 		}
+		chain.datatypes.push_back(prednode->node1->datatype);
+		chain.relops.push_back(prednode->node1->tok1.id);
+		chain.negations.push_back(prednode->node1->tok2.id);
 		nn = nn->node2.get();
 	}
-	addop(GET_SET_ANDS, n->info[FILENO], n->info[CHAINIDX]);
+	addop(GET_SET_ANDS, fi, ci);
 }
 //given 'predicates' node
 void cgen::genJoinPredicates(unique_ptr<node> &n){
@@ -334,12 +342,24 @@ void cgen::genScanJoinFiles(unique_ptr<node> &n){
 			addop(SAVEVALPOS, f->fileno, f->joinValpos.size());
 		addop(JMP, normal_read);
 		jumps.setPlace(afterfile, v.size());
+		genSortAnds(joinNode->node1);
 		for (int i=0; i<valposTypes.size(); i++)
 			addop(SORTVALPOS, f->fileno, i, vpFuncTypes[valposTypes[i]]);
 	}
 
 }
-
+void cgen::genSortAnds(unique_ptr<node> &n){
+	if (n == nullptr) return;
+	e("sort ands");
+	if (n->info[ANDCHAIN] == 1){
+		addop(SORT_ANDCHAIN, n->info[FILENO],  n->info[CHAINIDX]);
+		return;
+	} else {
+		genSortAnds(n->node2);
+		if (n->node1->tok1.id == SP_LPAREN)
+			genSortAnds(n->node1->node1);
+	}
+}
 void cgen::genScanAndChain(unique_ptr<node> &n, int fileno){
 	if (n == nullptr || n->info[ANDCHAIN] == 0) return;
 	e("join ands");
