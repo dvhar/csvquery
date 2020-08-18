@@ -53,34 +53,6 @@ void vmachine::run(){
 	opcode *op;
 	rowgroup *groupTemp;
 
-	//valpos comparers
-	function<bool (const valpos&, const dat&)> vpLessFuncs[] = {
-		[](const valpos& v, const dat& d){ return v.val.i < d.u.i; },
-		[](const valpos& v, const dat& d){ return v.val.f < d.u.f; },
-		[](const valpos& v, const dat& d){ return strcmp(v.val.s, d.u.s)<0; },
-	};
-	function<bool (const valpos&, const dat&)> vpGrtFuncs[] = {
-		[](const valpos& v, const dat& d){ return v.val.i > d.u.i; },
-		[](const valpos& v, const dat& d){ return v.val.f > d.u.f; },
-		[](const valpos& v, const dat& d){ return strcmp(v.val.s, d.u.s)>0; },
-	};
-	function<bool (const valpos&, const dat&)> vpEqFuncs[] = {
-		[](const valpos& v, const dat& d){ return v.val.i == d.u.i; },
-		[](const valpos& v, const dat& d){ return v.val.f == d.u.f; },
-		[](const valpos& v, const dat& d){ return !strcmp(v.val.s, d.u.s); },
-	};
-	//datunion comparers
-	function<bool (const datunion&, const dat&)> uLessFuncs[] = {
-		[](const datunion& u, const dat& d){ return u.i < d.u.i; },
-		[](const datunion& u, const dat& d){ return u.f < d.u.f; },
-		[](const datunion& u, const dat& d){ return strcmp(u.s, d.u.s)<0; },
-	};
-	function<bool (const datunion&, const dat&)> uEqFuncs[] = {
-		[](const datunion& u, const dat& d){ return u.i == d.u.i; },
-		[](const datunion& u, const dat& d){ return u.f == d.u.f; },
-		[](const datunion& u, const dat& d){ return !strcmp(u.s, d.u.s); },
-	};
-
 	//file writer
 	ostream output(cout.rdbuf());
 	string outbuf;
@@ -288,7 +260,6 @@ SAVEVALPOS_:
 	}
 	++ip;
 	next();
-//=
 GET_SET_EQ_AND_:
 	{
 		auto& chain = files[op->p1]->andchains[op->p2];
