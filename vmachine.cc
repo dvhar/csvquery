@@ -9,8 +9,8 @@
 //work with stack data
 #define stk0 (*stacktop)
 #define stk1 (*(stacktop-1))
-#define stkt(N) (*(stacktop-N))
-#define stkb(N) (*(stackbot+N))
+#define stkt(N) (*(stacktop-(N)))
+#define stkb(N) (*(stackbot+(N)))
 #define push() ++stacktop
 #define pop() --stacktop
 
@@ -26,7 +26,7 @@
 
 void vmachine::run(){
 	ios::sync_with_stdio(false);
-	constexpr void* labels[] = { &&CVER_, &&CVNO_, &&CVIF_, &&CVIS_, &&CVFI_, &&CVFS_, &&CVDRS_, &&CVDTS_, &&CVSI_, &&CVSF_, &&CVSDR_, &&CVSDT_, &&IADD_, &&FADD_, &&TADD_, &&DTADD_, &&DRADD_, &&ISUB_, &&FSUB_, &&DTSUB_, &&DRSUB_, &&IMULT_, &&FMULT_, &&DRMULT_, &&IDIV_, &&FDIV_, &&DRDIV_, &&INEG_, &&FNEG_, &&PNEG_, &&IMOD_, &&FMOD_, &&IEXP_, &&FEXP_, &&JMP_, &&JMPCNT_, &&JMPTRUE_, &&JMPFALSE_, &&JMPNOTNULL_ELSEPOP_, &&RDLINE_, &&RDLINE_ORDERED_, &&PREP_REREAD_, &&PUT_, &&LDPUT_, &&LDPUTALL_, &&PUTVAR_, &&PUTVAR2_, &&LDINT_, &&LDFLOAT_, &&LDTEXT_, &&LDDATE_, &&LDDUR_, &&LDNULL_, &&LDLIT_, &&LDVAR_, &&HOLDVAR_, &&IEQ_, &&FEQ_, &&TEQ_, &&LIKE_, &&ILEQ_, &&FLEQ_, &&TLEQ_, &&ILT_, &&FLT_, &&TLT_, &&PRINT_, &&PUSH_, &&PUSH_N_, &&POP_, &&POPCPY_, &&ENDRUN_, &&NULFALSE1_, &&NULFALSE2_, &&NDIST_, &&SDIST_, &&PUTDIST_, &&LDDIST_, &&FINC_, &&ENCCHA_, &&DECCHA_, &&SAVESORTN_, &&SAVESORTS_, &&SAVEVALPOS_, &&SAVEPOS_, &&SORT_, &&GETGROUP_, &&ONEGROUP_, &&SUMI_, &&SUMF_, &&AVGI_, &&AVGF_, &&STDVI_, &&STDVF_, &&COUNT_, &&MINI_, &&MINF_, &&MINS_, &&MAXI_, &&MAXF_, &&MAXS_, &&NEXTMAP_, &&NEXTVEC_, &&ROOTMAP_, &&LDMID_, &&LDPUTMID_, &&LDPUTGRP_, &&LDSTDVI_, &&LDSTDVF_, &&LDAVGI_, &&LDAVGF_, &&ADD_GROUPSORT_ROW_, &&FREE_MIDROW_, &&GSORT_, &&READ_NEXT_GROUP_, &&NUL_TO_STR_, &&SORTVALPOS_, &&GET_SET_ANDS_, &&GET_SET_EQ_, &&GET_SET_LESS_, &&GET_SET_GRT_, &&JOINSET_INIT_, &&JOINSET_TRAV_, &&AND_SET_, &&OR_SET_, &&SAVEANDCHAIN_, &&SORT_ANDCHAIN_ };
+	constexpr void* labels[] = { &&CVER_, &&CVNO_, &&CVIF_, &&CVIS_, &&CVFI_, &&CVFS_, &&CVDRS_, &&CVDTS_, &&CVSI_, &&CVSF_, &&CVSDR_, &&CVSDT_, &&IADD_, &&FADD_, &&TADD_, &&DTADD_, &&DRADD_, &&ISUB_, &&FSUB_, &&DTSUB_, &&DRSUB_, &&IMULT_, &&FMULT_, &&DRMULT_, &&IDIV_, &&FDIV_, &&DRDIV_, &&INEG_, &&FNEG_, &&PNEG_, &&IMOD_, &&FMOD_, &&IEXP_, &&FEXP_, &&JMP_, &&JMPCNT_, &&JMPTRUE_, &&JMPFALSE_, &&JMPNOTNULL_ELSEPOP_, &&RDLINE_, &&RDLINE_ORDERED_, &&PREP_REREAD_, &&PUT_, &&LDPUT_, &&LDPUTALL_, &&PUTVAR_, &&PUTVAR2_, &&LDINT_, &&LDFLOAT_, &&LDTEXT_, &&LDDATE_, &&LDDUR_, &&LDNULL_, &&LDLIT_, &&LDVAR_, &&HOLDVAR_, &&IEQ_, &&FEQ_, &&TEQ_, &&LIKE_, &&ILEQ_, &&FLEQ_, &&TLEQ_, &&ILT_, &&FLT_, &&TLT_, &&PRINT_, &&PUSH_, &&PUSH_N_, &&POP_, &&POPCPY_, &&ENDRUN_, &&NULFALSE1_, &&NULFALSE2_, &&NDIST_, &&SDIST_, &&PUTDIST_, &&LDDIST_, &&FINC_, &&ENCCHA_, &&DECCHA_, &&SAVESORTN_, &&SAVESORTS_, &&SAVEVALPOS_, &&SAVEPOS_, &&SORT_, &&GETGROUP_, &&ONEGROUP_, &&SUMI_, &&SUMF_, &&AVGI_, &&AVGF_, &&STDVI_, &&STDVF_, &&COUNT_, &&MINI_, &&MINF_, &&MINS_, &&MAXI_, &&MAXF_, &&MAXS_, &&NEXTMAP_, &&NEXTVEC_, &&ROOTMAP_, &&LDMID_, &&LDPUTMID_, &&LDPUTGRP_, &&LDSTDVI_, &&LDSTDVF_, &&LDAVGI_, &&LDAVGF_, &&ADD_GROUPSORT_ROW_, &&FREE_MIDROW_, &&GSORT_, &&READ_NEXT_GROUP_, &&NUL_TO_STR_, &&SORTVALPOS_, &&GET_SET_EQ_AND_, &&GET_SET_EQ_, &&GET_SET_LESS_, &&GET_SET_GRT_, &&JOINSET_INIT_, &&JOINSET_TRAV_, &&AND_SET_, &&OR_SET_, &&SAVEANDCHAIN_, &&SORT_ANDCHAIN_ };
 
 	//vars for data
 	int64 i64Temp;
@@ -53,6 +53,7 @@ void vmachine::run(){
 	opcode *op;
 	rowgroup *groupTemp;
 
+	//valpos comparers
 	function<bool (const valpos&, const dat&)> vpLessFuncs[] = {
 		[](const valpos& v, const dat& d){ return v.val.i < d.u.i; },
 		[](const valpos& v, const dat& d){ return v.val.f < d.u.f; },
@@ -67,6 +68,17 @@ void vmachine::run(){
 		[](const valpos& v, const dat& d){ return v.val.i == d.u.i; },
 		[](const valpos& v, const dat& d){ return v.val.f == d.u.f; },
 		[](const valpos& v, const dat& d){ return !strcmp(v.val.s, d.u.s); },
+	};
+	//datunion comparers
+	function<bool (const datunion&, const dat&)> uLessFuncs[] = {
+		[](const datunion& u, const dat& d){ return u.i < d.u.i; },
+		[](const datunion& u, const dat& d){ return u.f < d.u.f; },
+		[](const datunion& u, const dat& d){ return strcmp(u.s, d.u.s)<0; },
+	};
+	function<bool (const datunion&, const dat&)> uEqFuncs[] = {
+		[](const datunion& u, const dat& d){ return u.i == d.u.i; },
+		[](const datunion& u, const dat& d){ return u.f == d.u.f; },
+		[](const datunion& u, const dat& d){ return !strcmp(u.s, d.u.s); },
 	};
 
 	//file writer
@@ -257,7 +269,7 @@ SAVEANDCHAIN_:
 	{
 		auto& file = files[op->p2];
 		auto& chain = file->andchains[op->p1];
-		int size = chain.datatypes.size();
+		int size = chain.functionTypes.size();
 		chain.positiions.push_back(file->pos);
 		for (int i=0; i<size; ++i)
 			chain.values[i].push_back(stkt(size-i-1).heap().u);
@@ -277,9 +289,28 @@ SAVEVALPOS_:
 	++ip;
 	next();
 //=
-GET_SET_ANDS_:
+GET_SET_EQ_AND_:
 	{
 		auto& chain = files[op->p1]->andchains[op->p2];
+		int comp1FuncIdx = chain.functionTypes[0];
+		auto& lessfunc = uLessFuncs[comp1FuncIdx];
+		int r = chain.indexes.size()-1;
+		int l = 0;
+		int m;
+		dat& compval = stkt(chain.values.size()-1);
+		auto& uvec = chain.values[0];
+		while (l < r){
+			m = (l+r)/2;
+			if (lessfunc(uvec[chain.indexes[m]], compval))
+				l = m + 1;
+			else
+				r = m;
+		}
+		joinSetStack.push_front(bset<int64>());
+		while (l < chain.indexes.size() && uEqFuncs[comp1FuncIdx](uvec[chain.indexes[l]], compval)){
+			//TODO: check other values
+			joinSetStack.front().insert(chain.indexes[l++]);
+		}
 	}
 	++ip;
 	next();
@@ -290,7 +321,6 @@ GET_SET_GRT_:
 		int r = vpvector.size()-1;
 		int l = 0;
 		int m;
-		joinSetStack.push_front(bset<int64>());
 		while (l < r){
 			m = (l+r)/2;
 			if (grtfunc(vpvector[m], stk1))
@@ -299,6 +329,7 @@ GET_SET_GRT_:
 				l = m + 1;
 		}
 		--r;
+		joinSetStack.push_front(bset<int64>());
 		if (vpEqFuncs[op->p3](vpvector[r], stk1)){
 			if (stk0.u.i) // >=
 				for (m = r; m >= 0 && vpEqFuncs[op->p3](vpvector[m], stk1); --m)
@@ -319,7 +350,6 @@ GET_SET_LESS_:
 		int r = vpvector.size()-1;
 		int l = 0;
 		int m;
-		joinSetStack.push_front(bset<int64>());
 		while (l < r){
 			m = (l+r)/2;
 			if (lessfunc(vpvector[m], stk1))
@@ -327,6 +357,7 @@ GET_SET_LESS_:
 			else
 				r = m;
 		}
+		joinSetStack.push_front(bset<int64>());
 		if (vpEqFuncs[op->p3](vpvector[l], stk1)){
 			if (stk0.u.i) // <=
 				for (m = l; m < vpvector.size() && vpEqFuncs[op->p3](vpvector[m], stk1); ++m)
@@ -347,7 +378,6 @@ GET_SET_EQ_:
 		int r = vpvector.size()-1;
 		int l = 0;
 		int m;
-		joinSetStack.push_front(bset<int64>());
 		while (l < r){
 			m = (l+r)/2;
 			if (lessfunc(vpvector[m], stk0))
@@ -355,6 +385,7 @@ GET_SET_EQ_:
 			else
 				r = m;
 		}
+		joinSetStack.push_front(bset<int64>());
 		while (l < vpvector.size() && vpEqFuncs[op->p3](vpvector[l], stk0))
 			joinSetStack.front().insert(vpvector[l++].pos);
 	}
@@ -417,7 +448,7 @@ SORT_ANDCHAIN_:
 			[&](const int a, const int b) { return chain.values[0][a].f > chain.values[0][b].f; },
 			[&](const int a, const int b) { return strcmp(chain.values[0][a].s, chain.values[0][b].s) > 0; },
 		};
-		sort(parallel() chain.indexes.begin(), chain.indexes.end(), uComparers[funcTypes[chain.datatypes[0]]]);
+		sort(parallel() chain.indexes.begin(), chain.indexes.end(), uComparers[chain.functionTypes[0]]);
 	}
 	++ip;
 	next();
