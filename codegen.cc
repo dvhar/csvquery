@@ -263,12 +263,12 @@ void cgen::genAndChainSet(unique_ptr<node> &n){
 		}else if (prednode->info[TOSCAN] == 2){
 			genExprAll(prednode->node1);
 		}
-		chain.datatypes.push_back(prednode->node1->datatype);
+		chain.functionTypes.push_back(vpFuncTypes[prednode->node1->datatype]);
 		chain.relops.push_back(prednode->node1->tok1.id);
 		chain.negations.push_back(prednode->node1->tok2.id);
 		nn = nn->node2.get();
 	}
-	addop(GET_SET_ANDS, fi, ci);
+	addop(GET_SET_EQ_AND, fi, ci);
 }
 //given 'predicates' node
 void cgen::genJoinPredicates(unique_ptr<node> &n){

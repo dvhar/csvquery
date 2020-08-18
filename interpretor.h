@@ -325,7 +325,7 @@ class dat {
 class andchain {
 	public:
 	vector<int> indexes;
-	vector<int> datatypes;
+	vector<int> functionTypes;
 	vector<int> relops;
 	vector<bool> negations;
 	vector<int64> positiions;
