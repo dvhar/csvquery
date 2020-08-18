@@ -268,7 +268,26 @@ void cgen::genAndChainSet(unique_ptr<node> &n){
 		chain.negations.push_back(prednode->node1->tok2.id);
 		nn = nn->node2.get();
 	}
-	addop(GET_SET_EQ_AND, fi, ci);
+	int orEquals = 0;
+	switch (n->node1->tok1.id){
+		case SP_EQ:
+			addop(GET_SET_EQ_AND, fi, ci);
+			break;
+		case SP_LESSEQ:
+			orEquals = 1;
+		case SP_LESS:
+			addop(PUSH_N, orEquals);
+			//addop(GET_SET_LESS_AND, fi, ci);
+			break;
+		case SP_GREATEQ:
+			orEquals = 1;
+		case SP_GREAT:
+			addop(PUSH_N, orEquals);
+			//addop(GET_SET_GRT_AND, fi, ci);
+			break;
+		default:
+			error("joins with '"+n->tok1.val+"' operator in first of 'and' conditions not implemented");
+	}
 }
 //given 'predicates' node
 void cgen::genJoinPredicates(unique_ptr<node> &n){

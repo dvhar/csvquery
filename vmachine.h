@@ -177,13 +177,26 @@ class vmachine {
 	forward_list<bset<int64>> joinSetStack;
 	forward_list<char*> groupSortVars;
 	unique_ptr<rowgroup> groupTree;
+	//valpos comparers
+	static const function<bool (const valpos&, const dat&)> vpLessFuncs[3];
+	static const function<bool (const valpos&, const dat&)> vpGrtFuncs[3];
+	static const function<bool (const valpos&, const dat&)> vpEqFuncs[3];
+	//datunion comparers
+	static const function<bool (const datunion&, const dat&)> uLessFuncs[3];
+	static const function<bool (const datunion&, const dat&)> uGrtFuncs[3];
+	static const function<bool (const datunion&, const dat&)> uLessEqFuncs[3];
+	static const function<bool (const datunion&, const dat&)> uGrtEqFuncs[3];
+	static const function<bool (const datunion&, const dat&)> uEqFuncs[3];
+	static const function<bool (const datunion&, const dat&)> uNeqFuncs[3];
+	static const function<bool (const datunion&, const dat&)> uRxpFuncs[3];
+	static const function<bool (const datunion&, const dat&)>* uComparers[7];
 	public:
-		vector<bset<int64>> bt_nums;
-		vector<bset<treeCString>> bt_strings;
-		querySpecs* q;
-		void run();
-		vmachine(querySpecs &q);
-		~vmachine();
+	vector<bset<int64>> bt_nums;
+	vector<bset<treeCString>> bt_strings;
+	querySpecs* q;
+	void run();
+	vmachine(querySpecs &q);
+	~vmachine();
 };
 
 class rowgroup {

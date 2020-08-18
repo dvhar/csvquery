@@ -275,3 +275,65 @@ int getSortComparer(querySpecs *q, int i){
 	}
 	error("invalid sort function");
 };
+
+//valpos comparers
+const function<bool (const valpos&, const dat&)> vmachine::vpLessFuncs[3] = {
+	[](const valpos& v, const dat& d){ return v.val.i < d.u.i; },
+	[](const valpos& v, const dat& d){ return v.val.f < d.u.f; },
+	[](const valpos& v, const dat& d){ return strcmp(v.val.s, d.u.s)<0; },
+};
+const function<bool (const valpos&, const dat&)> vmachine::vpGrtFuncs[3] = {
+	[](const valpos& v, const dat& d){ return v.val.i > d.u.i; },
+	[](const valpos& v, const dat& d){ return v.val.f > d.u.f; },
+	[](const valpos& v, const dat& d){ return strcmp(v.val.s, d.u.s)>0; },
+};
+const function<bool (const valpos&, const dat&)> vmachine::vpEqFuncs[3] = {
+	[](const valpos& v, const dat& d){ return v.val.i == d.u.i; },
+	[](const valpos& v, const dat& d){ return v.val.f == d.u.f; },
+	[](const valpos& v, const dat& d){ return !strcmp(v.val.s, d.u.s); },
+};
+//datunion comparers
+const function<bool (const datunion&, const dat&)> vmachine::uLessFuncs[3] = {
+	[](const datunion& u, const dat& d){ return u.i < d.u.i; },
+	[](const datunion& u, const dat& d){ return u.f < d.u.f; },
+	[](const datunion& u, const dat& d){ return strcmp(u.s, d.u.s)<0; },
+};
+const function<bool (const datunion&, const dat&)> vmachine::uGrtFuncs[3] = {
+	[](const datunion& u, const dat& d){ return u.i > d.u.i; },
+	[](const datunion& u, const dat& d){ return u.f > d.u.f; },
+	[](const datunion& u, const dat& d){ return strcmp(u.s, d.u.s)>0; },
+};
+const function<bool (const datunion&, const dat&)> vmachine::uLessEqFuncs[3] = {
+	[](const datunion& u, const dat& d){ return u.i <= d.u.i; },
+	[](const datunion& u, const dat& d){ return u.f <= d.u.f; },
+	[](const datunion& u, const dat& d){ return strcmp(u.s, d.u.s)<=0; },
+};
+const function<bool (const datunion&, const dat&)> vmachine::uGrtEqFuncs[3] = {
+	[](const datunion& u, const dat& d){ return u.i >= d.u.i; },
+	[](const datunion& u, const dat& d){ return u.f >= d.u.f; },
+	[](const datunion& u, const dat& d){ return strcmp(u.s, d.u.s)>=0; },
+};
+const function<bool (const datunion&, const dat&)> vmachine::uEqFuncs[3] = {
+	[](const datunion& u, const dat& d){ return u.i == d.u.i; },
+	[](const datunion& u, const dat& d){ return u.f == d.u.f; },
+	[](const datunion& u, const dat& d){ return !strcmp(u.s, d.u.s); },
+};
+const function<bool (const datunion&, const dat&)> vmachine::uNeqFuncs[3] = {
+	[](const datunion& u, const dat& d){ return u.i != d.u.i; },
+	[](const datunion& u, const dat& d){ return u.f != d.u.f; },
+	[](const datunion& u, const dat& d){ return strcmp(u.s, d.u.s); },
+};
+const function<bool (const datunion&, const dat&)> vmachine::uRxpFuncs[3] = {
+	[](const datunion& u, const dat& d){ return false; }, //unused
+	[](const datunion& u, const dat& d){ return false; }, //unused
+	[](const datunion& u, const dat& d){ return !regexec(d.u.r, u.s, 0,0,0); },
+};
+const function<bool (const datunion&, const dat&)>* vmachine::uComparers[7] = {
+	uLessFuncs,
+	uGrtFuncs,
+	uLessEqFuncs,
+	uGrtEqFuncs,
+	uEqFuncs,
+	uNeqFuncs,
+	uRxpFuncs
+};
