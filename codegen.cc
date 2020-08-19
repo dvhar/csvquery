@@ -257,6 +257,7 @@ void cgen::genAndChainSet(unique_ptr<node> &n){
 	auto& chain = q->getFileReader(fi)->andchains[ci];
 	auto nn = n.get();
 	for (int i=0; i<cz; ++i){
+		//TODO: compile like regex and push to stack
 		auto& prednode = nn->node1;
 		if (prednode->info[TOSCAN] == 1){
 			genExprAll(prednode->node2);
@@ -264,7 +265,7 @@ void cgen::genAndChainSet(unique_ptr<node> &n){
 			genExprAll(prednode->node1);
 		}
 		chain.functionTypes.push_back(vpFuncTypes[prednode->node1->datatype]);
-		chain.relops.push_back(prednode->node1->tok1.id);
+		chain.relops.push_back(vmachine::relopIdx[prednode->node1->tok1.id]);
 		chain.negations.push_back(prednode->node1->tok2.id);
 		nn = nn->node2.get();
 	}

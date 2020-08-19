@@ -191,6 +191,7 @@ class vmachine {
 	static const function<bool (const datunion&, const dat&)> uRxpFuncs[3];
 	static const function<bool (const datunion&, const dat&)>* uComparers[7];
 	public:
+	static map<int,int> relopIdx;
 	vector<bset<int64>> bt_nums;
 	vector<bset<treeCString>> bt_strings;
 	querySpecs* q;
