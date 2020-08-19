@@ -329,11 +329,8 @@ const function<bool (const datunion&, const dat&)> vmachine::uRxpFuncs[3] = {
 	[](const datunion& u, const dat& d){ return !regexec(d.u.r, u.s, 0,0,0); },
 };
 const function<bool (const datunion&, const dat&)>* vmachine::uComparers[7] = {
-	uLessFuncs,
-	uGrtFuncs,
-	uLessEqFuncs,
-	uGrtEqFuncs,
-	uEqFuncs,
-	uNeqFuncs,
-	uRxpFuncs
+	uLessFuncs, uGrtFuncs, uLessEqFuncs, uGrtEqFuncs, uEqFuncs, uNeqFuncs, uRxpFuncs
+};
+map<int,int> vmachine::relopIdx = {
+	{SP_LESS,0},{SP_GREAT,1},{SP_LESSEQ,2},{SP_GREATEQ,3},{SP_EQ,4},{SP_NOEQ,5},{KW_LIKE,6}
 };

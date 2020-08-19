@@ -265,11 +265,12 @@ GET_SET_EQ_AND_:
 		auto& chain = files[op->p1]->andchains[op->p2];
 		int comp1FuncIdx = chain.functionTypes[0];
 		auto& lessfunc = uLessFuncs[comp1FuncIdx];
+		int chsize = chain.values.size();
+		dat& compval = stkt(chsize-1);
+		auto& uvec = chain.values[0];
 		int r = chain.indexes.size()-1;
 		int l = 0;
 		int m;
-		dat& compval = stkt(chain.values.size()-1);
-		auto& uvec = chain.values[0];
 		while (l < r){
 			m = (l+r)/2;
 			if (lessfunc(uvec[chain.indexes[m]], compval))
@@ -278,10 +279,19 @@ GET_SET_EQ_AND_:
 				r = m;
 		}
 		joinSetStack.push_front(bset<int64>());
-		while (l < chain.indexes.size() && uEqFuncs[comp1FuncIdx](uvec[chain.indexes[l]], compval)){
-			//TODO: check other values
-			joinSetStack.front().insert(chain.indexes[l++]);
+		while (l < chain.indexes.size()){
+			int valIdx = chain.indexes[l];
+			if (!uEqFuncs[comp1FuncIdx](uvec[valIdx], compval))
+				break;
+			for (int i=1; i<chsize; ++i){
+				if (!uComparers[chain.relops[i]][chain.functionTypes[i]](chain.values[i][valIdx], stkt(chsize-1-i))^chain.negations[i])
+					break;
+			}
+			joinSetStack.front().insert(chain.indexes[valIdx]);
+			++l;
 		}
+		for (int i=0; i<chsize; ++i)
+			pop();
 	}
 	++ip;
 	next();
