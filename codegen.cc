@@ -264,9 +264,9 @@ void cgen::genAndChainSet(unique_ptr<node> &n){
 		}else if (prednode->info[TOSCAN] == 2){
 			genExprAll(prednode->node1);
 		}
-		chain.functionTypes.push_back(vpFuncTypes[prednode->node1->datatype]);
-		chain.relops.push_back(vmachine::relopIdx[prednode->node1->tok1.id]);
-		chain.negations.push_back(prednode->node1->tok2.id);
+		chain.functionTypes.push_back(vpFuncTypes[prednode->datatype]);
+		chain.relops.push_back(vmachine::relopIdx[prednode->tok1.id]);
+		chain.negations.push_back(prednode->tok2.id);
 		nn = nn->node2.get();
 	}
 	int orEquals = 0;
