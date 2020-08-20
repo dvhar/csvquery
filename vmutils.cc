@@ -139,7 +139,6 @@ vmachine::~vmachine(){
 	for (auto &btree : bt_strings)
 		for (auto &tcs : btree)
 			free(tcs.s);
-	for (auto row : groupSorter) free(row);
 	int i = 0;
 	for (auto &vec : normalSortVals)
 		if (q->sortInfo[i++].second == T_STRING)
