@@ -14,7 +14,7 @@ regex cInt("^c\\d+$");
 regex posInt("^\\d+$");
 regex colNum("^c?\\d+$");
 
-map<int, string> enumMap = {
+map<int, string_view> enumMap = {
 	{EOS ,           "EOS"},
 	{ERROR_STATE ,         "ERROR_STATE"},
 	{FINAL ,         "FINAL"},
@@ -66,7 +66,7 @@ map<int, string> enumMap = {
 	{STATE_MBSPECIAL,"STATE_MBSPECIAL"},
 	{STATE_WORD ,    "STATE_WORD"}
 };
-map<int, string> treeMap = {
+map<int, string_view> treeMap = {
 	{N_QUERY,      "N_QUERY"},
 	{N_SELECT,     "N_SELECT"},
 	{N_PRESELECT,  "N_PRESELECT"},

@@ -471,7 +471,7 @@ static typer typeInnerNodes(querySpecs &q, unique_ptr<node> &n){
 		innerType = typeFunctionInnerNodes(q,n);
 		break;
 	default:
-		error("missed a node type: "+treeMap[n->label]);
+		error(st("missed a node type: ",treeMap[n->label]));
 	}
 	n->datatype = innerType.type;
 	//cerr << "type node " << treeMap[n->label] << " as " << n->datatype << endl;

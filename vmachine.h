@@ -175,21 +175,17 @@ class vmachine {
 	vector<int> sortIdxs;
 	vector<vector<datunion>> normalSortVals;
 	forward_list<bset<int64>> joinSetStack;
-	forward_list<char*> groupSortVars;
+	forward_list<unique_ptr<char>> groupSortVars;
 	unique_ptr<rowgroup> groupTree;
-	//valpos comparers
-	static const function<bool (const valpos&, const dat&)> vpLessFuncs[3];
-	static const function<bool (const valpos&, const dat&)> vpGrtFuncs[3];
-	static const function<bool (const valpos&, const dat&)> vpEqFuncs[3];
 	//datunion comparers
-	static const function<bool (const datunion&, const dat&)> uLessFuncs[3];
-	static const function<bool (const datunion&, const dat&)> uGrtFuncs[3];
-	static const function<bool (const datunion&, const dat&)> uLessEqFuncs[3];
-	static const function<bool (const datunion&, const dat&)> uGrtEqFuncs[3];
-	static const function<bool (const datunion&, const dat&)> uEqFuncs[3];
-	static const function<bool (const datunion&, const dat&)> uNeqFuncs[3];
-	static const function<bool (const datunion&, const dat&)> uRxpFuncs[3];
-	static const function<bool (const datunion&, const dat&)>* uComparers[7];
+	static const function<bool (const datunion, const datunion&)> uLessFuncs[3];
+	static const function<bool (const datunion, const datunion&)> uGrtFuncs[3];
+	static const function<bool (const datunion, const datunion&)> uLessEqFuncs[3];
+	static const function<bool (const datunion, const datunion&)> uGrtEqFuncs[3];
+	static const function<bool (const datunion, const datunion&)> uEqFuncs[3];
+	static const function<bool (const datunion, const datunion&)> uNeqFuncs[3];
+	static const function<bool (const datunion, const datunion&)> uRxpFuncs[3];
+	static const function<bool (const datunion, const datunion&)>* uComparers[7];
 	public:
 	static map<int,int> relopIdx;
 	vector<bset<int64>> bt_nums;

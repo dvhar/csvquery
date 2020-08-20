@@ -4,6 +4,7 @@
 #include <map>
 #include <set>
 #include <iostream>
+#include <string_view>
 #include <thread>
 #include <iomanip>
 #include <fstream>
@@ -145,8 +146,8 @@ const int O_NH = 2;
 const int O_H = 4;
 const int O_S = 8;
 
-extern map<int, string> enumMap;
-extern map<int, string> treeMap;
+extern map<int, string_view> enumMap;
+extern map<int, string_view> treeMap;
 extern map<string, int> keywordMap;
 extern map<string, int> functionMap;
 extern map<string, int> joinMap;

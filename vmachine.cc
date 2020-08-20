@@ -136,7 +136,7 @@ PUTVAR2_:
 
 HOLDVAR_:
 	if (ismal(stkb(op->p1))){
-		groupSortVars.emplace_front(stkb(op->p1).u.s);
+		groupSortVars.emplace_front(unique_ptr<char>(stkb(op->p1).u.s));
 		disown(stkb(op->p1));
 	}
 	++ip;
@@ -275,7 +275,7 @@ GET_SET_EQ_AND_:
 		int m;
 		while (l < r){
 			m = (l+r)/2;
-			if (lessfunc(uvec[chain.indexes[m]], compval)){
+			if (lessfunc(uvec[chain.indexes[m]], compval.u)){
 				l = m + 1;
 			}else{
 				r = m;
@@ -284,10 +284,10 @@ GET_SET_EQ_AND_:
 		joinSetStack.push_front(bset<int64>());
 		while (l < chain.indexes.size()){
 			int valIdx = chain.indexes[l];
-			if (!uEqFuncs[comp1Functype](uvec[valIdx], compval))
+			if (!uEqFuncs[comp1Functype](uvec[valIdx], compval.u))
 				break;
 			for (int i=1; i<chsize; ++i){
-				if (!uComparers[chain.relops[i]][chain.functionTypes[i]](chain.values[i][valIdx], stkt(chsize-1-i))^chain.negations[i]){
+				if (!uComparers[chain.relops[i]][chain.functionTypes[i]](chain.values[i][valIdx], stkt(chsize-1-i).u)^chain.negations[i]){
 					goto skipjoin;
 				}
 			}
@@ -301,23 +301,23 @@ GET_SET_EQ_AND_:
 	next();
 GET_SET_GRT_:
 	{
-		auto& grtfunc = vpGrtFuncs[op->p3];
+		auto& grtfunc = uGrtFuncs[op->p3];
 		auto& vpvector = files[op->p1]->joinValpos[op->p2];
 		int r = vpvector.size()-1;
 		int l = 0;
 		int m;
 		while (l < r){
 			m = (l+r)/2;
-			if (grtfunc(vpvector[m], stk1))
+			if (grtfunc(vpvector[m].val, stk1.u))
 				r = m;
 			else
 				l = m + 1;
 		}
 		--r;
 		joinSetStack.push_front(bset<int64>());
-		if (vpEqFuncs[op->p3](vpvector[r], stk1)){
+		if (uEqFuncs[op->p3](vpvector[r].val, stk1.u)){
 			if (stk0.u.i) // >=
-				for (m = r; m >= 0 && vpEqFuncs[op->p3](vpvector[m], stk1); --m)
+				for (m = r; m >= 0 && uEqFuncs[op->p3](vpvector[m].val, stk1.u); --m)
 					joinSetStack.front().insert(vpvector[m].pos);
 			++r;
 		}
@@ -330,22 +330,22 @@ GET_SET_GRT_:
 	next();
 GET_SET_LESS_:
 	{
-		auto& lessfunc = vpLessFuncs[op->p3];
+		auto& lessfunc = uLessFuncs[op->p3];
 		auto& vpvector = files[op->p1]->joinValpos[op->p2];
 		int r = vpvector.size()-1;
 		int l = 0;
 		int m;
 		while (l < r){
 			m = (l+r)/2;
-			if (lessfunc(vpvector[m], stk1))
+			if (lessfunc(vpvector[m].val, stk1.u))
 				l = m + 1;
 			else
 				r = m;
 		}
 		joinSetStack.push_front(bset<int64>());
-		if (vpEqFuncs[op->p3](vpvector[l], stk1)){
+		if (uEqFuncs[op->p3](vpvector[l].val, stk1.u)){
 			if (stk0.u.i) // <=
-				for (m = l; m < vpvector.size() && vpEqFuncs[op->p3](vpvector[m], stk1); ++m)
+				for (m = l; m < vpvector.size() && uEqFuncs[op->p3](vpvector[m].val, stk1.u); ++m)
 					joinSetStack.front().insert(vpvector[m].pos);
 			--l;
 		}
@@ -358,20 +358,20 @@ GET_SET_LESS_:
 	next();
 GET_SET_EQ_:
 	{
-		auto& lessfunc = vpLessFuncs[op->p3];
+		auto& lessfunc = uLessFuncs[op->p3];
 		auto& vpvector = files[op->p1]->joinValpos[op->p2];
 		int r = vpvector.size()-1;
 		int l = 0;
 		int m;
 		while (l < r){
 			m = (l+r)/2;
-			if (lessfunc(vpvector[m], stk0))
+			if (lessfunc(vpvector[m].val, stk0.u))
 				l = m + 1;
 			else
 				r = m;
 		}
 		joinSetStack.push_front(bset<int64>());
-		while (l < vpvector.size() && vpEqFuncs[op->p3](vpvector[l], stk0))
+		while (l < vpvector.size() && uEqFuncs[op->p3](vpvector[l].val, stk0.u))
 			joinSetStack.front().insert(vpvector[l++].pos);
 	}
 	pop();
