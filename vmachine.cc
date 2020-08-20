@@ -505,22 +505,22 @@ GSORT_:
 		int sortVal = op->p1;
 		int prevVal = sortVal - 1;
 		int start = 0, end = 0, last = groupSorter.size()-1;
-		function<bool (const dat*,const dat*)> groupComparers[] = {
-			[&](const dat*a, const dat*b) { return a[sortVal].u.i > b[sortVal].u.i; },
-			[&](const dat*a, const dat*b) { return a[sortVal].u.f > b[sortVal].u.f; },
-			[&](const dat*a, const dat*b) { return strcmp(a[sortVal].u.s, b[sortVal].u.s) > 0; },
-			[&](const dat*a, const dat*b) { return a[sortVal].u.i < b[sortVal].u.i; },
-			[&](const dat*a, const dat*b) { return a[sortVal].u.f < b[sortVal].u.f; },
-			[&](const dat*a, const dat*b) { return strcmp(a[sortVal].u.s, b[sortVal].u.s) < 0; },
+		function<bool (const unique_ptr<dat>& ,const unique_ptr<dat>& )> groupComparers[] = {
+			[&](const unique_ptr<dat>& a, const unique_ptr<dat>& b) { return a.get()[sortVal].u.i > b.get()[sortVal].u.i; },
+			[&](const unique_ptr<dat>& a, const unique_ptr<dat>& b) { return a.get()[sortVal].u.f > b.get()[sortVal].u.f; },
+			[&](const unique_ptr<dat>& a, const unique_ptr<dat>& b) { return strcmp(a.get()[sortVal].u.s, b.get()[sortVal].u.s) > 0; },
+			[&](const unique_ptr<dat>& a, const unique_ptr<dat>& b) { return a.get()[sortVal].u.i < b.get()[sortVal].u.i; },
+			[&](const unique_ptr<dat>& a, const unique_ptr<dat>& b) { return a.get()[sortVal].u.f < b.get()[sortVal].u.f; },
+			[&](const unique_ptr<dat>& a, const unique_ptr<dat>& b) { return strcmp(a.get()[sortVal].u.s, b.get()[sortVal].u.s) < 0; },
 		};
 		auto backcheck = [&](int i) -> bool {
 			int backidx = 0;
 			while (i > 0){
 				if (q->sortInfo[i-1].second == T_STRING){
-					if (strcmp(groupSorter[start][prevVal-backidx].u.s, groupSorter[end+1][prevVal-backidx].u.s))
+					if (strcmp(groupSorter[start].get()[prevVal-backidx].u.s, groupSorter[end+1].get()[prevVal-backidx].u.s))
 						return false;
 				} else {
-					if (groupSorter[start][prevVal-backidx].u.i != groupSorter[end+1][prevVal-backidx].u.i)
+					if (groupSorter[start].get()[prevVal-backidx].u.i != groupSorter[end+1].get()[prevVal-backidx].u.i)
 						return false;
 				}
 				--i; ++backidx;
@@ -1205,7 +1205,7 @@ NEXTVEC_:
 ADD_GROUPSORT_ROW_:
 	torow = (dat*) malloc(sortgroupsize * sizeof(dat));
 	initarr(torow, sortgroupsize, (dat{{0},NIL}));
-	groupSorter.push_back(torow);
+	groupSorter.emplace_back(unique_ptr<dat>(torow));
 	++ip;
 	next();
 FREE_MIDROW_:
@@ -1219,7 +1219,7 @@ READ_NEXT_GROUP_:
 	if (stk0.u.i >= groupSorter.size()){
 		ip = op->p1;
 	} else {
-		torow = groupSorter[stk0.u.i];
+		torow = groupSorter[stk0.u.i].get();
 		++stk0.u.i;
 		++ip;
 	}
