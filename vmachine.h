@@ -171,7 +171,7 @@ class vmachine {
 	vector<dat> destrow;
 	vector<dat> onegroup;
 	vector<dat> stack;
-	vector<unique_ptr<dat>> groupSorter;
+	vector<unique_ptr<dat[]>> groupSorter;
 	vector<int> sortIdxs;
 	vector<vector<datunion>> normalSortVals;
 	forward_list<bset<int64>> joinSetStack;
