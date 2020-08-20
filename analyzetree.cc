@@ -498,7 +498,7 @@ void analyzeTree(querySpecs &q){
 		an.setNodePhase(q.tree, 1);
 	}
 	if (q.joining){
-		an.findJoinAndChains(q.tree->node3->node1, 0);
+		an.findJoinAndChains(q.tree->node3->node1, 1);
 		an.findIndexableJoinValues(q.tree->node3->node1, 0);
 	}
 }

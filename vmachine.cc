@@ -241,10 +241,12 @@ SAVEANDCHAIN_:
 	{
 		auto& file = files[op->p2];
 		auto& chain = file->andchains[op->p1];
-		int size = chain.functionTypes.size();
+		int size = chain.values.size();
 		chain.positiions.push_back(file->pos);
-		for (int i=0; i<size; ++i)
+		for (int i=0; i<size; ++i){
 			chain.values[i].push_back(stkt(size-i-1).heap().u);
+		}
+		stacktop -= size;
 	}
 	++ip;
 	next();
@@ -263,8 +265,8 @@ SAVEVALPOS_:
 GET_SET_EQ_AND_:
 	{
 		auto& chain = files[op->p1]->andchains[op->p2];
-		int comp1FuncIdx = chain.functionTypes[0];
-		auto& lessfunc = uLessFuncs[comp1FuncIdx];
+		int comp1Functype = chain.functionTypes[0];
+		auto& lessfunc = uLessFuncs[comp1Functype];
 		int chsize = chain.values.size();
 		dat& compval = stkt(chsize-1);
 		auto& uvec = chain.values[0];
@@ -273,25 +275,27 @@ GET_SET_EQ_AND_:
 		int m;
 		while (l < r){
 			m = (l+r)/2;
-			if (lessfunc(uvec[chain.indexes[m]], compval))
+			if (lessfunc(uvec[chain.indexes[m]], compval)){
 				l = m + 1;
-			else
+			}else{
 				r = m;
+			}
 		}
 		joinSetStack.push_front(bset<int64>());
 		while (l < chain.indexes.size()){
 			int valIdx = chain.indexes[l];
-			if (!uEqFuncs[comp1FuncIdx](uvec[valIdx], compval))
+			if (!uEqFuncs[comp1Functype](uvec[valIdx], compval))
 				break;
 			for (int i=1; i<chsize; ++i){
-				if (!uComparers[chain.relops[i]][chain.functionTypes[i]](chain.values[i][valIdx], stkt(chsize-1-i))^chain.negations[i])
-					break;
+				if (!uComparers[chain.relops[i]][chain.functionTypes[i]](chain.values[i][valIdx], stkt(chsize-1-i))^chain.negations[i]){
+					goto skipjoin;
+				}
 			}
-			joinSetStack.front().insert(chain.indexes[valIdx]);
+			joinSetStack.front().insert(chain.positiions[valIdx]);
+			skipjoin:;
 			++l;
 		}
-		for (int i=0; i<chsize; ++i)
-			pop();
+		stacktop -= chsize;
 	}
 	++ip;
 	next();
@@ -425,9 +429,9 @@ SORT_ANDCHAIN_:
 		chain.indexes.resize(chain.positiions.size());
 		iota(begin(chain.indexes), end(chain.indexes), 0);
 		function<bool (const int,const int)> uComparers[] = {
-			[&](const int a, const int b) { return chain.values[0][a].i > chain.values[0][b].i; },
-			[&](const int a, const int b) { return chain.values[0][a].f > chain.values[0][b].f; },
-			[&](const int a, const int b) { return strcmp(chain.values[0][a].s, chain.values[0][b].s) > 0; },
+			[&](const int a, const int b) { return chain.values[0][a].i < chain.values[0][b].i; },
+			[&](const int a, const int b) { return chain.values[0][a].f < chain.values[0][b].f; },
+			[&](const int a, const int b) { return strcmp(chain.values[0][a].s, chain.values[0][b].s) < 0; },
 		};
 		sort(parallel() chain.indexes.begin(), chain.indexes.end(), uComparers[chain.functionTypes[0]]);
 	}

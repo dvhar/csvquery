@@ -152,7 +152,7 @@ class stddev {
 			return {{0},NIL};
 		avg /= count;
 		for (auto n: numbers)
-			sum += pow((n-avg),2.0);
+			sum += (n-avg)*(n-avg);
 		numbers.clear();
 		return {{f:pow(sum/(count-sample),0.5)},T_FLOAT};
 	}
@@ -206,9 +206,9 @@ class rowgroup {
 			unsigned int rowOrGroup : 2;
 			unsigned int mallocedKey : 1;
 			bool freed : 1;
-			int distinctNSetIdx : 23;
-			int distinctSSetIdx : 23;
-			int rowsize : 14;
+			int distinctNSetIdx : 25;
+			int distinctSSetIdx : 25;
+			int rowsize : 10;
 		} meta;
 		union { dat* vecp; map<dat, rowgroup>* mapp; } data;
 		dat* getVec(){ return data.vecp; };
