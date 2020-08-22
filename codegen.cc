@@ -75,7 +75,7 @@ void cgen::addop(int code, int p1, int p2, int p3){
 	debugAddop
 	v.push_back({code, p1, p2, p3});
 }
-static int vpFuncTypes[]  = { 0,0,1,0,0,2 };
+static const int funcTypes[]  = { 0,0,1,0,0,2 };
 
 //for debugging
 static int ident = 0;
@@ -264,7 +264,7 @@ void cgen::genAndChainSet(unique_ptr<node> &n){
 		}else if (prednode->info[TOSCAN] == 2){
 			genExprAll(prednode->node1);
 		}
-		chain.functionTypes.push_back(vpFuncTypes[prednode->datatype]);
+		chain.functionTypes.push_back(funcTypes[prednode->datatype]);
 		chain.relops.push_back(vmachine::relopIdx[prednode->tok1.id]);
 		chain.negations.push_back(prednode->tok2.id);
 		nn = nn->node2.get();
@@ -326,19 +326,19 @@ void cgen::genJoinCompare(unique_ptr<node> &n){
 	int orEquals = 0, vpidx = n->info[VALPOSIDX];
 	switch (n->tok1.id){
 		case SP_EQ:
-			addop(GET_SET_EQ, joinFileIdx, vpidx, vpFuncTypes[valposTypes[vpidx]]);
+			addop(GET_SET_EQ, joinFileIdx, vpidx, funcTypes[valposTypes[vpidx]]);
 			break;
 		case SP_LESSEQ:
 			orEquals = 1;
 		case SP_LESS:
 			addop(PUSH_N, orEquals);
-			addop(GET_SET_LESS, joinFileIdx, vpidx, vpFuncTypes[valposTypes[vpidx]]);
+			addop(GET_SET_LESS, joinFileIdx, vpidx, funcTypes[valposTypes[vpidx]]);
 			break;
 		case SP_GREATEQ:
 			orEquals = 1;
 		case SP_GREAT:
 			addop(PUSH_N, orEquals);
-			addop(GET_SET_GRT, joinFileIdx, vpidx, vpFuncTypes[valposTypes[vpidx]]);
+			addop(GET_SET_GRT, joinFileIdx, vpidx, funcTypes[valposTypes[vpidx]]);
 			break;
 		default:
 			error("joins with '"+n->tok1.val+"' operator not implemented");
@@ -364,7 +364,7 @@ void cgen::genScanJoinFiles(unique_ptr<node> &n){
 		jumps.setPlace(afterfile, v.size());
 		genSortAnds(joinNode->node1);
 		for (int i=0; i<valposTypes.size(); i++)
-			addop(SORTVALPOS, f->fileno, i, vpFuncTypes[valposTypes[i]]);
+			addop(SORTVALPOS, f->fileno, i, funcTypes[valposTypes[i]]);
 	}
 
 }

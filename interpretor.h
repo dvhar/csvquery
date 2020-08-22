@@ -31,12 +31,10 @@
 #define chacha struct chacha20_context
 #define int64 long long
 #define dur_t long long
-#define byte unsigned char
 #define ft boost::format
 #define error(A) throw invalid_argument(A)
 #define SMALLEST numeric_limits<int64>::min()
 using namespace std;
-
 
 
 enum nodetypes { N_QUERY, N_PRESELECT, N_WITH, N_VARS, N_SELECT, N_SELECTIONS, N_FROM, N_AFTERFROM, N_JOINCHAIN, N_JOIN, N_WHERE, N_HAVING, N_ORDER, N_EXPRADD, N_EXPRMULT, N_EXPRNEG, N_EXPRCASE, N_CPREDLIST, N_CPRED, N_CWEXPRLIST, N_CWEXPR, N_PREDICATES, N_PREDCOMP, N_VALUE, N_FUNCTION, N_GROUPBY, N_EXPRESSIONS, N_DEXPRESSIONS, N_TYPECONV };
@@ -45,10 +43,9 @@ enum valTypes { LITERAL, COLUMN, VARIABLE, FUNCTION };
 enum varFilters { WHERE_FILTER=1, DISTINCT_FILTER=2, ORDER_FILTER=4, GROUP_FILTER=8, HAVING_FILTER=16, JCOMP_FILTER=32, JSCAN_FILTER=64, SELECT_FILTER=128 };
 enum varScopes { V_READ1_SCOPE, V_READ2_SCOPE, V_GROUP_SCOPE, V_SCAN_SCOPE };
 
-
-const byte RMAL = 8; //regex needs regfree() (dataholder vector only)
-const byte MAL = 16; //malloced and responsible for freeing c string
-const byte NIL = 32;
+const int RMAL = 8; //regex needs regfree() (dataholder vector only)
+const int MAL = 16; //malloced and responsible for freeing c string
+const int NIL = 32;
 
 const int T_NULL = 0;
 const int T_INT = 1;
@@ -148,10 +145,10 @@ const int O_S = 8;
 
 extern map<int, string_view> enumMap;
 extern map<int, string_view> treeMap;
-extern map<string, int> keywordMap;
-extern map<string, int> functionMap;
-extern map<string, int> joinMap;
-extern map<string, int> specialMap;
+extern map<string_view, int> keywordMap;
+extern map<string_view, int> functionMap;
+extern map<string_view, int> joinMap;
+extern map<string_view, int> specialMap;
 
 extern regex_t leadingZeroString;
 extern regex_t durationPattern;
@@ -261,11 +258,11 @@ class fileReader {
 	inline void getField();
 	inline bool checkWidth();
 	void inferTypes();
-	int getColIdx(string);
+	int getColIdx(string&);
 	bool readline();
 	void numlines();
 	bool readlineat(int64);
-	fileReader(string);
+	fileReader(string&);
 	~fileReader();
 };
 

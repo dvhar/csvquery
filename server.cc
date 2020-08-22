@@ -9,6 +9,6 @@ void runServer(){
 	HttpServer server;
 	server.config.port = 8060;
 	//#include "embed_site.hpp"
-	cerr << "starting http server\n";
+	cerr << "starting http server\n"sv;
 	server.start();
 }
