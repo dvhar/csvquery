@@ -6,11 +6,11 @@
 #include "interpretor.h"
 
 
-fileReader::fileReader(string fname){
+fileReader::fileReader(string& fname){
 	if (!filesystem::exists(fname)){
 		if (fname.length() <= 4 
-				|| fname.compare(fname.length() - 4, 4, ".csv") != 0
-				|| fname.compare(fname.length() - 4, 4, ".CSV") != 0){
+				|| fname.compare(fname.length() - 4, 4, ".csv"sv) != 0
+				|| fname.compare(fname.length() - 4, 4, ".CSV"sv) != 0){
 			fname += ".csv";
 			if (!filesystem::exists(fname)){
 				error("Could not open file "+fname);
@@ -36,7 +36,11 @@ fileReader::~fileReader(){
 				free(vp.val.s);
 		i++;
 	}
-
+	for (auto &a : andchains)
+		for(int i=0; i<a.values.size(); ++i)
+			if (a.functionTypes[i] == 2) //funcTypes[T_STRING]
+				for (auto d: a.values[i])
+					free(d.s);
 }
 bool fileReader::readlineat(int64 position){
 	if (inmemory){
@@ -195,7 +199,7 @@ void fileReader::inferTypes() {
 		fill(entriesVec.begin(), entriesVec.end(), csvEntry{&blank,&blank});
 }
 
-int fileReader::getColIdx(string colname){
+int fileReader::getColIdx(string& colname){
 	if (noheader) return -1;
 	for (int i = 0; i < colnames.size(); ++i)
 		if (colnames[i] == colname)
@@ -249,9 +253,9 @@ void openfiles(querySpecs &q, unique_ptr<node> &n){
 			fr->noheader = false;
 		if (n->tok5.id){
 			string s = n->tok5.lower();
-			if (s == "nh" || s == "noheader")
+			if (s == "nh"sv || s == "noheader"sv)
 				fr->noheader = true;
-			if (s == "h" || s == "header")
+			if (s == "h"sv || s == "header"sv)
 				fr->noheader = false;
 		}
 		++q.numFiles;

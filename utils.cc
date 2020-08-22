@@ -16,7 +16,7 @@ regex colNum("^c?\\d+$");
 
 map<int, string_view> enumMap = {
 	{EOS ,           "EOS"},
-	{ERROR_STATE ,         "ERROR_STATE"},
+	{ERROR_STATE ,   "ERROR_STATE"},
 	{FINAL ,         "FINAL"},
 	{KEYBIT ,        "KEYBIT"},
 	{LOGOP ,         "LOGOP"},
@@ -97,7 +97,7 @@ map<int, string_view> treeMap = {
 	{N_VARS,       "N_VARS"},
 	{N_TYPECONV,   "N_TYPECONV"}
 };
-map<string, int> keywordMap = {
+map<string_view, int> keywordMap = {
 	{"and" ,       KW_AND},
 	{"or" ,        KW_OR},
 	{"xor" ,       KW_XOR},
@@ -124,7 +124,7 @@ map<string, int> keywordMap = {
 };
 //functions are normal words to avoid taking up too many words
 //use map when parsing not scanning
-map<string, int> functionMap = {
+map<string_view, int> functionMap = {
 	{"inc" ,      FN_INC},
 	{"sum" ,      FN_SUM},
 	{"avg" ,      FN_AVG},
@@ -149,15 +149,15 @@ map<string, int> functionMap = {
 	{"encrypt" ,  FN_ENCRYPT},
 	{"decrypt" ,  FN_DECRYPT}
 };
-map<string, int> joinMap = {
+map<string_view, int> joinMap = {
 	{"inner" ,  KW_INNER},
 	{"outer" ,  KW_OUTER},
 	{"left" ,   KW_LEFT},
 	{"join" ,   KW_JOIN},
-	{"bjoin" ,   KW_JOIN},
-	{"sjoin" ,   KW_JOIN}
+	{"bjoin" ,  KW_JOIN},
+	{"sjoin" ,  KW_JOIN}
 };
-map<string, int> specialMap = {
+map<string_view, int> specialMap = {
 	{"=" ,  SP_EQ},
 	{"!" ,  SP_NEGATE},
 	{"<>" , SP_NOEQ},
@@ -238,7 +238,6 @@ void printTree(unique_ptr<node> &n, int ident){
 	printTree(n->node4,ident);
 }
 
-//same but lowercase
 int slcomp(const char* s1, const char*s2){
 	while (*s1 && tolower(*s1)==*s2) { ++s1; ++s2; }
 	return *s1 - *s2;
@@ -332,11 +331,10 @@ int getVarType(string lkup, querySpecs *q){
 }
 
 int getFileNo(string s, querySpecs *q){
-	for (int i=0; i<q->numFiles; ++i)
-		if (q->files[st("_f", i)]->id == q->files[s]->id)
-			return i;
-	error("file number not founde");
-	return 0;
+	auto& f = q->files[s];
+	if (f == nullptr)
+		error("file number not founde");
+	return f->fileno;
 }
 
 //use static buf if null arg, otherwise make sure size 24

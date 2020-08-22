@@ -58,9 +58,9 @@ void analyzer::varUsedInFilter(unique_ptr<node> &n){
 		break;
 	case N_SELECTIONS:
 		t1 = n->tok1.lower();
-		if (t1 == "hidden" || t1 == "distinct"){
+		if (t1 == "hidden"sv || t1 == "distinct"sv){
 			setSubtreeVarFilter(n->node1, DISTINCT_FILTER);
-			if (t1 != "hidden")
+			if (t1 != "hidden"sv)
 				setSubtreeVarFilter(n->node1, SELECT_FILTER);
 		} else {
 			setSubtreeVarFilter(n->node1, SELECT_FILTER);
@@ -103,8 +103,8 @@ void analyzer::recordResultColumns(unique_ptr<node> &n){
 	string t1 = n->tok1.lower();
 	switch (n->label){
 	case N_SELECTIONS:
-		if (t1 == "hidden") {
-		} else if (t1 == "*"){
+		if (t1 == "hidden"sv) {
+		} else if (t1 == "*"sv){
 			selectAll();
 		} else {
 			n->tok4.id = q->colspec.count++;
@@ -139,7 +139,7 @@ bool analyzer::findAgrregates(unique_ptr<node> &n){
 	switch (n->label){
 	case N_FUNCTION:
 		if ((n->tok1.id & AGG_BIT) != 0){
-			if (n->tok3.lower() == "distinct"){
+			if (n->tok3.lower() == "distinct"sv){
 				if (n->node1->datatype == T_STRING){
 					n->tok4.id = q->distinctSFuncs++;
 				} else {

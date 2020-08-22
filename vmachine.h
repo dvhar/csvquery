@@ -270,7 +270,7 @@ class varScoper {
 		bool checkDuplicates(int);
 		bool neededHere(int, int, int);
 };
-extern map<int, string> opMap;
+extern map<int, string_view> opMap;
 
 #define has(A,B) ((A)==(B) || ((A) & (B)))
 #define incSelectCount()  if has(n->phase, agg_phase) select_count++;
@@ -280,7 +280,6 @@ extern map<int, string> opMap;
 #define addop3(A,B,C,D) if has(n->phase, agg_phase) addop(A, B, C, D)
 #define debugAddop cerr << "addop: " << opMap[code] << endl;
 //#define debugAddop
-extern map<int, string> opMap;
 
 void strplus(dat &s1, dat &s2);
 void trav(rowgroup &r);

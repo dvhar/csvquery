@@ -41,7 +41,6 @@ void vmachine::run(){
 	unsigned int sizeTemp;
 
 	//vars for vm operations
-	static int funcTypes[]  = { 0,0,1,0,0,2 };
 	int numPrinted = 0;
 	dat* stacktop = stack.data();
 	dat* stackbot = stack.data();
