@@ -702,8 +702,8 @@ FMOD_:
 IEQ_:
 	iTemp1 = isnull(stk0);
 	iTemp2 = isnull(stk1);
-	if (iTemp1 ^ iTemp2) stkt(op->p1).u.p = false;
-	else if (iTemp1 & iTemp2) stkt(op->p1).u.p = true;
+	if (iTemp1 ^ iTemp2) stkt(op->p1).u.p = false^op->p2;
+	else if (iTemp1 & iTemp2) stkt(op->p1).u.p = true^op->p2;
 	else stkt(op->p1).u.p = (stk1.u.i == stk0.u.i)^op->p2;
 	stacktop -= op->p1;
 	++ip;
@@ -711,8 +711,8 @@ IEQ_:
 FEQ_:
 	iTemp1 = isnull(stk0);
 	iTemp2 = isnull(stk1);
-	if (iTemp1 ^ iTemp2) stkt(op->p1).u.p = false;
-	else if (iTemp1 & iTemp2) stkt(op->p1).u.p = true;
+	if (iTemp1 ^ iTemp2) stkt(op->p1).u.p = false^op->p2;
+	else if (iTemp1 & iTemp2) stkt(op->p1).u.p = true^op->p2;
 	else stkt(op->p1).u.p = (stk1.u.f == stk0.u.f)^op->p2;
 	stacktop -= op->p1;
 	++ip;
@@ -736,13 +736,13 @@ TEQ_:
 	++ip;
 	next();
 ILEQ_:
-	if (isnull(stk0) || isnull(stk1)) stkt(op->p1).u.p = false;
+	if (isnull(stk0) || isnull(stk1)) stkt(op->p1).u.p = false^op->p2;
 	else stkt(op->p1).u.p = (stk1.u.i <= stk0.u.i)^op->p2;
 	stacktop -= op->p1;
 	++ip;
 	next();
 FLEQ_:
-	if (isnull(stk0) || isnull(stk1)) stkt(op->p1).u.p = false;
+	if (isnull(stk0) || isnull(stk1)) stkt(op->p1).u.p = false^op->p2;
 	else stkt(op->p1).u.p = (stk1.u.f <= stk0.u.f)^op->p2;
 	stacktop -= op->p1;
 	++ip;
@@ -750,7 +750,7 @@ FLEQ_:
 TLEQ_:
 	if (isnull(stk0) || isnull(stk1)) {
 		freedat(stkt(op->p1));
-		stkt(op->p1).u.p = false;
+		stkt(op->p1).u.p = false^op->p2;
 	} else {
 		boolTemp = (strcmp(stk1.u.s, stk0.u.s) <= 0)^op->p2;
 		freedat(stk0);
@@ -761,13 +761,13 @@ TLEQ_:
 	++ip;
 	next();
 ILT_:
-	if (isnull(stk0) || isnull(stk1)) stkt(op->p1).u.p = false;
+	if (isnull(stk0) || isnull(stk1)) stkt(op->p1).u.p = false^op->p2;
 	else stkt(op->p1).u.p = (stk1.u.i < stk0.u.i)^op->p2;
 	stacktop -= op->p1;
 	++ip;
 	next();
 FLT_:
-	if (isnull(stk0) || isnull(stk1)) stkt(op->p1).u.p = false;
+	if (isnull(stk0) || isnull(stk1)) stkt(op->p1).u.p = false^op->p2;
 	else stkt(op->p1).u.p = (stk1.u.f < stk0.u.f)^op->p2;
 	stacktop -= op->p1;
 	++ip;
@@ -775,7 +775,7 @@ FLT_:
 TLT_:
 	if (isnull(stk0) || isnull(stk1)){
 		freedat(stkt(op->p1));
-		stkt(op->p1).u.p = false;
+		stkt(op->p1).u.p = false^op->p2;
 	} else {
 		boolTemp = (strcmp(stk1.u.s, stk0.u.s) < 0)^op->p2;
 		freedat(stk0);
