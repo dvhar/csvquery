@@ -257,9 +257,11 @@ void cgen::genAndChainSet(unique_ptr<node> &n){
 	auto& chain = q->getFileReader(fi)->andchains[ci];
 	auto nn = n.get();
 	for (int i=0; i<cz; ++i){
-		//TODO: compile like regex and push to stack
 		auto& prednode = nn->node1;
-		if (prednode->info[TOSCAN] == 1){
+		if (prednode->tok1.id == KW_LIKE){
+			addop(LDLIT, q->dataholder.size());
+			q->dataholder.push_back(prepareLike(prednode));
+		} else if (prednode->info[TOSCAN] == 1){
 			genExprAll(prednode->node2);
 		}else if (prednode->info[TOSCAN] == 2){
 			genExprAll(prednode->node1);
@@ -812,7 +814,6 @@ void cgen::genPredicates(unique_ptr<node> &n){
 void cgen::genPredCompare(unique_ptr<node> &n){
 	if (n == nullptr) return;
 	e("gen pred compare");
-	dat reg;
 	int negation = n->tok2.id;
 	int endcomp, greaterThanExpr3;
 	genExprAll(n->node1);
@@ -866,13 +867,7 @@ void cgen::genPredCompare(unique_ptr<node> &n){
 		break;
 	case KW_LIKE:
 		addop2(LIKE, q->dataholder.size(), negation);
-		reg.u.r = new regex_t;
-		reg.b = RMAL;
-		boost::replace_all(n->tok3.val, "_", ".");
-		boost::replace_all(n->tok3.val, "%", ".*");
-		if (regcomp(reg.u.r, ("^"+n->tok3.val+"$").c_str(), REG_EXTENDED|REG_ICASE))
-			error("Could not parse 'like' pattern");
-		q->dataholder.push_back(reg);
+		q->dataholder.push_back(prepareLike(n));
 		break;
 	}
 }

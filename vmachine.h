@@ -171,11 +171,11 @@ class vmachine {
 	vector<dat> destrow;
 	vector<dat> onegroup;
 	vector<dat> stack;
-	vector<unique_ptr<dat[]>> groupSorter;
+	vector<unique_ptr<dat[], freeC>> groupSorter;
 	vector<int> sortIdxs;
 	vector<vector<datunion>> normalSortVals;
 	forward_list<bset<int64>> joinSetStack;
-	forward_list<unique_ptr<char>> groupSortVars;
+	forward_list<unique_ptr<char, freeC>> groupSortVars;
 	unique_ptr<rowgroup> groupTree;
 	//datunion comparers
 	static const function<bool (const datunion, const datunion&)> uLessFuncs[3];
@@ -226,7 +226,7 @@ class rowgroup {
 			if (!data.vecp) {
 				meta.rowsize = v->q->midcount;
 				meta.rowOrGroup = 1;
-				data.vecp = (dat*) malloc(meta.rowsize * sizeof(dat));
+				data.vecp = (dat*) malloc(meta.rowsize * sizeof(dat)); //TODO: implement nil with 0 type so no bits needed
 				initarr(data.vecp, meta.rowsize, (dat{{0},NIL}));
 				if (v->q->distinctNFuncs){
 					meta.distinctNSetIdx = v->bt_nums.size();
@@ -246,7 +246,7 @@ class rowgroup {
 			if (meta.rowOrGroup == 1){
 				if (!meta.freed){
 					freearr(data.vecp, meta.rowsize);
-					delete getVec();
+					free(getVec());
 				}
 			} else if (meta.rowOrGroup == 2) {
 				if (meta.mallocedKey)
@@ -284,5 +284,6 @@ extern map<int, string_view> opMap;
 void strplus(dat &s1, dat &s2);
 void trav(rowgroup &r);
 int getSortComparer(querySpecs *q, int i);
+dat prepareLike(unique_ptr<node> &n);
 
 #endif
