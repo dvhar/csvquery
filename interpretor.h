@@ -437,6 +437,10 @@ char* durstring(dur_t dur, char* str);
 void runServer();
 unique_ptr<node>& findFirstNode(unique_ptr<node> &n, int label);
 
+struct freeC {
+	void operator()(void*x){ free(x); }
+};
+
 template<typename T>
 static void __st(stringstream& ss, T v) {
 	ss << v;

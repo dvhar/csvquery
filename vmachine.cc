@@ -135,7 +135,7 @@ PUTVAR2_:
 
 HOLDVAR_:
 	if (ismal(stkb(op->p1))){
-		groupSortVars.emplace_front(unique_ptr<char>(stkb(op->p1).u.s));
+		groupSortVars.emplace_front(unique_ptr<char, freeC>(stkb(op->p1).u.s));
 		disown(stkb(op->p1));
 	}
 	++ip;
@@ -504,7 +504,7 @@ GSORT_:
 		int sortVal = op->p1;
 		int prevVal = sortVal - 1;
 		int start = 0, end = 0, last = groupSorter.size()-1;
-		function<bool (const unique_ptr<dat[]>& ,const unique_ptr<dat[]>& )> groupComparers[] = {
+		function<bool (const unique_ptr<dat[], freeC>& ,const unique_ptr<dat[], freeC>& )> groupComparers[] = {
 			[&](const auto& a, const auto& b) { return a[sortVal].u.i > b[sortVal].u.i; },
 			[&](const auto& a, const auto& b) { return a[sortVal].u.f > b[sortVal].u.f; },
 			[&](const auto& a, const auto& b) { return strcmp(a[sortVal].u.s, b[sortVal].u.s) > 0; },
@@ -1204,7 +1204,7 @@ NEXTVEC_:
 ADD_GROUPSORT_ROW_:
 	torow = (dat*) malloc(sortgroupsize * sizeof(dat));
 	initarr(torow, sortgroupsize, (dat{{0},NIL}));
-	groupSorter.emplace_back(unique_ptr<dat[]>(torow));
+	groupSorter.emplace_back(unique_ptr<dat[], freeC>(torow));
 	++ip;
 	next();
 FREE_MIDROW_:

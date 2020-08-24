@@ -138,19 +138,19 @@ vmachine::~vmachine(){
 	for (auto &d : destrow) freedat(d);
 	for (auto &btree : bt_strings)
 		for (auto &tcs : btree)
-			free(tcs.s);
+			free(tcs.s); //treeCString always allocated with c style
 	int i = 0;
 	for (auto &vec : normalSortVals)
 		if (q->sortInfo[i++].second == T_STRING)
 			for (auto u : vec)
-				free(u.s);
+				free(u.s); //c strings allways allocated with c style
 }
 querySpecs::~querySpecs(){
 	for (auto &d : dataholder){
 		freedat(d);
 		if (d.b & RMAL){
 			regfree(d.u.r);
-			delete d.u.r;
+			delete d.u.r; //regex always allocated with 'new'
 		}
 	}
 }
@@ -273,6 +273,19 @@ int getSortComparer(querySpecs *q, int i){
 	}
 	error("invalid sort function");
 };
+
+dat prepareLike(unique_ptr<node> &n){
+	dat reg;
+	reg.u.r = new regex_t;
+	reg.b = RMAL;
+	string s = n->tok3.val;
+	cerr << "LIKE === " << s << endl;
+	boost::replace_all(s, "_", ".");
+	boost::replace_all(s, "%", ".*");
+	if (regcomp(reg.u.r, ("^"+s+"$").c_str(), REG_EXTENDED|REG_ICASE))
+		error("Could not parse 'like' pattern");
+	return reg;
+}
 
 //datunion comparers - dunno why but fastest with first param value and second reference
 const function<bool (const datunion, const datunion&)> vmachine::uLessFuncs[3] = {
