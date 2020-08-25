@@ -36,7 +36,8 @@ enum codes : int {
 	LDSTDVI, LDSTDVF, LDAVGI, LDAVGF,
 	ADD_GROUPSORT_ROW, FREEMIDROW, GSORT, READ_NEXT_GROUP, NUL_TO_STR, SORTVALPOS,
 	GET_SET_EQ_AND, GET_SET_EQ, GET_SET_LESS, GET_SET_GRT, JOINSET_INIT, JOINSET_TRAV, AND_SET, OR_SET,
-	SAVEANDCHAIN, SORT_ANDCHAIN
+	SAVEANDCHAIN, SORT_ANDCHAIN,
+	FUNCYEAR, FUNCMONTH, FUNCWEEK, FUNCYDAY, FUNCMDAY, FUNCWDAY, FUNCHOUR, FUNCMINUTE, FUNCSECOND, FUNCWDAYNAME, FUNCMONTHNAME
 };
 
 //2d array for ops indexed by operation and datatype
@@ -169,7 +170,7 @@ class vmachine {
 	vector<stddev> stdvs;
 	vector<dat> destrow;
 	vector<dat> onegroup;
-	vector<dat> stack;
+	array<dat,50> stack;
 	vector<unique_ptr<dat[], freeC>> groupSorter;
 	vector<int> sortIdxs;
 	vector<vector<datunion>> normalSortVals;
@@ -186,7 +187,7 @@ class vmachine {
 	static const function<bool (const datunion, const datunion&)> uRxpFuncs[3];
 	static const function<bool (const datunion, const datunion&)>* uComparers[7];
 	public:
-	static map<int,int> relopIdx;
+	static flatmap<int,int> relopIdx;
 	vector<bset<int64>> bt_nums;
 	vector<bset<treeCString>> bt_strings;
 	querySpecs* q;
@@ -268,7 +269,8 @@ class varScoper {
 		bool checkDuplicates(int);
 		bool neededHere(int, int, int);
 };
-extern map<int, string_view> opMap;
+extern flatmap<int, string_view> opMap;
+extern flatmap<int, int> functionCode;
 
 #define has(A,B) ((A)==(B) || ((A) & (B)))
 #define incSelectCount()  if has(n->phase, agg_phase) select_count++;

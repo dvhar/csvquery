@@ -1,1 +1,1 @@
-select avg(c9) avg(c7) from 'test/country' group by c3 c4 order by avg(c9) avg(c7)
+select count(*) from ptest p join drtest d on p.c3=d.state and d.state not like 'n%'
