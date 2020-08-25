@@ -45,7 +45,6 @@ enum varScopes { V_READ1_SCOPE, V_READ2_SCOPE, V_GROUP_SCOPE, V_SCAN_SCOPE };
 
 const int RMAL = 8; //regex needs regfree() (dataholder vector only)
 const int MAL = 16; //malloced and responsible for freeing c string
-const int NIL = 32;
 
 const int T_NULL = 0;
 const int T_INT = 1;
@@ -297,11 +296,13 @@ class dat {
 	string str(){ string st; appendToBuffer(st); return st; }
 	friend bool operator<(const dat& l, const dat& r){
 		if ((l.b & 7) == T_STRING) {
-			if ((l.b | r.b) & NIL){
-				return (r.b & NIL) < (l.b & NIL);
+			if (r.b == 0){
+				return false;
 			}
 			return strcmp(l.u.s, r.u.s) < 0;
-		} else
+		} else if (l.b == 0)
+			return r.b != 0;
+		else
 			return l.u.i < r.u.i;
 	}
 	dat heap(){

@@ -78,20 +78,19 @@ static int typeConv[6][6] = {
 };
 
 inline static bool istext(dat& d){ return (d.b & 7) == T_STRING; }
-inline static bool isnull(dat& d){ return d.b & NIL; }
+inline static bool isnull(dat& d){ return d.b == 0; }
 inline static bool ismal(dat& d){ return d.b & MAL; }
-inline static void setnull(dat& d){ d.b = NIL; d.u.i = 0; }
+inline static void setnull(dat& d){ d.b =0; d.u.i = 0; }
 inline static unsigned int valSize(csvEntry& d){ return (unsigned int)(d.terminator - d.val); }
 inline static void disown(dat& d){ d.b &=(~MAL); }
 inline static void freedat(dat& d){
 	if ( d.b & MAL ){
 		free(d.u.s);
-		d.b = NIL;
+		d.b = 0;
 	}
 }
 
 static inline void freearr(dat* arr, int n) { for (auto i=0; i<n; ++i) freedat(arr[i]); }
-static inline void initarr(dat* arr, int n, dat&& d) { for (auto i=0; i<n; ++i) arr[i] = d; }
 bool isTrivial(unique_ptr<node> &n);
 dat parseIntDat(const char* s);
 dat parseFloatDat(const char* s);
@@ -120,7 +119,7 @@ class treeCString {
 				s = d.u.s;
 				disown(d);
 			} else {
-				if (d.b & NIL){
+				if (isnull(d)){
 					s = (char*) calloc(1,1);
 				} else {
 					s = (char*) malloc(d.z+1);
@@ -149,7 +148,7 @@ class stddev {
 			++count;
 		}
 		if (count <= 1)
-			return {{0},NIL};
+			return {0};
 		avg /= count;
 		for (auto n: numbers)
 			sum += (n-avg)*(n-avg);
@@ -226,8 +225,7 @@ class rowgroup {
 			if (!data.vecp) {
 				meta.rowsize = v->q->midcount;
 				meta.rowOrGroup = 1;
-				data.vecp = (dat*) malloc(meta.rowsize * sizeof(dat)); //TODO: implement nil with 0 type so no bits needed
-				initarr(data.vecp, meta.rowsize, (dat{{0},NIL}));
+				data.vecp = (dat*) calloc(meta.rowsize, sizeof(dat));
 				if (v->q->distinctNFuncs){
 					meta.distinctNSetIdx = v->bt_nums.size();
 					for(int i=0; i<v->q->distinctNFuncs; ++i)
@@ -246,13 +244,13 @@ class rowgroup {
 			if (meta.rowOrGroup == 1){
 				if (!meta.freed){
 					freearr(data.vecp, meta.rowsize);
-					free(getVec());
+					free(data.vecp);
 				}
 			} else if (meta.rowOrGroup == 2) {
 				if (meta.mallocedKey)
 					for (auto &m : getMap())
 						free(m.first.u.s);
-				delete &getMap();
+				delete data.mapp;
 			}
 		}
 };

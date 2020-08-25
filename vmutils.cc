@@ -11,7 +11,7 @@ void opcode::print(){
 }
 
 void dat::appendToBuffer(string &outbuf){
-	if (b & NIL) return;
+	if (b == 0) return;
 	// need quoting: , \n, "
 	//implement quote escaping after implemented in reader
 	static char abnormal[] = {0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
@@ -108,7 +108,7 @@ vmachine::vmachine(querySpecs &qs){
 	torow = destrow.data();
 	torowSize = q->colspec.count;
 	if (q->grouping == 1){
-		onegroup = vector<dat>(q->midcount, {{0},NIL});
+		onegroup = vector<dat>(q->midcount, {0});
 		torow = onegroup.data();
 	}
 	if (q->grouping)
