@@ -1202,8 +1202,7 @@ NEXTVEC_:
 	}
 	next();
 ADD_GROUPSORT_ROW_:
-	torow = (dat*) malloc(sortgroupsize * sizeof(dat));
-	initarr(torow, sortgroupsize, (dat{{0},NIL}));
+	torow = (dat*) calloc(sortgroupsize, sizeof(dat));
 	groupSorter.emplace_back(unique_ptr<dat[], freeC>(torow));
 	++ip;
 	next();
