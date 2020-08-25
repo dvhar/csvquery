@@ -369,8 +369,9 @@ static typer typeFunctionInnerNodes(querySpecs &q, unique_ptr<node> &n){
 	case FN_MDAY:
 	case FN_WDAY:
 	case FN_HOUR:
+		n->keep = true;
 		typeInnerNodes(q, n->node1);
-		innerType = {T_DATE, true};
+		innerType = {T_INT, true}; //TODO: reconsider these true/false values
 		break;
 	case FN_STDEV:
 	case FN_STDEVP:
