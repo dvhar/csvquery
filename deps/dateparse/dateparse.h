@@ -25,6 +25,8 @@ int dateparse(const char* datestr, date_t* dt, int* offset, int stringlen);
 char* datestring(date_t);
 char* datestringfmt(date_t t, const char*);
 
+int secs_to_tm(long long t, struct tm *tm);
+
 //convert between struct tm and date_t
 struct tm* gmtime64(date_t);
 date_t mktimegm(const struct tm *tm);
@@ -41,6 +43,11 @@ static struct timeval d2tv(date_t dt){
 	return t;
 }
 #define tv2d(T) ((date_t)T.tv_sec*1000000 + T.tv_usec)
+
+extern char* daynames[];
+extern char* monthnames[];
+extern unsigned int daylens[];
+extern unsigned int monthlens[];
 
 #ifdef __cplusplus
 }

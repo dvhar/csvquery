@@ -951,6 +951,20 @@ void cgen::genFunction(unique_ptr<node> &n){
 		} else /* aes */ {
 		}
 		break;
+	case FN_YEAR:
+	case FN_MONTH:
+	case FN_MONTHNAME:
+	case FN_WEEK:
+	case FN_WDAYNAME:
+	case FN_YDAY:
+	case FN_MDAY:
+	case FN_WDAY:
+	case FN_HOUR:
+	case FN_MINUTE:
+	case FN_SECOND:
+		genExprAll(n->node1);
+		addop(functionCode[n->tok1.id]);
+		break;
 	}
 
 	//aggregates

@@ -14,7 +14,7 @@ regex cInt("^c\\d+$");
 regex posInt("^\\d+$");
 regex colNum("^c?\\d+$");
 
-map<int, string_view> enumMap = {
+flatmap<int, string_view> enumMap = {
 	{EOS ,           "EOS"},
 	{ERROR_STATE ,   "ERROR_STATE"},
 	{FINAL ,         "FINAL"},
@@ -66,7 +66,7 @@ map<int, string_view> enumMap = {
 	{STATE_MBSPECIAL,"STATE_MBSPECIAL"},
 	{STATE_WORD ,    "STATE_WORD"}
 };
-map<int, string_view> treeMap = {
+flatmap<int, string_view> treeMap = {
 	{N_QUERY,      "N_QUERY"},
 	{N_SELECT,     "N_SELECT"},
 	{N_PRESELECT,  "N_PRESELECT"},
@@ -97,7 +97,7 @@ map<int, string_view> treeMap = {
 	{N_VARS,       "N_VARS"},
 	{N_TYPECONV,   "N_TYPECONV"}
 };
-map<string_view, int> keywordMap = {
+flatmap<string_view, int> keywordMap = {
 	{"and" ,       KW_AND},
 	{"or" ,        KW_OR},
 	{"xor" ,       KW_XOR},
@@ -124,7 +124,7 @@ map<string_view, int> keywordMap = {
 };
 //functions are normal words to avoid taking up too many words
 //use map when parsing not scanning
-map<string_view, int> functionMap = {
+flatmap<string_view, int> functionMap = {
 	{"inc" ,      FN_INC},
 	{"sum" ,      FN_SUM},
 	{"avg" ,      FN_AVG},
@@ -146,10 +146,12 @@ map<string_view, int> functionMap = {
 	{"dayofmonth",FN_MDAY},
 	{"dayofweek", FN_WDAY},
 	{"hour" ,     FN_HOUR},
+	{"minute" ,   FN_MINUTE},
+	{"second" ,   FN_SECOND},
 	{"encrypt" ,  FN_ENCRYPT},
 	{"decrypt" ,  FN_DECRYPT}
 };
-map<string_view, int> joinMap = {
+flatmap<string_view, int> joinMap = {
 	{"inner" ,  KW_INNER},
 	{"outer" ,  KW_OUTER},
 	{"left" ,   KW_LEFT},
@@ -157,7 +159,7 @@ map<string_view, int> joinMap = {
 	{"bjoin" ,  KW_JOIN},
 	{"sjoin" ,  KW_JOIN}
 };
-map<string_view, int> specialMap = {
+flatmap<string_view, int> specialMap = {
 	{"=" ,  SP_EQ},
 	{"!" ,  SP_NEGATE},
 	{"<>" , SP_NOEQ},

@@ -14,6 +14,7 @@
 #include <regex>
 #include <stdarg.h>
 #include <boost/algorithm/string.hpp>
+#include <boost/container/flat_map.hpp>
 #include <boost/format.hpp>
 #include "deps/dateparse/dateparse.h"
 #include "deps/chacha/chacha20.h"
@@ -32,6 +33,7 @@
 #define int64 long long
 #define dur_t long long
 #define ft boost::format
+#define flatmap boost::container::flat_map
 #define error(A) throw invalid_argument(A)
 #define SMALLEST numeric_limits<int64>::min()
 using namespace std;
@@ -109,9 +111,11 @@ const int FN_WDAYNAME = KEYWORD|43;
 const int FN_YDAY =     KEYWORD|44;
 const int FN_MDAY =     KEYWORD|45;
 const int FN_HOUR =     KEYWORD|46;
-const int FN_ENCRYPT =  KEYWORD|47;
-const int FN_DECRYPT =  KEYWORD|48;
-const int FN_INC =      KEYWORD|49;
+const int FN_MINUTE =   KEYWORD|47;
+const int FN_SECOND =   KEYWORD|48;
+const int FN_ENCRYPT =  KEYWORD|49;
+const int FN_DECRYPT =  KEYWORD|50;
+const int FN_INC =      KEYWORD|51;
 const int SPECIALBIT =  1<<21;
 const int SPECIAL =      FINAL|SPECIALBIT;
 const int SP_EQ =        RELOP|SPECIAL|50;
@@ -142,12 +146,12 @@ const int O_NH = 2;
 const int O_H = 4;
 const int O_S = 8;
 
-extern map<int, string_view> enumMap;
-extern map<int, string_view> treeMap;
-extern map<string_view, int> keywordMap;
-extern map<string_view, int> functionMap;
-extern map<string_view, int> joinMap;
-extern map<string_view, int> specialMap;
+extern flatmap<int, string_view> enumMap;
+extern flatmap<int, string_view> treeMap;
+extern flatmap<string_view, int> keywordMap;
+extern flatmap<string_view, int> functionMap;
+extern flatmap<string_view, int> joinMap;
+extern flatmap<string_view, int> specialMap;
 
 extern regex_t leadingZeroString;
 extern regex_t durationPattern;
