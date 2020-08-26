@@ -11,7 +11,7 @@
 #define stk1 (*(stacktop-1))
 #define stkt(N) (*(stacktop-(N)))
 #define stkb(N) (*(stackbot+(N)))
-#define push() ++stacktop
+#define push() (++stacktop)->freedat();
 #define pop() --stacktop
 
 #define debugOpcode
@@ -65,21 +65,19 @@ void vmachine::run(){
 
 //put data from stack into torow
 PUT_:
-	freedat(torow[op->p1]);
-	torow[op->p1] = stk0;
-	disown(stk0);
+	torow[op->p1].mov(stk0);
 	pop();
 	nexti();
 //put data from filereader directly into torow
 LDPUT_:
 	csvTemp = files[op->p3]->entries[op->p2];
-	freedat(torow[op->p1]);
+	torow[op->p1].freedat();
 	torow[op->p1] = dat{ { s: csvTemp.val }, T_STRING, valSize(csvTemp) };
 	nexti();
 LDPUTGRP_:
 	csvTemp = files[op->p3]->entries[op->p2];
 	sizeTemp = valSize(csvTemp);
-	if (sizeTemp && isnull(torow[op->p1])){
+	if (sizeTemp && torow[op->p1].isnull()){
 		torow[op->p1] = { { s:newStr(csvTemp.val, sizeTemp) }, T_STRING|MAL, sizeTemp };
 	}
 	nexti();
@@ -87,79 +85,68 @@ LDPUTALL_:
 	iTemp1 = op->p1;
 	for (auto &f : files){
 		for (auto e=f->entries, end=f->entries+f->numFields; e<end; ++e){
-			freedat(torow[iTemp1]);
+			torow[iTemp1].freedat();
 			torow[iTemp1++] = dat{ { s: e->val }, T_STRING, valSize((*e)) };
 		}
 	}
 	nexti();
 //put data from midrow to torow
 LDPUTMID_:
-	freedat(torow[op->p1]);
-	torow[op->p1] = midrow[op->p2];
-	disown(midrow[op->p2]);
+	torow[op->p1].mov(midrow[op->p2]);
 	nexti();
 LDMID_:
-	push();
-	freedat(stk0);
-	stk0 = midrow[op->p1];
-	disown(midrow[op->p1]);
+	++stacktop;
+	stk0.mov(midrow[op->p1]);
 	nexti();
 
 PUTDIST_:
-	freedat(torow[op->p1]);
-	torow[op->p1] = distinctVal;
-	disown(distinctVal);
+	torow[op->p1].mov(distinctVal);
 	nexti();
 //put variable from stack into stackbot
 PUTVAR_:
-	freedat(stkb(op->p1));
-	stkb(op->p1) = stk0;
-	disown(stk0);
+	stkb(op->p1).mov(stk0);
 	pop();
 	nexti();
 //put variable from stack into midrow and stackbot
 PUTVAR2_:
-	datpTemp = &torow[op->p2];
-	if (isnull(*datpTemp) && !isnull(stk0)){
-		freedat(*datpTemp);
-		*datpTemp = stk0.heap();
+	if (torow[op->p2].isnull() && !stk0.isnull()){
+		torow[op->p2] = stk0.heap();
 	}
-	freedat(stkb(op->p1));
+	stkb(op->p1).freedat();
 	stkb(op->p1) = stk0;
 	pop();
 	nexti();
 
 HOLDVAR_:
-	if (ismal(stkb(op->p1))){
+	if (stkb(op->p1).ismal()){
 		groupSortVars.emplace_front(unique_ptr<char, freeC>(stkb(op->p1).u.s));
-		disown(stkb(op->p1));
+		stkb(op->p1).disown();
 	}
 	nexti();
 LDVAR_:
 	push();
-	freedat(stk0);
 	stk0 = stkb(op->p1);
-	disown(stk0); //var source still owns c string
+	stk0.disown(); //var source still owns c string
 	nexti();
 //load data from filereader to the stack
 LDDUR_:
 	push();
 	iTemp1 = parseDuration(files[op->p1]->entries[op->p2].val, &i64Temp);
-	if (iTemp1) { setnull(stk0); }
+	if (iTemp1) { stk0.setnull(); }
 	else stk0 = dat{ { i: i64Temp}, T_DURATION};
 	nexti();
 LDDATE_:
 	push();
 	csvTemp = files[op->p1]->entries[op->p2];
 	iTemp1 = dateparse(csvTemp.val, &i64Temp, &iTemp2, valSize(csvTemp));
-	if (iTemp1) { setnull(stk0); }
+	if (iTemp1) { stk0.setnull(); }
 	else stk0 = dat{ { i: i64Temp}, T_DATE, (unsigned int) iTemp2 };
 	nexti();
 LDTEXT_:
 	push();
 	csvTemp = files[op->p1]->entries[op->p2];
 	sizeTemp = valSize(csvTemp);
-	if (!sizeTemp) { setnull(stk0); }
+	if (!sizeTemp) { stk0.setnull(); }
 	else stk0 = dat{ { s: csvTemp.val }, T_STRING, sizeTemp };
 	nexti();
 LDFLOAT_:
@@ -167,18 +154,18 @@ LDFLOAT_:
 	csvTemp = files[op->p1]->entries[op->p2];
 	stk0.u.f = strtof(csvTemp.val, &cstrTemp);
 	stk0.b = T_FLOAT;
-	if (!valSize(csvTemp) || *cstrTemp){ setnull(stk0); }
+	if (!valSize(csvTemp) || *cstrTemp){ stk0.setnull(); }
 	nexti();
 LDINT_:
 	push();
 	csvTemp = files[op->p1]->entries[op->p2];
 	stk0.u.i = strtol(csvTemp.val, &cstrTemp, 10);
 	stk0.b = T_INT;
-	if (!valSize(csvTemp) || *cstrTemp) { setnull(stk0); }
+	if (!valSize(csvTemp) || *cstrTemp) { stk0.setnull(); }
 	nexti();
 LDNULL_:
 	push();
-	{ setnull(stk0); }
+	stk0.setnull();
 	nexti();
 LDLIT_:
 	push();
@@ -206,7 +193,7 @@ PREP_REREAD_:
 	stk0.u.i = 0;
 	nexti();
 NUL_TO_STR_:
-	if (isnull(stk0)){
+	if (stk0.isnull()){
 		stk0 = dat{ { .s = (char*) calloc(1,1) }, T_STRING|MAL, 0 };
 	}
 	nexti();
@@ -216,7 +203,6 @@ SAVESORTN_:
 	nexti();
 SAVESORTS_:
 	normalSortVals[op->p1].push_back(stk0.heap().u);
-	disown(stk0);
 	pop();
 	nexti();
 SAVEANDCHAIN_:
@@ -517,12 +503,12 @@ GSORT_:
 
 //math operations
 IADD_:
-	if (isnull(stk0) || isnull(stk1)) { setnull(stk1); }
+	if (stk0.isnull() || stk1.isnull()) { stk1.setnull(); }
 	else stk1.u.i += stk0.u.i;
 	pop();
 	nexti();
 FADD_:
-	if (isnull(stk0) || isnull(stk1)) { setnull(stk1); }
+	if (stk0.isnull() || stk1.isnull()) { stk1.setnull(); }
 	else stk1.u.f += stk0.u.f;
 	pop();
 	nexti();
@@ -531,49 +517,49 @@ TADD_:
 	pop();
 	nexti();
 DRADD_:
-	if (isnull(stk0) || isnull(stk1)) { setnull(stk1); }
+	if (stk0.isnull() || stk1.isnull()) { stk1.setnull(); }
 	else { stk1.u.i += stk0.u.i; stk1.b = T_DURATION; }
 	pop();
 	nexti();
 DTADD_:
-	if (isnull(stk0) || isnull(stk1)) { setnull(stk1); }
+	if (stk0.isnull() || stk1.isnull()) { stk1.setnull(); }
 	else { stk1.u.i += stk0.u.i; stk1.b = T_DATE; }
 	pop();
 	nexti();
 ISUB_:
-	if (isnull(stk0) || isnull(stk1)) { setnull(stk1); }
+	if (stk0.isnull() || stk1.isnull()) { stk1.setnull(); }
 	else stk1.u.i -= stk0.u.i;
 	pop();
 	nexti();
 FSUB_:
-	if (isnull(stk0) || isnull(stk1)) { setnull(stk1); }
+	if (stk0.isnull() || stk1.isnull()) { stk1.setnull(); }
 	else stk1.u.f -= stk0.u.f;
 	pop();
 	nexti();
 DTSUB_:
 	//TODO: handle date-date
-	if (isnull(stk0) || isnull(stk1)) { setnull(stk1); }
+	if (stk0.isnull() || stk1.isnull()) { stk1.setnull(); }
 	else { stk1.u.i -= stk0.u.i; stk1.b = T_DATE; }
 	pop();
 	nexti();
 DRSUB_:
-	if (isnull(stk0) || isnull(stk1)) { setnull(stk1); }
+	if (stk0.isnull() || stk1.isnull()) { stk1.setnull(); }
 	else { stk1.u.i -= stk0.u.i; stk1.b = T_DURATION; }
 	pop();
 	if (stk0.u.i < 0) stk0.u.i *= -1;
 	nexti();
 IMULT_:
-	if (isnull(stk0) || isnull(stk1)) { setnull(stk1); }
+	if (stk0.isnull() || stk1.isnull()) { stk1.setnull(); }
 	else stk1.u.i *= stk0.u.i;
 	pop();
 	nexti();
 FMULT_:
-	if (isnull(stk0) || isnull(stk1)) { setnull(stk1); }
+	if (stk0.isnull() || stk1.isnull()) { stk1.setnull(); }
 	else stk1.u.f *= stk0.u.f;
 	pop();
 	nexti();
 DRMULT_:
-	if (isnull(stk0) || isnull(stk1)) { setnull(stk1); }
+	if (stk0.isnull() || stk1.isnull()) { stk1.setnull(); }
 	else {
 		iTemp1 = stk1.b; iTemp2 = stk0.b;
 		if (iTemp1 == T_DATE){
@@ -594,17 +580,17 @@ DRMULT_:
 	pop();
 	nexti();
 IDIV_:
-	if (isnull(stk0) || isnull(stk1) || stk0.u.i==0) { setnull(stk1); }
+	if (stk0.isnull() || stk1.isnull() || stk0.u.i==0) { stk1.setnull(); }
 	else stk1.u.i /= stk0.u.i;
 	pop();
 	nexti();
 FDIV_:
-	if (isnull(stk0) || isnull(stk1) || stk0.u.f==0) { setnull(stk1); }
+	if (stk0.isnull() || stk1.isnull() || stk0.u.f==0) { stk1.setnull(); }
 	else stk1.u.f /= stk0.u.f;
 	pop();
 	nexti();
 DRDIV_:
-	if (isnull(stk0) || isnull(stk1) || stk0.u.f==0) { setnull(stk1); }
+	if (stk0.isnull() || stk1.isnull() || stk0.u.f==0) { stk1.setnull(); }
 	else {
 		if (stk0.b == T_INT)
 			stk1.u.i /= stk0.u.i;
@@ -614,33 +600,33 @@ DRDIV_:
 	pop();
 	nexti();
 INEG_:
-	if (isnull(stk0)) { setnull(stk0); }
+	if (stk0.isnull()) { stk0.setnull(); }
 	else stk0.u.i *= -1;
 	nexti();
 FNEG_:
-	if (isnull(stk0)) { setnull(stk0); }
+	if (stk0.isnull()) { stk0.setnull(); }
 	else stk0.u.f *= -1;
 	nexti();
 PNEG_:
 	stk0.u.p ^= true;
 	nexti();
 FEXP_:
-	if (isnull(stk0) || isnull(stk1)) { setnull(stk1); }
+	if (stk0.isnull() || stk1.isnull()) { stk1.setnull(); }
 	else stk1.u.f = pow(stk1.u.f, stk0.u.f);
 	pop();
 	nexti();
 IEXP_:
-	if (isnull(stk0) || isnull(stk1)) { setnull(stk1); }
+	if (stk0.isnull() || stk1.isnull()) { stk1.setnull(); }
 	else stk1.u.i = pow(stk1.u.i, stk0.u.i);
 	pop();
 	nexti();
 IMOD_:
-	if (isnull(stk0) || isnull(stk1)) { setnull(stk1); }
+	if (stk0.isnull() || stk1.isnull()) { stk1.setnull(); }
 	else stk1.u.i = stk1.u.i % stk0.u.i;
 	pop();
 	nexti();
 FMOD_:
-	if (isnull(stk0) || isnull(stk1)) { setnull(stk1); }
+	if (stk0.isnull() || stk1.isnull()) { stk1.setnull(); }
 	else stk1.u.f = static_cast<int64>(stk1.u.f) % static_cast<int64>(stk0.u.f);
 	pop();
 	nexti();
@@ -648,95 +634,90 @@ FMOD_:
 //comparisions - p1 determines how far down the stack to leave the result
 // p2 is negator
 IEQ_:
-	iTemp1 = isnull(stk0);
-	iTemp2 = isnull(stk1);
+	iTemp1 = stk0.isnull();
+	iTemp2 = stk1.isnull();
 	if (iTemp1 ^ iTemp2) stkt(op->p1).u.p = false^op->p2;
 	else if (iTemp1 & iTemp2) stkt(op->p1).u.p = true^op->p2;
 	else stkt(op->p1).u.p = (stk1.u.i == stk0.u.i)^op->p2;
 	stacktop -= op->p1;
 	nexti();
 FEQ_:
-	iTemp1 = isnull(stk0);
-	iTemp2 = isnull(stk1);
+	iTemp1 = stk0.isnull();
+	iTemp2 = stk1.isnull();
 	if (iTemp1 ^ iTemp2) stkt(op->p1).u.p = false^op->p2;
 	else if (iTemp1 & iTemp2) stkt(op->p1).u.p = true^op->p2;
 	else stkt(op->p1).u.p = (stk1.u.f == stk0.u.f)^op->p2;
 	stacktop -= op->p1;
 	nexti();
 TEQ_:
-	iTemp1 = isnull(stk0);
-	iTemp2 = isnull(stk1);
+	iTemp1 = stk0.isnull();
+	iTemp2 = stk1.isnull();
 	if (!(iTemp1|iTemp2)){ //none null
 		boolTemp = (strcmp(stk1.u.s, stk0.u.s) == 0)^op->p2;
-		freedat(stk0);
-		freedat(stkt(op->p1));
+		stkt(op->p1).freedat();
 		stkt(op->p1).u.p = boolTemp;
 	} else if (iTemp1 & iTemp2) { //both null
 		stkt(op->p1).u.p = true^op->p2;
 	} else { //one null
-		freedat(stk0);
-		freedat(stkt(op->p1));
+		stkt(op->p1).freedat();
 		stkt(op->p1).u.p = false^op->p2;
 	}
 	stacktop -= op->p1;
 	nexti();
 ILEQ_:
-	if (isnull(stk0) || isnull(stk1)) stkt(op->p1).u.p = false^op->p2;
+	if (stk0.isnull() || stk1.isnull()) stkt(op->p1).u.p = false^op->p2;
 	else stkt(op->p1).u.p = (stk1.u.i <= stk0.u.i)^op->p2;
 	stacktop -= op->p1;
 	nexti();
 FLEQ_:
-	if (isnull(stk0) || isnull(stk1)) stkt(op->p1).u.p = false^op->p2;
+	if (stk0.isnull() || stk1.isnull()) stkt(op->p1).u.p = false^op->p2;
 	else stkt(op->p1).u.p = (stk1.u.f <= stk0.u.f)^op->p2;
 	stacktop -= op->p1;
 	nexti();
 TLEQ_:
-	if (isnull(stk0) || isnull(stk1)) {
-		freedat(stkt(op->p1));
+	if (stk0.isnull() || stk1.isnull()) {
+		stkt(op->p1).freedat();
 		stkt(op->p1).u.p = false^op->p2;
 	} else {
 		boolTemp = (strcmp(stk1.u.s, stk0.u.s) <= 0)^op->p2;
-		freedat(stk0);
-		freedat(stkt(op->p1));
+		stkt(op->p1).freedat();
 		stkt(op->p1).u.p = boolTemp;
 	}
 	stacktop -= op->p1;
 	nexti();
 ILT_:
-	if (isnull(stk0) || isnull(stk1)) stkt(op->p1).u.p = false^op->p2;
+	if (stk0.isnull() || stk1.isnull()) stkt(op->p1).u.p = false^op->p2;
 	else stkt(op->p1).u.p = (stk1.u.i < stk0.u.i)^op->p2;
 	stacktop -= op->p1;
 	nexti();
 FLT_:
-	if (isnull(stk0) || isnull(stk1)) stkt(op->p1).u.p = false^op->p2;
+	if (stk0.isnull() || stk1.isnull()) stkt(op->p1).u.p = false^op->p2;
 	else stkt(op->p1).u.p = (stk1.u.f < stk0.u.f)^op->p2;
 	stacktop -= op->p1;
 	nexti();
 TLT_:
-	if (isnull(stk0) || isnull(stk1)){
-		freedat(stkt(op->p1));
+	if (stk0.isnull() || stk1.isnull()){
+		stkt(op->p1).freedat();
 		stkt(op->p1).u.p = false^op->p2;
 	} else {
 		boolTemp = (strcmp(stk1.u.s, stk0.u.s) < 0)^op->p2;
-		freedat(stk0);
-		freedat(stkt(op->p1));
+		stkt(op->p1).freedat();
 		stkt(op->p1).u.p = boolTemp;
 	}
 	stacktop -= op->p1;
 	nexti();
 LIKE_:
-	if (isnull(stk0)){
+	if (stk0.isnull()){
 		stk0.u.p = op->p2;
 	} else {
 		iTemp1 = !regexec(q->dataholder[op->p1].u.r, stk0.u.s, 0, 0, 0)^op->p2;
-		freedat(stk0);
+		stk0.freedat();
 		stk0.u.p = iTemp1;
 	}
 	nexti();
 
 PUSH_N_:
 	push();
-	freedat(stk0);
 	stk0.u.i = op->p1;;
 	nexti();
 PUSH_:
@@ -746,21 +727,19 @@ POP_:
 	pop();
 	nexti();
 POPCPY_:
-	freedat(stk1);
-	stk1 = stk0;
-	disown(stk0);
+	stk1.mov(stk0);
 	pop();
 	nexti();
 NULFALSE1_:
-	if (isnull(stk0)){
+	if (stk0.isnull()){
 		stk0.u.p = false;
 		ip = op->p1;
 	} else ++ip;
 	next();
 NULFALSE2_:
-	if (isnull(stk0)){
+	if (stk0.isnull()){
 		pop();
-		freedat(stk0);
+		stk0.freedat();
 		stk0.u.p = false;
 		ip = op->p1;
 	} else ++ip;
@@ -768,7 +747,7 @@ NULFALSE2_:
 
 //type conversions
 CVIS_:
-	if (!isnull(stk0)){
+	if (!stk0.isnull()){
 		stk0.z = sprintf(bufTemp, "%lld", stk0.u.i);
 		stk0.u.s = (char*) malloc(stk0.z+1);
 		memcpy(stk0.u.s, bufTemp, stk0.z+1);
@@ -776,7 +755,7 @@ CVIS_:
 	}
 	nexti();
 CVFS_:
-	if (!isnull(stk0)){
+	if (!stk0.isnull()){
 		stk0.z = sprintf(bufTemp, "%.10g", stk0.u.f);
 		stk0.u.s = (char*) malloc(stk0.z+1);
 		memcpy(stk0.u.s, bufTemp, stk0.z+1);
@@ -784,56 +763,56 @@ CVFS_:
 	}
 	nexti();
 CVFI_:
-	if (!isnull(stk0)){
+	if (!stk0.isnull()){
 		stk0.u.i = stk0.u.f;
 		stk0.b = T_INT;
 	}
 	nexti();
 CVIF_:
-	if (!isnull(stk0)){
+	if (!stk0.isnull()){
 		stk0.u.f = stk0.u.i;
 		stk0.b = T_FLOAT;
 	}
 	nexti();
 CVSI_:
-	if (!isnull(stk0)){
+	if (!stk0.isnull()){
 		iTemp1 = strtol(stk0.u.s, &cstrTemp, 10);
-		freedat(stk0);
+		stk0.freedat();
 		stk0.u.i = iTemp1;
 		stk0.b = T_INT;
-		if (*cstrTemp){ setnull(stk0); }
+		if (*cstrTemp){ stk0.setnull(); }
 	}
 	nexti();
 CVSF_:
-	if (!isnull(stk0)){
+	if (!stk0.isnull()){
 		fTemp = strtof(stk0.u.s, &cstrTemp);
-		freedat(stk0);
+		stk0.freedat();
 		stk0.u.f = fTemp;
 		stk0.b = T_FLOAT;
-		if (*cstrTemp){ setnull(stk0); }
+		if (*cstrTemp){ stk0.setnull(); }
 	}
 	nexti();
 CVSDT_:
-	if (!isnull(stk0)){
+	if (!stk0.isnull()){
 		iTemp1 = dateparse(stk0.u.s, &i64Temp, &iTemp2, stk0.z);
-		freedat(stk0);
+		stk0.freedat();
 		stk0.u.i = i64Temp;
 		stk0.b = T_DATE;
 		stk0.z = iTemp2;
-		if (iTemp1) { setnull(stk0); }
+		if (iTemp1) { stk0.setnull(); }
 	}
 	nexti();
 CVSDR_:
-	if (!isnull(stk0)){
+	if (!stk0.isnull()){
 		iTemp1 = parseDuration(stk0.u.s, &i64Temp);
-		freedat(stk0);
+		stk0.freedat();
 		stk0.u.i = i64Temp;
 		stk0.b = T_DURATION;
-		if (iTemp1) { setnull(stk0); }
+		if (iTemp1) { stk0.setnull(); }
 	}
 	nexti();
 CVDRS_:
-	if (!isnull(stk0)){
+	if (!stk0.isnull()){
 		stk0.u.s = (char*) malloc(24);
 		durstring(stk0.u.i, stk0.u.s);
 		stk0.b = T_STRING|MAL;
@@ -841,7 +820,7 @@ CVDRS_:
 	}
 	nexti();
 CVDTS_:
-	if (!isnull(stk0)){
+	if (!stk0.isnull()){
 		//make version of datestring that writes directly to arg buf
 		cstrTemp = datestring(stk0.u.i);
 		stk0.u.s = (char*) malloc(20);
@@ -871,8 +850,7 @@ JMPTRUE_:
 	}
 	next();
 JMPNOTNULL_ELSEPOP_:
-	if (isnull(stk0)){
-		freedat(stk0);
+	if (stk0.isnull()){
 		pop();
 		++ip;
 	} else {
@@ -899,11 +877,11 @@ PRINT_:
 //distinct checkers
 LDDIST_:
 	push();
-	stk0 = distinctVal;
+	stk0 = distinctVal; //distinctVal never owns heap data
 	nexti();
 NDIST_:
 	iTemp1 = op->p3 ? groupTemp->meta.distinctNSetIdx : 0;
-	i64Temp = isnull(stk0) ? SMALLEST : stk0.u.i;
+	i64Temp = stk0.isnull() ? SMALLEST : stk0.u.i;
 	boolTemp = bt_nums[op->p2+iTemp1].insert(i64Temp).second;
 	if (boolTemp) {
 		distinctVal = stk0;
@@ -916,7 +894,7 @@ NDIST_:
 SDIST_:
 	{
 		iTemp1 = op->p3 ? groupTemp->meta.distinctSSetIdx : 0;
-		treeCString tsc(stk0);
+		treeCString tsc(stk0); //disowns stk0
 		boolTemp = bt_strings[op->p2+iTemp1].insert(tsc).second;
 		if (boolTemp) {
 			distinctVal = stk0;
@@ -1003,43 +981,40 @@ LDSTDVI_:
 	nexti();
 LDSTDVF_:
 	push();
-	freedat(stk0);
-	if (!isnull(midrow[op->p1]))
+	if (!midrow[op->p1].isnull())
 		stk0 = stdvs[midrow[op->p1].u.i].eval(op->p2);
 	nexti();
 LDAVGI_:
 	push();
-	freedat(stk0);
 	datpTemp = &midrow[op->p1];
-	if (!isnull((*datpTemp)) && datpTemp->z){
+	if (!datpTemp->isnull() && datpTemp->z){
 		stk0.u.i = datpTemp->u.i / datpTemp->z;
 		stk0.b = T_INT;
 	}
 	nexti();
 LDAVGF_:
 	push();
-	freedat(stk0);
 	datpTemp = &midrow[op->p1];
-	if (!isnull((*datpTemp)) && datpTemp->z){
+	if (!datpTemp->isnull() && datpTemp->z){
 		stk0.u.f = datpTemp->u.f / datpTemp->z;
 		stk0.b = T_FLOAT;
 	}
 	nexti();
 AVGI_:
-	if (!isnull(stk0))
+	if (!stk0.isnull())
 		torow[op->p1].z++;
 SUMI_:
-	if (!isnull(stk0)){
+	if (!stk0.isnull()){
 		torow[op->p1].u.i += stk0.u.i;
 		torow[op->p1].b = stk0.b;
 	}
 	pop();
 	nexti();
 AVGF_:
-	if (!isnull(stk0))
+	if (!stk0.isnull())
 		torow[op->p1].z++;
 SUMF_:
-	if (!isnull(stk0)){
+	if (!stk0.isnull()){
 		torow[op->p1].u.f += stk0.u.f;
 		torow[op->p1].b = stk0.b;
 	}
@@ -1051,8 +1026,8 @@ STDVI_:
 	nexti();
 STDVF_:
 	{
-		if (!isnull(stk0))
-			if (isnull(torow[op->p1])){
+		if (!stk0.isnull())
+			if (torow[op->p1].isnull()){
 				torow[op->p1] = {{i:static_cast<int64>(stdvs.size())},T_INT};
 				stdvs.emplace_back(stddev(stk0.u.f));
 			} else {
@@ -1066,7 +1041,7 @@ COUNT_:
 		torow[op->p1].b = T_FLOAT;
 		torow[op->p1].u.f++;
 	} else {
-		if (!isnull(stk0)) {
+		if (!stk0.isnull()) {
 			torow[op->p1].b = T_FLOAT;
 			torow[op->p1].u.f++;
 		}
@@ -1074,39 +1049,37 @@ COUNT_:
 	}
 	nexti();
 MINI_:
-	if (isnull(torow[op->p1]) || (!isnull(stk0) && torow[op->p1].u.i > stk0.u.i)){
+	if (torow[op->p1].isnull() || (!stk0.isnull() && torow[op->p1].u.i > stk0.u.i)){
 		torow[op->p1] = stk0;
 	}
 	pop();
 	nexti();
 MINF_:
-	if (isnull(torow[op->p1]) || (!isnull(stk0) && torow[op->p1].u.f > stk0.u.f))
+	if (torow[op->p1].isnull() || (!stk0.isnull() && torow[op->p1].u.f > stk0.u.f))
 		torow[op->p1] = stk0;
 	pop();
 	nexti();
 MINS_:
-	if (isnull(torow[op->p1]) || (!isnull(stk0) && strcmp(torow[op->p1].u.s, stk0.u.s) > 0)){
-		freedat(torow[op->p1]);
+	if (torow[op->p1].isnull() || (!stk0.isnull() && strcmp(torow[op->p1].u.s, stk0.u.s) > 0)){
+		torow[op->p1].freedat();
 		torow[op->p1] = stk0.heap();
-		disown(stk0);
 	}
 	pop();
 	nexti();
 MAXI_:
-	if (isnull(torow[op->p1]) || (!isnull(stk0) && torow[op->p1].u.i < stk0.u.i))
+	if (torow[op->p1].isnull() || (!stk0.isnull() && torow[op->p1].u.i < stk0.u.i))
 		torow[op->p1] = stk0;
 	pop();
 	nexti();
 MAXF_:
-	if (isnull(torow[op->p1]) || (!isnull(stk0) && torow[op->p1].u.f < stk0.u.f))
+	if (torow[op->p1].isnull() || (!stk0.isnull() && torow[op->p1].u.f < stk0.u.f))
 		torow[op->p1] = stk0;
 	pop();
 	nexti();
 MAXS_:
-	if (isnull(torow[op->p1]) || (!isnull(stk0) && strcmp(torow[op->p1].u.s, stk0.u.s) < 0)){
-		freedat(torow[op->p1]);
+	if (torow[op->p1].isnull() || (!stk0.isnull() && strcmp(torow[op->p1].u.s, stk0.u.s) < 0)){
+		torow[op->p1].freedat();
 		torow[op->p1] = stk0.heap();
-		disown(stk0);
 	}
 	pop();
 	nexti();

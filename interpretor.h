@@ -1,5 +1,5 @@
-#ifndef TYPES_H
-#define TYPES_H
+#pragma once
+
 #include <string>
 #include <map>
 #include <set>
@@ -323,6 +323,22 @@ class dat {
 		b &= ~MAL;
 		return d;
 	}
+	inline bool istext(){ return (b & 7) == T_STRING; }
+	inline bool isnull(){ return b == 0; }
+	inline bool ismal(){ return b & MAL; }
+	inline void setnull(){ b = 0; u.i = 0; }
+	inline void disown(){ b &=(~MAL); }
+	inline void freedat(){
+		if ( b & MAL ){
+			free(u.s);
+			b = 0;
+		}
+	}
+	inline void mov(dat& d){
+		freedat();
+		*this = d;
+		d.disown();
+	}
 };
 
 class andchain {
@@ -463,5 +479,3 @@ static string st(T first, Args... args) {
 }
 extern int runmode;
 enum runmodes { RUN_CMD, RUN_SINGLE, RUN_SERVER };
-
-#endif

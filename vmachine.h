@@ -1,9 +1,9 @@
+#pragma once
+
 #include "interpretor.h"
 #include "deps/btree/btree_set.h"
 #include "deps/b64/b64.h"
 #include <math.h>
-#ifndef VMACH_H
-#define VMACH_H
 
 #define bset btree::btree_set
 
@@ -78,20 +78,8 @@ static int typeConv[6][6] = {
 	{0, CVSI, CVSF, CVSDT,CVSDR,CVNO},
 };
 
-inline static bool istext(dat& d){ return (d.b & 7) == T_STRING; }
-inline static bool isnull(dat& d){ return d.b == 0; }
-inline static bool ismal(dat& d){ return d.b & MAL; }
-inline static void setnull(dat& d){ d.b =0; d.u.i = 0; }
 inline static unsigned int valSize(csvEntry& d){ return (unsigned int)(d.terminator - d.val); }
-inline static void disown(dat& d){ d.b &=(~MAL); }
-inline static void freedat(dat& d){
-	if ( d.b & MAL ){
-		free(d.u.s);
-		d.b = 0;
-	}
-}
-
-static inline void freearr(dat* arr, int n) { for (auto i=0; i<n; ++i) freedat(arr[i]); }
+static inline void freearr(dat* arr, int n) { for (auto i=0; i<n; ++i) arr[i].freedat(); }
 bool isTrivial(unique_ptr<node> &n);
 dat parseIntDat(const char* s);
 dat parseFloatDat(const char* s);
@@ -118,9 +106,9 @@ class treeCString {
 		treeCString(dat& d){
 			if (d.b & MAL){
 				s = d.u.s;
-				disown(d);
+				d.disown();
 			} else {
-				if (isnull(d)){
+				if (d.isnull()){
 					s = (char*) calloc(1,1);
 				} else {
 					s = (char*) malloc(d.z+1);
@@ -213,13 +201,13 @@ class rowgroup {
 			if (!data.mapp) {
 				data.mapp = new map<dat, rowgroup>;
 				meta.rowOrGroup = 2;
-				if (istext(d))
+				if (d.istext())
 					meta.mallocedKey = 1;
 			}
 			auto key = d.heap();
 			auto&& inserted = getMap().insert({key, rowgroup()});
 			if (!inserted.second)
-				freedat(key);
+				key.freedat();
 			return inserted.first->second;
 		}
 		dat* getRow(vmachine *v){
@@ -285,5 +273,3 @@ void strplus(dat &s1, dat &s2);
 void trav(rowgroup &r);
 int getSortComparer(querySpecs *q, int i);
 dat prepareLike(unique_ptr<node> &n);
-
-#endif

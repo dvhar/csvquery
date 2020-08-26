@@ -23,9 +23,9 @@ int main(int argc, char** argv){
 			break;
 		//help
 		case 'h':
-			cerr << "\n" << argv[0] << " <file>\n\tRun query from file\n\n"
-				<< argv[0] << " -c \"select from 'data.csv'\"\n\tRun query from command line argument\n\n"
-				<< argv[0] << "\n\tRun query from stdin. Later this will be changed to run gui server\n\n";
+			cerr << '\n' << argv[0] << " <file>\n\tRun query from file\n\n"sv
+				<< argv[0] << " -c \"select from 'data.csv'\"\n\tRun query from command line argument\n\n"sv
+				<< argv[0] << "\n\tRun query from stdin. Later this will be changed to run gui server\n\n"sv;
 			exit(0);
 			break;
 		}
@@ -66,7 +66,7 @@ int main(int argc, char** argv){
 		codeGen(q);
 		runquery(q);
 	} catch (const invalid_argument& ia) {
-		cerr << "Error: " << ia.what() << '\n';
+		cerr << "Error: "sv << ia.what() << '\n';
 		return 1;
 	}
 	return 0;
