@@ -590,7 +590,7 @@ unique_ptr<node> parser::parseJoin() {
 		error("Expected 'join'. Found:"+q->tok().val);
 	}
 	//file path
-	boost::replace_first(t.val, "~/", string(getenv("HOME"))+"/");
+	boost::replace_first(t.val, "~/", st(getenv("HOME"),"/"));
 	n->tok1 = t;
 	//1st after filepath
 	t = q->nextTok();

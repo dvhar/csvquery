@@ -743,9 +743,9 @@ void cgen::genSelections(unique_ptr<node> &n){
 	string t1 = n->tok1.lower();
 	switch (n->label){
 	case N_SELECTIONS:
-		if (t1 == "hidden") {
+		if (t1 == "hidden"sv) {
 
-		} else if (t1 == "distinct") {
+		} else if (t1 == "distinct"sv) {
 			if (agg_phase == 1){
 				genExprAll(n->node1);
 			} else {
@@ -753,7 +753,7 @@ void cgen::genSelections(unique_ptr<node> &n){
 			}
 			incSelectCount();
 
-		} else if (t1 == "*") {
+		} else if (t1 == "*"sv) {
 			genSelectAll();
 
 		} else if (isTrivial(n)) {
@@ -910,7 +910,7 @@ void cgen::genFunction(unique_ptr<node> &n){
 	//stuff common to all aggregate functions
 	if ((n->tok1.id & AGG_BIT) != 0 ) {
 		genExprAll(n->node1);
-		if (n->tok3.val == "distinct" && agg_phase == 1){
+		if (n->tok3.val == "distinct"sv && agg_phase == 1){
 			int setIndex = n->tok4.id;
 			int separateSets = 1;
 			if (q->grouping == 1){ //when onegroup, btree not indexed by rowgroup
@@ -937,7 +937,7 @@ void cgen::genFunction(unique_ptr<node> &n){
 		break;
 	case FN_ENCRYPT:
 		genExprAll(n->node1);
-		if (n->tok3.val == "chacha"){
+		if (n->tok3.val == "chacha"sv){
 			idx = q->crypt.newChacha(n->tok4.val);
 			addop1(ENCCHA, idx);
 		} else /* aes */ {
@@ -945,7 +945,7 @@ void cgen::genFunction(unique_ptr<node> &n){
 		break;
 	case FN_DECRYPT:
 		genExprAll(n->node1);
-		if (n->tok3.val == "chacha"){
+		if (n->tok3.val == "chacha"sv){
 			idx = q->crypt.newChacha(n->tok4.val);
 			addop1(DECCHA, idx);
 		} else /* aes */ {

@@ -149,9 +149,9 @@ vmachine::~vmachine(){
 	if (runmode == RUN_SINGLE) //skip garbage collection if one-off query
 		return;
 	*/
-	freedat(distinctVal);
-	for (auto &d : stack)   freedat(d);
-	for (auto &d : destrow) freedat(d);
+	distinctVal.freedat();
+	for (auto &d : stack)   d.freedat();
+	for (auto &d : destrow) d.freedat();
 	for (auto &btree : bt_strings)
 		for (auto &tcs : btree)
 			free(tcs.s); //treeCString always allocated with c style
@@ -163,7 +163,7 @@ vmachine::~vmachine(){
 }
 querySpecs::~querySpecs(){
 	for (auto &d : dataholder){
-		freedat(d);
+		d.freedat();
 		if (d.b & RMAL){
 			regfree(d.u.r);
 			delete d.u.r; //regex always allocated with 'new'
@@ -201,10 +201,10 @@ bool varScoper::checkDuplicates(int index){
 
 //add s2 to s1
 void strplus(dat &s1, dat &s2){
-	if (isnull(s1)) { s1 = s2; disown(s2); return; }
-	if (isnull(s2)) return;
+	if (s1.isnull()) { s1 = s2; s2.disown(); return; }
+	if (s2.isnull()) return;
 	int newlen = s1.z+s2.z+1;
-	if (ismal(s1)){
+	if (s1.ismal()){
 		s1.u.s = (char*) realloc(s1.u.s, newlen);
 		strcat(s1.u.s+s1.z-1, s2.u.s);
 	} else {
@@ -213,7 +213,7 @@ void strplus(dat &s1, dat &s2){
 		strcat(ns+s1.z-1, s2.u.s);
 		s1.u.s = ns;
 	}
-	freedat(s2);
+	s2.freedat();
 	s1.b |= MAL;
 	s1.z = newlen;
 }
