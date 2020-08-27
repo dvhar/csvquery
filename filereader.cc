@@ -43,6 +43,7 @@ fileReader::~fileReader(){
 					free(d.s);
 }
 bool fileReader::readlineat(i64 position){
+	pos = position;
 	if (inmemory){
 		if (position < 0){
 			entries = entriesVec.data();

@@ -271,6 +271,7 @@ void cgen::genAndChainSet(unique_ptr<node> &n){
 		chain.negations.push_back(prednode->tok2.id);
 		nn = nn->node2.get();
 	}
+	chain.relops[0] = 4; // 4 is index of eq, instruction already konws real first relop
 	int orEquals = 0;
 	switch (n->node1->tok1.id){
 		case SP_EQ:
@@ -280,7 +281,7 @@ void cgen::genAndChainSet(unique_ptr<node> &n){
 			orEquals = 1;
 		case SP_LESS:
 			addop(PUSH_N, orEquals);
-			//addop(GET_SET_LESS_AND, fi, ci);
+			addop(GET_SET_LESS_AND, fi, ci);
 			break;
 		case SP_GREATEQ:
 			orEquals = 1;
