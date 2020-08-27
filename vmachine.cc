@@ -29,7 +29,7 @@
 
 void vmachine::run(){
 	ios::sync_with_stdio(false);
-	constexpr void* labels[] = { &&CVER_, &&CVNO_, &&CVIF_, &&CVIS_, &&CVFI_, &&CVFS_, &&CVDRS_, &&CVDTS_, &&CVSI_, &&CVSF_, &&CVSDR_, &&CVSDT_, &&IADD_, &&FADD_, &&TADD_, &&DTADD_, &&DRADD_, &&ISUB_, &&FSUB_, &&DTSUB_, &&DRSUB_, &&IMULT_, &&FMULT_, &&DRMULT_, &&IDIV_, &&FDIV_, &&DRDIV_, &&INEG_, &&FNEG_, &&PNEG_, &&IMOD_, &&FMOD_, &&IEXP_, &&FEXP_, &&JMP_, &&JMPCNT_, &&JMPTRUE_, &&JMPFALSE_, &&JMPNOTNULL_ELSEPOP_, &&RDLINE_, &&RDLINE_ORDERED_, &&PREP_REREAD_, &&PUT_, &&LDPUT_, &&LDPUTALL_, &&PUTVAR_, &&PUTVAR2_, &&LDINT_, &&LDFLOAT_, &&LDTEXT_, &&LDDATE_, &&LDDUR_, &&LDNULL_, &&LDLIT_, &&LDVAR_, &&HOLDVAR_, &&IEQ_, &&FEQ_, &&TEQ_, &&LIKE_, &&ILEQ_, &&FLEQ_, &&TLEQ_, &&ILT_, &&FLT_, &&TLT_, &&PRINT_, &&PUSH_, &&PUSH_N_, &&POP_, &&POPCPY_, &&ENDRUN_, &&NULFALSE1_, &&NULFALSE2_, &&NDIST_, &&SDIST_, &&PUTDIST_, &&LDDIST_, &&FINC_, &&ENCCHA_, &&DECCHA_, &&SAVESORTN_, &&SAVESORTS_, &&SAVEVALPOS_, &&SAVEPOS_, &&SORT_, &&GETGROUP_, &&ONEGROUP_, &&SUMI_, &&SUMF_, &&AVGI_, &&AVGF_, &&STDVI_, &&STDVF_, &&COUNT_, &&MINI_, &&MINF_, &&MINS_, &&MAXI_, &&MAXF_, &&MAXS_, &&NEXTMAP_, &&NEXTVEC_, &&ROOTMAP_, &&LDMID_, &&LDPUTMID_, &&LDPUTGRP_, &&LDSTDVI_, &&LDSTDVF_, &&LDAVGI_, &&LDAVGF_, &&ADD_GROUPSORT_ROW_, &&FREE_MIDROW_, &&GSORT_, &&READ_NEXT_GROUP_, &&NUL_TO_STR_, &&SORTVALPOS_, &&GET_SET_EQ_AND_, &&GET_SET_EQ_, &&GET_SET_LESS_, &&GET_SET_GRT_, &&JOINSET_INIT_, &&JOINSET_TRAV_, &&AND_SET_, &&OR_SET_, &&SAVEANDCHAIN_, &&SORT_ANDCHAIN_, &&FUNC_YEAR_, &&FUNC_MONTH_, &&FUNC_WEEK_, &&FUNC_YDAY_, &&FUNC_MDAY_, &&FUNC_WDAY_, &&FUNC_HOUR_, &&FUNC_MINUTE_, &&FUNC_SECOND_, &&FUNC_WDAYNAME_, &&FUNC_MONTHNAME_};
+	constexpr void* labels[] = { &&CVER_, &&CVNO_, &&CVIF_, &&CVIS_, &&CVFI_, &&CVFS_, &&CVDRS_, &&CVDTS_, &&CVSI_, &&CVSF_, &&CVSDR_, &&CVSDT_, &&IADD_, &&FADD_, &&TADD_, &&DTADD_, &&DRADD_, &&ISUB_, &&FSUB_, &&DTSUB_, &&DRSUB_, &&IMULT_, &&FMULT_, &&DRMULT_, &&IDIV_, &&FDIV_, &&DRDIV_, &&INEG_, &&FNEG_, &&PNEG_, &&IMOD_, &&FMOD_, &&IEXP_, &&FEXP_, &&JMP_, &&JMPCNT_, &&JMPTRUE_, &&JMPFALSE_, &&JMPNOTNULL_ELSEPOP_, &&RDLINE_, &&RDLINE_ORDERED_, &&PREP_REREAD_, &&PUT_, &&LDPUT_, &&LDPUTALL_, &&PUTVAR_, &&PUTVAR2_, &&LDINT_, &&LDFLOAT_, &&LDTEXT_, &&LDDATE_, &&LDDUR_, &&LDNULL_, &&LDLIT_, &&LDVAR_, &&HOLDVAR_, &&IEQ_, &&FEQ_, &&TEQ_, &&LIKE_, &&ILEQ_, &&FLEQ_, &&TLEQ_, &&ILT_, &&FLT_, &&TLT_, &&PRINT_, &&PUSH_, &&PUSH_N_, &&POP_, &&POPCPY_, &&ENDRUN_, &&NULFALSE1_, &&NULFALSE2_, &&NDIST_, &&SDIST_, &&PUTDIST_, &&LDDIST_, &&FINC_, &&ENCCHA_, &&DECCHA_, &&SAVESORTN_, &&SAVESORTS_, &&SAVEVALPOS_, &&SAVEPOS_, &&SORT_, &&GETGROUP_, &&ONEGROUP_, &&SUMI_, &&SUMF_, &&AVGI_, &&AVGF_, &&STDVI_, &&STDVF_, &&COUNT_, &&MINI_, &&MINF_, &&MINS_, &&MAXI_, &&MAXF_, &&MAXS_, &&NEXTMAP_, &&NEXTVEC_, &&ROOTMAP_, &&LDMID_, &&LDPUTMID_, &&LDPUTGRP_, &&LDSTDVI_, &&LDSTDVF_, &&LDAVGI_, &&LDAVGF_, &&ADD_GROUPSORT_ROW_, &&FREE_MIDROW_, &&GSORT_, &&READ_NEXT_GROUP_, &&NUL_TO_STR_, &&SORTVALPOS_, &&GET_SET_EQ_AND_, &&GET_SET_EQ_, &&GET_SET_LESS_, &&GET_SET_GRT_, &&GET_SET_LESS_AND_, &&GET_SET_GRT_AND_, &&JOINSET_INIT_, &&JOINSET_TRAV_, &&AND_SET_, &&OR_SET_, &&SAVEANDCHAIN_, &&SORT_ANDCHAIN_, &&FUNC_YEAR_, &&FUNC_MONTH_, &&FUNC_WEEK_, &&FUNC_YDAY_, &&FUNC_MDAY_, &&FUNC_WDAY_, &&FUNC_HOUR_, &&FUNC_MINUTE_, &&FUNC_SECOND_, &&FUNC_WDAYNAME_, &&FUNC_MONTHNAME_};
 
 
 	//vars for data
@@ -240,27 +240,68 @@ GET_SET_EQ_AND_:
 		int m;
 		while (l < r){
 			m = (l+r)/2;
-			if (lessfunc(uvec[chain.indexes[m]], compval.u)){
+			if (lessfunc(uvec[chain.indexes[m]], compval.u))
 				l = m + 1;
-			}else{
+			else
 				r = m;
-			}
 		}
 		joinSetStack.push_front(bset<i64>());
 		while (l < chain.indexes.size()){
 			int valIdx = chain.indexes[l];
 			if (!uEqFuncs[comp1Functype](uvec[valIdx], compval.u))
 				break;
-			for (int i=1; i<chsize; ++i){
-				if (!uComparers[chain.relops[i]][chain.functionTypes[i]](chain.values[i][valIdx], stkt(chsize-1-i).u)^chain.negations[i]){
+			for (int i=1; i<chsize; ++i)
+				if (!uComparers[chain.relops[i]][chain.functionTypes[i]](chain.values[i][valIdx], stkt(chsize-1-i).u)^chain.negations[i])
 					goto skipjoin;
-				}
-			}
 			joinSetStack.front().insert(chain.positiions[valIdx]);
-			skipjoin:;
+			skipjoin:
 			++l;
 		}
 		stacktop -= chsize;
+	}
+	nexti();
+GET_SET_GRT_AND_: //TODO
+	nexti();
+GET_SET_LESS_AND_:
+	{
+		auto& chain = files[op->p1]->andchains[op->p2];
+		int comp1Functype = chain.functionTypes[0];
+		auto& lessfunc = uLessFuncs[comp1Functype];
+		int chsize = chain.values.size();
+		dat& compval = stkt(chsize);
+		auto& uvec = chain.values[0];
+		int r = chain.indexes.size()-1;
+		int l = 0;
+		int m;
+		while (l < r){
+			m = (l+r)/2;
+			if (lessfunc(uvec[chain.indexes[m]], compval.u))
+				l = m + 1;
+			else
+				r = m;
+		}
+		joinSetStack.push_front(bset<i64>());
+		if (uEqFuncs[comp1Functype](uvec[chain.indexes[l]], compval.u)){
+			if (stk0.u.i) // <=
+				for (m = l, r = chain.indexes[m]; m < chain.indexes.size(); r = chain.indexes[++m]){
+					for (int i=0; i<chsize; ++i)
+						if (!uComparers[chain.relops[i]][chain.functionTypes[i]](chain.values[i][r], stkt(chsize-i).u)^chain.negations[i])
+							goto skipjoin3;
+					joinSetStack.front().insert(chain.positiions[r]);
+				}
+			skipjoin3:
+			--l;
+		}
+		while (l >= 0){ //get lessthan matches
+			int valIdx = chain.indexes[l];
+			for (int i=1; i<chsize; ++i)
+				if (!uComparers[chain.relops[i]][chain.functionTypes[i]](chain.values[i][valIdx], stkt(chsize-i).u)^chain.negations[i])
+					goto skipjoin2;
+			joinSetStack.front().insert(chain.positiions[valIdx]);
+			skipjoin2:
+			--l;
+		}
+		stacktop -= (chsize+1);
 	}
 	nexti();
 GET_SET_GRT_:

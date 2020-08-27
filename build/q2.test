@@ -1,1 +1,5 @@
-with avg(c7) * 2 as dog and c3 as 'group' select avg(c7) dog c7 c1 sum(c7)/91 'group' from 'test/country' group by c3
+select
+o.c1 l.c1
+from 'test/country.csv' o join 'test/lang.csv' l 
+on o.c1>=l.c1 and l.c1 <> GAB and l.c1 like 'g%'
+order by l.c1
