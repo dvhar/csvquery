@@ -42,7 +42,7 @@ fileReader::~fileReader(){
 				for (auto d: a.values[i])
 					free(d.s);
 }
-bool fileReader::readlineat(int64 position){
+bool fileReader::readlineat(i64 position){
 	if (inmemory){
 		if (position < 0){
 			entries = entriesVec.data();
@@ -205,22 +205,6 @@ int fileReader::getColIdx(string& colname){
 		if (colnames[i] == colname)
 			return i;
 	return -1;
-}
-
-void fileReader::numlines(){
-	auto f = fopen(filename.c_str(),"r");
-	int lines=0, nbytes;
-	char *bufp, *bufe;
-	while((nbytes = fread(buf, 1, BUFSIZE, f))){
-		bufp = buf;
-		bufe = buf + nbytes;
-		while((bufp = (char*) memchr(bufp, '\n', bufe-bufp))){
-			++bufp;
-			++lines;
-		}
-	}
-	fclose(f);
-	linecount = lines - (noheader ? 0 : 1);
 }
 
 void openfiles(querySpecs &q, unique_ptr<node> &n){

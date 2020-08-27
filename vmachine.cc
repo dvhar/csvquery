@@ -33,7 +33,7 @@ void vmachine::run(){
 
 
 	//vars for data
-	int64 i64Temp;
+	i64 i64Temp;
 	int iTemp1, iTemp2;
 	double fTemp;
 	char* cstrTemp;
@@ -42,7 +42,7 @@ void vmachine::run(){
 	dat datTemp;
 	dat *datpTemp;
 	csvEntry csvTemp;
-	unsigned int sizeTemp;
+	u32 sizeTemp;
 	struct tm timetm;
 
 	//vars for vm operations
@@ -112,8 +112,7 @@ PUTVAR2_:
 	if (torow[op->p2].isnull() && !stk0.isnull()){
 		torow[op->p2] = stk0.heap();
 	}
-	stkb(op->p1).freedat();
-	stkb(op->p1) = stk0;
+	stkb(op->p1).mov(stk0);
 	pop();
 	nexti();
 
@@ -140,7 +139,7 @@ LDDATE_:
 	csvTemp = files[op->p1]->entries[op->p2];
 	iTemp1 = dateparse(csvTemp.val, &i64Temp, &iTemp2, valSize(csvTemp));
 	if (iTemp1) { stk0.setnull(); }
-	else stk0 = dat{ { i: i64Temp}, T_DATE, (unsigned int) iTemp2 };
+	else stk0 = dat{ { i: i64Temp}, T_DATE, (u32) iTemp2 };
 	nexti();
 LDTEXT_:
 	push();
@@ -247,7 +246,7 @@ GET_SET_EQ_AND_:
 				r = m;
 			}
 		}
-		joinSetStack.push_front(bset<int64>());
+		joinSetStack.push_front(bset<i64>());
 		while (l < chain.indexes.size()){
 			int valIdx = chain.indexes[l];
 			if (!uEqFuncs[comp1Functype](uvec[valIdx], compval.u))
@@ -279,7 +278,7 @@ GET_SET_GRT_:
 				l = m + 1;
 		}
 		--r;
-		joinSetStack.push_front(bset<int64>());
+		joinSetStack.push_front(bset<i64>());
 		if (uEqFuncs[op->p3](vpvector[r].val, stk1.u)){
 			if (stk0.u.i) // >=
 				for (m = r; m >= 0 && uEqFuncs[op->p3](vpvector[m].val, stk1.u); --m)
@@ -306,7 +305,7 @@ GET_SET_LESS_:
 			else
 				r = m;
 		}
-		joinSetStack.push_front(bset<int64>());
+		joinSetStack.push_front(bset<i64>());
 		if (uEqFuncs[op->p3](vpvector[l].val, stk1.u)){
 			if (stk0.u.i) // <=
 				for (m = l; m < vpvector.size() && uEqFuncs[op->p3](vpvector[m].val, stk1.u); ++m)
@@ -333,7 +332,7 @@ GET_SET_EQ_:
 			else
 				r = m;
 		}
-		joinSetStack.push_front(bset<int64>());
+		joinSetStack.push_front(bset<i64>());
 		while (l < vpvector.size() && uEqFuncs[op->p3](vpvector[l].val, stk0.u))
 			joinSetStack.front().insert(vpvector[l++].pos);
 	}
@@ -342,17 +341,17 @@ GET_SET_EQ_:
 AND_SET_:
 	{
 		;
-		bset<int64> tempset1(move(joinSetStack.front()));
+		bset<i64> tempset1(move(joinSetStack.front()));
 		joinSetStack.pop_front();
 		auto& target = joinSetStack.front();
-		bset<int64> tempset2(move(target));
+		bset<i64> tempset2(move(target));
 		set_intersection(tempset1.begin(), tempset1.end(), tempset2.begin(), tempset2.end(),
 				inserter(target, target.begin()));
 	}
 	nexti();
 OR_SET_:
 	{
-		bset<int64> tempset(move(joinSetStack.front()));
+		bset<i64> tempset(move(joinSetStack.front()));
 		joinSetStack.pop_front();
 		auto& target = joinSetStack.front();
 		for (auto loc : tempset)
@@ -627,7 +626,7 @@ IMOD_:
 	nexti();
 FMOD_:
 	if (stk0.isnull() || stk1.isnull()) { stk1.setnull(); }
-	else stk1.u.f = static_cast<int64>(stk1.u.f) % static_cast<int64>(stk0.u.f);
+	else stk1.u.f = static_cast<i64>(stk1.u.f) % static_cast<i64>(stk0.u.f);
 	pop();
 	nexti();
 
@@ -718,7 +717,7 @@ LIKE_:
 
 PUSH_N_:
 	push();
-	stk0.u.i = op->p1;;
+	stk0.u.i = op->p1;
 	nexti();
 PUSH_:
 	push();	
@@ -826,7 +825,7 @@ CVDTS_:
 		stk0.u.s = (char*) malloc(20);
 		strncpy(stk0.u.s, cstrTemp, 19);
 		stk0.b = T_STRING|MAL;
-		stk0.z = 19;
+		stk0.z = strlen(stk0.u.s);
 	}
 	nexti();
 
@@ -916,7 +915,7 @@ FINC_:
 ENCCHA_:
 	{
 		auto&& pt1 = q->crypt.chachaEncrypt(op->p1, stk0.z, stk0.u.s);
-		if (stk0.b & MAL) free(stk0.u.s);
+		if (stk0.ismal()) free(stk0.u.s);
 		stk0.u.s = pt1.first;
 		stk0.z = pt1.second;
 		stk0.b = T_STRING|MAL;
@@ -925,7 +924,7 @@ ENCCHA_:
 DECCHA_:
 	{
 		auto&& pt2 = q->crypt.chachaDecrypt(op->p1, stk0.z, stk0.u.s);
-		if (stk0.b & MAL) free(stk0.u.s);
+		if (stk0.ismal()) free(stk0.u.s);
 		stk0.u.s = pt2.first;
 		stk0.z = pt2.second;
 		stk0.b = T_STRING|MAL;
@@ -978,7 +977,7 @@ FUNC_MONTHNAME_:
 	nexti();
 //aggregates
 LDSTDVI_:
-	nexti();
+	nexti(); //TODO
 LDSTDVF_:
 	push();
 	if (!midrow[op->p1].isnull())
@@ -1028,7 +1027,7 @@ STDVF_:
 	{
 		if (!stk0.isnull())
 			if (torow[op->p1].isnull()){
-				torow[op->p1] = {{i:static_cast<int64>(stdvs.size())},T_INT};
+				torow[op->p1] = {{i:static_cast<i64>(stdvs.size())},T_INT};
 				stdvs.emplace_back(stddev(stk0.u.f));
 			} else {
 				stdvs[torow[op->p1].u.i].numbers.push_front(stk0.u.f);
