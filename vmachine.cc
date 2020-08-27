@@ -971,7 +971,7 @@ DECCHA_:
 		stk0.b = T_STRING|MAL;
 	}
 	nexti();
-#define get_tm() secs_to_tm(stk0.u.i / 1000000, &timetm);
+#define get_tm() secs_to_tm(sec(stk0.u.i), &timetm);
 FUNC_YEAR_:
 	get_tm();
 	stk0 = { { i: timetm.tm_year + 1900 }, T_INT };
