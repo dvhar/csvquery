@@ -78,8 +78,8 @@ static int typeConv[6][6] = {
 	{0, CVSI, CVSF, CVSDT,CVSDR,CVNO},
 };
 
-inline static unsigned int valSize(csvEntry& d){ return (unsigned int)(d.terminator - d.val); }
-static inline void freearr(dat* arr, int n) { for (auto i=0; i<n; ++i) arr[i].freedat(); }
+inline static u32 valSize(csvEntry& d){ return (u32)(d.terminator - d.val); }
+static inline void freearr(dat* arr, u32 n) { for (auto i=0; i<n; ++i) arr[i].freedat(); }
 bool isTrivial(unique_ptr<node> &n);
 dat parseIntDat(const char* s);
 dat parseFloatDat(const char* s);
@@ -162,7 +162,7 @@ class vmachine {
 	vector<unique_ptr<dat[], freeC>> groupSorter;
 	vector<int> sortIdxs;
 	vector<vector<datunion>> normalSortVals;
-	forward_list<bset<int64>> joinSetStack;
+	forward_list<bset<i64>> joinSetStack;
 	forward_list<unique_ptr<char, freeC>> groupSortVars;
 	unique_ptr<rowgroup> groupTree;
 	//datunion comparers
@@ -176,7 +176,7 @@ class vmachine {
 	static const function<bool (const datunion, const datunion&)>* uComparers[7];
 	public:
 	static flatmap<int,int> relopIdx;
-	vector<bset<int64>> bt_nums;
+	vector<bset<i64>> bt_nums;
 	vector<bset<treeCString>> bt_strings;
 	querySpecs* q;
 	void run();
@@ -187,12 +187,12 @@ class vmachine {
 class rowgroup {
 	public:
 		struct {
-			unsigned int rowOrGroup : 2;
-			unsigned int mallocedKey : 1;
+			u32 rowOrGroup : 2;
+			bool mallocedKey : 1;
 			bool freed : 1;
-			int distinctNSetIdx : 25;
-			int distinctSSetIdx : 25;
-			int rowsize : 10;
+			u32 distinctNSetIdx : 26;
+			u32 distinctSSetIdx : 26;
+			u32 rowsize : 8;
 		} meta;
 		union { dat* vecp; map<dat, rowgroup>* mapp; } data;
 		dat* getVec(){ return data.vecp; };
@@ -202,7 +202,7 @@ class rowgroup {
 				data.mapp = new map<dat, rowgroup>;
 				meta.rowOrGroup = 2;
 				if (d.istext())
-					meta.mallocedKey = 1;
+					meta.mallocedKey = true;
 			}
 			auto key = d.heap();
 			auto&& inserted = getMap().insert({key, rowgroup()});
@@ -218,7 +218,7 @@ class rowgroup {
 				if (v->q->distinctNFuncs){
 					meta.distinctNSetIdx = v->bt_nums.size();
 					for(int i=0; i<v->q->distinctNFuncs; ++i)
-						v->bt_nums.emplace_back(bset<int64>());
+						v->bt_nums.emplace_back(bset<i64>());
 				}
 				if (v->q->distinctSFuncs){
 					meta.distinctSSetIdx = v->bt_strings.size();

@@ -29,13 +29,14 @@
 
 
 #define BUFSIZE  1024*1024
-#define chacha struct chacha20_context
-#define int64 long long
-#define dur_t long long
+typedef struct chacha20_context chacha;
+typedef long long i64;
+typedef unsigned int u32;
+typedef i64 dur_t;
 #define ft boost::format
 #define flatmap boost::container::flat_map
 #define error(A) throw invalid_argument(A)
-#define SMALLEST numeric_limits<int64>::min()
+#define SMALLEST numeric_limits<i64>::min()
 using namespace std;
 
 
@@ -244,11 +245,10 @@ class fileReader {
 		bool small;
 		bool inmemory;
 		char delim;
-		int linecount;
 		streampos pos;
 		vector<string> colnames;
 		vector<int> types;
-		vector<int64> positions;
+		vector<i64> positions;
 		vector<vector<valpos>> joinValpos;
 		vector<andchain> andchains;
 		vector<int> vpTypes;
@@ -263,8 +263,7 @@ class fileReader {
 	void inferTypes();
 	int getColIdx(string&);
 	bool readline();
-	void numlines();
-	bool readlineat(int64);
+	bool readlineat(i64);
 	fileReader(string&);
 	~fileReader();
 };
@@ -279,7 +278,7 @@ class opcode {
 };
 
 union datunion {
-	int64 i; //also used for date and duration
+	i64 i; //also used for date and duration
 	double f;
 	char* s;
 	bool p;
@@ -293,48 +292,47 @@ inline static char* newStr(char* src, int size){
 }
 class dat {
 	public:
-	union datunion u;
-	unsigned int b; // metadata bit array
-	unsigned int z; // string size
+	datunion u;
+	u32 b; // metadata bit array
+	u32 z; // string size and avg count
 	void appendToBuffer(string&);
 	string str(){ string st; appendToBuffer(st); return st; }
+	bool istext() const { return (b & 7) == T_STRING; }
+	bool isnull() const { return b == 0; }
+	bool ismal() const { return b & MAL; }
+	void setnull(){ b = 0; u.i = 0; }
+	void disown(){ b &=(~MAL); }
+	void freedat(){
+		if (ismal()){
+			free(u.s);
+			b = 0;
+		}
+	}
 	friend bool operator<(const dat& l, const dat& r){
-		if ((l.b & 7) == T_STRING) {
-			if (r.b == 0){
+		if (l.istext()) {
+			if (r.isnull()){
 				return false;
 			}
 			return strcmp(l.u.s, r.u.s) < 0;
-		} else if (l.b == 0)
-			return r.b != 0;
+		} else if (l.isnull() || r.isnull())
+			return l.b < r.b;
 		else
 			return l.u.i < r.u.i;
 	}
 	dat heap(){
 		dat d;
-		d.z = z;
-		if ((b & 7) == T_STRING && (b & MAL) == 0){
+		if (istext() && !ismal()){
 			d.u.s = (char*) malloc(z+1);
 			strcpy(d.u.s, u.s);
 			d.b = b | MAL;
+			d.z = z;
 		} else {
-			d.b = b;
-			d.u.s = u.s;
+			d = *this;
 		}
-		b &= ~MAL;
+		disown();
 		return d;
 	}
-	inline bool istext(){ return (b & 7) == T_STRING; }
-	inline bool isnull(){ return b == 0; }
-	inline bool ismal(){ return b & MAL; }
-	inline void setnull(){ b = 0; u.i = 0; }
-	inline void disown(){ b &=(~MAL); }
-	inline void freedat(){
-		if ( b & MAL ){
-			free(u.s);
-			b = 0;
-		}
-	}
-	inline void mov(dat& d){
+	void mov(dat& d){
 		freedat();
 		*this = d;
 		d.disown();
@@ -347,7 +345,7 @@ class andchain {
 	vector<int> functionTypes;
 	vector<int> relops;
 	vector<bool> negations;
-	vector<int64> positiions;
+	vector<i64> positiions;
 	vector<vector<datunion>> values;
 	andchain(int size){
 		values.resize(size);
@@ -357,7 +355,7 @@ class andchain {
 class valpos {
 	public:
 	datunion val;
-	int64 pos;
+	i64 pos;
 };
 
 class resultSpecs {
