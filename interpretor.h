@@ -18,6 +18,7 @@
 #include <boost/format.hpp>
 #include "deps/dateparse/dateparse.h"
 #include "deps/chacha/chacha20.h"
+#include "deps/experimental/bufreader.h"
 #include <forward_list>
 
 #ifdef __MINGW32__
@@ -231,10 +232,10 @@ class fileReader {
 	char* pos2;
 	char* terminator;
 	char* buf;
-	char buf1[BUFSIZE];
-	ifstream fs;
+	char* buf1;
+	lreader fs;
 	string filename;
-	streampos prevpos;
+	i64 prevpos;
 	vector<vector<csvEntry>> gotrows;
 	forward_list<unique_ptr<char>> gotbuffers;
 	vector<csvEntry> entriesVec;
@@ -245,7 +246,7 @@ class fileReader {
 		bool small;
 		bool inmemory;
 		char delim;
-		streampos pos;
+		i64 pos;
 		vector<string> colnames;
 		vector<int> types;
 		vector<i64> positions;

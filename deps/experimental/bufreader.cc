@@ -4,12 +4,14 @@
 using namespace std;
 
 inline void lreader::refresh(){
-	auto readb = fread(buf, 1, BS, f);
+	auto readb = fread(buf, 1, (single ? biggest : BS), f);
 	line = buf;
 	end = line + readb;
 	nl = (char*) memchr(line, '\n', end - line);
-	if (nl) *nl = 0;
-	else line = NULL;
+	if (nl){
+		*nl = 0;
+		linesize = nl - line + 1;
+	} else line = NULL;
 }
 inline void lreader::realign(){
 	memmove(buf, line, end-line);
@@ -24,18 +26,25 @@ char* lreader::readline(){
 			nl = (char*) memchr(line, '\n', end - line);
 			if (nl){
 				*nl = 0;
+				linesize = nl - line + 1;
 			} else {
-				realign();
-				refresh();
+				if (end > line){
+					realign();
+					refresh();
+				} else {
+					line = NULL;
+				}
 			}
 		} else {
 				realign();
 				refresh();
 		}
 	}
+	if (linesize > biggest)
+		biggest = linesize;
 	return line;
 }
-
+/*
 int main(int argc, char** argv){
 	int count = 0;
 	char* line;
@@ -45,3 +54,4 @@ int main(int argc, char** argv){
 	}
 	return 0;
 }
+*/
