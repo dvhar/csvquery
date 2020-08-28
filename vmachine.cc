@@ -260,7 +260,48 @@ GET_SET_EQ_AND_:
 		stacktop -= chsize;
 	}
 	nexti();
-GET_SET_GRT_AND_: //TODO
+GET_SET_GRT_AND_:
+	{
+		auto& chain = files[op->p1]->andchains[op->p2];
+		int comp1Functype = chain.functionTypes[0];
+		auto& grtfunc = uGrtFuncs[comp1Functype];
+		int chsize = chain.values.size();
+		dat& compval = stkt(chsize);
+		auto& uvec = chain.values[0];
+		int r = chain.indexes.size()-1;
+		int l = 0;
+		int m;
+		while (l < r){
+			m = (l+r)/2;
+			if (grtfunc(uvec[chain.indexes[m]], compval.u))
+				r = m;
+			else
+				l = m + 1;
+		}
+		--r;
+		joinSetStack.push_front(bset<i64>());
+		if (uEqFuncs[comp1Functype](uvec[chain.indexes[r]], compval.u)){
+			if (stk0.u.i) // >=
+				for (m = r, l = chain.indexes[m]; m >= 0; l = chain.indexes[--m]){
+					for (int i=0; i<chsize; ++i)
+						if (!uComparers[chain.relops[i]][chain.functionTypes[i]](chain.values[i][l], stkt(chsize-i).u)^chain.negations[i])
+							goto skipjoin4;
+					joinSetStack.front().insert(chain.positiions[l]);
+				}
+			skipjoin4:
+			++r;
+		}
+		while (r < chain.indexes.size()){ //get lessthan matches
+			int valIdx = chain.indexes[r];
+			for (int i=1; i<chsize; ++i)
+				if (!uComparers[chain.relops[i]][chain.functionTypes[i]](chain.values[i][valIdx], stkt(chsize-i).u)^chain.negations[i])
+					goto skipjoin5;
+			joinSetStack.front().insert(chain.positiions[valIdx]);
+			skipjoin5:
+			++r;
+		}
+		stacktop -= (chsize+1);
+	}
 	nexti();
 GET_SET_LESS_AND_:
 	{

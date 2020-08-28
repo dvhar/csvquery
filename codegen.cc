@@ -287,7 +287,7 @@ void cgen::genAndChainSet(unique_ptr<node> &n){
 			orEquals = 1;
 		case SP_GREAT:
 			addop(PUSH_N, orEquals);
-			//addop(GET_SET_GRT_AND, fi, ci);
+			addop(GET_SET_GRT_AND, fi, ci);
 			break;
 		default:
 			error("joins with '"+n->tok1.val+"' operator in first of 'and' conditions not implemented");
