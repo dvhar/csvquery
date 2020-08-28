@@ -2,4 +2,4 @@ select
 o.c1 l.c1
 from 'test/country.csv' o join 'test/lang.csv' l 
 on o.c1<=l.c1 and l.c1 <> GAB and l.c1 like 'i%'
-order by o.c1 asc
+where l.c1 = IND and o.c1 = IOT
