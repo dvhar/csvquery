@@ -275,19 +275,19 @@ void cgen::genAndChainSet(unique_ptr<node> &n){
 	int orEquals = 0;
 	switch (n->node1->tok1.id){
 		case SP_EQ:
-			addop(GET_SET_EQ_AND, fi, ci);
+			addop(JOINSET_EQ_AND, fi, ci);
 			break;
 		case SP_LESSEQ:
 			orEquals = 1;
 		case SP_LESS:
 			addop(PUSH_N, orEquals);
-			addop(GET_SET_LESS_AND, fi, ci);
+			addop(JOINSET_LESS_AND, fi, ci);
 			break;
 		case SP_GREATEQ:
 			orEquals = 1;
 		case SP_GREAT:
 			addop(PUSH_N, orEquals);
-			addop(GET_SET_GRT_AND, fi, ci);
+			addop(JOINSET_GRT_AND, fi, ci);
 			break;
 		default:
 			error("joins with '"+n->tok1.val+"' operator in first of 'and' conditions not implemented");
@@ -329,19 +329,19 @@ void cgen::genJoinCompare(unique_ptr<node> &n){
 	int orEquals = 0, vpidx = n->info[VALPOSIDX];
 	switch (n->tok1.id){
 		case SP_EQ:
-			addop(GET_SET_EQ, joinFileIdx, vpidx, funcTypes[valposTypes[vpidx]]);
+			addop(JOINSET_EQ, joinFileIdx, vpidx, funcTypes[valposTypes[vpidx]]);
 			break;
 		case SP_LESSEQ:
 			orEquals = 1;
 		case SP_LESS:
 			addop(PUSH_N, orEquals);
-			addop(GET_SET_LESS, joinFileIdx, vpidx, funcTypes[valposTypes[vpidx]]);
+			addop(JOINSET_LESS, joinFileIdx, vpidx, funcTypes[valposTypes[vpidx]]);
 			break;
 		case SP_GREATEQ:
 			orEquals = 1;
 		case SP_GREAT:
 			addop(PUSH_N, orEquals);
-			addop(GET_SET_GRT, joinFileIdx, vpidx, funcTypes[valposTypes[vpidx]]);
+			addop(JOINSET_GRT, joinFileIdx, vpidx, funcTypes[valposTypes[vpidx]]);
 			break;
 		default:
 			error("joins with '"+n->tok1.val+"' operator not implemented");
