@@ -1,5 +1,5 @@
 select
 o.c1 l.c1
-from 'test/country.csv' o join 'test/lang.csv' l 
-on o.c1<=l.c1 and l.c1 <> GAB and l.c1 like 'i%'
-where l.c1 = IND and o.c1 = IOT
+from 'test/country.csv' o nh join 'test/lang.csv' l nh
+on o.c1>=l.c1 and l.c1 like 'i%'
+where o.c1 < l.c1
