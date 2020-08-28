@@ -1,5 +1,4 @@
 #include <ctype.h>
-#include <fstream>
 #include <filesystem>
 #include <sstream>
 #include <string>
@@ -21,14 +20,12 @@ fileReader::fileReader(string& fname){
 	}
 	//filesize optimizations more beneficial for joined files
 	small = filesystem::file_size(fname) < (fileno>0? 100:1)*1024*1024;
-	buf = buf1;
 	memidx = pos = prevpos = numFields = 0;
 	filename = fname;
-	fs = ifstream(fname);	
+	fs.open(fname.c_str());	
 }
 char fileReader::blank = 0;
 fileReader::~fileReader(){
-	fs.close();
 	int i;
 	for (auto t: vpTypes){
 		if (t == T_STRING)
@@ -56,8 +53,7 @@ bool fileReader::readlineat(i64 position){
 			fill(entriesVec.begin(), entriesVec.end(), csvEntry{&blank,&blank});
 			return 0;
 		}
-		fs.clear();
-		fs.seekg(position);
+		fs.seekline(position);
 		return readline();
 	}
 }
@@ -70,16 +66,18 @@ bool fileReader::readline(){
 			entries = gotrows[memidx++].data();
 			return 0;
 		} else { //haven't loaded into memory yet (infertypes)
-			fs.getline(buf1, BUFSIZE);
+			if ((buf1 = fs.readline()) == 0)
+				return 1;
 			gotbuffers.push_front({});
 			auto& newbuf = gotbuffers.front();
-			newbuf.reset(new char[fs.gcount()]);
+			newbuf.reset(new char[fs.linesize]);
 			buf = newbuf.get();
 			strcpy(buf, buf1);
 		}
 	} else {
 		pos = prevpos;
-		fs.getline(buf, BUFSIZE);
+		if ((buf = fs.readline()) == 0)
+			return 1;
 	}
 	entriesVec.clear();
 	fieldsFound = 0;
@@ -193,8 +191,7 @@ void fileReader::inferTypes() {
 	for (int i=0; i<entriesVec.size(); ++i)
 		if (!types[i])
 			types[i] = T_STRING; //maybe come up with better way of handling nulls
-	fs.clear();
-	fs.seekg(startData);
+	fs.seekfull(startData);
 	prevpos = startData;
 	if (small)
 		fill(entriesVec.begin(), entriesVec.end(), csvEntry{&blank,&blank});
