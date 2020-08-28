@@ -278,20 +278,16 @@ JOINSET_GRT_AND_:
 			else
 				l = m + 1;
 		}
-		--r;
 		joinSetStack.push_front(bset<i64>());
-		if (uEqFuncs[comp1Functype](uvec[chain.indexes[r]], compval.u)){
-			if (stk0.u.i) // >=
-				for (m = r, l = chain.indexes[m]; m >= 0; l = chain.indexes[--m]){
-					for (int i=0; i<chsize; ++i)
-						if (!uComparers[chain.relops[i]][chain.functionTypes[i]](chain.values[i][l], stkt(chsize-i).u)^chain.negations[i])
-							goto skipjoin4;
-					joinSetStack.front().insert(chain.positiions[l]);
-				}
-			skipjoin4:
-			++r;
-		}
-		while (r < chain.indexes.size()){ //get lessthan matches
+		if (stk0.u.i && uEqFuncs[comp1Functype](uvec[chain.indexes[r-1]], compval.u)) // >=
+			for (m = r-1, l = chain.indexes[m]; m >= 0; l = chain.indexes[--m]){
+				for (int i=0; i<chsize; ++i)
+					if (!uComparers[chain.relops[i]][chain.functionTypes[i]](chain.values[i][l], stkt(chsize-i).u)^chain.negations[i])
+						goto skipjoin4;
+				joinSetStack.front().insert(chain.positiions[l]);
+			}
+		skipjoin4:
+		while (r < chain.indexes.size()){ //get grt matches
 			int valIdx = chain.indexes[r];
 			for (int i=1; i<chsize; ++i)
 				if (!uComparers[chain.relops[i]][chain.functionTypes[i]](chain.values[i][valIdx], stkt(chsize-i).u)^chain.negations[i])
@@ -359,14 +355,10 @@ JOINSET_GRT_:
 			else
 				l = m + 1;
 		}
-		--r;
 		joinSetStack.push_front(bset<i64>());
-		if (uEqFuncs[op->p3](vpvector[r].val, stk1.u)){
-			if (stk0.u.i) // >=
-				for (m = r; m >= 0 && uEqFuncs[op->p3](vpvector[m].val, stk1.u); --m)
-					joinSetStack.front().insert(vpvector[m].pos);
-			++r;
-		}
+		if (stk0.u.i && uEqFuncs[op->p3](vpvector[r-1].val, stk1.u)) // >=
+			for (m = r-1; m >= 0 && uEqFuncs[op->p3](vpvector[m].val, stk1.u); --m)
+				joinSetStack.front().insert(vpvector[m].pos);
 		while (r < vpvector.size())
 			joinSetStack.front().insert(vpvector[r++].pos);
 	}
