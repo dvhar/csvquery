@@ -279,7 +279,7 @@ JOINSET_GRT_AND_:
 				l = m + 1;
 		}
 		joinSetStack.push_front(bset<i64>());
-		if (stk0.u.i && uEqFuncs[comp1Functype](uvec[chain.indexes[r-1]], compval.u)) // >=
+		if (stk0.u.i && uEqFuncs[comp1Functype](uvec[chain.indexes[r-1]], compval.u)) // GTE
 			for (m = r-1, l = chain.indexes[m]; m >= 0; l = chain.indexes[--m]){
 				for (int i=0; i<chsize; ++i)
 					if (!uComparers[chain.relops[i]][chain.functionTypes[i]](chain.values[i][l], stkt(chsize-i).u)^chain.negations[i])
@@ -318,17 +318,16 @@ JOINSET_LESS_AND_:
 				r = m;
 		}
 		joinSetStack.push_front(bset<i64>());
-		if (uEqFuncs[comp1Functype](uvec[chain.indexes[l]], compval.u)){
-			if (stk0.u.i) // <=
-				for (m = l, r = chain.indexes[m]; m < chain.indexes.size(); r = chain.indexes[++m]){
-					for (int i=0; i<chsize; ++i)
-						if (!uComparers[chain.relops[i]][chain.functionTypes[i]](chain.values[i][r], stkt(chsize-i).u)^chain.negations[i])
-							goto skipjoin3;
-					joinSetStack.front().insert(chain.positiions[r]);
-				}
-			skipjoin3:
-			--l;
+		if (stk0.u.i && uEqFuncs[comp1Functype](uvec[chain.indexes[l]], compval.u)){ // LTE
+			for (m = l, r = chain.indexes[m]; m < chain.indexes.size(); r = chain.indexes[++m]){
+				for (int i=0; i<chsize; ++i)
+					if (!uComparers[chain.relops[i]][chain.functionTypes[i]](chain.values[i][r], stkt(chsize-i).u)^chain.negations[i])
+						goto skipjoin3;
+				joinSetStack.front().insert(chain.positiions[r]);
+			}
 		}
+		skipjoin3:
+		--l;
 		while (l >= 0){ //get lessthan matches
 			int valIdx = chain.indexes[l];
 			for (int i=1; i<chsize; ++i)
@@ -356,7 +355,7 @@ JOINSET_GRT_:
 				l = m + 1;
 		}
 		joinSetStack.push_front(bset<i64>());
-		if (stk0.u.i && uEqFuncs[op->p3](vpvector[r-1].val, stk1.u)) // >=
+		if (stk0.u.i && uEqFuncs[op->p3](vpvector[r-1].val, stk1.u)) // GTE
 			for (m = r-1; m >= 0 && uEqFuncs[op->p3](vpvector[m].val, stk1.u); --m)
 				joinSetStack.front().insert(vpvector[m].pos);
 		while (r < vpvector.size())
@@ -380,12 +379,10 @@ JOINSET_LESS_:
 				r = m;
 		}
 		joinSetStack.push_front(bset<i64>());
-		if (uEqFuncs[op->p3](vpvector[l].val, stk1.u)){
-			if (stk0.u.i) // <=
-				for (m = l; m < vpvector.size() && uEqFuncs[op->p3](vpvector[m].val, stk1.u); ++m)
-					joinSetStack.front().insert(vpvector[m].pos);
-			--l;
-		}
+		if (stk0.u.i && uEqFuncs[op->p3](vpvector[l].val, stk1.u)) // LTE
+			for (m = l; m < vpvector.size() && uEqFuncs[op->p3](vpvector[m].val, stk1.u); ++m)
+				joinSetStack.front().insert(vpvector[m].pos);
+		--l;
 		while (l >= 0)
 			joinSetStack.front().insert(vpvector[l--].pos);
 	}
