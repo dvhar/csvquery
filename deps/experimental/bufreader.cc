@@ -2,6 +2,7 @@
 #include<iostream>
 #include "bufreader.h"
 using namespace std;
+//#define EX
 
 inline void lreader::refresh(){
 	auto readb = fread(buf, 1, (single ? biggest : BS), f);
@@ -18,7 +19,7 @@ inline void lreader::realign(){
 }
 
 char* lreader::readline(){
-	if (line == NULL){
+	if (single || line == NULL){
 		refresh();
 	} else {
 		if (end > line){
@@ -28,15 +29,11 @@ char* lreader::readline(){
 				*nl = 0;
 				linesize = nl - line + 1;
 			} else {
-				if (end > line){
+				if (end > line)
 					realign();
-					refresh();
-				} else {
-					line = NULL;
-				}
+				refresh();
 			}
 		} else {
-				realign();
 				refresh();
 		}
 	}
@@ -44,14 +41,17 @@ char* lreader::readline(){
 		biggest = linesize;
 	return line;
 }
-/*
+
+#ifdef EX
 int main(int argc, char** argv){
 	int count = 0;
 	char* line;
-	auto r = lreader((char*) "/home/dave/gits/csvquery/build/test/country.csv");
+	lreader r;
+	r.open((char*) "/home/dave/gits/csvquery/build/ptest.csv");
 	while ((line = r.readline())){
-		cout << "line: '" << line << "'" << endl;
+		//cout << "line: '" << line << "'" << endl;
+		cout << "\n------------\n" << line;
 	}
 	return 0;
 }
-*/
+#endif
