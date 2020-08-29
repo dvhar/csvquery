@@ -3,7 +3,7 @@
 #include <memory>
 
 class lreader {
-	size_t BS = 1024*1024 * 8;
+	size_t BS = 1024*1024*8;
 	std::unique_ptr<char> bholder;
 	char* buf;
 	FILE* f;
@@ -11,7 +11,6 @@ class lreader {
 	char* nl;
 	char* line;
 	void refresh();
-	void realign();
 	int biggest;
 	bool findbiggest;
 	bool single;
@@ -21,7 +20,7 @@ class lreader {
 	lreader(){f = NULL;}
 	~lreader(){if (f) fclose(f);}
 	void open(const char* fname){
-		line = NULL;
+		end = line = NULL;
 		linesize = 0;
 		biggest = 0;
 		single = false;
@@ -32,11 +31,13 @@ class lreader {
 	//fill entire buffer when reread
 	void seekfull(long long pos){
 		fseek(f, pos, SEEK_SET);
+		end = line = NULL;
 		single = false;
 	}
 	//fill buffer to size of biggest line when reread
 	void seekline(long long pos){
 		fseek(f, pos, SEEK_SET);
+		end = line = NULL;
 		single = true;
 	}
 };

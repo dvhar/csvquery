@@ -1,25 +1,30 @@
 #include<string.h>
-#include<iostream>
 #include "bufreader.h"
 using namespace std;
 //#define EX
 
+static int c(char* s){
+	int i = 0;
+	while (*s) 
+		if (*s++ == ',')
+			++i;
+	return i;
+}
+
 inline void lreader::refresh(){
-	auto readb = fread(buf, 1, (single ? biggest : BS), f);
+	int offset = end - line;
+	auto readb = fread(buf+offset, 1, (single ? biggest : BS-offset), f);
 	line = buf;
-	end = line + readb;
+	end = line + offset + readb;
 	nl = (char*) memchr(line, '\n', end - line);
 	if (nl){
 		*nl = 0;
 		linesize = nl - line + 1;
 	} else line = NULL;
 }
-inline void lreader::realign(){
-	memmove(buf, line, end-line);
-}
 
 char* lreader::readline(){
-	if (single || line == NULL){
+	if (line == NULL){
 		refresh();
 	} else {
 		if (end > line){
@@ -30,7 +35,7 @@ char* lreader::readline(){
 				linesize = nl - line + 1;
 			} else {
 				if (end > line)
-					realign();
+					memmove(buf, line, end-line);
 				refresh();
 			}
 		} else {
@@ -43,15 +48,21 @@ char* lreader::readline(){
 }
 
 #ifdef EX
+#include<iostream>
 int main(int argc, char** argv){
 	int count = 0;
 	char* line;
 	lreader r;
 	r.open((char*) "/home/dave/gits/csvquery/build/ptest.csv");
 	while ((line = r.readline())){
-		//cout << "line: '" << line << "'" << endl;
-		cout << "\n------------\n" << line;
+		count++;
+		if (count == 100)break;
+		cout << "c: " <<c(line)<<" count: " << count<<endl;
+		if (count == 19)
+			cout << "line: '" << line << "'" << endl;
+		//cout << "\n----"<<count<<"--------\n" << line;
 	}
+	cout << "line: " << count<<endl;
 	return 0;
 }
 #endif
