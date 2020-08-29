@@ -700,7 +700,7 @@ IMOD_:
 	nexti();
 FMOD_:
 	if (stk0.isnull() || stk1.isnull()) { stk1.setnull(); }
-	else stk1.u.f = static_cast<i64>(stk1.u.f) % static_cast<i64>(stk0.u.f);
+	else stk1.u.f = fmod(stk1.u.f, stk0.u.f);
 	pop();
 	nexti();
 
