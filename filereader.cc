@@ -66,18 +66,16 @@ bool fileReader::readline(){
 			entries = gotrows[memidx++].data();
 			return 0;
 		} else { //haven't loaded into memory yet (infertypes)
-			if ((buf1 = fs.readline()) == 0)
-				return 1;
+			auto line = fs.getline();
 			gotbuffers.push_front({});
 			auto& newbuf = gotbuffers.front();
 			newbuf.reset(new char[fs.linesize]);
 			buf = newbuf.get();
-			strcpy(buf, buf1);
+			strcpy(buf, line);
 		}
 	} else {
 		pos = prevpos;
-		if ((buf = fs.readline()) == 0)
-			return 1;
+		buf = fs.getline();
 	}
 	entriesVec.clear();
 	fieldsFound = 0;
