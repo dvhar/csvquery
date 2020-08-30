@@ -6,6 +6,7 @@ void bufreader::open(const char* fname){
 	linesize = 0;
 	biggestline = 0;
 	single = false;
+	buf[BS] = 0;
 	f = fopen(fname,"r");
 }
 
@@ -14,7 +15,7 @@ inline void bufreader::refresh(){
 	auto readb = fread(buf+offset, 1, (single ? biggestline : BS-offset), f);
 	line = buf;
 	end = line + offset + readb;
-	nl = (char*) memchr(line, '\n', end - line);
+	nl = (char*) strchr(line, '\n');
 	if (nl){
 		*nl = 0;
 		linesize = nl - line + 1;
@@ -27,7 +28,7 @@ char* bufreader::getline(){
 	} else {
 		if (end > line){
 			line = nl + 1;
-			nl = (char*) memchr(line, '\n', end - line);
+			nl = (char*) strchr(line, '\n');
 			if (nl){
 				*nl = 0;
 				linesize = nl - line + 1;

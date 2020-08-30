@@ -2,7 +2,7 @@
 #define BS  (1024*1024*3)
 
 class bufreader {
-	char buf[BS];
+	char buf[BS+1];
 	FILE* f;
 	char* end;
 	char* nl;
