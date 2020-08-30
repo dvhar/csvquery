@@ -18,7 +18,7 @@
 #include <boost/format.hpp>
 #include "deps/dateparse/dateparse.h"
 #include "deps/chacha/chacha20.h"
-#include "deps/experimental/bufreader.h"
+#include "deps/getline/bufreader.h"
 #include <forward_list>
 
 #ifdef __MINGW32__
@@ -28,8 +28,6 @@
 #include <regex.h>
 #endif
 
-
-#define BUFSIZE  1024*1024
 typedef struct chacha20_context chacha;
 typedef long long i64;
 typedef unsigned int u32;
@@ -232,8 +230,7 @@ class fileReader {
 	char* pos2;
 	char* terminator;
 	char* buf;
-	char* buf1;
-	lreader fs;
+	bufreader fs;
 	string filename;
 	i64 prevpos;
 	vector<vector<csvEntry>> gotrows;
