@@ -580,10 +580,9 @@ unique_ptr<node> parser::parseJoin() {
 		n->tok3 = t;
 		q->nextTok();
 	}
-	bool sizeOverride = false;
 	t = q->tok();
 	s = t.lower();
-	if (s == "join"sv || s == "sjoin"sv || s == "bjoin"sv){
+	if (s == "join"sv ){
 		n->tok2 = t;
 		t = q->nextTok();
 	} else {

@@ -26,7 +26,7 @@ fileReader::fileReader(string& fname){
 }
 char fileReader::blank = 0;
 fileReader::~fileReader(){
-	int i;
+	int i = 0;
 	for (auto t: vpTypes){
 		if (t == T_STRING)
 			for (auto &vp: joinValpos[i])
@@ -34,7 +34,7 @@ fileReader::~fileReader(){
 		i++;
 	}
 	for (auto &a : andchains)
-		for(int i=0; i<a.values.size(); ++i)
+		for(u32 i=0; i<a.values.size(); ++i)
 			if (a.functionTypes[i] == 2) //funcTypes[T_STRING]
 				for (auto d: a.values[i])
 					free(d.s);
@@ -153,7 +153,7 @@ void fileReader::inferTypes() {
 	readline();
 	auto startData = pos;
 	//get col names and initialize blank types
-	for (int i=0; i<entriesVec.size(); ++i) {
+	for (u32 i=0; i<entriesVec.size(); ++i) {
 		if (noheader)
 			colnames.push_back(st("col",i+1));
 		else
@@ -168,7 +168,7 @@ void fileReader::inferTypes() {
 	if (small){
 		for (int j=0;;) {
 			if (j<10000){
-				for (int i=0; i<entriesVec.size(); ++i)
+				for (u32 i=0; i<entriesVec.size(); ++i)
 					types[i] = getNarrowestType(entriesVec[i].val, types[i]);
 				++j;
 			}
@@ -180,13 +180,13 @@ void fileReader::inferTypes() {
 		inmemory = true;
 	} else {
 		for (int j=0; j<10000; ++j) {
-			for (int i=0; i<entriesVec.size(); ++i)
+			for (u32 i=0; i<entriesVec.size(); ++i)
 				types[i] = getNarrowestType(entriesVec[i].val, types[i]);
 			if (readline())
 				break;
 		}
 	}
-	for (int i=0; i<entriesVec.size(); ++i)
+	for (u32 i=0; i<entriesVec.size(); ++i)
 		if (!types[i])
 			types[i] = T_STRING; //maybe come up with better way of handling nulls
 	fs.seekfull(startData);
@@ -197,7 +197,7 @@ void fileReader::inferTypes() {
 
 int fileReader::getColIdx(string& colname){
 	if (noheader) return -1;
-	for (int i = 0; i < colnames.size(); ++i)
+	for (u32 i = 0; i < colnames.size(); ++i)
 		if (colnames[i] == colname)
 			return i;
 	return -1;

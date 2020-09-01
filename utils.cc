@@ -318,7 +318,7 @@ int getVarLocation(string lkup, querySpecs *q){
 	return 0;
 }
 int getVarIdx(string lkup, querySpecs *q){
-	for (int i=0; i<q->vars.size(); i++)
+	for (u32 i=0; i<q->vars.size(); i++)
 		if (lkup == q->vars[i].name)
 			return i;
 	error("variable not found");

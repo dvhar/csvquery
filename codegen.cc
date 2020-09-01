@@ -366,7 +366,7 @@ void cgen::genScanJoinFiles(unique_ptr<node> &n){
 		addop(JMP, normal_read);
 		jumps.setPlace(afterfile, v.size());
 		genSortAnds(joinNode->node1);
-		for (int i=0; i<valposTypes.size(); i++)
+		for (u32 i=0; i<valposTypes.size(); i++)
 			addop(SORTVALPOS, f->fileno, i, funcTypes[valposTypes[i]]);
 	}
 
@@ -499,7 +499,7 @@ void cgen::genNormalSortList(unique_ptr<node> &n){
 		genExprAll(x->node1);
 		if (x->datatype == T_STRING)
 			addop(NUL_TO_STR);
-		addop(ops[OPSVSRT][x->datatype], i++);
+		addop(operations[OPSVSRT][x->datatype], i++);
 		q->sortInfo.push_back({x->tok1.id, x->datatype});
 	}
 }
@@ -580,10 +580,10 @@ void cgen::genExprAdd(unique_ptr<node> &n){
 	genExprAll(n->node2);
 	switch (n->tok1.id){
 	case SP_PLUS:
-		addop0(ops[OPADD][n->datatype]);
+		addop0(operations[OPADD][n->datatype]);
 		break;
 	case SP_MINUS:
-		addop0(ops[OPSUB][n->datatype]);
+		addop0(operations[OPSUB][n->datatype]);
 		break;
 	}
 }
@@ -596,16 +596,16 @@ void cgen::genExprMult(unique_ptr<node> &n){
 	genExprAll(n->node2);
 	switch (n->tok1.id){
 	case SP_STAR:
-		addop0(ops[OPMULT][n->datatype]);
+		addop0(operations[OPMULT][n->datatype]);
 		break;
 	case SP_DIV:
-		addop0(ops[OPDIV][n->datatype]);
+		addop0(operations[OPDIV][n->datatype]);
 		break;
 	case SP_CARROT:
-		addop0(ops[OPEXP][n->datatype]);
+		addop0(operations[OPEXP][n->datatype]);
 		break;
 	case SP_MOD:
-		addop0(ops[OPMOD][n->datatype]);
+		addop0(operations[OPMOD][n->datatype]);
 		break;
 	}
 }
@@ -615,17 +615,17 @@ void cgen::genExprNeg(unique_ptr<node> &n){
 	e("gen neg");
 	genExprAll(n->node1);
 	if (!n->tok1.id) return;
-	addop0(ops[OPNEG][n->datatype]);
+	addop0(operations[OPNEG][n->datatype]);
 }
 
 void cgen::genValue(unique_ptr<node> &n){
 	if (n == nullptr) return;
 	e("gen value: "+n->tok1.val);
 	dat lit;
-	int vtype, op, aggvar;
+	int vtype, op;
 	switch (n->tok2.id){
 	case COLUMN:
-		addop2(ops[OPLD][n->datatype], getFileNo(n->tok3.val, q), n->tok1.id);
+		addop2(operations[OPLD][n->datatype], getFileNo(n->tok3.val, q), n->tok1.id);
 		break;
 	case LITERAL:
 		switch (n->datatype){
@@ -704,7 +704,7 @@ void cgen::genCWExpr(unique_ptr<node> &n, int end){
 	e("gen case w expr");
 	int nextCase = jumps.newPlaceholder(); //get jump pos for next try
 	genExprAll(n->node1); //evaluate comparision expression
-	addop1(ops[OPEQ][n->tok1.id], 0); //leave '=' result where this comp value was
+	addop1(operations[OPEQ][n->tok1.id], 0); //leave '=' result where this comp value was
 	addop2(JMPFALSE, nextCase, 1);
 	addop0(POP); //don't need comparison value anymore
 	genExprAll(n->node2); //result value if eq
@@ -822,17 +822,17 @@ void cgen::genPredCompare(unique_ptr<node> &n){
 	case SP_NOEQ: negation ^= 1;
 	case SP_EQ:
 		genExprAll(n->node2);
-		addop2(ops[OPEQ][n->datatype], 1, negation);
+		addop2(operations[OPEQ][n->datatype], 1, negation);
 		break;
 	case SP_GREATEQ: negation ^= 1;
 	case SP_LESS:
 		genExprAll(n->node2);
-		addop2(ops[OPLT][n->datatype], 1, negation);
+		addop2(operations[OPLT][n->datatype], 1, negation);
 		break;
 	case SP_GREAT: negation ^= 1;
 	case SP_LESSEQ:
 		genExprAll(n->node2);
-		addop2(ops[OPLEQ][n->datatype], 1, negation);
+		addop2(operations[OPLEQ][n->datatype], 1, negation);
 		break;
 	case KW_BETWEEN:
 		endcomp = jumps.newPlaceholder();
@@ -840,23 +840,23 @@ void cgen::genPredCompare(unique_ptr<node> &n){
 		addop1(NULFALSE1, endcomp);
 		genExprAll(n->node2);
 		addop1(NULFALSE2, endcomp);
-		addop2(ops[OPLT][n->datatype], 0, 1);
+		addop2(operations[OPLT][n->datatype], 0, 1);
 		addop2(JMPFALSE, greaterThanExpr3, 1);
 		genExprAll(n->node3);
 		addop1(NULFALSE2, endcomp);
-		addop2(ops[OPLT][n->datatype], 1, negation);
+		addop2(operations[OPLT][n->datatype], 1, negation);
 		addop1(JMP, endcomp);
 		jumps.setPlace(greaterThanExpr3, v.size());
 		genExprAll(n->node3);
 		addop1(NULFALSE2, endcomp);
-		addop2(ops[OPLT][n->datatype], 1, negation^1);
+		addop2(operations[OPLT][n->datatype], 1, negation^1);
 		jumps.setPlace(endcomp, v.size());
 		break;
 	case KW_IN:
 		endcomp = jumps.newPlaceholder();
 		for (auto nn=n->node2.get(); nn; nn=nn->node2.get()){
 			genExprAll(nn->node1);
-			addop1(ops[OPEQ][n->node1->datatype], 0);
+			addop1(operations[OPEQ][n->node1->datatype], 0);
 			addop2(JMPTRUE, endcomp, 0);
 			if (nn->node2.get())
 				addop0(POP);
@@ -895,7 +895,7 @@ void cgen::genDistinct(unique_ptr<node> &n, int gotoIfNot){
 	if (n->label != N_SELECTIONS) return;
 	if (n->tok1.id == KW_DISTINCT){
 		genExprAll(n->node1);
-		addop2(ops[OPDIST][n->datatype], gotoIfNot, addBtree(n->datatype, q));
+		addop2(operations[OPDIST][n->datatype], gotoIfNot, addBtree(n->datatype, q));
 	} else {
 		//there can be only 1 distinct filter
 		genDistinct(n->node2, gotoIfNot);
@@ -918,7 +918,7 @@ void cgen::genFunction(unique_ptr<node> &n){
 				setIndex = addBtree(n->node1->datatype, q);
 				separateSets = 0;
 			}
-			addop(ops[OPDIST][n->node1->datatype], funcDone, setIndex, separateSets);
+			addop(operations[OPDIST][n->node1->datatype], funcDone, setIndex, separateSets);
 			addop(LDDIST);
 		}
 	}
@@ -972,20 +972,20 @@ void cgen::genFunction(unique_ptr<node> &n){
 	if (agg_phase == 1) {
 		switch (n->tok1.id){
 		case FN_SUM:
-			addop(ops[OPSUM][n->datatype], n->info[MIDIDX]);
+			addop(operations[OPSUM][n->datatype], n->info[MIDIDX]);
 			break;
 		case FN_AVG:
-			addop(ops[OPAVG][n->datatype], n->info[MIDIDX]);
+			addop(operations[OPAVG][n->datatype], n->info[MIDIDX]);
 			break;
 		case FN_STDEV:
 		case FN_STDEVP:
-			addop(ops[OPSTV][n->datatype], n->info[MIDIDX]);
+			addop(operations[OPSTV][n->datatype], n->info[MIDIDX]);
 			break;
 		case FN_MIN:
-			addop(ops[OPMIN][n->datatype], n->info[MIDIDX]);
+			addop(operations[OPMIN][n->datatype], n->info[MIDIDX]);
 			break;
 		case FN_MAX:
-			addop(ops[OPMAX][n->datatype], n->info[MIDIDX]);
+			addop(operations[OPMAX][n->datatype], n->info[MIDIDX]);
 			break;
 		case FN_COUNT:
 			addop(COUNT, n->info[MIDIDX], n->tok2.id ? 1 : 0);
@@ -995,13 +995,13 @@ void cgen::genFunction(unique_ptr<node> &n){
 	} else if (agg_phase == 2) {
 		switch (n->tok1.id){
 		case FN_AVG:
-			addop(ops[OPLAVG][n->datatype], n->info[MIDIDX]);
+			addop(operations[OPLAVG][n->datatype], n->info[MIDIDX]);
 			break;
 		case FN_STDEV:
-			addop(ops[OPLSTV][n->datatype], n->info[MIDIDX], 1);
+			addop(operations[OPLSTV][n->datatype], n->info[MIDIDX], 1);
 			break;
 		case FN_STDEVP:
-			addop(ops[OPLSTV][n->datatype], n->info[MIDIDX]);
+			addop(operations[OPLSTV][n->datatype], n->info[MIDIDX]);
 			break;
 		case FN_MIN:
 		case FN_MAX:

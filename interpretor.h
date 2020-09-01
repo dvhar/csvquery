@@ -404,7 +404,7 @@ class querySpecs {
 	int distinctNFuncs;
 	int midcount;
 	int numFiles;
-	int tokIdx;
+	u32 tokIdx;
 	int options;
 	int btn;
 	int bts;
