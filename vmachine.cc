@@ -39,7 +39,6 @@ void vmachine::run(){
 	char* cstrTemp;
 	char bufTemp[40];
 	bool boolTemp;
-	dat datTemp;
 	dat *datpTemp;
 	csvEntry csvTemp;
 	u32 sizeTemp;
@@ -1099,13 +1098,14 @@ STDVI_:
 	nexti();
 STDVF_:
 	{
-		if (!stk0.isnull())
+		if (!stk0.isnull()){
 			if (torow[op->p1].isnull()){
 				torow[op->p1] = {{i:static_cast<i64>(stdvs.size())},T_INT};
 				stdvs.emplace_back(stddev(stk0.u.f));
 			} else {
 				stdvs[torow[op->p1].u.i].numbers.push_front(stk0.u.f);
 			}
+		}
 	}
 	pop();
 	nexti();
@@ -1204,7 +1204,7 @@ FREE_MIDROW_:
 	nexti();
 
 READ_NEXT_GROUP_:
-	if (stk0.u.i >= groupSorter.size()){
+	if (stk0.u.i >= (i64)groupSorter.size()){
 		ip = op->p1;
 	} else {
 		torow = groupSorter[stk0.u.i].get();

@@ -388,7 +388,7 @@ static typer typeFunctionInnerNodes(querySpecs &q, unique_ptr<node> &n){
 //set datatype value of inner tree nodes where applicable
 static typer typeInnerNodes(querySpecs &q, unique_ptr<node> &n){
 	if (n == nullptr) return {0,0};
-	typer n1, n2, n3, n4, innerType = {0,0};
+	typer n1, n2, innerType = {0,0};
 	ktype k;
 	switch (n->label){
 	//not applicable - move on to subtrees

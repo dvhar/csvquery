@@ -220,7 +220,7 @@ void strplus(dat &s1, dat &s2){
 
 int crypter::newChacha(string pass){
 	chactx ch;
-	for (int i=0; i<sizeof(ch.key); i++){
+	for (u32 i=0; i<sizeof(ch.key); i++){
 		//encryption only as strong as password, no need to sha256 to get 256 bit key.
 		ch.key[i] = pass[i%pass.length()];
 	}

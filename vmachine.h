@@ -46,7 +46,7 @@ enum typeOperators {
 	OPADD, OPSUB, OPMULT, OPMOD, OPDIV, OPEXP, OPNEG, OPLD, OPEQ, OPLEQ, OPLT,
 	OPMAX, OPMIN, OPSUM, OPAVG, OPSTV, OPLSTV, OPLAVG, OPSVSRT, OPDIST
 };
-static int ops[][6] = {
+static int operations[][6] = {
 	{ 0, IADD, FADD, DTADD, DRADD, TADD },
 	{ 0, ISUB, FSUB, DTSUB, DRSUB, 0 },
 	{ 0, IMULT, FMULT, 0, DRMULT, 0 },
@@ -80,7 +80,7 @@ static int typeConv[6][6] = {
 };
 
 inline static u32 valSize(csvEntry& d){ return (u32)(d.terminator - d.val); }
-static inline void freearr(dat* arr, u32 n) { for (auto i=0; i<n; ++i) arr[i].freedat(); }
+static inline void freearr(dat* arr, u32 n) { for (u32 i=0; i<n; ++i) arr[i].freedat(); }
 bool isTrivial(unique_ptr<node> &n);
 dat parseIntDat(const char* s);
 dat parseFloatDat(const char* s);

@@ -35,15 +35,6 @@ date_t mktimegm(const struct tm *tm);
 #define mcs(A) (A>=0 ? A%1000000 : (A%1000000 ? 1000000+A%1000000 : 0))
 #define sec(A) (A<0 && A%1000000 ? A/1000000 : A/1000000-1)
 
-//some losers may want to use gross 32bit timeval
-static struct timeval d2tv(date_t dt){
-	struct timeval t;
-	t.tv_sec = sec(dt);
-	t.tv_usec = mcs(dt);
-	return t;
-}
-#define tv2d(T) ((date_t)T.tv_sec*1000000 + T.tv_usec)
-
 extern char* daynames[];
 extern char* monthnames[];
 extern unsigned int daylens[];

@@ -2,7 +2,7 @@
 #include <boost/algorithm/string/case_conv.hpp>
 
 template<class T>
-constexpr size_t len(T &a) {
+constexpr u32 len(T &a) {
     return sizeof(a) / sizeof(typename std::remove_all_extents<T>::type);
 }
 
@@ -22,7 +22,7 @@ void initable(){
 	static bool tabinit = false;
 	if (tabinit) return;
 	//initialize table to errr
-	int i,j;
+	u32 i,j;
 	for (i=0; i<NUM_STATES; i++) {
 		for (j=0; j<255; j++) { table[i][j] = ERROR_STATE; }
 	}
@@ -79,7 +79,7 @@ void initable(){
 class stringLookahead {
 	public:
 	string Str;
-	int idx;
+	u32 idx;
 	int getc();
 	int peek();
 };
