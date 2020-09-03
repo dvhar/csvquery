@@ -536,7 +536,7 @@ unique_ptr<node> parser::parseFrom() {
 	unique_ptr<node> n = newNode(N_FROM);
 	if (t.lower() != "from"sv) error("Expected 'from'. Found: "+t.val);
 	t = q->nextTok();
-	n->tok1.val = boost::replace_all_copy(t.val, "~/", string(getenv("HOME"))+"/");
+	n->tok1.val = boost::replace_first_copy(t.val, "~/", string(getenv("HOME"))+"/");
 	t = q->nextTok();
 	string s = t.lower();
 	if (s == "noheader"sv || s == "nh"sv || s == "header"sv || s == "h") {
