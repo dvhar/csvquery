@@ -410,14 +410,13 @@ void analyzer::findJoinAndChains(unique_ptr<node> &n, int fileno){
 
 // flip operator when scanned op comes last
 int flipOp(int op){
-	static map<int,int> flipOperatorMap = {
+	static flatmap<int,int> flipOperatorMap = {
 		{SP_GREAT, SP_LESS},
 		{SP_GREATEQ, SP_LESSEQ},
 		{SP_LESS, SP_GREAT},
 		{SP_LESSEQ, SP_GREATEQ},
 	};
-	int flipped = flipOperatorMap[op];
-	return flipped ?: op;
+	return flipOperatorMap[op] ?: op;
 }
 
 void analyzer::findIndexableJoinValues(unique_ptr<node> &n, int fileno){

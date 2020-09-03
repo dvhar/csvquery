@@ -10,7 +10,7 @@ string token::lower() {
 	return boost::to_lower_copy(val);
 }
 void token::print() {
-	cout << "    id: " << id << " -> " << enumMap[id] << endl
+	cout << "    id: " << id << " -> " << enumMap.at(id) << endl
 		<< "    val: " << val << endl;
 }
 
@@ -125,7 +125,7 @@ token scanner::scanToken() {
 				string tokStr = boost::to_lower_copy(S);
 				if (keywordMap.count(tokStr) && waitForQuote == 0) {
 					//return keyword token
-					return { keywordMap[tokStr], S, lineNo, colNo, false };
+					return { keywordMap.at(tokStr), S, lineNo, colNo, false };
 				} else {
 					//return word token
 					return { nextState, S, lineNo, colNo, false };
@@ -133,7 +133,7 @@ token scanner::scanToken() {
 			//see if special type or something else
 			} else if (nextState == SPECIAL) {
 				if (specialMap.count(S)) {
-					int sp = specialMap[S];
+					int sp = specialMap.at(S);
 					//find out if these tokens are in a quote to preserve whitespace
 					if ((sp == SP_SQUOTE || sp == SP_DQUOTE) && waitForQuote == 0) {
 						waitForQuote = sp;

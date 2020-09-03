@@ -4,7 +4,7 @@
 //what type results from operation with 2 expressions with various data types and column/literal source
 //don't use for types where different operation results in different type
 //null[c,l], int[c,l], float[c,l], date[c,l], duration[c,l], string[c,l] in both dimensions
-static int typeChart[12][12] = {
+static const int typeChart[12][12] = {
 	{5,5, 5,5, 5,5, 5,5, 5,5, 5,5},
 	{5,5, 1,1, 2,2, 3,3, 4,4, 5,5},
 	{5,1, 1,1, 2,2, 3,1, 4,4, 5,1},
@@ -472,7 +472,7 @@ static typer typeInnerNodes(querySpecs &q, unique_ptr<node> &n){
 		innerType = typeFunctionInnerNodes(q,n);
 		break;
 	default:
-		error(st("missed a node type: ",treeMap[n->label]));
+		error(st("missed a node type: ",treeMap.at(n->label)));
 	}
 	n->datatype = innerType.type;
 	//cerr << "type node " << treeMap[n->label] << " as " << n->datatype << endl;

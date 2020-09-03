@@ -52,7 +52,7 @@ class parser {
 };
 
 void node::print(){
-	cerr << treeMap[label] << endl;
+	cerr << treeMap.at(label) << endl;
 	tok1.print();
 	tok2.print();
 	tok3.print();
@@ -670,7 +670,7 @@ unique_ptr<node> parser::parseFunction() {
 	token t = q->tok();
 	unique_ptr<node> n = newNode(N_FUNCTION);
 	n->tok1 = t;
-	n->tok1.id = functionMap[t.lower()];
+	n->tok1.id = functionMap.at(t.lower());
 	q->nextTok(); // (
 	t = q->nextTok();
 	//count(*)

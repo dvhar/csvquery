@@ -12,7 +12,7 @@ void bufreader::open(const char* fname){
 
 inline void bufreader::refresh(){
 	int offset = end - line;
-	auto readb = fread(buf+offset, 1, (single ? biggestline : BS-offset), f);
+	auto readb = fread(buf+offset, 1, (single ? biggestline-offset : BS-offset), f);
 	line = buf;
 	end = line + offset + readb;
 	nl = (char*) strchr(line, '\n');
