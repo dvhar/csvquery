@@ -29,8 +29,26 @@ class ktype {
 	int type; //datatype
 	bool keep; //keep subtree types
 };
-static typer typeInnerNodes(querySpecs &q, unique_ptr<node> &n);
-static void typeFinalValues(querySpecs &q, unique_ptr<node> &n, int finaltype);
+
+class dataTyper {
+	querySpecs* q;
+	public:
+
+	typer typeInnerNodes(unique_ptr<node> &n);
+	void typeFinalValues(unique_ptr<node> &n, int finaltype);
+	void typeInitialValue(unique_ptr<node> &n, bool trivial);
+	typer typeCaseInnerNodes(unique_ptr<node> &n);
+	void typeCaseFinalNodes(unique_ptr<node> &n, int finaltype);
+	typer typePredCompareInnerNodes(unique_ptr<node> &n);
+	void typePredCompFinalNodes(unique_ptr<node> &n);
+	typer typeValueInnerNodes(unique_ptr<node> &n);
+	typer typeFunctionInnerNodes(unique_ptr<node> &n);
+	void typeFunctionFinalNodes(unique_ptr<node> &n, int finaltype);
+
+	dataTyper(querySpecs& qs){
+		q = &qs;
+	};
+};
 
 static typer typeCompute(typer n1, typer n2){
 	if (!n2.type) return n1;
@@ -138,7 +156,7 @@ static bool stillTrivial(unique_ptr<node> &n){
 }
 
 //give value nodes their initial type and look out for variables
-static void typeInitialValue(querySpecs &q, unique_ptr<node> &n, bool trivial){
+void dataTyper::typeInitialValue(unique_ptr<node> &n, bool trivial){
 	if (n == nullptr)
 		return;
 
@@ -153,7 +171,7 @@ static void typeInitialValue(querySpecs &q, unique_ptr<node> &n, bool trivial){
 		string val = n->tok1.val;
 		int period;
 		//see if variable
-		for (auto &v : q.vars)
+		for (auto &v : q->vars)
 			if (val == v.name){
 				n->tok2.id = VARIABLE;
 				goto donetyping;
@@ -163,9 +181,9 @@ static void typeInitialValue(querySpecs &q, unique_ptr<node> &n, bool trivial){
 		int i;
 		if (period != -1){
 			string alias = val.substr(0, period);
-			if (q.files.count(alias)){
+			if (q->files.count(alias)){
 				string column = val.substr(period+1, val.length()-period);
-				shared_ptr<fileReader> f = q.files[alias];
+				shared_ptr<fileReader> f = q->files[alias];
 				i = f->getColIdx(column);
 				if (i != -1){
 					//found column name with file alias
@@ -184,7 +202,7 @@ static void typeInitialValue(querySpecs &q, unique_ptr<node> &n, bool trivial){
 						n->datatype = f->types[i];
 						goto donetyping;
 					}
-				} else if (!n->tok1.quoted && q.numIsCol() && regex_match(column, posInt)){
+				} else if (!n->tok1.quoted && q->numIsCol() && regex_match(column, posInt)){
 					i = stoi(column)-1;
 					if (i <= f->numFields){
 						//found column idx with file alias
@@ -198,7 +216,7 @@ static void typeInitialValue(querySpecs &q, unique_ptr<node> &n, bool trivial){
 			}
 		}
 		//no file alias
-		for (auto &f : q.files){
+		for (auto &f : q->files){
 			i = f.second->getColIdx(val);
 			if (i != -1){
 				//found column name without file alias
@@ -211,7 +229,7 @@ static void typeInitialValue(querySpecs &q, unique_ptr<node> &n, bool trivial){
 		}
 		if (!n->tok1.quoted && regex_match(val, cInt)){
 			i = stoi(val.substr(1))-1;
-			auto f = q.files["_f0"];
+			auto f = q->files["_f0"];
 			if (i <= f->numFields){
 				//found column idx without file alias
 				n->tok1.id = i;
@@ -220,9 +238,9 @@ static void typeInitialValue(querySpecs &q, unique_ptr<node> &n, bool trivial){
 				n->datatype = f->types[i];
 				goto donetyping;
 			}
-		} else if (!n->tok1.quoted && q.numIsCol() && regex_match(val, posInt)){
+		} else if (!n->tok1.quoted && q->numIsCol() && regex_match(val, posInt)){
 			i = stoi(val)-1;
-			auto f = q.files["_f0"];
+			auto f = q->files["_f0"];
 			if (i <= f->numFields){
 				//found column idx without file alias
 				n->tok1.id = i;
@@ -247,18 +265,18 @@ static void typeInitialValue(querySpecs &q, unique_ptr<node> &n, bool trivial){
 		n->tok3.id = 1;
 	}
 
-	typeInitialValue(q, n->node1, trivial);
+	typeInitialValue(n->node1, trivial);
 	//record variable after typing var leafnodes to avoid recursive definition
-	if (n->label == N_VARS)             q.addVar(thisVar);
+	if (n->label == N_VARS)             q->addVar(thisVar);
 	//reset trivial indicator for next selection
 	if (n->label == N_SELECTIONS)       trivial = false;
-	typeInitialValue(q, n->node2, trivial);
-	typeInitialValue(q, n->node3, trivial);
-	typeInitialValue(q, n->node4, trivial);
+	typeInitialValue(n->node2, trivial);
+	typeInitialValue(n->node3, trivial);
+	typeInitialValue(n->node4, trivial);
 
 }
 
-static typer typeCaseInnerNodes(querySpecs &q, unique_ptr<node> &n){
+typer dataTyper::typeCaseInnerNodes(unique_ptr<node> &n){
 	if (n == nullptr) return {0,0};
 	typer innerType, elseExpr, whenExpr, thenExpr, compExpr;
 	switch (n->tok1.id){
@@ -267,20 +285,20 @@ static typer typeCaseInnerNodes(querySpecs &q, unique_ptr<node> &n){
 		switch (n->tok2.id){
 		//when predicates are true
 		case KW_WHEN:
-			thenExpr  = typeInnerNodes(q,n->node1);
-			elseExpr  = typeInnerNodes(q,n->node3);
+			thenExpr  = typeInnerNodes(n->node1);
+			elseExpr  = typeInnerNodes(n->node3);
 			innerType = typeCompute(thenExpr, elseExpr);
 			return innerType;
 		//expression matches expression list
 		case WORD_TK:
 		case SP_LPAREN:
-			compExpr  = typeInnerNodes(q, n->node1);
-			thenExpr  = typeInnerNodes(q, n->node2);
-			elseExpr  = typeInnerNodes(q, n->node3);
+			compExpr  = typeInnerNodes(n->node1);
+			thenExpr  = typeInnerNodes(n->node2);
+			elseExpr  = typeInnerNodes(n->node3);
 			innerType = typeCompute(thenExpr, elseExpr);
 			node* list = n->node2.get();
 			for (auto nn=list; nn; nn=nn->node2.get()){
-				whenExpr = typeInnerNodes(q, nn->node1->node1);
+				whenExpr = typeInnerNodes(nn->node1->node1);
 				compExpr = typeCompute(compExpr, whenExpr);
 			}
 			n->datatype = innerType.type;
@@ -291,21 +309,21 @@ static typer typeCaseInnerNodes(querySpecs &q, unique_ptr<node> &n){
 	//expression
 	case WORD_TK:
 	case SP_LPAREN:
-		return typeInnerNodes(q,n->node1);
+		return typeInnerNodes(n->node1);
 	}
 	error("bad case node");
 	return {0,0};
 }
 
-static typer typePredCompareInnerNodes(querySpecs &q, unique_ptr<node> &n){
+typer dataTyper::typePredCompareInnerNodes(unique_ptr<node> &n){
 	if (n == nullptr) return {0,0};
 	typer n1, n2, n3, innerType;
 	if (n->tok1.id == SP_LPAREN){
-		typeInnerNodes(q, n->node1);
+		typeInnerNodes(n->node1);
 	} else if (n->tok1.id & RELOP) {
-		n1 = typeInnerNodes(q, n->node1);
-		n2 = typeInnerNodes(q, n->node2);
-		n3 = typeInnerNodes(q, n->node3);
+		n1 = typeInnerNodes(n->node1);
+		n2 = typeInnerNodes(n->node2);
+		n3 = typeInnerNodes(n->node3);
 		innerType = typeCompute(n1,n2);
 		innerType = typeCompute(innerType,n3);
 		if (n->tok1.id == KW_LIKE) //keep raw string if using regex
@@ -314,12 +332,12 @@ static typer typePredCompareInnerNodes(querySpecs &q, unique_ptr<node> &n){
 	return innerType;
 }
 
-static typer typeValueInnerNodes(querySpecs &q, unique_ptr<node> &n){
+typer dataTyper::typeValueInnerNodes(unique_ptr<node> &n){
 	if (n == nullptr) return {0,0};
 	typer innerType = {0,0};
 	switch (n->tok2.id){
 	case FUNCTION:
-		innerType = typeInnerNodes(q, n->node1);
+		innerType = typeInnerNodes(n->node1);
 		break;
 	case LITERAL:
 		innerType = {n->datatype, 1};
@@ -328,7 +346,7 @@ static typer typeValueInnerNodes(querySpecs &q, unique_ptr<node> &n){
 		innerType = {n->datatype, 0};
 		break;
 	case VARIABLE:
-		for (auto &v : q.vars)
+		for (auto &v : q->vars)
 			if (n->tok1.val == v.name){
 				innerType = {v.type, v.lit};
 				break;
@@ -338,25 +356,25 @@ static typer typeValueInnerNodes(querySpecs &q, unique_ptr<node> &n){
 	return innerType;
 }
 
-static typer typeFunctionInnerNodes(querySpecs &q, unique_ptr<node> &n){
+typer dataTyper::typeFunctionInnerNodes(unique_ptr<node> &n){
 	if (n == nullptr) return {0,0};
 	typer innerType = {0}, paramType = {0};
 	switch (n->tok1.id){
 	case FN_COUNT:
 		n->keep = true;
-		typeInnerNodes(q, n->node1);
+		typeInnerNodes(n->node1);
 	case FN_INC:
 		innerType = {T_FLOAT, true};
 		break;
 	case FN_MONTHNAME:
 	case FN_WDAYNAME:
 		n->keep = true;
-		typeInnerNodes(q, n->node1);
+		typeInnerNodes(n->node1);
 		innerType = {T_STRING, false};
 		break;
 	case FN_ENCRYPT:
 	case FN_DECRYPT:
-		paramType = typeInnerNodes(q, n->node1);
+		paramType = typeInnerNodes(n->node1);
 		innerType = {T_STRING, false};
 		if (!canBeString(n->node1)) {
 			n->tok5.id = paramType.type;
@@ -370,23 +388,23 @@ static typer typeFunctionInnerNodes(querySpecs &q, unique_ptr<node> &n){
 	case FN_WDAY:
 	case FN_HOUR:
 		n->keep = true;
-		typeInnerNodes(q, n->node1);
+		typeInnerNodes(n->node1);
 		innerType = {T_INT, true}; //TODO: reconsider these true/false values
 		break;
 	case FN_STDEV:
 	case FN_STDEVP:
 	case FN_AVG:
-		typeInnerNodes(q, n->node1);
+		typeInnerNodes(n->node1);
 		innerType.type = T_FLOAT;
 		break;
 	default:
-		innerType = typeInnerNodes(q, n->node1);
+		innerType = typeInnerNodes(n->node1);
 	}
 	return innerType;
 }
 
 //set datatype value of inner tree nodes where applicable
-static typer typeInnerNodes(querySpecs &q, unique_ptr<node> &n){
+typer dataTyper::typeInnerNodes(unique_ptr<node> &n){
 	if (n == nullptr) return {0,0};
 	typer n1, n2, innerType = {0,0};
 	ktype k;
@@ -401,38 +419,38 @@ static typer typeInnerNodes(querySpecs &q, unique_ptr<node> &n){
 	case N_JOIN:
 	case N_WHERE:
 	case N_HAVING:
-		typeInnerNodes(q, n->node1);
-		typeInnerNodes(q, n->node2);
-		typeInnerNodes(q, n->node3);
-		typeInnerNodes(q, n->node4);
+		typeInnerNodes(n->node1);
+		typeInnerNodes(n->node2);
+		typeInnerNodes(n->node3);
+		typeInnerNodes(n->node4);
 		break;
 	case N_ORDER:
-		innerType = typeInnerNodes(q, n->node1);
-		if (q.sorting)
-			q.sorting = innerType.type;
+		innerType = typeInnerNodes(n->node1);
+		if (q->sorting)
+			q->sorting = innerType.type;
 		break;
 	//things that may be list but have independant types
 	case N_SELECTIONS:
 	case N_GROUPBY:
 	case N_EXPRESSIONS:
-		innerType = typeInnerNodes(q, n->node1);
-		typeInnerNodes(q, n->node2);
+		innerType = typeInnerNodes(n->node1);
+		typeInnerNodes(n->node2);
 		break;
 	case N_VARS:
-		innerType = typeInnerNodes(q, n->node1);
-		for (auto &v : q.vars)
+		innerType = typeInnerNodes(n->node1);
+		for (auto &v : q->vars)
 			if (n->tok1.val == v.name){
 				v.type = innerType.type;
 				v.lit = innerType.lit;
 				break;
 			}
-		typeInnerNodes(q, n->node2);
+		typeInnerNodes(n->node2);
 		break;
 	case N_EXPRNEG:
 	case N_EXPRADD:
 	case N_EXPRMULT:
-		n1 = typeInnerNodes(q, n->node1);
-		n2 = typeInnerNodes(q, n->node2);
+		n1 = typeInnerNodes(n->node1);
+		n2 = typeInnerNodes(n->node2);
 		innerType = typeCompute(n1, n2);
 		k = keepSubtreeTypes(n1.type, n2.type, n->tok1.id);
 		if (k.keep){
@@ -441,35 +459,35 @@ static typer typeInnerNodes(querySpecs &q, unique_ptr<node> &n){
 		}
 		break;
 	case N_EXPRCASE:
-		innerType = typeCaseInnerNodes(q,n);
+		innerType = typeCaseInnerNodes(n);
 		break;
 	//interdependant lists
 	case N_CPREDLIST:
 	case N_CWEXPRLIST:
 	case N_DEXPRESSIONS:
-		n1 = typeInnerNodes(q, n->node1);
-		n2 = typeInnerNodes(q, n->node2);
+		n1 = typeInnerNodes(n->node1);
+		n2 = typeInnerNodes(n->node2);
 		innerType = typeCompute(n1, n2);
 		break;
 	case N_CPRED:
 	case N_CWEXPR:
-		typeInnerNodes(q, n->node1); //conditions or comparision
-		innerType = typeInnerNodes(q, n->node2); //result
+		typeInnerNodes(n->node1); //conditions or comparision
+		innerType = typeInnerNodes(n->node2); //result
 		break;
 	case N_PREDICATES:
 		//both just boolean
-		typeInnerNodes(q, n->node1);
-		typeInnerNodes(q, n->node2);
+		typeInnerNodes(n->node1);
+		typeInnerNodes(n->node2);
 		break;
 	case N_PREDCOMP:
-		innerType = typePredCompareInnerNodes(q,n);
+		innerType = typePredCompareInnerNodes(n);
 		break;
 	case N_VALUE:
-		innerType = typeValueInnerNodes(q,n);
+		innerType = typeValueInnerNodes(n);
 		//will add type conversion node for variables
 		break;
 	case N_FUNCTION:
-		innerType = typeFunctionInnerNodes(q,n);
+		innerType = typeFunctionInnerNodes(n);
 		break;
 	default:
 		error(st("missed a node type: ",treeMap.at(n->label)));
@@ -479,7 +497,7 @@ static typer typeInnerNodes(querySpecs &q, unique_ptr<node> &n){
 	return innerType;
 }
 
-static void typeCaseFinalNodes(querySpecs &q, unique_ptr<node> &n, int finaltype){
+void dataTyper::typeCaseFinalNodes(unique_ptr<node> &n, int finaltype){
 	if (n == nullptr) return;
 	int comptype;
 	switch (n->tok1.id){
@@ -488,20 +506,20 @@ static void typeCaseFinalNodes(querySpecs &q, unique_ptr<node> &n, int finaltype
 		switch (n->tok2.id){
 		//when predicates are true
 		case KW_WHEN:
-			typeFinalValues(q, n->node1, finaltype);
-			typeFinalValues(q, n->node3, finaltype);
+			typeFinalValues(n->node1, finaltype);
+			typeFinalValues(n->node3, finaltype);
 			break;
 		//expression matches expression list
 		case WORD_TK:
 		case SP_LPAREN:
 			comptype = n->tok3.id;
-			typeFinalValues(q, n->node1, comptype);
-			typeFinalValues(q, n->node2, finaltype);
-			typeFinalValues(q, n->node3, finaltype);
+			typeFinalValues(n->node1, comptype);
+			typeFinalValues(n->node2, finaltype);
+			typeFinalValues(n->node3, finaltype);
 			node* list = n->node2.get();
 			for (auto nn=list; nn; nn=nn->node2.get()){
 				nn->node1->tok1.id = comptype;
-				typeFinalValues(q, nn->node1->node1, comptype);
+				typeFinalValues(nn->node1->node1, comptype);
 			}
 			break;
 		}
@@ -509,26 +527,26 @@ static void typeCaseFinalNodes(querySpecs &q, unique_ptr<node> &n, int finaltype
 	//expression
 	case WORD_TK:
 	case SP_LPAREN:
-		typeFinalValues(q, n->node1, finaltype);
+		typeFinalValues(n->node1, finaltype);
 	}
 }
 
-static void typePredCompFinalNodes(querySpecs &q, unique_ptr<node> &n){
+void dataTyper::typePredCompFinalNodes(unique_ptr<node> &n){
 	if (n == nullptr) return;
 	if (n->tok1.id == SP_LPAREN){
-		typeFinalValues(q, n->node1, -1);
+		typeFinalValues(n->node1, -1);
 	} else if (n->tok1.id & RELOP) {
 		if (n->tok1.id == KW_LIKE)
-			typeFinalValues(q, n->node2, n->datatype);
+			typeFinalValues(n->node2, n->datatype);
 		else {
-			typeFinalValues(q, n->node1, n->datatype);
-			typeFinalValues(q, n->node2, n->datatype);
-			typeFinalValues(q, n->node3, n->datatype);
+			typeFinalValues(n->node1, n->datatype);
+			typeFinalValues(n->node2, n->datatype);
+			typeFinalValues(n->node3, n->datatype);
 		}
 	}
 }
 
-static void typeFunctionFinalNodes(querySpecs &q, unique_ptr<node> &n, int finaltype){
+void dataTyper::typeFunctionFinalNodes(unique_ptr<node> &n, int finaltype){
 	if (n == nullptr) return;
 	if (n->keep) finaltype = -1;
 	node *convNode, *tempNode;
@@ -539,7 +557,7 @@ static void typeFunctionFinalNodes(querySpecs &q, unique_ptr<node> &n, int final
 	case FN_DECRYPT:
 		//add type conversion node if needed
 		if (n->tok5.id){
-			typeFinalValues(q, n->node1, n->tok5.id);
+			typeFinalValues(n->node1, n->tok5.id);
 			convNode = new node();
 			*convNode = {0};
 			convNode->label = N_TYPECONV;
@@ -550,7 +568,7 @@ static void typeFunctionFinalNodes(querySpecs &q, unique_ptr<node> &n, int final
 			convNode->node1.reset(tempNode);
 			n->node1.reset(convNode);
 		} else {
-			typeFinalValues(q, n->node1, finaltype);
+			typeFinalValues(n->node1, finaltype);
 		}
 		break;
 	case FN_MONTHNAME:
@@ -562,15 +580,15 @@ static void typeFunctionFinalNodes(querySpecs &q, unique_ptr<node> &n, int final
 	case FN_MDAY:
 	case FN_WDAY:
 	case FN_HOUR:
-		typeFinalValues(q, n->node1, T_DATE);
+		typeFinalValues(n->node1, T_DATE);
 		break;
 	default:
-		typeFinalValues(q, n->node1, finaltype);
+		typeFinalValues(n->node1, finaltype);
 	}
 }
 
 //use high-level nodes to give lower nodes their final types
-static void typeFinalValues(querySpecs &q, unique_ptr<node> &n, int finaltype){
+void dataTyper::typeFinalValues(unique_ptr<node> &n, int finaltype){
 	if (n == nullptr) return;
 
 	//if using own datatype instead of parent node's
@@ -589,71 +607,72 @@ static void typeFinalValues(querySpecs &q, unique_ptr<node> &n, int finaltype){
 	case N_WHERE:
 	case N_HAVING:
 	case N_WITH:
-		typeFinalValues(q, n->node1, -1);
-		typeFinalValues(q, n->node2, -1);
-		typeFinalValues(q, n->node3, -1);
-		typeFinalValues(q, n->node4, -1);
+		typeFinalValues(n->node1, -1);
+		typeFinalValues(n->node2, -1);
+		typeFinalValues(n->node3, -1);
+		typeFinalValues(n->node4, -1);
 		break;
 	//straightforward stuff
 	case N_CWEXPRLIST:
 	case N_CPREDLIST:
 	case N_DEXPRESSIONS:
-		typeFinalValues(q, n->node1, finaltype);
-		typeFinalValues(q, n->node2, finaltype);
+		typeFinalValues(n->node1, finaltype);
+		typeFinalValues(n->node2, finaltype);
 		break;
 	//things that may be list but have independant types
 	case N_SELECTIONS:
 	case N_ORDER:
 	case N_GROUPBY:
 	case N_EXPRESSIONS:
-		typeFinalValues(q, n->node1, n->datatype);
-		typeFinalValues(q, n->node2, -1);
+		typeFinalValues(n->node1, n->datatype);
+		typeFinalValues(n->node2, -1);
 		break;
 	//may or may not preserve subtree types
 	case N_EXPRNEG:
 	case N_EXPRADD:
 	case N_EXPRMULT:
 		if (n->keep) finaltype = -1;
-		typeFinalValues(q, n->node1, finaltype);
-		typeFinalValues(q, n->node2, finaltype);
+		typeFinalValues(n->node1, finaltype);
+		typeFinalValues(n->node2, finaltype);
 		break;
 	//first node is independant, second is final value
 	case N_CPRED:
-		typeFinalValues(q, n->node1, -1);
-		typeFinalValues(q, n->node2, finaltype);
+		typeFinalValues(n->node1, -1);
+		typeFinalValues(n->node2, finaltype);
 		break;
 	case N_EXPRCASE:
-		typeCaseFinalNodes(q, n, finaltype);
+		typeCaseFinalNodes(n, finaltype);
 		break;
 	case N_CWEXPR:
 		//node1 is already typed in case function
-		typeFinalValues(q, n->node2, finaltype);
+		typeFinalValues(n->node2, finaltype);
 		break;
 	case N_PREDCOMP:
-		typePredCompFinalNodes(q, n);
+		typePredCompFinalNodes(n);
 		break;
 	case N_VALUE:
-		typeFinalValues(q, n->node1, finaltype); //functioin
+		typeFinalValues(n->node1, finaltype); //functioin
 		break;
 	case N_FUNCTION:
-		typeFunctionFinalNodes(q, n, finaltype);
+		typeFunctionFinalNodes(n, finaltype);
 		break;
 	case N_VARS:
-		for (auto &v : q.vars)
+		for (auto &v : q->vars)
 			if (n->tok1.val == v.name){
 				v.type = finaltype;
 				break;
 			}
-		typeFinalValues(q, n->node1, finaltype);
-		typeFinalValues(q, n->node2, -1);
+		typeFinalValues(n->node1, finaltype);
+		typeFinalValues(n->node2, -1);
 		break;
 	}
 }
 
 //do all typing
 void applyTypes(querySpecs &q){
-	typeInitialValue(q, q.tree, false);
-	typeInnerNodes(q, q.tree);
-	typeFinalValues(q, q.tree, -1);
+	dataTyper dt(q);
+	dt.typeInitialValue(q.tree, false);
+	dt.typeInnerNodes(q.tree);
+	dt.typeFinalValues(q.tree, -1);
 }
 

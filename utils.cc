@@ -151,13 +151,13 @@ const flatmap<string_view, int> functionMap = {
 	{"encrypt" ,  FN_ENCRYPT},
 	{"decrypt" ,  FN_DECRYPT}
 };
+//use WORD for these?
 const flatmap<string_view, int> joinMap = {
 	{"inner" ,  KW_INNER},
-	{"outer" ,  KW_OUTER},
 	{"left" ,   KW_LEFT},
 	{"join" ,   KW_JOIN},
-	{"bjoin" ,  KW_JOIN},
-	{"sjoin" ,  KW_JOIN}
+	//{"outer" ,  KW_OUTER},
+	//{"cross" ,  KW_CROSS},
 };
 const flatmap<string_view, int> specialMap = {
 	{"=" ,  SP_EQ},
