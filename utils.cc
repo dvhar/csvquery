@@ -14,7 +14,7 @@ regex cInt("^c\\d+$");
 regex posInt("^\\d+$");
 regex colNum("^c?\\d+$");
 
-flatmap<int, string_view> enumMap = {
+const flatmap<int, string_view> enumMap = {
 	{EOS ,           "EOS"},
 	{ERROR_STATE ,   "ERROR_STATE"},
 	{FINAL ,         "FINAL"},
@@ -66,7 +66,7 @@ flatmap<int, string_view> enumMap = {
 	{STATE_MBSPECIAL,"STATE_MBSPECIAL"},
 	{STATE_WORD ,    "STATE_WORD"}
 };
-flatmap<int, string_view> treeMap = {
+const flatmap<int, string_view> treeMap = {
 	{N_QUERY,      "N_QUERY"},
 	{N_SELECT,     "N_SELECT"},
 	{N_PRESELECT,  "N_PRESELECT"},
@@ -97,7 +97,7 @@ flatmap<int, string_view> treeMap = {
 	{N_VARS,       "N_VARS"},
 	{N_TYPECONV,   "N_TYPECONV"}
 };
-flatmap<string_view, int> keywordMap = {
+const flatmap<string_view, int> keywordMap = {
 	{"and" ,       KW_AND},
 	{"or" ,        KW_OR},
 	{"xor" ,       KW_XOR},
@@ -124,7 +124,7 @@ flatmap<string_view, int> keywordMap = {
 };
 //functions are normal words to avoid taking up too many words
 //use map when parsing not scanning
-flatmap<string_view, int> functionMap = {
+const flatmap<string_view, int> functionMap = {
 	{"inc" ,      FN_INC},
 	{"sum" ,      FN_SUM},
 	{"avg" ,      FN_AVG},
@@ -151,7 +151,7 @@ flatmap<string_view, int> functionMap = {
 	{"encrypt" ,  FN_ENCRYPT},
 	{"decrypt" ,  FN_DECRYPT}
 };
-flatmap<string_view, int> joinMap = {
+const flatmap<string_view, int> joinMap = {
 	{"inner" ,  KW_INNER},
 	{"outer" ,  KW_OUTER},
 	{"left" ,   KW_LEFT},
@@ -159,7 +159,7 @@ flatmap<string_view, int> joinMap = {
 	{"bjoin" ,  KW_JOIN},
 	{"sjoin" ,  KW_JOIN}
 };
-flatmap<string_view, int> specialMap = {
+const flatmap<string_view, int> specialMap = {
 	{"=" ,  SP_EQ},
 	{"!" ,  SP_NEGATE},
 	{"<>" , SP_NOEQ},
@@ -224,7 +224,7 @@ void printTree(unique_ptr<node> &n, int ident){
 	ident++;
 	string s = "";
 	for (int i=0;i<ident;i++) s += "  ";
-	cerr << s << treeMap[n->label] << endl
+	cerr << s << treeMap.at(n->label) << endl
 		<< s 
 		<< ft("[%1% %2% %3% %4% %5%] t:%6% ph:%7%")
 		% n->tok1.val

@@ -146,12 +146,12 @@ const int O_NH = 2;
 const int O_H = 4;
 const int O_S = 8;
 
-extern flatmap<int, string_view> enumMap;
-extern flatmap<int, string_view> treeMap;
-extern flatmap<string_view, int> keywordMap;
-extern flatmap<string_view, int> functionMap;
-extern flatmap<string_view, int> joinMap;
-extern flatmap<string_view, int> specialMap;
+extern const flatmap<int, string_view> enumMap;
+extern const  flatmap<int, string_view> treeMap;
+extern const  flatmap<string_view, int> keywordMap;
+extern const  flatmap<string_view, int> functionMap;
+extern const  flatmap<string_view, int> joinMap;
+extern const  flatmap<string_view, int> specialMap;
 
 extern regex_t leadingZeroString;
 extern regex_t durationPattern;

@@ -662,7 +662,7 @@ FDIV_:
 	pop();
 	nexti();
 DRDIV_:
-	if (stk0.isnull() || stk1.isnull() || stk0.u.f==0) { stk1.setnull(); }
+	if (stk0.isnull() || stk1.isnull() || stk0.u.i==0) { stk1.setnull(); }
 	else {
 		if (stk0.b == T_INT)
 			stk1.u.i /= stk0.u.i;
@@ -954,8 +954,7 @@ LDDIST_:
 NDIST_:
 	iTemp1 = op->p3 ? groupTemp->meta.distinctNSetIdx : 0;
 	i64Temp = stk0.isnull() ? SMALLEST : stk0.u.i;
-	boolTemp = bt_nums[op->p2+iTemp1].insert(i64Temp).second;
-	if (boolTemp) {
+	if (bt_nums[op->p2+iTemp1].insert(i64Temp).second) {
 		distinctVal = stk0;
 		++ip;
 	} else {
@@ -967,8 +966,7 @@ SDIST_:
 	{
 		iTemp1 = op->p3 ? groupTemp->meta.distinctSSetIdx : 0;
 		treeCString tsc(stk0); //disowns stk0
-		boolTemp = bt_strings[op->p2+iTemp1].insert(tsc).second;
-		if (boolTemp) {
+		if (bt_strings[op->p2+iTemp1].insert(tsc).second) {
 			distinctVal = stk0;
 			++ip;
 		} else {
