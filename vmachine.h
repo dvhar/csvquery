@@ -219,12 +219,12 @@ class rowgroup {
 				if (v->q->distinctNFuncs){
 					meta.distinctNSetIdx = v->bt_nums.size();
 					for(int i=0; i<v->q->distinctNFuncs; ++i)
-						v->bt_nums.emplace_back(bset<i64>());
+						v->bt_nums.emplace_back();
 				}
 				if (v->q->distinctSFuncs){
 					meta.distinctSSetIdx = v->bt_strings.size();
 					for(int i=0; i<v->q->distinctSFuncs; ++i)
-						v->bt_strings.emplace_back(bset<treeCString>());
+						v->bt_strings.emplace_back();
 				}
 			}
 			return getVec();
