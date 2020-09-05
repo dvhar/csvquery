@@ -117,7 +117,7 @@ PUTVAR2_:
 
 HOLDVAR_:
 	if (stkb(op->p1).ismal()){
-		groupSortVars.emplace_front(unique_ptr<char, freeC>(stkb(op->p1).u.s));
+		groupSortVars.emplace_front(stkb(op->p1).u.s);
 		stkb(op->p1).disown();
 	}
 	nexti();
@@ -244,7 +244,7 @@ JOINSET_EQ_AND_:
 			else
 				r = m;
 		}
-		joinSetStack.push_front(bset<i64>());
+		joinSetStack.emplace_front();
 		while (l < chain.indexes.size()){
 			int valIdx = chain.indexes[l];
 			if (!uEqFuncs[comp1Functype](uvec[valIdx], compval.u))
@@ -277,7 +277,7 @@ JOINSET_GRT_AND_:
 			else
 				l = m + 1;
 		}
-		joinSetStack.push_front(bset<i64>());
+		joinSetStack.emplace_front();
 		if (stk0.u.i) // GTE
 			for (m = r-1, l = chain.indexes[m]; m >= 0; l = chain.indexes[--m]){
 				if (!uEqFuncs[comp1Functype](uvec[l], compval.u))
@@ -318,7 +318,7 @@ JOINSET_LESS_AND_:
 			else
 				r = m;
 		}
-		joinSetStack.push_front(bset<i64>());
+		joinSetStack.emplace_front();
 		if (stk0.u.i) // LTE
 			for (m = l, r = chain.indexes[m]; m < chain.indexes.size(); r = chain.indexes[++m]){
 				if (!uEqFuncs[comp1Functype](uvec[r], compval.u))
@@ -356,7 +356,7 @@ JOINSET_GRT_:
 			else
 				l = m + 1;
 		}
-		joinSetStack.push_front(bset<i64>());
+		joinSetStack.emplace_front();
 		if (stk0.u.i) // GTE
 			for (m = r-1; m >= 0 && uEqFuncs[op->p3](vpvector[m].val, stk1.u); --m)
 				joinSetStack.front().insert(vpvector[m].pos);
@@ -380,7 +380,7 @@ JOINSET_LESS_:
 			else
 				r = m;
 		}
-		joinSetStack.push_front(bset<i64>());
+		joinSetStack.emplace_front();
 		if (stk0.u.i) // LTE
 			for (m = l; m < vpvector.size() && uEqFuncs[op->p3](vpvector[m].val, stk1.u); ++m)
 				joinSetStack.front().insert(vpvector[m].pos);
@@ -405,7 +405,7 @@ JOINSET_EQ_:
 			else
 				r = m;
 		}
-		joinSetStack.push_front(bset<i64>());
+		joinSetStack.emplace_front();
 		while (l < vpvector.size() && uEqFuncs[op->p3](vpvector[l].val, stk0.u))
 			joinSetStack.front().insert(vpvector[l++].pos);
 	}
@@ -1099,7 +1099,7 @@ STDVF_:
 		if (!stk0.isnull()){
 			if (torow[op->p1].isnull()){
 				torow[op->p1] = {{i:static_cast<i64>(stdvs.size())},T_INT};
-				stdvs.emplace_back(stddev(stk0.u.f));
+				stdvs.emplace_back(stk0.u.f);
 			} else {
 				stdvs[torow[op->p1].u.i].numbers.push_front(stk0.u.f);
 			}
@@ -1120,37 +1120,37 @@ COUNT_:
 	}
 	nexti();
 MINI_:
-	if (torow[op->p1].isnull() || (!stk0.isnull() && torow[op->p1].u.i > stk0.u.i)){
-		torow[op->p1] = stk0;
+	if (dat& t = torow[op->p1]; t.isnull() || (!stk0.isnull() && t.u.i > stk0.u.i)){
+		t = stk0;
 	}
 	pop();
 	nexti();
 MINF_:
-	if (torow[op->p1].isnull() || (!stk0.isnull() && torow[op->p1].u.f > stk0.u.f))
-		torow[op->p1] = stk0;
+	if (dat& t = torow[op->p1]; t.isnull() || (!stk0.isnull() && t.u.f > stk0.u.f))
+		t = stk0;
 	pop();
 	nexti();
 MINS_:
-	if (torow[op->p1].isnull() || (!stk0.isnull() && strcmp(torow[op->p1].u.s, stk0.u.s) > 0)){
-		torow[op->p1].freedat();
-		torow[op->p1] = stk0.heap();
+	if (dat& t = torow[op->p1]; t.isnull() || (!stk0.isnull() && strcmp(t.u.s, stk0.u.s) > 0)){
+		t.freedat();
+		t = stk0.heap();
 	}
 	pop();
 	nexti();
 MAXI_:
-	if (torow[op->p1].isnull() || (!stk0.isnull() && torow[op->p1].u.i < stk0.u.i))
-		torow[op->p1] = stk0;
+	if (dat& t = torow[op->p1]; t.isnull() || (!stk0.isnull() && t.u.i < stk0.u.i))
+		t = stk0;
 	pop();
 	nexti();
 MAXF_:
-	if (torow[op->p1].isnull() || (!stk0.isnull() && torow[op->p1].u.f < stk0.u.f))
-		torow[op->p1] = stk0;
+	if (dat& t = torow[op->p1]; t.isnull() || (!stk0.isnull() && t.u.f < stk0.u.f))
+		t = stk0;
 	pop();
 	nexti();
 MAXS_:
-	if (torow[op->p1].isnull() || (!stk0.isnull() && strcmp(torow[op->p1].u.s, stk0.u.s) < 0)){
-		torow[op->p1].freedat();
-		torow[op->p1] = stk0.heap();
+	if (dat& t = torow[op->p1]; t.isnull() || (!stk0.isnull() && strcmp(t.u.s, stk0.u.s) < 0)){
+		t.freedat();
+		t = stk0.heap();
 	}
 	pop();
 	nexti();
@@ -1193,7 +1193,7 @@ NEXTVEC_:
 	next();
 ADD_GROUPSORT_ROW_:
 	torow = (dat*) calloc(sortgroupsize, sizeof(dat));
-	groupSorter.emplace_back(unique_ptr<dat[], freeC>(torow));
+	groupSorter.emplace_back(torow);
 	nexti();
 FREE_MIDROW_:
 	freearr(groupTemp->getVec(), groupTemp->meta.rowsize);

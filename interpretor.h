@@ -220,6 +220,8 @@ class csvEntry {
 	public:
 	char* val;
 	char* terminator;
+	csvEntry(char* s,char* e){ val = s; terminator = e; };
+	csvEntry(){};
 };
 
 class valpos;
@@ -234,7 +236,7 @@ class fileReader {
 	string filename;
 	i64 prevpos;
 	vector<vector<csvEntry>> gotrows;
-	forward_list<unique_ptr<char>> gotbuffers;
+	forward_list<unique_ptr<char[]>> gotbuffers;
 	vector<csvEntry> entriesVec;
 	int memidx;
 	int numrows;

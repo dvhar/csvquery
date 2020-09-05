@@ -67,10 +67,8 @@ bool fileReader::readline(){
 			return 0;
 		} else { //haven't loaded into memory yet (infertypes)
 			auto line = fs.getline();
-			gotbuffers.push_front({});
-			auto& newbuf = gotbuffers.front();
-			newbuf.reset(new char[fs.linesize]);
-			buf = newbuf.get();
+			gotbuffers.emplace_front(new char[fs.linesize]);
+			buf = gotbuffers.front().get();
 			strcpy(buf, line);
 		}
 	} else {
@@ -144,7 +142,7 @@ inline void fileReader::getField(){
 	//trim trailing whitespace and push pointer
 	while (isblank(*(terminator-1))) --terminator;
 	*terminator = '\0';
-	entriesVec.emplace_back(csvEntry{pos1, terminator});
+	entriesVec.emplace_back(pos1, terminator);
 	++fieldsFound;
 }
 
