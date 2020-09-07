@@ -303,21 +303,18 @@ class dat {
 	void setnull(){ b = 0; u.i = 0; }
 	void disown(){ b &=(~MAL); }
 	void freedat(){
-		if (ismal()){
+		if (ismal())
 			free(u.s);
-			b = 0;
-		}
+		setnull();
 	}
 	friend bool operator<(const dat& l, const dat& r){
-		if (l.istext()) {
-			if (r.isnull()){
-				return false;
-			}
+		if (r.isnull())
+			return false;
+		if (l.istext())
 			return strcmp(l.u.s, r.u.s) < 0;
-		} else if (l.isnull() || r.isnull())
-			return l.b < r.b;
-		else
-			return l.u.i < r.u.i;
+		if (l.isnull())
+			return true;
+		return l.u.i < r.u.i;
 	}
 	dat heap(){
 		dat d;

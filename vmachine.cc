@@ -1120,9 +1120,8 @@ COUNT_:
 	}
 	nexti();
 MINI_:
-	if (dat& t = torow[op->p1]; t.isnull() || (!stk0.isnull() && t.u.i > stk0.u.i)){
+	if (dat& t = torow[op->p1]; t.isnull() || (!stk0.isnull() && t.u.i > stk0.u.i))
 		t = stk0;
-	}
 	pop();
 	nexti();
 MINF_:
@@ -1156,9 +1155,8 @@ MAXS_:
 	nexti();
 GETGROUP_:
 	groupTemp = groupTree.get();
-	for (int i=op->p1; i >= 0; --i){
+	for (int i=op->p1; i >= 0; --i)
 		groupTemp = &groupTemp->nextGroup(stkt(i));
-	}
 	torow = groupTemp->getRow(this);
 	stacktop -= (op->p1 + 1);
 	nexti();
@@ -1196,9 +1194,7 @@ ADD_GROUPSORT_ROW_:
 	groupSorter.emplace_back(torow);
 	nexti();
 FREE_MIDROW_:
-	freearr(groupTemp->getVec(), groupTemp->meta.rowsize);
-	free(groupTemp->getVec());
-	groupTemp->meta.freed = true;
+	groupTemp->freeRow();
 	nexti();
 
 READ_NEXT_GROUP_:
