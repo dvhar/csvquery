@@ -164,7 +164,7 @@ class vmachine {
 	vector<int> sortIdxs;
 	vector<vector<datunion>> normalSortVals;
 	forward_list<bset<i64>> joinSetStack;
-	forward_list<unique_ptr<char, freeC>> groupSortVars;
+	forward_list<unique_ptr<char[], freeC>> groupSortVars;
 	unique_ptr<rowgroup> groupTree;
 	//datunion comparers
 	static const function<bool (const datunion, const datunion&)> uLessFuncs[3];
@@ -228,6 +228,11 @@ class rowgroup {
 				}
 			}
 			return getVec();
+		}
+		void freeRow(){
+			freearr(data.vecp, meta.rowsize);
+			free(data.vecp);
+			meta.freed = true;
 		}
 		rowgroup(){ meta = {0}; data = {0}; }
 		~rowgroup(){

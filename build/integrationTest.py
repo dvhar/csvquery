@@ -17,7 +17,7 @@ def runtest(test):
     print("---------------------------------------")
     print(out.decode('UTF-8'))
     if ret.returncode != test['code']:
-        print(f"Failed! Expected return code {test[1]} but got {ret.returncode}")
+        print(f"Failed! Expected return code {test['code']} but got {ret.returncode}")
         print(err)
         quit()
     with open('test/results/' + test['output'], 'rb') as res:

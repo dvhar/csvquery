@@ -155,7 +155,7 @@ void fileReader::inferTypes() {
 		if (noheader)
 			colnames.push_back(st("col",i+1));
 		else
-			colnames.push_back(string(entriesVec[i].val));
+			colnames.emplace_back(entriesVec[i].val);
 		types.push_back(0);
 	}
 	//get samples and infer types from them
@@ -170,7 +170,7 @@ void fileReader::inferTypes() {
 					types[i] = getNarrowestType(entriesVec[i].val, types[i]);
 				++j;
 			}
-			gotrows.push_back(entriesVec);
+			gotrows.push_back(move(entriesVec));
 			++numrows;
 			if (readline())
 				break;
