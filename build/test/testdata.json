@@ -1,8 +1,7 @@
 [
 {
 	"title":"Basic top 10",
-	"code":0,
-	"query":"select top 10 from 'test/country.csv' nh",
+	"code":0, "query":"select top 10 from 'test/country.csv' nh",
 	"output":"1.csv"
 },
 {
@@ -196,5 +195,10 @@
 	"code":0,
 	"query":"select distinct o.c1 l.c1 from 'test/country.csv' o join 'test/lang.csv' l on o.c1=l.c1 and l.c1 <> GUM and l.c1 like 'g%'",
 	"output":"32.csv"
+},
+{
+	"title":"negation error",
+	"code":1,
+	"query":"select -c4 from 'test/country.csv'"
 }
 ]

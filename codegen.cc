@@ -628,16 +628,16 @@ void cgen::genValue(unique_ptr<node> &n){
 		addop2(operations[OPLD][n->datatype], getFileNo(n->tok3.val, q), n->tok1.id);
 		break;
 	case LITERAL:
-		switch (n->datatype){
-		case T_INT:      lit = parseIntDat(n->tok1.val.c_str());      break;
-		case T_FLOAT:    lit = parseFloatDat(n->tok1.val.c_str());    break;
-		case T_DATE:     lit = parseDateDat(n->tok1.val.c_str());     break;
-		case T_DURATION: lit = parseDurationDat(n->tok1.val.c_str()); break;
-		case T_STRING:   lit = parseStringDat(n->tok1.val.c_str());   break;
-		}
 		if (n->tok1.lower() == "null"){
 			addop0(LDNULL);
 		} else {
+			switch (n->datatype){
+			case T_INT:      lit = parseIntDat(n->tok1.val.c_str());      break;
+			case T_FLOAT:    lit = parseFloatDat(n->tok1.val.c_str());    break;
+			case T_DATE:     lit = parseDateDat(n->tok1.val.c_str());     break;
+			case T_DURATION: lit = parseDurationDat(n->tok1.val.c_str()); break;
+			case T_STRING:   lit = parseStringDat(n->tok1.val.c_str());   break;
+			}
 			addop1(LDLIT, q->dataholder.size());
 			q->dataholder.push_back(lit);
 		}
@@ -648,7 +648,7 @@ void cgen::genValue(unique_ptr<node> &n){
 		vtype = getVarType(n->tok1.val, q);
 		op = typeConv[vtype][n->datatype];
 		if (op == CVER)
-			error((ft("Error converting variable of type %1% to new type %2%")%vtype%n->datatype).str());
+			error((ft("Error converting alias of type %1% to new type %2%") % vtype % n->datatype).str());
 		if (op != CVNO)
 			addop0(op);
 		break;

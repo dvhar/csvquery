@@ -26,6 +26,8 @@
 #define nexti() \
 	++ip; \
 	next();
+#define skipnull() \
+	if (stk0.isnull()){ nexti() };
 
 void vmachine::run(){
 	ios::sync_with_stdio(false);
@@ -984,6 +986,7 @@ FINC_:
 	stk0 = q->dataholder[op->p1];
 	nexti();
 ENCCHA_:
+	skipnull();
 	{
 		auto&& pt1 = q->crypt.chachaEncrypt(op->p1, stk0.z, stk0.u.s);
 		if (stk0.ismal()) free(stk0.u.s);
@@ -993,6 +996,7 @@ ENCCHA_:
 	}
 	nexti();
 DECCHA_:
+	skipnull();
 	{
 		auto&& pt2 = q->crypt.chachaDecrypt(op->p1, stk0.z, stk0.u.s);
 		if (stk0.ismal()) free(stk0.u.s);
@@ -1001,7 +1005,9 @@ DECCHA_:
 		stk0.b = T_STRING|MAL;
 	}
 	nexti();
-#define get_tm() secs_to_tm(sec(stk0.u.i), &timetm);
+#define get_tm() \
+	skipnull(); \
+	secs_to_tm(sec(stk0.u.i), &timetm);
 FUNC_YEAR_:
 	get_tm();
 	stk0 = { { i: timetm.tm_year + 1900 }, T_INT };
