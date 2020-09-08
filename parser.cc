@@ -132,7 +132,7 @@ unique_ptr<node> parser::parseWith() {
 }
 
 //node1 is expr
-//tok1 is id
+//tok1 is alias
 //tok3 is midrow index-1 of phase2 non-aggs
 //node2 is vars
 unique_ptr<node> parser::parseVars() {
@@ -614,6 +614,8 @@ unique_ptr<node> parser::parseJoin() {
 		n->tok5 = t;
 		t = q->nextTok();
 	}
+	if (n->tok4.id == 0)
+		error("Joined file requires an alias.");
 	if (t.lower() != "on"sv) error("Expected 'on'. Found: "+t.val);
 	q->nextTok();
 	n->node1 = parsePredicates();

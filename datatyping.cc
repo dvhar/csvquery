@@ -629,11 +629,14 @@ void dataTyper::typeFinalValues(unique_ptr<node> &n, int finaltype){
 		break;
 	//may or may not preserve subtree types
 	case N_EXPRNEG:
+		if (n->tok1.id && (finaltype == T_STRING || finaltype == T_DATE))
+			error(st("Minus sign does not work with type ",typeMap.at(finaltype)));
 	case N_EXPRADD:
 	case N_EXPRMULT:
 		if (n->keep) finaltype = -1;
 		typeFinalValues(n->node1, finaltype);
 		typeFinalValues(n->node2, finaltype);
+		checkMathSemantics(n);
 		break;
 	//first node is independant, second is final value
 	case N_CPRED:
