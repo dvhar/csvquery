@@ -147,12 +147,12 @@ const int O_H = 4;
 const int O_S = 8;
 
 extern const flatmap<int, string_view> enumMap;
-extern const  flatmap<int, string_view> treeMap;
-extern const  flatmap<string_view, int> keywordMap;
-extern const  flatmap<string_view, int> functionMap;
-extern const  flatmap<string_view, int> joinMap;
-extern const  flatmap<string_view, int> specialMap;
-extern const flatmap<int, string_view> typeMap;
+extern const flatmap<int, string_view> treeMap;
+extern const flatmap<string_view, int> keywordMap;
+extern const flatmap<string_view, int> functionMap;
+extern const flatmap<string_view, int> joinMap;
+extern const flatmap<string_view, int> specialMap;
+extern const flatmap<int, string_view> nameMap;
 
 extern regex_t leadingZeroString;
 extern regex_t durationPattern;
@@ -413,7 +413,6 @@ class querySpecs {
 	int sorting;
 	int sortcount;
 	bool joining;
-	bool strictJoin; //require 1 file on each side of '='
 	int grouping; //1 = one group, 2 = groups
 	bool whereFiltering;
 	bool havingFiltering;
@@ -453,7 +452,6 @@ int getFileNo(string s, querySpecs *q);
 char* durstring(dur_t dur, char* str);
 void runServer();
 unique_ptr<node>& findFirstNode(unique_ptr<node> &n, int label);
-void checkMathSemantics(unique_ptr<node> &n);
 
 struct freeC {
 	void operator()(void*x){ free(x); }

@@ -3,6 +3,7 @@ cmake_minimum_required(VERSION 3.1)
 project(cql)
 
 set(optimize "-O3")
+set(optimize "-O3 -pipe")
 set(applegcc $ENV{HOME}/stuff/gcc/usr/local)
 set(staticlib "-static-libgcc -static-libstdc++")
 

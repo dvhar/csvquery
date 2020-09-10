@@ -431,12 +431,6 @@ void analyzer::findIndexableJoinValues(unique_ptr<node> &n, int fileno){
 			{
 			auto e1 = whichFilesReferenced(n->node1);
 			auto e2 = whichFilesReferenced(n->node2);
-			if (q->strictJoin){
-				if (n->tok1.id != SP_EQ)
-					error("Join condition must use '='");
-				if (e1.size() != 1 && e2.size() != 1)
-					error("Join condition must reference one file on each side of '='");
-			}
 			set<int> intersection;
 			set_intersection(e1.begin(), e1.end(), e2.begin(), e2.end(),
 					inserter(intersection, intersection.begin()));

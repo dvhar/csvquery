@@ -1,6 +1,5 @@
 #include "interpretor.h"
 
-
 //what type results from operation with 2 expressions with various data types and column/literal source
 //don't use for types where different operation results in different type
 //null[c,l], int[c,l], float[c,l], date[c,l], duration[c,l], string[c,l] in both dimensions
@@ -44,12 +43,15 @@ class dataTyper {
 	typer typeValueInnerNodes(unique_ptr<node> &n);
 	typer typeFunctionInnerNodes(unique_ptr<node> &n);
 	void typeFunctionFinalNodes(unique_ptr<node> &n, int finaltype);
+	void checkMathSemantics(unique_ptr<node> &n);
+	void checkFuncSemantics(unique_ptr<node> &n);
 
 	dataTyper(querySpecs& qs){
 		q = &qs;
 	};
 };
 
+//special cases handled later by keepSubtreeTypes()
 static typer typeCompute(typer n1, typer n2){
 	if (!n2.type) return n1;
 	if (!n1.type) return n2;
@@ -64,11 +66,12 @@ static ktype keepSubtreeTypes(int t1, int t2, int op) {
 	switch (op) {
 	case SP_STAR:
 	case SP_DIV:
-		if ((t1 == T_DURATION && t2 == T_INT) ||
-		   (t1 == T_DURATION && t2 == T_FLOAT) ||
-		   (t2 == T_DURATION && t1 == T_INT) ||
-		   (t2 == T_DURATION && t1 == T_FLOAT)) return { T_DURATION, true };
-		   break;
+		if ((t1 == T_DURATION && t2 == T_INT) || (t1 == T_DURATION && t2 == T_FLOAT) ||
+		   (t2 == T_DURATION && t1 == T_INT) || (t2 == T_DURATION && t1 == T_FLOAT))
+			return { T_DURATION, true };
+		if (t1 == T_DURATION && t2 == T_DURATION)  //only div
+		    return { T_FLOAT, true };
+	   break;
 	case SP_MINUS:
 		if (t1 == T_DATE && t2 == T_DATE) return { T_DURATION, true };
 		if (t1 == T_DATE && t2 == T_DURATION) return { T_DATE, true };
@@ -394,8 +397,9 @@ typer dataTyper::typeFunctionInnerNodes(unique_ptr<node> &n){
 	case FN_STDEV:
 	case FN_STDEVP:
 	case FN_AVG:
-		typeInnerNodes(n->node1);
-		innerType.type = T_FLOAT;
+		innerType = typeInnerNodes(n->node1);
+		if (innerType.type == T_INT)
+			innerType.type = T_FLOAT;
 		break;
 	default:
 		innerType = typeInnerNodes(n->node1);
@@ -584,6 +588,7 @@ void dataTyper::typeFunctionFinalNodes(unique_ptr<node> &n, int finaltype){
 		break;
 	default:
 		typeFinalValues(n->node1, finaltype);
+		checkFuncSemantics(n);
 	}
 }
 
@@ -630,7 +635,7 @@ void dataTyper::typeFinalValues(unique_ptr<node> &n, int finaltype){
 	//may or may not preserve subtree types
 	case N_EXPRNEG:
 		if (n->tok1.id && (finaltype == T_STRING || finaltype == T_DATE))
-			error(st("Minus sign does not work with type ",typeMap.at(finaltype)));
+			error(st("Minus sign does not work with type ",nameMap.at(finaltype)));
 	case N_EXPRADD:
 	case N_EXPRMULT:
 		if (n->keep) finaltype = -1;
@@ -668,6 +673,70 @@ void dataTyper::typeFinalValues(unique_ptr<node> &n, int finaltype){
 		typeFinalValues(n->node1, finaltype);
 		typeFinalValues(n->node2, -1);
 		break;
+	}
+}
+
+void dataTyper::checkMathSemantics(unique_ptr<node> &n){
+	if (n->label != N_EXPRADD || n->label != N_EXPRMULT)
+		return;
+	auto n1 = n->node1 == nullptr ? T_NULL : n->node1->datatype;
+	auto n2 = n->node2 == nullptr ? T_NULL : n->node2->datatype;
+	auto combo = [&](int a, int b){
+		return (n1 == a && n2 == b) || (n1 == b && n2 == a);
+	};
+	auto is = [&](int t){ return n->datatype == t; };
+	auto typestr = nameMap.at(n->datatype);
+
+	switch (n->tok1.id){
+	case SP_PLUS:
+		if (combo(T_DATE, T_DATE))
+			error("Cannot add 2 dates");
+		if (combo(T_DURATION, T_INT) || combo(T_DURATION, T_FLOAT))
+			error("Cannot add duration and number");
+		return;
+	case SP_MINUS:
+		if (n1 == T_DURATION && n2 == T_DATE)
+			error("Cannot subtract date from duration");
+		if (is(T_STRING))
+			error("Cannot subtract text");
+		if (combo(T_DURATION, T_INT) || combo(T_DURATION, T_FLOAT))
+			error("Cannot subtract duration and number");
+		return;
+	case SP_STAR:
+		if (is(T_STRING) || is(T_DATE))
+			error(st("Cannot multiply type ",typestr));
+		if (combo(T_DURATION, T_DURATION))
+			error("cannot multiply 2 durations");
+		return;
+	case SP_MOD:
+		if (!is(T_INT) || !is(T_FLOAT))
+			error(st("Cannot modulus type ",typestr));
+		return;
+	case SP_CARROT:
+		if (!is(T_INT) || !is(T_FLOAT))
+			error(st("Cannot exponentiate type ",typestr));
+		return;
+	case SP_DIV:
+		if (is(T_STRING) || is(T_DATE))
+			error(st("Cannot divide type ",typestr));
+		if (n1 != T_DURATION && n2 == T_DURATION)
+			error("Cannot divide number by duration");
+		return;
+	}
+}
+
+void dataTyper::checkFuncSemantics(unique_ptr<node> &n){
+	auto n1 = n->node1 == nullptr ? T_NULL : n->node1->datatype;
+	auto typestr = nameMap.at(n->datatype);
+
+	switch (n->tok1.id){
+		case FN_SUM:
+		case FN_AVG:
+		case FN_STDEV:
+		case FN_STDEVP:
+			if (n1 == T_STRING || n1 == T_DATE || n1 == T_DURATION)
+				error(st("Cannot use ",n->tok1.val," function with type ",typestr));
+			//TODO: implement stdev and avg for date and duration
 	}
 }
 
