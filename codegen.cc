@@ -809,7 +809,7 @@ void cgen::genPredicates(unique_ptr<node> &n){
 	}
 	jumps.setPlace(doneAndOr, v.size());
 	if (n->tok2.id == SP_NEGATE)
-		addop0(PNEG); //can optimize be returning value to genwhere and add opposite jump code
+		addop0(PNEG);
 }
 
 void cgen::genPredCompare(unique_ptr<node> &n){
@@ -1075,7 +1075,6 @@ void cgen::genIterateGroups(unique_ptr<node> &n){
 		}
 		jumps.setPlace(doneGroups, v.size());
 
-		//maybe put this part in higher level function?
 		if (q->sorting){
 			auto& ordnode1 = findFirstNode(q->tree->node4, N_ORDER)->node1;
 			int doneReadGroups = jumps.newPlaceholder();

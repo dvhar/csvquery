@@ -66,7 +66,7 @@ const flatmap<int, string_view> enumMap = {
 	{STATE_MBSPECIAL,"STATE_MBSPECIAL"},
 	{STATE_WORD ,    "STATE_WORD"},
 };
-const flatmap<int, string_view> typeMap = {
+const flatmap<int, string_view> nameMap = {
 	{T_STRING,   "text"},
 	{T_INT,      "number"},
 	{T_FLOAT,    "number"},
@@ -215,7 +215,7 @@ void querySpecs::addVar(string name) {
 }
 querySpecs::querySpecs(string &s){
 	queryString = s;
-	btn = bts = tokIdx = options = posVecs = sorting = sortcount = strictJoin =
+	btn = bts = tokIdx = options = posVecs = sorting = sortcount =
 	midcount = quantityLimit = numFiles = colspec.count = distinctSFuncs =
 	distinctNFuncs = whereFiltering = havingFiltering = joining = grouping = false;
 }
@@ -428,52 +428,4 @@ unique_ptr<node>& findFirstNode(unique_ptr<node> &n, int label){
 		?: findFirstNode(n->node2, label)
 		?: findFirstNode(n->node3, label)
 		?: findFirstNode(n->node4, label);
-}
-
-void checkMathSemantics(unique_ptr<node> &n){
-	if (n->label != N_EXPRADD || n->label != N_EXPRMULT)
-		return;
-	static auto ntype = [](unique_ptr<node> &c){
-		if (c == nullptr) return T_NULL;
-		return c->datatype;
-	};
-	static auto combo = [&](int a, int b){
-		return (ntype(n->node1) == a && ntype(n->node2) == b) ||
-			(ntype(n->node1) == b && ntype(n->node2) == a);
-	};
-	static auto is = [&](int t){ return n->datatype == t; };
-	static auto thistype = typeMap.at(n->datatype);
-
-	switch (n->tok1.id){
-	case SP_PLUS:
-		if (combo(T_DATE, T_DATE))
-			error("Cannot add 2 dates");
-		if (combo(T_DURATION, T_INT) || combo(T_DURATION, T_FLOAT))
-			error("Cannot add duration and number");
-		return;
-	case SP_MINUS:
-		if (ntype(n->node1) == T_DURATION && ntype(n->node2) == T_DATE)
-			error("Cannot subtract date from duration");
-		if (is(T_STRING))
-			error("Cannot subtract text");
-		if (combo(T_DURATION, T_INT) || combo(T_DURATION, T_FLOAT))
-			error("Cannot subtract duration and number");
-		return;
-	case SP_STAR:
-		if (is(T_STRING) || is(T_DATE))
-			error(st("Cannot multiply type ",thistype));
-		return;
-	case SP_MOD:
-		if (!is(T_INT) || !is(T_FLOAT))
-			error(st("Cannot modulus type ",thistype));
-		return;
-	case SP_CARROT:
-		if (!is(T_INT) || !is(T_FLOAT))
-			error(st("Cannot exponentiate type ",thistype));
-		return;
-	case SP_DIV:
-		if (is(T_STRING) || is(T_DATE))
-			error(st("Cannot divide type ",thistype));
-		return;
-	}
 }

@@ -295,7 +295,6 @@ dat prepareLike(unique_ptr<node> &n){
 	reg.u.r = new regex_t;
 	reg.b = RMAL;
 	string s = n->tok3.val;
-	cerr << "LIKE === " << s << endl;
 	boost::replace_all(s, "_", ".");
 	boost::replace_all(s, "%", ".*");
 	if (regcomp(reg.u.r, ("^"+s+"$").c_str(), REG_EXTENDED|REG_ICASE))
