@@ -1,14 +1,9 @@
-#include <iostream>
-#include <string_view>
-#include "deps/http/server_http.hpp"
-using namespace std;
-
-using HttpServer = SimpleWeb::Server<SimpleWeb::HTTP>;
+#include "server.h"
 
 void runServer(){
 	HttpServer server;
 	server.config.port = 8060;
-	//#include "embed_site.hpp"
+	embed(server);
 	cerr << "starting http server\n"sv;
 	server.start();
 }
