@@ -1,27 +1,25 @@
 #!/bin/bash
 
-out=embed_site.hpp
+
+render(){
+	echo $@ >> embed_site.cc
+}
+export -f render
 
 dostuff(){
-	mbin $1
+	mbin $1 >> embed_site.cc
 	filename=`echo $1 | sed 's-webgui/build/--'`
 	buf=`mbin $1 -n`
 	len="`mbin -n $1`_len"
-	echo "server.resource[\"^/$filename$\"][\"GET\"] = [$len](shared_ptr<HttpServer::Response> response, shared_ptr<HttpServer::Request> request){
-		response->write(string_view($buf, $len));
-	};"
-	echo
+	render "server.resource[\"^/$filename$\"][\"GET\"] = [$len](shared_ptr<HttpServer::Response> response, shared_ptr<HttpServer::Request> request){
+		response->write(string_view($buf, $len)); };"
+	render
 }
 export -f dostuff
 
-echo -e "#ifndef EMBED_SITE\n#define EMBED_SITE\n" > $out
-
-find webgui/build -regextype posix-egrep -regex ".*(js|css|map|json|png|txt|html)" -type f -exec bash -c 'dostuff "$0"' {} \; >> $out
+find webgui/build -regextype posix-egrep -regex ".*(js|css|map|json|png|txt|html)" -type f -exec bash -c 'dostuff "$0"' {} \;
 
 buf=`mbin webgui/build/index.html -n`
 len="`mbin webgui/build/index.html -n`_len"
-echo "server.default_resource[\"GET\"] = [$len](shared_ptr<HttpServer::Response> response, shared_ptr<HttpServer::Request> request){
-		response->write(string_view($buf, $len));
-	};" >> $out
-
-echo  "#endif" >> $out
+render "server.default_resource[\"GET\"] = [$len](shared_ptr<HttpServer::Response> response, shared_ptr<HttpServer::Request> request){
+		response->write(string_view($buf, $len)); };"
