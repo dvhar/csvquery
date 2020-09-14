@@ -78,6 +78,7 @@ bool fileReader::readline(){
 	entriesVec.clear();
 	fieldsFound = 0;
 	pos1 = pos2 = buf;
+	equoteCount = 0;
 	while (1){
 		//trim leading space
 		while (*pos2 && isblank(*pos2)) ++pos2;
@@ -101,9 +102,9 @@ bool fileReader::readline(){
 			inquote:
 			//go to next quote
 			while(*pos2 && *pos2 != '"') ++pos2;
-			//escape character - should compact this
+			//escape character
 			if (pos2>buf && *(pos2-1) == '\\'){
-				*(pos2-1) = '"';
+				compactQuote();
 				++pos2;
 				goto inquote;
 			}
@@ -111,6 +112,7 @@ bool fileReader::readline(){
 			switch (*pos2){
 			// "" escaped quote
 			case '"':
+				compactQuote();
 				++pos2;
 				goto inquote;
 			//end of line
@@ -126,7 +128,13 @@ bool fileReader::readline(){
 			}
 			//end of field
 			if (*pos2 == delim){
-				terminator = pos2-1;
+				if (equoteCount){
+					memmove(escapedQuote-equoteCount, escapedQuote, pos2-escapedQuote);
+					terminator = pos2-1-equoteCount;
+					equoteCount = 0;
+				} else {
+					terminator = pos2-1;
+				}
 				getField();
 				pos1 = ++pos2;
 			}
@@ -134,6 +142,12 @@ bool fileReader::readline(){
 
 	}
 	return 0;
+}
+inline void fileReader::compactQuote(){
+	if (equoteCount)
+		memmove(escapedQuote-equoteCount, escapedQuote, pos2-escapedQuote);
+	escapedQuote = pos2;
+	++equoteCount;
 }
 inline bool fileReader::checkWidth(){
 	prevpos += (pos2 - buf + 1);
