@@ -1,10 +1,7 @@
 #include "interpretor.h"
 #include <boost/algorithm/string/replace.hpp>
 
-unique_ptr<node> newNode(int l){
-	unique_ptr<node> n(new node(l));
-	return n;
-}
+#define newNode(l) make_unique<node>(l)
 
 class parser {
 	void parseOptions();

@@ -26,14 +26,16 @@ void webserver::serve(){
 		// compatible with old version
 		ptree pt;
 		webquery wq;
+		shared_ptr<returnData> ret;
+
 		try {
 
 			read_json(request->content, pt);
-			wq.savepath = pt.get<string>("Savepath","");
-			wq.qamount = pt.get<int>("Qamount",0);
-			wq.fileIO = pt.get<int>("FileIO",0);
-			wq.querystring = regex_replace(pt.get<string>("Query",""), endSemicolon, "");
-			auto ret = runqueries(wq);
+			wq.savepath = pt.get("Savepath","");
+			wq.qamount = pt.get("Qamount",0);
+			wq.fileIO = pt.get("FileIO",0);
+			wq.querystring = regex_replace(pt.get("Query",""), endSemicolon, "");
+			ret = runqueries(wq);
 
 		} catch (...){
 			auto e = current_exception();
