@@ -233,6 +233,8 @@ class fileReader {
 	char* pos2;
 	char* terminator;
 	char* buf;
+	char* escapedQuote;
+	int equoteCount;
 	bufreader fs;
 	string filename;
 	i64 prevpos;
@@ -260,6 +262,7 @@ class fileReader {
 		int fileno;
 		int numFields;
 	inline void getField();
+	inline void compactQuote();
 	inline bool checkWidth();
 	void inferTypes();
 	int getColIdx(string&);
