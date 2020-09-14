@@ -429,3 +429,11 @@ unique_ptr<node>& findFirstNode(unique_ptr<node> &n, int label){
 		?: findFirstNode(n->node3, label)
 		?: findFirstNode(n->node4, label);
 }
+
+string handle_err(exception_ptr eptr) {
+    try {
+		rethrow_exception(eptr);
+    } catch(const std::exception& e) {
+        return  e.what();
+    }
+}

@@ -65,8 +65,9 @@ int main(int argc, char** argv){
 		cerr << "gen\n";
 		codeGen(q);
 		runquery(q);
-	} catch (const invalid_argument& ia) {
-		cerr << "Error: "sv << ia.what() << '\n';
+	} catch (...) {
+		auto ia = current_exception();
+		cerr << "Error: "sv << handle_err(ia) << '\n';
 		return 1;
 	}
 	return 0;
