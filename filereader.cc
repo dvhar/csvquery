@@ -118,6 +118,11 @@ bool fileReader::readline(){
 				terminator = pos2-1;
 				getField();
 				return checkWidth();
+			case ' ':
+				terminator = pos2-1;
+				getField();
+				while (*pos2 != delim) ++pos2;
+				pos1 = ++pos2;
 			}
 			//end of field
 			if (*pos2 == delim){
