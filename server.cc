@@ -46,7 +46,7 @@ void webserver::serve(){
 
 	}; // end /query/
 
-	cerr << "starting http server\n"sv;
+	perr("starting http server\n");
 	server.start();
 }
 

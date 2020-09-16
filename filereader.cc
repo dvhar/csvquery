@@ -93,6 +93,8 @@ bool fileReader::readline(){
 			}
 			if (!(*pos2)){
 				terminator = pos2;
+				if (pos2 > buf && *(pos2-1) == '\r')
+					terminator--;
 				getField();
 				return checkWidth();
 			}
@@ -118,6 +120,8 @@ bool fileReader::readline(){
 			//end of line
 			case '\0':
 				terminator = pos2-1;
+				if (pos2-1 > buf && *(pos2-2) == '\r')
+					terminator--;
 				getField();
 				return checkWidth();
 			case ' ':

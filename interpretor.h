@@ -38,6 +38,9 @@ typedef i64 dur_t;
 #define SMALLEST numeric_limits<i64>::min()
 using namespace std;
 
+static void perr(string s){
+	//cerr << s;
+}
 
 enum nodetypes { N_QUERY, N_PRESELECT, N_WITH, N_VARS, N_SELECT, N_SELECTIONS, N_FROM, N_AFTERFROM, N_JOINCHAIN, N_JOIN, N_WHERE, N_HAVING, N_ORDER, N_EXPRADD, N_EXPRMULT, N_EXPRNEG, N_EXPRCASE, N_CPREDLIST, N_CPRED, N_CWEXPRLIST, N_CWEXPR, N_PREDICATES, N_PREDCOMP, N_VALUE, N_FUNCTION, N_GROUPBY, N_EXPRESSIONS, N_DEXPRESSIONS, N_TYPECONV };
 
@@ -299,8 +302,10 @@ class dat {
 	datunion u;
 	u32 b; // metadata bit array
 	u32 z; // string size and avg count
-	void appendToBuffer(string&);
-	string str(){ string st; appendToBuffer(st); return st; }
+	static char abnormal[];
+	void appendToCsvBuffer(string&);
+	void appendToJsonBuffer(string&);
+	string str(){ string st; appendToCsvBuffer(st); return st; }
 	bool istext() const { return (b & 7) == T_STRING; }
 	bool isnull() const { return b == 0; }
 	bool ismal() const { return b & MAL; }

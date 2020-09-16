@@ -232,16 +232,16 @@ void printTree(unique_ptr<node> &n, int ident){
 	ident++;
 	string s = "";
 	for (int i=0;i<ident;i++) s += "  ";
-	cerr << s << treeMap.at(n->label) << endl
-		<< s 
-		<< ft("[%1% %2% %3% %4% %5%] t:%6% ph:%7%")
+	perr(st( s , treeMap.at(n->label) , '\n',
+		s ,
+		ft("[%1% %2% %3% %4% %5%] t:%6% ph:%7%")
 		% n->tok1.val
 		% n->tok2.val
 		% n->tok3.val
 		% n->tok4.val
 		% n->tok5.val
 		% n->datatype
-		% n->phase << endl;
+		% n->phase , '\n'));
 	printTree(n->node1,ident);
 	printTree(n->node2,ident);
 	printTree(n->node3,ident);

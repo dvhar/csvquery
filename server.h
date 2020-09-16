@@ -24,6 +24,9 @@ static string st(T first, Args... args) {
 	__st(ss, first, args...);
 	return ss.str();
 }
+static void perr(string s){
+	//cerr << s; 
+}
 
 //outdated backward compatible stuff:
 class singleQueryResult {
