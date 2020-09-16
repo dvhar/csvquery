@@ -49,7 +49,7 @@ class parser {
 };
 
 void node::print(){
-	cerr << treeMap.at(label) << endl;
+	perr(st(treeMap.at(label) , '\n'));
 	tok1.print();
 	tok2.print();
 	tok3.print();

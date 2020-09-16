@@ -23,7 +23,7 @@ int main(int argc, char** argv){
 			break;
 		//help
 		case 'h':
-			cerr << '\n' << argv[0] << " <file>\n\tRun query from file\n\n"sv
+			cout << '\n' << argv[0] << " <file>\n\tRun query from file\n\n"sv
 				<< argv[0] << " -c \"select from 'data.csv'\"\n\tRun query from command line argument\n\n"sv
 				<< argv[0] << "\n\tRun query from stdin. Later this will be changed to run gui server\n\n"sv;
 			exit(0);
@@ -58,16 +58,13 @@ int main(int argc, char** argv){
 		parseQuery(q);
 		openfiles(q, q.tree);
 		applyTypes(q);
-		cerr << "final type tree:\n";
 		printTree(q.tree, 0);
-		cerr << "analyzing\n";
 		analyzeTree(q);
-		cerr << "gen\n";
 		codeGen(q);
 		runquery(q);
 	} catch (...) {
 		auto ia = current_exception();
-		cerr << "Error: "sv << handle_err(ia) << '\n';
+		cerr << "Error: "sv << handle_err(ia) << endl;
 		return 1;
 	}
 	return 0;

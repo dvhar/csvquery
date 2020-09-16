@@ -54,6 +54,7 @@ class cgen {
 	void genPredCompare(unique_ptr<node> &n);
 	void genValue(unique_ptr<node> &n);
 	void genFunction(unique_ptr<node> &n);
+	void genPrint();
 	void genSelectAll();
 	void genSelections(unique_ptr<node> &n);
 	void genTypeConv(unique_ptr<node> &n);
@@ -81,11 +82,11 @@ static const int funcTypes[]  = { 0,0,1,0,0,2 };
 static int ident = 0;
 //#define e //turn off debug printer
 #ifndef e
-#define e(A) for (int i=0; i< ident; i++) cerr << "    "; \
-	cerr << A << endl; ident++; \
+#define e(A) for (int i=0; i< ident; i++) perr("    "); \
+	perr(st( A , "\n")); ident++; \
 	shared_ptr<void> _(nullptr, [&n](...){ \
-	ident--; for (int i=0; i< ident; i++) cerr << "    "; \
-	cerr << "done " << A << endl; });
+	ident--; for (int i=0; i< ident; i++) perr("    "); \
+	perr(st("done ",A,'\n')); });
 #endif
 
 #define pushvars() for (auto &i : q->vars) addop(PUSH);
@@ -134,7 +135,9 @@ void cgen::generateCode(){
 void cgen::finish(){
 	int i = 0;
 	for (auto c : v){
-		cerr << "ip: " << left << setw(4) << i++;
+		stringstream s;
+		s << "ip: " << left << setw(4) << i++;
+		perr(s.str());
 		c.print();
 	}
 	q->bytecode = move(v);
@@ -188,7 +191,7 @@ void cgen::genJoiningQuery(unique_ptr<node> &n){
 		vs.setscope(SELECT_FILTER, V_READ2_SCOPE);
 		genVars(n->node1);
 		genSelect(n->node2);
-		addop(PRINT);
+		genPrint();
 		addop((q->quantityLimit > 0 ? JMPCNT : JMP), reread);
 		jumps.setPlace(endreread, v.size());
 		addop(POP); //rereader used 2 stack spaces
@@ -233,7 +236,7 @@ void cgen::genJoinSets(unique_ptr<node> &n){
 			vs.setscope(SELECT_FILTER, V_READ1_SCOPE);
 			genVars(q->tree->node1);
 			genSelect(q->tree->node2);
-			addop(PRINT);
+			genPrint();
 			addop((q->quantityLimit > 0 ? JMPCNT : JMP), prevJoinRead);
 		}
 		return;
@@ -249,6 +252,9 @@ void cgen::genJoinSets(unique_ptr<node> &n){
 	wherenot = prevJoinRead;
 	addop(JOINSET_TRAV, goWhenDone, (joinFileIdx-1)*2, joinFileIdx);
 	genJoinSets(n->node2);
+}
+void cgen::genPrint(){
+	addop(PRINTCSV);
 }
 void cgen::genAndChainSet(unique_ptr<node> &n){
 	int cz = n->info[CHAINSIZE];
@@ -452,7 +458,7 @@ void cgen::genNormalQuery(unique_ptr<node> &n){
 	vs.setscope(SELECT_FILTER, V_READ1_SCOPE);
 	genVars(n->node1);
 	genSelect(n->node2);
-	addop(PRINT);
+	genPrint();
 	addop((q->quantityLimit > 0 ? JMPCNT : JMP), normal_read);
 	jumps.setPlace(endfile, v.size());
 	popvars();
@@ -481,7 +487,7 @@ void cgen::genNormalOrderedQuery(unique_ptr<node> &n){
 	vs.setscope(SELECT_FILTER, V_READ2_SCOPE);
 	genVars(n->node1);
 	genSelect(n->node2);
-	addop(PRINT);
+	genPrint();
 	addop((q->quantityLimit > 0 ? JMPCNT : JMP), reread);
 	jumps.setPlace(endreread, v.size());
 	addop(POP); //rereader used 2 stack spaces
@@ -1044,7 +1050,7 @@ void cgen::genIterateGroups(unique_ptr<node> &n){
 		genVars(q->tree->node1);
 		genSelect(q->tree->node2);
 		// for debugging:
-		addop(PRINT);
+		genPrint();
 		return;
 	}
 	if (n->label == N_GROUPBY){
@@ -1082,7 +1088,7 @@ void cgen::genIterateGroups(unique_ptr<node> &n){
 			addop(PUSH_N, 0);
 			int readNext = v.size();
 			addop(READ_NEXT_GROUP, doneReadGroups);
-			addop(PRINT);
+			genPrint();
 			addop((q->quantityLimit > 0 ? JMPCNT : JMP), readNext);
 			jumps.setPlace(doneReadGroups, v.size());
 			addop(POP);
@@ -1103,8 +1109,7 @@ void cgen::genUnsortedGroupRow(unique_ptr<node> &n, int nextgroup, int doneGroup
 	vs.setscope(SELECT_FILTER, V_GROUP_SCOPE);
 	genVars(q->tree->node1);
 	genSelect(q->tree->node2);
-	// for debugging:
-	addop(PRINT);
+	genPrint();
 	addop((q->quantityLimit > 0 ? JMPCNT : JMP), nextgroup);
 	addop(JMP, doneGroups);
 }
