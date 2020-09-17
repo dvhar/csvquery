@@ -5,51 +5,9 @@
 #include<string_view>
 #include<forward_list>
 #include<iostream>
+#include "interpretor.h"
 
-using namespace std;
 using HttpServer = SimpleWeb::Server<SimpleWeb::HTTP>;
-
-template<typename T>
-static void __st(stringstream& ss, T v) {
-	ss << v;
-}
-template<typename T, typename... Args>
-static void __st(stringstream& ss, T first, Args... args) {
-	ss << first;
-	__st(ss, args...);
-}
-template<typename T, typename... Args>
-static string st(T first, Args... args) {
-	stringstream ss;
-	__st(ss, first, args...);
-	return ss.str();
-}
-static void perr(string s){
-	//cerr << s; 
-}
-
-//outdated backward compatible stuff:
-class singleQueryResult {
-	public:
-	int numrows;
-	int showLimit;
-	int numcols;
-	vector<int> types;
-	vector<string> colnames;
-	vector<int> pos;
-	forward_list<string> Vals; //each string is whole row
-	int status;
-	string query;
-};
-
-class returnData {
-	public:
-	forward_list<shared_ptr<singleQueryResult>> entries;
-	int status;
-	string originalQuery;
-	bool clipped;
-	string message;
-};
 
 class webquery {
 	public:

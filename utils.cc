@@ -215,7 +215,7 @@ void querySpecs::addVar(string name) {
 }
 querySpecs::querySpecs(string &s){
 	queryString = s;
-	btn = bts = tokIdx = options = posVecs = sorting = sortcount =
+	btn = bts = tokIdx = options = posVecs = sorting = sortcount = outputcsv = outputjson =
 	midcount = quantityLimit = numFiles = colspec.count = distinctSFuncs =
 	distinctNFuncs = whereFiltering = havingFiltering = joining = grouping = false;
 }
@@ -437,3 +437,14 @@ string handle_err(exception_ptr eptr) {
         return  e.what();
     }
 }
+
+void processQuery(querySpecs &q){
+	scanTokens(q);
+	parseQuery(q);
+	openfiles(q, q.tree);
+	applyTypes(q);
+	printTree(q.tree, 0);
+	analyzeTree(q);
+	codeGen(q);
+	runquery(q);
+};

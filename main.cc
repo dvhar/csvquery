@@ -54,14 +54,8 @@ int main(int argc, char** argv){
 
 	try {
 		querySpecs q(qs);
-		scanTokens(q);
-		parseQuery(q);
-		openfiles(q, q.tree);
-		applyTypes(q);
-		printTree(q.tree, 0);
-		analyzeTree(q);
-		codeGen(q);
-		runquery(q);
+		q.outputcsv = true;
+		processQuery(q);
 	} catch (...) {
 		auto ia = current_exception();
 		cerr << "Error: "sv << handle_err(ia) << endl;
