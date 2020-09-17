@@ -165,12 +165,14 @@ int addBtree(int type, querySpecs *q){
 	return 0;
 }
 
-vmachine::vmachine(querySpecs &qs){
+vmachine::vmachine(querySpecs &qs) : csvOutput(0) {
 	q = &qs;
 	for (int i=0; i<q->numFiles; ++i){
 		files.push_back(q->files[st("_f", i)]);
 	}
 
+	totalPrinted = 0;
+	numJsonPrinted = 0;
 	destrow.resize(q->colspec.count, {0});
 	torow = destrow.data();
 	torowSize = q->colspec.count;
@@ -193,6 +195,15 @@ vmachine::vmachine(querySpecs &qs){
 	bt_nums.resize(q->btn);
 	bt_strings.resize(q->bts);
 	distinctVal = {0};
+	if (q->outputjson){
+		jsonresult.reset(new singleQueryResult(qs));
+	}
+	if (q->savepath != ""){
+		fileOutput.open(qs.savepath, ofstream::out | ofstream::app);
+		csvOutput.rdbuf(fileOutput.rdbuf());
+	} else {
+		csvOutput.rdbuf(cout.rdbuf());
+	}
 }
 
 vmachine::~vmachine(){

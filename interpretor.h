@@ -371,16 +371,6 @@ class resultSpecs {
 	vector<string> colnames;
 };
 
-class singleQueryResult {
-	public:
-	int numrows;
-	int numcols;
-	vector<int> types;
-	vector<string> colnames;
-	vector<vector<char*>> values;
-	string query;
-};
-
 class chactx {
 	public:
 	chacha ctx;
@@ -397,6 +387,7 @@ class crypter {
 
 class querySpecs {
 	public:
+	string savepath;
 	string queryString;
 	string password;
 	vector<token> tokArray;
@@ -404,8 +395,8 @@ class querySpecs {
 	vector<variable> vars;
 	vector<dat> dataholder;
 	vector<opcode> bytecode;
-	map<string, shared_ptr<fileReader>> files;
 	unique_ptr<node> tree;
+	map<string, shared_ptr<fileReader>> files;
 	resultSpecs colspec;
 	crypter crypt;
 	int distinctSFuncs;
@@ -420,8 +411,10 @@ class querySpecs {
 	int posVecs;
 	int sorting;
 	int sortcount;
-	bool joining;
 	int grouping; //1 = one group, 2 = groups
+	bool outputjson;
+	bool outputcsv;
+	bool joining;
 	bool whereFiltering;
 	bool havingFiltering;
 	token tok();
@@ -435,6 +428,33 @@ class querySpecs {
 	~querySpecs();
 	querySpecs(string &s);
 };
+
+class singleQueryResult {
+	public:
+	int numrows;
+	int showLimit;
+	int numcols;
+	int status;
+	vector<int> types;
+	vector<string> colnames;
+	vector<int> pos;
+	forward_list<string> Vals; //each string is whole row
+	string query;
+	singleQueryResult(querySpecs &q){
+		numrows = status = 0;
+		numcols = q.colspec.count;
+		showLimit = 20000 / numcols;
+	}
+};
+class returnData {
+	public:
+	forward_list<shared_ptr<singleQueryResult>> entries;
+	int status;
+	string originalQuery;
+	bool clipped;
+	string message;
+};
+
 
 void scanTokens(querySpecs &q);
 int varIsAgg(string lkup, querySpecs &q);
@@ -461,6 +481,7 @@ char* durstring(dur_t dur, char* str);
 void runServer();
 string handle_err(exception_ptr eptr);
 unique_ptr<node>& findFirstNode(unique_ptr<node> &n, int label);
+void processQuery(querySpecs &q);
 
 struct freeC {
 	void operator()(void*x){ free(x); }

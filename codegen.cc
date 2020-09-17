@@ -254,7 +254,10 @@ void cgen::genJoinSets(unique_ptr<node> &n){
 	genJoinSets(n->node2);
 }
 void cgen::genPrint(){
-	addop(PRINTCSV);
+	if (q->outputjson)
+		addop(PRINTJSON, q->outputcsv ? 0 : 1);
+	if (q->outputcsv)
+		addop(PRINTCSV);
 }
 void cgen::genAndChainSet(unique_ptr<node> &n){
 	int cz = n->info[CHAINSIZE];

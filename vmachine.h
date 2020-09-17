@@ -148,6 +148,7 @@ class stddev {
 };
 
 class rowgroup;
+class singleQueryResult;
 class vmachine {
 	vector<shared_ptr<fileReader>> files;
 	opcode* ops;
@@ -156,6 +157,8 @@ class vmachine {
 	int torowSize;
 	int sortgroupsize;
 	int quantityLimit;
+	int totalPrinted;
+	int numJsonPrinted;
 	vector<stddev> stdvs;
 	vector<dat> destrow;
 	vector<dat> onegroup;
@@ -166,6 +169,10 @@ class vmachine {
 	forward_list<bset<i64>> joinSetStack;
 	forward_list<unique_ptr<char[], freeC>> groupSortVars;
 	unique_ptr<rowgroup> groupTree;
+	shared_ptr<singleQueryResult> jsonresult;
+	string outbuf;
+	ostream csvOutput;
+	ofstream fileOutput;
 	//datunion comparers
 	static const function<bool (const datunion, const datunion&)> uLessFuncs[3];
 	static const function<bool (const datunion, const datunion&)> uGrtFuncs[3];
