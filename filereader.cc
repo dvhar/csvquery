@@ -20,7 +20,6 @@ fileReader::fileReader(string& fname){
 	}
 	//filesize optimizations more beneficial for joined files
 	small = filesystem::file_size(fname) < (fileno>0? 100:1)*1024*1024;
-	memidx = pos = prevpos = numFields = 0;
 	filename = fname;
 	fs.open(fname.c_str());	
 }

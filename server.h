@@ -22,7 +22,7 @@ class webquery {
 class webserver {
 	public:
 	shared_ptr<returnData> runqueries(webquery &wq);
-	shared_ptr<singleQueryResult> runquery(webquery &wq);
+	shared_ptr<singleQueryResult> runWebQuery(webquery &wq);
 	void embed(HttpServer&);
 	void serve();
 };
