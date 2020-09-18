@@ -941,6 +941,10 @@ void cgen::genFunction(unique_ptr<node> &n){
 		}
 		addop0(LDNULL);
 		break;
+	case FN_ABS:
+		genExprAll(n->node1);
+		addop0(operations[OPABS][n->datatype]);
+		break;
 	case FN_INC:
 		addop1(FINC, q->dataholder.size());
 		q->dataholder.push_back(dat{ {.f = 0.0}, T_FLOAT});

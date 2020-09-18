@@ -39,7 +39,7 @@ typedef i64 dur_t;
 using namespace std;
 
 static void perr(string s){
-	//cerr << s;
+	cerr << s;
 }
 
 enum nodetypes { N_QUERY, N_PRESELECT, N_WITH, N_VARS, N_SELECT, N_SELECTIONS, N_FROM, N_AFTERFROM, N_JOINCHAIN, N_JOIN, N_WHERE, N_HAVING, N_ORDER, N_EXPRADD, N_EXPRMULT, N_EXPRNEG, N_EXPRCASE, N_CPREDLIST, N_CPRED, N_CWEXPRLIST, N_CWEXPR, N_PREDICATES, N_PREDCOMP, N_VALUE, N_FUNCTION, N_GROUPBY, N_EXPRESSIONS, N_DEXPRESSIONS, N_TYPECONV };
@@ -167,11 +167,11 @@ extern regex colNum;
 
 class token {
 	public:
-	int id;
+	int id =0;
 	string val;
-	int line;
-	int col;
-	bool quoted;
+	int line =0;
+	int col =0;
+	bool quoted =0;
 	string lower();
 	void print();
 };
@@ -188,10 +188,10 @@ enum: int {
 };
 class node {
 	public:
-	int label;
-	int datatype;
-	int phase;
-	bool keep; //preserve subtree types
+	int label =0;
+	int datatype =0;
+	int phase =0;
+	bool keep =0; //preserve subtree types
 	unique_ptr<node> node1;
 	unique_ptr<node> node2;
 	unique_ptr<node> node3;
@@ -211,13 +211,13 @@ class node {
 class variable {
 	public:
 	string name;
-	int type;
-	int lit;
-	int filter;
-	int phase;
-	int mrindex;
+	int type =0;
+	int lit =0;
+	int filter =0;
+	int phase =0;
+	int mrindex =0;
 	set<int> filesReferenced;
-	int maxfileno;
+	int maxfileno =0;
 };
 
 class csvEntry {
@@ -232,20 +232,20 @@ class valpos;
 class andchain;
 class fileReader {
 	int fieldsFound;
-	char* pos1;
-	char* pos2;
-	char* terminator;
-	char* buf;
-	char* escapedQuote;
-	int equoteCount;
+	char* pos1 =0;
+	char* pos2 =0;
+	char* terminator =0;
+	char* buf =0;
+	char* escapedQuote =0;
 	bufreader fs;
 	string filename;
-	i64 prevpos;
 	vector<vector<csvEntry>> gotrows;
 	forward_list<unique_ptr<char[]>> gotbuffers;
 	vector<csvEntry> entriesVec;
-	int memidx;
-	int numrows;
+	i64 prevpos =0;
+	int equoteCount =0;
+	int memidx =0;
+	int numrows =0;
 	public:
 		static char blank;
 		bool small;
@@ -397,51 +397,53 @@ class querySpecs {
 	vector<opcode> bytecode;
 	unique_ptr<node> tree;
 	map<string, shared_ptr<fileReader>> files;
-	resultSpecs colspec;
-	crypter crypt;
-	int distinctSFuncs;
-	int distinctNFuncs;
-	int midcount;
-	int numFiles;
-	u32 tokIdx;
-	int options;
-	int btn;
-	int bts;
-	int quantityLimit;
-	int posVecs;
-	int sorting;
-	int sortcount;
-	int grouping; //1 = one group, 2 = groups
-	bool outputjson;
-	bool outputcsv;
-	bool joining;
-	bool whereFiltering;
-	bool havingFiltering;
+	resultSpecs colspec = {0};
+	crypter crypt = {};
+	int distinctSFuncs =0;
+	int distinctNFuncs =0;
+	int midcount =0;
+	int numFiles =0;
+	u32 tokIdx =0;
+	int options =0;
+	int btn =0;
+	int bts =0;
+	int quantityLimit =0;
+	int posVecs =0;
+	int sorting =0;
+	int sortcount =0;
+	int grouping =0; //1 = one group, 2 = groups
+	bool outputjson =0;
+	bool outputcsv =0;
+	bool joining =0;
+	bool whereFiltering =0;
+	bool havingFiltering =0;
 	token tok();
 	token nextTok();
 	token peekTok();
 	bool numIsCol();
+	void setoutputCsv(){ outputcsv = true; };
+	void setoutputJson(){ outputjson = true; };
 	void init(string);
 	void addVar(string);
 	shared_ptr<fileReader>& getFileReader(int);
 	variable& var(string);
 	~querySpecs();
-	querySpecs(string &s);
+	querySpecs(string &s){ queryString = s; };
 };
 
 class singleQueryResult {
 	public:
-	int numrows;
-	int showLimit;
-	int numcols;
-	int status;
+	int numrows =0;
+	int showLimit =0;
+	int numcols =0;
+	int status =0;
 	vector<int> types;
 	vector<string> colnames;
 	vector<int> pos;
-	forward_list<string> Vals; //each string is whole row
+	list<string> Vals; //each string is whole row
 	string query;
+	string tojson();
 	singleQueryResult(querySpecs &q){
-		numrows = status = 0;
 		numcols = q.colspec.count;
 		showLimit = 20000 / numcols;
 	}
@@ -473,6 +475,7 @@ void applyTypes(querySpecs &q);
 void analyzeTree(querySpecs &q);
 void codeGen(querySpecs &q);
 void runquery(querySpecs &q);
+shared_ptr<singleQueryResult> runqueryJson(querySpecs &q);
 int getVarLocation(string lkup, querySpecs *q);
 int getVarIdx(string lkup, querySpecs *q);
 int getVarType(string lkup, querySpecs *q);
@@ -481,7 +484,7 @@ char* durstring(dur_t dur, char* str);
 void runServer();
 string handle_err(exception_ptr eptr);
 unique_ptr<node>& findFirstNode(unique_ptr<node> &n, int label);
-void processQuery(querySpecs &q);
+void prepareQuery(querySpecs &q);
 
 struct freeC {
 	void operator()(void*x){ free(x); }

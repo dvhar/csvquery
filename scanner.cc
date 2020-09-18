@@ -79,7 +79,7 @@ void initable(){
 class stringLookahead {
 	public:
 	string Str;
-	u32 idx;
+	u32 idx =0;
 	int getc();
 	int peek();
 };
@@ -162,11 +162,11 @@ token scanner::scanToken() {
 			}
 			if (nextchar == '\n') { lineNo++; colNo=0; }
 			if (nextchar == EOS) {
-				return { EOS, "END", lineNo, colNo, false };
+				return { EOS, "END Of INPUT", lineNo, colNo, false };
 			}
 		}
 	}
-	return { EOS, "END", lineNo, colNo, false };
+	return { EOS, "END Of INPUT", lineNo, colNo, false };
 
 }
 

@@ -38,13 +38,14 @@ enum codes : int {
 	JOINSET_EQ_AND, JOINSET_EQ, JOINSET_LESS, JOINSET_GRT, JOINSET_LESS_AND, JOINSET_GRT_AND,
 	JOINSET_INIT, JOINSET_TRAV, AND_SET, OR_SET,
 	SAVEANDCHAIN, SORT_ANDCHAIN,
-	FUNCYEAR, FUNCMONTH, FUNCWEEK, FUNCYDAY, FUNCMDAY, FUNCWDAY, FUNCHOUR, FUNCMINUTE, FUNCSECOND, FUNCWDAYNAME, FUNCMONTHNAME
+	FUNCYEAR, FUNCMONTH, FUNCWEEK, FUNCYDAY, FUNCMDAY, FUNCWDAY, FUNCHOUR, FUNCMINUTE, FUNCSECOND, FUNCWDAYNAME, FUNCMONTHNAME,
+	FUNCABSF, FUNCABSI
 };
 
 //2d array for ops indexed by operation and datatype
 enum typeOperators {
 	OPADD, OPSUB, OPMULT, OPMOD, OPDIV, OPEXP, OPNEG, OPLD, OPEQ, OPLEQ, OPLT,
-	OPMAX, OPMIN, OPSUM, OPAVG, OPSTV, OPLSTV, OPLAVG, OPSVSRT, OPDIST
+	OPMAX, OPMIN, OPSUM, OPAVG, OPSTV, OPLSTV, OPLAVG, OPSVSRT, OPDIST, OPABS
 };
 static int operations[][6] = {
 	{ 0, IADD, FADD, DTADD, DRADD, TADD },
@@ -67,6 +68,7 @@ static int operations[][6] = {
 	{ 0, LDAVGI, LDAVGF, LDAVGI, LDAVGI, 0 },
 	{ 0, SAVESORTN, SAVESORTN, SAVESORTN, SAVESORTN, SAVESORTS },
 	{ 0, NDIST, NDIST, NDIST, NDIST, SDIST },
+	{ 0, FUNCABSI, FUNCABSF, 0, FUNCABSI, 0 },
 };
 
 //type conversion opcodes - [from][to]
@@ -92,7 +94,7 @@ int addBtree(int type, querySpecs *q);
 //placeholder for jmp positions that can't be determined until later
 class jumpPositions {
 	map<int, int> jumps;
-	int uniqueKey;
+	int uniqueKey =0;
 	public:
 	int newPlaceholder() { return --uniqueKey; };
 	void setPlace(int k, int v) { jumps[k] = v; };
@@ -154,11 +156,11 @@ class vmachine {
 	opcode* ops;
 	dat* torow;
 	dat distinctVal;
-	int torowSize;
-	int sortgroupsize;
-	int quantityLimit;
-	int totalPrinted;
-	int numJsonPrinted;
+	int torowSize =0;
+	int sortgroupsize =0;
+	int quantityLimit =0;
+	int totalPrinted =0;
+	int numJsonPrinted =0;
 	vector<stddev> stdvs;
 	vector<dat> destrow;
 	vector<dat> onegroup;
@@ -172,7 +174,7 @@ class vmachine {
 	shared_ptr<singleQueryResult> jsonresult;
 	string outbuf;
 	ostream csvOutput;
-	ofstream fileOutput;
+	ofstream outfile;
 	//datunion comparers
 	static const function<bool (const datunion, const datunion&)> uLessFuncs[3];
 	static const function<bool (const datunion, const datunion&)> uGrtFuncs[3];
@@ -188,6 +190,7 @@ class vmachine {
 	vector<bset<treeCString>> bt_strings;
 	querySpecs* q;
 	void run();
+	shared_ptr<singleQueryResult> getJsonResult(){ return jsonresult; }
 	vmachine(querySpecs &q);
 	~vmachine();
 };
@@ -259,10 +262,10 @@ class rowgroup {
 
 class varScoper {
 	public:
-		int scopefilter;
-		int policy;
-		int scope;
-		int fileno;
+		int scopefilter =0;
+		int policy =0;
+		int scope =0;
+		int fileno =0;
 		//map[scope][index] = already evaluated
 		map<int,map<int,int>> duplicates;
 		varScoper* setscope(int, int);

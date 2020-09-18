@@ -127,9 +127,22 @@ static bool canBeString(unique_ptr<node> &n){
 			return canBeString(n->node1);
 		case FN_ENCRYPT:
 		case FN_DECRYPT:
+		case FN_MONTHNAME:
+		case FN_WDAYNAME:
 			return true;
 		case FN_INC:
 		case FN_COUNT:
+		case FN_ABS:
+		case FN_STDEV:
+		case FN_STDEVP:
+		case FN_AVG:
+		case FN_YEAR:
+		case FN_MONTH:
+		case FN_WEEK:
+		case FN_YDAY:
+		case FN_MDAY:
+		case FN_WDAY:
+		case FN_HOUR:
 			return false;
 		}
 	}
@@ -737,6 +750,11 @@ void dataTyper::checkFuncSemantics(unique_ptr<node> &n){
 			if (n1 == T_STRING || n1 == T_DATE || n1 == T_DURATION)
 				error(st("Cannot use ",n->tok1.val," function with type ",typestr));
 			//TODO: implement stdev and avg for date and duration
+			break;
+		case FN_ABS:
+			if (n1 == T_STRING || n1 == T_DATE)
+				error(st("Cannot use ",n->tok1.val," function with type ",typestr));
+			break;
 	}
 }
 

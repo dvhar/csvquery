@@ -213,12 +213,6 @@ variable& querySpecs::var(string name) {
 void querySpecs::addVar(string name) {
 	vars.push_back({name,0,0,0,0,{}});
 }
-querySpecs::querySpecs(string &s){
-	queryString = s;
-	btn = bts = tokIdx = options = posVecs = sorting = sortcount = outputcsv = outputjson =
-	midcount = quantityLimit = numFiles = colspec.count = distinctSFuncs =
-	distinctNFuncs = whereFiltering = havingFiltering = joining = grouping = false;
-}
 bool querySpecs::numIsCol() { return (options & O_C) != 0; }
 shared_ptr<fileReader>& querySpecs::getFileReader(int i) {
 	for (auto &f : files)
@@ -438,7 +432,44 @@ string handle_err(exception_ptr eptr) {
     }
 }
 
-void processQuery(querySpecs &q){
+string singleQueryResult::tojson(){
+	stringstream j;
+	j << "{\"Numrows\":" << numrows << ','
+		<< "\"ShowLimit\":" << showLimit << ','
+		<< "\"Numcols\":" << numcols << ','
+		<< "\"Query\":" << query << ','
+		<< "\"Status\":" << status;
+	static string_view com = ",";
+	static string_view nocom = "";
+	j << ",\"Types\":[";
+	auto delim = &nocom;
+	for (auto v : types){
+		j << *delim << v;
+		delim = &com;
+	}
+	j << "],\"Colnames\":[";
+	delim = &nocom;
+	for (auto &v : colnames){
+		j << *delim << v;
+		delim = &com;
+	}
+	j << "],\"Pos\":[";
+	delim = &nocom;
+	for (auto v : pos){
+		j << *delim << v;
+		delim = &com;
+	}
+	j << "],\"Vals\":[";
+	delim = &nocom;
+	for (auto &v : Vals){
+		j << *delim << v;
+		delim = &com;
+	}
+	j << "]}";
+	return j.str();
+}
+
+void prepareQuery(querySpecs &q){
 	scanTokens(q);
 	parseQuery(q);
 	openfiles(q, q.tree);
@@ -446,5 +477,4 @@ void processQuery(querySpecs &q){
 	printTree(q.tree, 0);
 	analyzeTree(q);
 	codeGen(q);
-	runquery(q);
 };

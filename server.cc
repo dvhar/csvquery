@@ -56,12 +56,17 @@ shared_ptr<returnData> webserver::runqueries(webquery &wq){
 	int i = 0;
 	for (auto &q: wq.queries){
 		wq.whichone = i++;
-		ret->entries.push_front(runquery(wq));
+		ret->entries.push_front(runWebQuery(wq));
+		cerr << ret->entries.front()->tojson();
 	}
 	return ret;
 }
 
-shared_ptr<singleQueryResult> webserver::runquery(webquery &wq){
-	cout << "query " << wq.whichone << ": " << wq.queries[wq.whichone] << endl;
-	return nullptr;
+shared_ptr<singleQueryResult> webserver::runWebQuery(webquery &wq){
+	cout << "webquery " << wq.whichone << ": " << wq.queries[wq.whichone] << endl;
+	querySpecs q(wq.queries[wq.whichone]);
+	if (true || (wq.fileIO & F_CSV) != 0) {
+		q.setoutputCsv();
+	}
+	return runqueryJson(q);
 }

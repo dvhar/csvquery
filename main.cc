@@ -54,8 +54,8 @@ int main(int argc, char** argv){
 
 	try {
 		querySpecs q(qs);
-		q.outputcsv = true;
-		processQuery(q);
+		q.setoutputCsv();
+		runquery(q);
 	} catch (...) {
 		auto ia = current_exception();
 		cerr << "Error: "sv << handle_err(ia) << endl;
