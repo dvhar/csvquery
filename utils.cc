@@ -432,12 +432,12 @@ string handle_err(exception_ptr eptr) {
     }
 }
 
-string singleQueryResult::tojson(){
+stringstream singleQueryResult::tojson(){
 	stringstream j;
 	j << "{\"Numrows\":" << numrows << ','
 		<< "\"ShowLimit\":" << showLimit << ','
 		<< "\"Numcols\":" << numcols << ','
-		<< "\"Query\":" << query << ','
+		<< "\"Query\":\"" << query << "\","
 		<< "\"Status\":" << status;
 	static string_view com = ",";
 	static string_view nocom = "";
@@ -466,7 +466,24 @@ string singleQueryResult::tojson(){
 		delim = &com;
 	}
 	j << "]}";
-	return j.str();
+	return j;
+}
+stringstream returnData::tojson(){
+	stringstream j;
+	static string_view com = ",";
+	static string_view nocom = "";
+	j << "{\"Status\":" << status << ','
+		<< "\"Clipped\":" << (clipped ? "true":"false") << ','
+		<< "\"OriginalQuery\":\"" << originalQuery << "\","
+		<< "\"Message\":\"" << message << "\","
+		<< "\"Entries\":[";
+	auto delim = &nocom;
+	for (auto &v : entries){
+		j << *delim << v->tojson().rdbuf();
+		delim = &com;
+	}
+	j << "]}";
+	return j;
 }
 
 void prepareQuery(querySpecs &q){

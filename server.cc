@@ -36,13 +36,14 @@ void webserver::serve(){
 			wq.fileIO = pt.get("FileIO",0);
 			wq.querystring = regex_replace(pt.get("Query",""), endSemicolon, "");
 			ret = runqueries(wq);
+			response->write(ret->tojson().str());
 
 		} catch (...){
-			auto e = current_exception();
-			cerr << "Error: "sv << handle_err(e) << endl;
+			auto e = handle_err(current_exception());
+			cerr << "Error: " << e << endl;
+			response->write(e);
 		}
 
-		response->write(st("request: ",wq.querystring));
 
 	}; // end /query/
 
@@ -56,8 +57,7 @@ shared_ptr<returnData> webserver::runqueries(webquery &wq){
 	int i = 0;
 	for (auto &q: wq.queries){
 		wq.whichone = i++;
-		ret->entries.push_front(runWebQuery(wq));
-		cerr << ret->entries.front()->tojson();
+		ret->entries.push_back(runWebQuery(wq));
 	}
 	return ret;
 }
@@ -65,7 +65,7 @@ shared_ptr<returnData> webserver::runqueries(webquery &wq){
 shared_ptr<singleQueryResult> webserver::runWebQuery(webquery &wq){
 	cout << "webquery " << wq.whichone << ": " << wq.queries[wq.whichone] << endl;
 	querySpecs q(wq.queries[wq.whichone]);
-	if (true || (wq.fileIO & F_CSV) != 0) {
+	if ((wq.fileIO & F_CSV) != 0) {
 		q.setoutputCsv();
 	}
 	return runqueryJson(q);
