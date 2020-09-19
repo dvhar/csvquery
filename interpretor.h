@@ -48,106 +48,108 @@ enum valTypes { LITERAL, COLUMN, VARIABLE, FUNCTION };
 enum varFilters { WHERE_FILTER=1, DISTINCT_FILTER=2, ORDER_FILTER=4, GROUP_FILTER=8, HAVING_FILTER=16, JCOMP_FILTER=32, JSCAN_FILTER=64, SELECT_FILTER=128 };
 enum varScopes { V_READ1_SCOPE, V_READ2_SCOPE, V_GROUP_SCOPE, V_SCAN_SCOPE };
 
-const int RMAL = 8; //regex needs regfree() (dataholder vector only)
-const int MAL = 16; //malloced and responsible for freeing c string
 
-const int T_NULL = 0;
-const int T_INT = 1;
-const int T_FLOAT = 2;
-const int T_DATE = 3;
-const int T_DURATION = 4;
-const int T_STRING = 5;
-const int NUM_STATES =  5;
-const int EOS =         255;
-const int ERROR_STATE = 1<<23;
-const int AGG_BIT =     1<<26;
-const int FINAL =       1<<22;
-const int KEYBIT =      1<<20;
-const int LOGOP =       1<<24;
-const int RELOP =       1<<25;
-const int WORD_TK =     FINAL|1<<27;
-const int NUMBER =      FINAL|1;
-const int KEYWORD =     FINAL|KEYBIT;
-const int KW_AND =      LOGOP|KEYWORD|1;
-const int KW_OR  =      LOGOP|KEYWORD|2;
-const int KW_XOR =      LOGOP|KEYWORD|3;
-const int KW_SELECT =   KEYWORD|4;
-const int KW_FROM  =    KEYWORD|5;
-const int KW_HAVING  =  KEYWORD|6;
-const int KW_AS  =      KEYWORD|7;
-const int KW_WHERE =    KEYWORD|8;
-const int KW_LIMIT =    KEYWORD|9;
-const int KW_GROUP =    KEYWORD|10;
-const int KW_ORDER =    KEYWORD|11;
-const int KW_BY =       KEYWORD|12;
-const int KW_DISTINCT = KEYWORD|13;
-const int KW_ORDHOW =   KEYWORD|14;
-const int KW_CASE =     KEYWORD|15;
-const int KW_WHEN =     KEYWORD|16;
-const int KW_THEN =     KEYWORD|17;
-const int KW_ELSE =     KEYWORD|18;
-const int KW_END =      KEYWORD|19;
-const int KW_JOIN=      KEYWORD|20;
-const int KW_INNER=     KEYWORD|21;
-const int KW_OUTER=     KEYWORD|22;
-const int KW_LEFT=      KEYWORD|23;
-const int KW_RIGHT=     KEYWORD|24;
-const int KW_BETWEEN =  RELOP|KEYWORD|25;
-const int KW_LIKE =     RELOP|KEYWORD|26;
-const int KW_IN =       RELOP|KEYWORD|27;
-const int FN_SUM =      KEYWORD|AGG_BIT|28;
-const int FN_AVG =      KEYWORD|AGG_BIT|29;
-const int FN_STDEV =    KEYWORD|AGG_BIT|30;
-const int FN_STDEVP =   KEYWORD|AGG_BIT|31;
-const int FN_MIN =      KEYWORD|AGG_BIT|32;
-const int FN_MAX =      KEYWORD|AGG_BIT|33;
-const int FN_COUNT =    KEYWORD|AGG_BIT|34;
-const int FN_ABS =      KEYWORD|35;
-const int FN_FORMAT =   KEYWORD|36;
-const int FN_COALESCE = KEYWORD|37;
-const int FN_YEAR =     KEYWORD|38;
-const int FN_MONTH =    KEYWORD|39;
-const int FN_MONTHNAME= KEYWORD|40;
-const int FN_WEEK =     KEYWORD|41;
-const int FN_WDAY =     KEYWORD|42;
-const int FN_WDAYNAME = KEYWORD|43;
-const int FN_YDAY =     KEYWORD|44;
-const int FN_MDAY =     KEYWORD|45;
-const int FN_HOUR =     KEYWORD|46;
-const int FN_MINUTE =   KEYWORD|47;
-const int FN_SECOND =   KEYWORD|48;
-const int FN_ENCRYPT =  KEYWORD|49;
-const int FN_DECRYPT =  KEYWORD|50;
-const int FN_INC =      KEYWORD|51;
-const int SPECIALBIT =  1<<21;
-const int SPECIAL =      FINAL|SPECIALBIT;
-const int SP_EQ =        RELOP|SPECIAL|50;
-const int SP_NOEQ =      RELOP|SPECIAL|51;
-const int SP_LESS =      RELOP|SPECIAL|52;
-const int SP_LESSEQ =    RELOP|SPECIAL|53;
-const int SP_GREAT =     RELOP|SPECIAL|54;
-const int SP_GREATEQ =   RELOP|SPECIAL|55;
-const int SP_NEGATE =    SPECIAL|56;
-const int SP_SQUOTE =    SPECIAL|57;
-const int SP_DQUOTE =    SPECIAL|58;
-const int SP_COMMA =     SPECIAL|59;
-const int SP_LPAREN =    SPECIAL|60;
-const int SP_RPAREN =    SPECIAL|61;
-const int SP_STAR =      SPECIAL|62;
-const int SP_DIV =       SPECIAL|63;
-const int SP_MOD =       SPECIAL|64;
-const int SP_CARROT =    SPECIAL|65;
-const int SP_MINUS =     SPECIAL|66;
-const int SP_PLUS =      SPECIAL|67;
-const int STATE_INITAL =    0;
-const int STATE_SSPECIAL =  1;
-const int STATE_DSPECIAL =  2;
-const int STATE_MBSPECIAL = 3;
-const int STATE_WORD =      4;
-const int O_C = 1;
-const int O_NH = 2;
-const int O_H = 4;
-const int O_S = 8;
+enum {
+	RMAL = 8, //regex needs regfree() (dataholder vector only)
+	MAL = 16, //malloced and responsible for freeing c string
+	T_NULL = 0,
+	T_INT = 1,
+	T_FLOAT = 2,
+	T_DATE = 3,
+	T_DURATION = 4,
+	T_STRING = 5,
+	NUM_STATES =  5,
+	EOS =         255,
+	ERROR_STATE = 1<<23,
+	AGG_BIT =     1<<26,
+	FINAL =       1<<22,
+	KEYBIT =      1<<20,
+	LOGOP =       1<<24,
+	RELOP =       1<<25,
+	WORD_TK =     FINAL|1<<27,
+	NUMBER =      FINAL|1,
+	KEYWORD =     FINAL|KEYBIT,
+	KW_AND =      LOGOP|KEYWORD|1,
+	KW_OR  =      LOGOP|KEYWORD|2,
+	KW_XOR =      LOGOP|KEYWORD|3,
+	KW_SELECT =   KEYWORD|4,
+	KW_FROM  =    KEYWORD|5,
+	KW_HAVING  =  KEYWORD|6,
+	KW_AS  =      KEYWORD|7,
+	KW_WHERE =    KEYWORD|8,
+	KW_LIMIT =    KEYWORD|9,
+	KW_GROUP =    KEYWORD|10,
+	KW_ORDER =    KEYWORD|11,
+	KW_BY =       KEYWORD|12,
+	KW_DISTINCT = KEYWORD|13,
+	KW_ORDHOW =   KEYWORD|14,
+	KW_CASE =     KEYWORD|15,
+	KW_WHEN =     KEYWORD|16,
+	KW_THEN =     KEYWORD|17,
+	KW_ELSE =     KEYWORD|18,
+	KW_END =      KEYWORD|19,
+	KW_JOIN=      KEYWORD|20,
+	KW_INNER=     KEYWORD|21,
+	KW_OUTER=     KEYWORD|22,
+	KW_LEFT=      KEYWORD|23,
+	KW_RIGHT=     KEYWORD|24,
+	KW_BETWEEN =  RELOP|KEYWORD|25,
+	KW_LIKE =     RELOP|KEYWORD|26,
+	KW_IN =       RELOP|KEYWORD|27,
+	FN_SUM =      KEYWORD|AGG_BIT|28,
+	FN_AVG =      KEYWORD|AGG_BIT|29,
+	FN_STDEV =    KEYWORD|AGG_BIT|30,
+	FN_STDEVP =   KEYWORD|AGG_BIT|31,
+	FN_MIN =      KEYWORD|AGG_BIT|32,
+	FN_MAX =      KEYWORD|AGG_BIT|33,
+	FN_COUNT =    KEYWORD|AGG_BIT|34,
+	FN_ABS =      KEYWORD|35,
+	FN_FORMAT =   KEYWORD|36,
+	FN_COALESCE = KEYWORD|37,
+	FN_YEAR =     KEYWORD|38,
+	FN_MONTH =    KEYWORD|39,
+	FN_MONTHNAME= KEYWORD|40,
+	FN_WEEK =     KEYWORD|41,
+	FN_WDAY =     KEYWORD|42,
+	FN_WDAYNAME = KEYWORD|43,
+	FN_YDAY =     KEYWORD|44,
+	FN_MDAY =     KEYWORD|45,
+	FN_HOUR =     KEYWORD|46,
+	FN_MINUTE =   KEYWORD|47,
+	FN_SECOND =   KEYWORD|48,
+	FN_ENCRYPT =  KEYWORD|49,
+	FN_DECRYPT =  KEYWORD|50,
+	FN_INC =      KEYWORD|51,
+	SPECIALBIT =  1<<21,
+	SPECIAL =      FINAL|SPECIALBIT,
+	SP_EQ =        RELOP|SPECIAL|50,
+	SP_NOEQ =      RELOP|SPECIAL|51,
+	SP_LESS =      RELOP|SPECIAL|52,
+	SP_LESSEQ =    RELOP|SPECIAL|53,
+	SP_GREAT =     RELOP|SPECIAL|54,
+	SP_GREATEQ =   RELOP|SPECIAL|55,
+	SP_NEGATE =    SPECIAL|56,
+	SP_SQUOTE =    SPECIAL|57,
+	SP_DQUOTE =    SPECIAL|58,
+	SP_COMMA =     SPECIAL|59,
+	SP_LPAREN =    SPECIAL|60,
+	SP_RPAREN =    SPECIAL|61,
+	SP_STAR =      SPECIAL|62,
+	SP_DIV =       SPECIAL|63,
+	SP_MOD =       SPECIAL|64,
+	SP_CARROT =    SPECIAL|65,
+	SP_MINUS =     SPECIAL|66,
+	SP_PLUS =      SPECIAL|67,
+	STATE_INITAL =    0,
+	STATE_SSPECIAL =  1,
+	STATE_DSPECIAL =  2,
+	STATE_MBSPECIAL = 3,
+	STATE_WORD =      4,
+	O_C = 1,
+	O_NH = 2,
+	O_H = 4,
+	O_S = 8
+};
 
 extern const flatmap<int, string_view> enumMap;
 extern const flatmap<int, string_view> treeMap;
@@ -248,10 +250,10 @@ class fileReader {
 	int numrows =0;
 	public:
 		static char blank;
-		bool small;
-		bool inmemory;
+		bool small =0;
+		bool inmemory =0;
 		char delim;
-		i64 pos;
+		i64 pos =0;
 		vector<string> colnames;
 		vector<int> types;
 		vector<i64> positions;
@@ -260,10 +262,10 @@ class fileReader {
 		vector<int> vpTypes;
 		csvEntry* entries;
 		csvEntry* eend;
-		bool noheader;
+		bool noheader =0;
 		string id;
-		int fileno;
-		int numFields;
+		int fileno =0;
+		int numFields =0;
 	inline void getField();
 	inline void compactQuote();
 	inline bool checkWidth();
