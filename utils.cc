@@ -1,4 +1,5 @@
 #include "interpretor.h"
+#include "deps/json/escape.h"
 #include <stdlib.h>
 #include <ctype.h>
 #define max(a,b) (a) > (b) ? (a) : (b)
@@ -437,7 +438,7 @@ stringstream singleQueryResult::tojson(){
 	j << "{\"Numrows\":" << numrows << ','
 		<< "\"ShowLimit\":" << showLimit << ','
 		<< "\"Numcols\":" << numcols << ','
-		<< "\"Query\":\"" << query << "\","
+		<< "\"Query\":\"" << escapeJSON(query) << "\","
 		<< "\"Status\":" << status;
 	static string_view com = ",";
 	static string_view nocom = "";
@@ -450,7 +451,7 @@ stringstream singleQueryResult::tojson(){
 	j << "],\"Colnames\":[";
 	delim = &nocom;
 	for (auto &v : colnames){
-		j << *delim << v;
+		j << *delim << escapeJSON(v);
 		delim = &com;
 	}
 	j << "],\"Pos\":[";
@@ -474,8 +475,8 @@ stringstream returnData::tojson(){
 	static string_view nocom = "";
 	j << "{\"Status\":" << status << ','
 		<< "\"Clipped\":" << (clipped ? "true":"false") << ','
-		<< "\"OriginalQuery\":\"" << originalQuery << "\","
-		<< "\"Message\":\"" << message << "\","
+		<< "\"OriginalQuery\":\"" << escapeJSON(originalQuery) << "\","
+		<< "\"Message\":\"" << escapeJSON(message) << "\","
 		<< "\"Entries\":[";
 	auto delim = &nocom;
 	for (auto &v : entries){

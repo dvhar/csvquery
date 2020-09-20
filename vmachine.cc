@@ -28,6 +28,7 @@
 	next();
 #define skipnull() \
 	if (stk0.isnull()){ nexti() };
+#define ifvalid if (!stk0.isnull())
 
 void vmachine::run(){
 	constexpr void* labels[] = { &&CVER_, &&CVNO_, &&CVIF_, &&CVIS_, &&CVFI_, &&CVFS_, &&CVDRS_, &&CVDTS_, &&CVSI_, &&CVSF_, &&CVSDR_, &&CVSDT_, &&IADD_, &&FADD_, &&TADD_, &&DTADD_, &&DRADD_, &&ISUB_, &&FSUB_, &&DTSUB_, &&DRSUB_, &&IMULT_, &&FMULT_, &&DRMULT_, &&IDIV_, &&FDIV_, &&DRDIV_, &&INEG_, &&FNEG_, &&PNEG_, &&IMOD_, &&FMOD_, &&IEXP_, &&FEXP_, &&JMP_, &&JMPCNT_, &&JMPTRUE_, &&JMPFALSE_, &&JMPNOTNULL_ELSEPOP_, &&RDLINE_, &&RDLINE_ORDERED_, &&PREP_REREAD_, &&PUT_, &&LDPUT_, &&LDPUTALL_, &&PUTVAR_, &&PUTVAR2_, &&LDINT_, &&LDFLOAT_, &&LDTEXT_, &&LDDATE_, &&LDDUR_, &&LDNULL_, &&LDLIT_, &&LDVAR_, &&HOLDVAR_, &&IEQ_, &&FEQ_, &&TEQ_, &&LIKE_, &&ILEQ_, &&FLEQ_, &&TLEQ_, &&ILT_, &&FLT_, &&TLT_, &&PRINTCSV_, &&PRINTJSON_, &&PUSH_, &&PUSH_N_, &&POP_, &&POPCPY_, &&ENDRUN_, &&NULFALSE1_, &&NULFALSE2_, &&NDIST_, &&SDIST_, &&PUTDIST_, &&LDDIST_, &&FINC_, &&ENCCHA_, &&DECCHA_, &&SAVESORTN_, &&SAVESORTS_, &&SAVEVALPOS_, &&SAVEPOS_, &&SORT_, &&GETGROUP_, &&ONEGROUP_, &&SUMI_, &&SUMF_, &&AVGI_, &&AVGF_, &&STDVI_, &&STDVF_, &&COUNT_, &&MINI_, &&MINF_, &&MINS_, &&MAXI_, &&MAXF_, &&MAXS_, &&NEXTMAP_, &&NEXTVEC_, &&ROOTMAP_, &&LDMID_, &&LDPUTMID_, &&LDPUTGRP_, &&LDSTDVI_, &&LDSTDVF_, &&LDAVGI_, &&LDAVGF_, &&ADD_GROUPSORT_ROW_, &&FREE_MIDROW_, &&GSORT_, &&READ_NEXT_GROUP_, &&NUL_TO_STR_, &&SORTVALPOS_, &&JOINSET_EQ_AND_, &&JOINSET_EQ_, &&JOINSET_LESS_, &&JOINSET_GRT_, &&JOINSET_LESS_AND_, &&JOINSET_GRT_AND_, &&JOINSET_INIT_, &&JOINSET_TRAV_, &&AND_SET_, &&OR_SET_, &&SAVEANDCHAIN_, &&SORT_ANDCHAIN_, &&FUNC_YEAR_, &&FUNC_MONTH_, &&FUNC_WEEK_, &&FUNC_YDAY_, &&FUNC_MDAY_, &&FUNC_WDAY_, &&FUNC_HOUR_, &&FUNC_MINUTE_, &&FUNC_SECOND_, &&FUNC_WDAYNAME_, &&FUNC_MONTHNAME_, &&FUNC_ABSF_, &&FUNC_ABSI_};
@@ -104,8 +105,8 @@ PUTVAR_:
 	nexti();
 //put variable from stack into midrow and stackbot
 PUTVAR2_:
-	if (torow[op->p2].isnull() && !stk0.isnull()){
-		torow[op->p2] = stk0.heap();
+	if (auto& t = torow[op->p2]; t.isnull() && !stk0.isnull()){
+		t = stk0.heap();
 	}
 	stkb(op->p1).mov(stk0);
 	pop();
@@ -409,7 +410,6 @@ JOINSET_EQ_:
 	nexti();
 AND_SET_:
 	{
-		;
 		bset<i64> tempset1(move(joinSetStack.front()));
 		joinSetStack.pop_front();
 		auto& target = joinSetStack.front();
@@ -668,12 +668,12 @@ DRDIV_:
 	pop();
 	nexti();
 INEG_:
-	if (stk0.isnull()) { stk0.setnull(); }
-	else stk0.u.i *= -1;
+	ifvalid
+	if (stk0.u.i != 0) stk0.u.i *= -1;
 	nexti();
 FNEG_:
-	if (stk0.isnull()) { stk0.setnull(); }
-	else stk0.u.f *= -1;
+	ifvalid
+	if (stk0.u.i != 0) stk0.u.f *= -1;
 	nexti();
 PNEG_:
 	stk0.u.p ^= true;
@@ -993,12 +993,12 @@ SDIST_:
 
 //functions
 FUNC_ABSI_:
-	skipnull();
+	ifvalid
 	if (stk0.u.i < 0)
 		stk0.u.i *= -1;
 	nexti();
 FUNC_ABSF_:
-	skipnull();
+	ifvalid
 	if (stk0.u.f < 0)
 		stk0.u.f *= -1;
 	nexti();
@@ -1008,8 +1008,7 @@ FINC_:
 	stk0 = q->dataholder[op->p1];
 	nexti();
 ENCCHA_:
-	skipnull();
-	{
+	ifvalid {
 		auto&& pt1 = q->crypt.chachaEncrypt(op->p1, stk0.z, stk0.u.s);
 		if (stk0.ismal()) free(stk0.u.s);
 		stk0.u.s = pt1.first;
@@ -1018,8 +1017,7 @@ ENCCHA_:
 	}
 	nexti();
 DECCHA_:
-	skipnull();
-	{
+	ifvalid {
 		auto&& pt2 = q->crypt.chachaDecrypt(op->p1, stk0.z, stk0.u.s);
 		if (stk0.ismal()) free(stk0.u.s);
 		stk0.u.s = pt2.first;

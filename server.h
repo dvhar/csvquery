@@ -29,4 +29,12 @@ class webserver {
 
 const int F_CSV = 1 << 5;
 
+enum legacy_server {
+	DAT_ERROR   = 1 << 0,
+	DAT_GOOD    = 1 << 1,
+	DAT_BADPATH = 1 << 2,
+	DAT_IOERR   = 1 << 4,
+	DAT_BLANK   = 0
+};
+
 string handle_err(exception_ptr eptr);
