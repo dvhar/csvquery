@@ -9,6 +9,8 @@
 #include <boost/property_tree/ptree.hpp>
 using namespace boost::property_tree;
 
+#define isSaving ((wq.fileIO & F_CSV) != 0)
+
 
 void runServer(){
 	webserver ws;
@@ -26,22 +28,32 @@ void webserver::serve(){
 		// compatible with old version
 		ptree pt;
 		webquery wq;
-		shared_ptr<returnData> ret;
 
 		try {
-
 			read_json(request->content, pt);
 			wq.savepath = pt.get("Savepath","");
 			wq.qamount = pt.get("Qamount",0);
 			wq.fileIO = pt.get("FileIO",0);
 			wq.querystring = regex_replace(pt.get("Query",""), endSemicolon, "");
-			ret = runqueries(wq);
+
+			auto ret = runqueries(wq);
+			ret->status = DAT_GOOD;
+			ret->originalQuery = move(wq.querystring);
+			if (isSaving)
+				ret->message = "Saved to " + wq.savepath;
+			else
+				ret->message = "Query finished";
 			response->write(ret->tojson().str());
 
 		} catch (...){
 			auto e = handle_err(current_exception());
 			cerr << "Error: " << e << endl;
-			response->write(e);
+
+			auto ret = make_shared<returnData>();
+			ret->status = DAT_ERROR;
+			ret->message = move(e);
+			ret->originalQuery = move(wq.querystring);
+			response->write(ret->tojson().str());
 		}
 
 
@@ -65,8 +77,7 @@ shared_ptr<returnData> webserver::runqueries(webquery &wq){
 shared_ptr<singleQueryResult> webserver::runWebQuery(webquery &wq){
 	cout << "webquery " << wq.whichone << ": " << wq.queries[wq.whichone] << endl;
 	querySpecs q(wq.queries[wq.whichone]);
-	if ((wq.fileIO & F_CSV) != 0) {
+	if (isSaving)
 		q.setoutputCsv();
-	}
 	return runqueryJson(q);
 }
