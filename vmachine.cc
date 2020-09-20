@@ -1256,3 +1256,12 @@ shared_ptr<singleQueryResult> runqueryJson(querySpecs &q){
 	vm.run();
 	return vm.getJsonResult();
 }
+
+shared_ptr<singleQueryResult> vmachine::getJsonResult(){
+	jsonresult->types = q->colspec.types; //TODO: use originial pre-trivial types
+	jsonresult->colnames = q->colspec.colnames;
+	jsonresult->pos.resize(q->colspec.count);
+	jsonresult->query = q->queryString;
+	iota(jsonresult->pos.begin(), jsonresult->pos.end(),1); //TODO: update gui to not need this
+	return jsonresult;
+}
