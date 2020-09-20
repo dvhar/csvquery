@@ -433,17 +433,15 @@ string handle_err(exception_ptr eptr) {
     }
 }
 
-stringstream singleQueryResult::tojson(){
-	stringstream j;
-	j << "{\"Numrows\":" << numrows << ','
-		<< "\"ShowLimit\":" << showLimit << ','
-		<< "\"Numcols\":" << numcols << ','
-		<< "\"Query\":\"" << escapeJSON(query) << "\","
-		<< "\"Status\":" << status;
+//order same as legacy version
+stringstream& singleQueryResult::tojson(){
 	static string_view com = ",";
 	static string_view nocom = "";
-	j << ",\"Types\":[";
+	j << "{\"Numrows\":" << numrows
+		<< ",\"ShowLimit\":" << showLimit
+		<< ",\"Numcols\":" << numcols;
 	auto delim = &nocom;
+	j << ",\"Types\":[";
 	for (auto v : types){
 		j << *delim << v;
 		delim = &com;
@@ -451,7 +449,7 @@ stringstream singleQueryResult::tojson(){
 	j << "],\"Colnames\":[";
 	delim = &nocom;
 	for (auto &v : colnames){
-		j << *delim << escapeJSON(v);
+		j << *delim << '"' << escapeJSON(v) << '"';
 		delim = &com;
 	}
 	j << "],\"Pos\":[";
@@ -466,24 +464,23 @@ stringstream singleQueryResult::tojson(){
 		j << *delim << v;
 		delim = &com;
 	}
-	j << "]}";
+	j << "],\"Status\":" << status
+		<< ",\"Query\":\"" << escapeJSON(query) << "\"}";
 	return j;
 }
-stringstream returnData::tojson(){
-	stringstream j;
+stringstream& returnData::tojson(){
 	static string_view com = ",";
 	static string_view nocom = "";
-	j << "{\"Status\":" << status << ','
-		<< "\"Clipped\":" << (clipped ? "true":"false") << ','
-		<< "\"OriginalQuery\":\"" << escapeJSON(originalQuery) << "\","
-		<< "\"Message\":\"" << escapeJSON(message) << "\","
-		<< "\"Entries\":[";
+ 	j	<< "{\"Entries\":[";
 	auto delim = &nocom;
 	for (auto &v : entries){
 		j << *delim << v->tojson().rdbuf();
 		delim = &com;
 	}
-	j << "]}";
+	j << "],\"Status\":" << status
+		<< ",\"OriginalQuery\":\"" << escapeJSON(originalQuery)
+		<< "\",\"Clipped\":" << (clipped ? "true":"false")
+		<< ",\"Message\":\"" << escapeJSON(message) << "\"}";
 	return j;
 }
 

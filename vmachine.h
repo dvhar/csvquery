@@ -190,7 +190,7 @@ class vmachine {
 	vector<bset<treeCString>> bt_strings;
 	querySpecs* q;
 	void run();
-	shared_ptr<singleQueryResult> getJsonResult(){ return jsonresult; }
+	shared_ptr<singleQueryResult> getJsonResult();
 	vmachine(querySpecs &q);
 	~vmachine();
 };

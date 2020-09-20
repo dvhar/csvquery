@@ -28,6 +28,7 @@ void webserver::serve(){
 		// compatible with old version
 		ptree pt;
 		webquery wq;
+		SimpleWeb::CaseInsensitiveMultimap header;
 
 		try {
 			read_json(request->content, pt);
@@ -41,9 +42,9 @@ void webserver::serve(){
 			ret->originalQuery = move(wq.querystring);
 			if (isSaving)
 				ret->message = "Saved to " + wq.savepath;
-			else
-				ret->message = "Query finished";
-			response->write(ret->tojson().str());
+			header.emplace("Cache-Control","no-store");
+			header.emplace("Content-Type", "text/plain");
+			response->write(ret->tojson().str(), header);
 
 		} catch (...){
 			auto e = handle_err(current_exception());

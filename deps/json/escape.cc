@@ -11,9 +11,6 @@ std::string escapeJSON(const std::string& input)
             case '"':
                 output += "\\\"";
                 break;
-            case '/':
-                output += "\\/";
-                break;
             case '\b':
                 output += "\\b";
                 break;

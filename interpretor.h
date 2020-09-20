@@ -434,6 +434,7 @@ class querySpecs {
 };
 
 class singleQueryResult {
+	stringstream j;
 	public:
 	int numrows =0;
 	int showLimit =0;
@@ -444,20 +445,21 @@ class singleQueryResult {
 	vector<int> pos;
 	list<string> Vals; //each string is whole row
 	string query;
-	stringstream tojson();
+	stringstream& tojson();
 	singleQueryResult(querySpecs &q){
 		numcols = q.colspec.count;
 		showLimit = 20000 / numcols;
 	}
 };
 class returnData {
+	stringstream j;
 	public:
 	list<shared_ptr<singleQueryResult>> entries;
 	int status;
 	string originalQuery;
 	bool clipped;
 	string message;
-	stringstream tojson();
+	stringstream& tojson();
 };
 
 
