@@ -74,7 +74,7 @@ void analyzer::varUsedInFilter(unique_ptr<node> &n){
 		setSubtreeVarFilter(n->node1, ORDER_FILTER);
 		break;
 	case N_GROUPBY:
-		setSubtreeVarFilter(n->node1, GROUP_FILTER);
+		setSubtreeVarFilter(n->node1, AGG_FILTER);
 		break;
 	case N_HAVING:
 		setSubtreeVarFilter(n->node1, HAVING_FILTER);

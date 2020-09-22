@@ -1035,7 +1035,7 @@ void cgen::genTypeConv(unique_ptr<node> &n){
 }
 
 void cgen::genGetGroup(unique_ptr<node> &n){
-	vs.setscope(GROUP_FILTER, V_READ1_SCOPE);
+	vs.setscope(AGG_FILTER, V_READ1_SCOPE);
 	genVars(q->tree->node1);
 	if (n == nullptr) return;
 	e("get group");
