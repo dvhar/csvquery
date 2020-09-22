@@ -26,7 +26,7 @@ set(CQL_SOURCE ${CQL_SOURCE} deps/getline/bufreader.cc)
 add_executable(cql ${CQL_SOURCE})
 
 if (WIN32)
-	target_link_libraries(cql PRIVATE libtre.a tbb ${staticlib} wsock32 ws2_32)
+	target_link_libraries(cql PRIVATE libtre.a tbb ${staticlib} wsock32 ws2_32 nlohmann_json::nlohmann_json)
 elseif (APPLE)
 	target_link_libraries(cql PRIVATE tbb ${staticlib} -L${applegcc}/lib)
 elseif(UNIX)

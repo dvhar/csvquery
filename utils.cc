@@ -432,7 +432,6 @@ string handle_err(exception_ptr eptr) {
     }
 }
 
-//order same as legacy version
 json& singleQueryResult::tojson(){
 	j = {
 		{"Numrows",numrows},
@@ -454,10 +453,9 @@ json& returnData::tojson(){
 		{"Message",message},
 		{"OriginalQuery",originalQuery},
 	};
-	vector<json> vj;
+	auto& vj = j["Entries"] = vector<json>();
 	for (auto &v : entries)
 		vj.push_back(v->tojson());
-	j["Entries"] = vj;
 	return j;
 }
 
