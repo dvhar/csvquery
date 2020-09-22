@@ -5,8 +5,6 @@
 #include <boost/algorithm/string/split.hpp>
 #define BOOST_SPIRIT_THREADSAFE
 #include <boost/property_tree/json_parser.hpp>
-#include <boost/property_tree/ptree.hpp>
-using namespace boost::property_tree;
 
 #if 0
 #elif defined _WIN32
@@ -65,6 +63,22 @@ void webserver::serve(){
 
 	}; // end /query/
 
+	server.resource["^/info$"]["POST"] = [&](shared_ptr<HttpServer::Response> response, shared_ptr<HttpServer::Request> request){
+
+		ptree pt;
+		auto params = request->parse_query_string();
+		auto info = params.find("info")->second;
+		if (info == "setState"){
+			read_json(request->content, pt);
+			state.setState(pt);
+			response->write("{}");
+			return;
+		} else if (info == "fileClick"){
+		}
+		response->write("{}");
+
+	};
+
 	openbrowser();
 	perr("starting http server\n");
 	server.start();
@@ -86,4 +100,25 @@ shared_ptr<singleQueryResult> webserver::runWebQuery(webquery &wq){
 	if (wq.isSaving())
 		q.setoutputCsv();
 	return runqueryJson(q);
+}
+
+void stateInfo::setState(ptree& pt){
+	haveInfo = pt.get("haveInfo",false);
+	history.clear();
+	for (auto h : pt.get_child("history"))
+		history.push_back(h.second.data());
+	openDirList.setDir(pt.get_child("openDirList"));
+	saveDirList.setDir(pt.get_child("saveDirList"));
+}
+
+void directory::setDir(ptree& pt){
+	fpath = pt.get("Path","");
+	parent = pt.get("Parent","");
+	mode = pt.get("Mode","");
+	files.clear();
+	dirs.clear();
+	for (auto h : pt.get_child("Files"))
+		files.push_back(h.second.data());
+	for (auto h : pt.get_child("Dirs"))
+		dirs.push_back(h.second.data());
 }

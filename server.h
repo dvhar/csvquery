@@ -7,6 +7,8 @@
 #include<iostream>
 #include "interpretor.h"
 
+#include <boost/property_tree/ptree.hpp>
+using namespace boost::property_tree;
 using HttpServer = SimpleWeb::Server<SimpleWeb::HTTP>;
 
 enum legacy_server {
@@ -16,6 +18,24 @@ enum legacy_server {
 	DAT_BADPATH = 1 << 2,
 	DAT_IOERR   = 1 << 4,
 	F_CSV       = 1 << 5
+};
+
+class directory {
+	string fpath;
+	string parent;
+	string mode;
+	vector<string> files;
+	vector<string> dirs;
+	public:
+	void setDir(ptree&);
+};
+class stateInfo {
+	bool haveInfo;
+	vector<string> history;
+	directory openDirList;
+	directory saveDirList;
+	public:
+	void setState(ptree&);
 };
 
 class webquery {
@@ -30,8 +50,9 @@ class webquery {
 };
 
 class webserver {
-	public:
+	stateInfo state;
 	HttpServer server;
+	public:
 	shared_ptr<returnData> runqueries(webquery &wq);
 	shared_ptr<singleQueryResult> runWebQuery(webquery &wq);
 	void embed(HttpServer&);
