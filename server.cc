@@ -20,6 +20,7 @@
 void runServer(){
 	webserver ws;
 	ws.serve();
+	json j;
 }
 
 void webserver::serve(){
@@ -48,7 +49,7 @@ void webserver::serve(){
 				ret->message = "Saved to " + wq.savepath;
 			header.emplace("Cache-Control","no-store");
 			header.emplace("Content-Type", "text/plain");
-			response->write(ret->tojson().str(), header);
+			response->write(ret->tojson().dump(), header);
 
 		} catch (...){
 			auto e = handle_err(current_exception());
@@ -58,7 +59,7 @@ void webserver::serve(){
 			ret->status = DAT_ERROR;
 			ret->message = move(e);
 			ret->originalQuery = move(wq.querystring);
-			response->write(ret->tojson().str());
+			response->write(ret->tojson().dump());
 		}
 
 	}; // end /query/
@@ -79,7 +80,7 @@ void webserver::serve(){
 
 	};
 
-	openbrowser();
+	//openbrowser();
 	perr("starting http server\n");
 	server.start();
 }
@@ -121,4 +122,24 @@ void directory::setDir(ptree& pt){
 		files.push_back(h.second.data());
 	for (auto h : pt.get_child("Dirs"))
 		dirs.push_back(h.second.data());
+}
+
+json& stateInfo::tojson(){
+	j = {
+		{"HaveInfo",haveInfo},
+		{"History",history},
+		{"OpenDirList",openDirList.tojson()},
+		{"SaveDirList",saveDirList.tojson()},
+	};
+	return j;
+}
+json& directory::tojson(){
+	j = {
+		{"Path",fpath},
+		{"Parent",parent},
+		{"Mode",mode},
+		{"files",files},
+		{"dirs",dirs},
+	};
+	return j;
 }

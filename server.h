@@ -21,6 +21,7 @@ enum legacy_server {
 };
 
 class directory {
+	json j;
 	string fpath;
 	string parent;
 	string mode;
@@ -28,14 +29,17 @@ class directory {
 	vector<string> dirs;
 	public:
 	void setDir(ptree&);
+	json& tojson();
 };
 class stateInfo {
+	json j;
 	bool haveInfo;
 	vector<string> history;
 	directory openDirList;
 	directory saveDirList;
 	public:
 	void setState(ptree&);
+	json& tojson();
 };
 
 class webquery {
