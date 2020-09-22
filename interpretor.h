@@ -20,6 +20,7 @@
 #include "deps/chacha/chacha20.h"
 #include "deps/getline/bufreader.h"
 #include <forward_list>
+#include <nlohmann/json.hpp>
 
 #ifdef __MINGW32__
 #include <getopt.h>
@@ -37,6 +38,7 @@ typedef i64 dur_t;
 #define error(A) throw invalid_argument(A)
 #define SMALLEST numeric_limits<i64>::min()
 using namespace std;
+using json = nlohmann::json;
 
 static void perr(string s){
 	cerr << s;
@@ -306,7 +308,7 @@ class dat {
 	u32 z; // string size and avg count
 	static char abnormal[];
 	void appendToCsvBuffer(string&);
-	void appendToJsonBuffer(string&);
+	void appendToJsonBuffer(vector<string>&);
 	string str(){ string st; appendToCsvBuffer(st); return st; }
 	bool istext() const { return (b & 7) == T_STRING; }
 	bool isnull() const { return b == 0; }
@@ -433,8 +435,9 @@ class querySpecs {
 	querySpecs(string &s){ queryString = s; };
 };
 
+//might be replacable with just a json object?
 class singleQueryResult {
-	stringstream j;
+	json j;
 	public:
 	int numrows =0;
 	int showLimit =0;
@@ -443,23 +446,23 @@ class singleQueryResult {
 	vector<int> types;
 	vector<string> colnames;
 	vector<int> pos;
-	list<string> Vals; //each string is whole row
+	list<vector<string>> Vals;
 	string query;
-	stringstream& tojson();
+	json& tojson();
 	singleQueryResult(querySpecs &q){
 		numcols = q.colspec.count;
 		showLimit = 20000 / numcols;
 	}
 };
 class returnData {
-	stringstream j;
+	json j;
 	public:
 	list<shared_ptr<singleQueryResult>> entries;
 	int status;
 	string originalQuery;
 	bool clipped;
 	string message;
-	stringstream& tojson();
+	json& tojson();
 };
 
 

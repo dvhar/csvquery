@@ -30,44 +30,29 @@ void opcode::print(){
 // (2) csv need escaping: "
 // (4) json need escaping: \ " \b \f \n \r \t
 char dat::abnormal[] = {0,0,0,0,0,0,0,0,4,4,1|4,0,4,4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2|4,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
-void dat::appendToJsonBuffer(string &outbuf){
+void dat::appendToJsonBuffer(vector<string> &row){
 
-	static const char* pbrk = (const char*)"\"\\\b\f\n\r\t";
 	static char buf[40];
-	char a = 0;
-	outbuf += '"';
+	string field;
 	switch ( b & 7 ) {
 	case T_INT:
-		sprintf(buf,"%lld",u.i);
-		outbuf += buf;
+		field = to_string(u.i);
 		break;
 	case T_FLOAT:
 		sprintf(buf,"%.10g",u.f);
-		outbuf += buf;
+		field = buf;
 		break;
 	case T_DATE:
-		outbuf += datestring(u.i);
+		field = datestring(u.i);
 		 break;
 	case T_DURATION:
-		 outbuf += durstring(u.i, nullptr);
+		 field = durstring(u.i, nullptr);
 		 break;
 	case T_STRING:
-		for (auto c = (unsigned char*)u.s; *c; c++) a |= abnormal[*c];
-		if (a & 4) {
-			char* s = u.s;
-			auto q = strpbrk(s, pbrk);
-			do {
-				outbuf += string_view(s, q-s);
-				outbuf += '\\';
-				s = q;
-			} while (q = strpbrk(s+1, pbrk));
-			outbuf += s;
-		} else {
-			outbuf += u.s;
-		}
+		field = u.s;
 		break;
 	}
-	outbuf += '"';
+	row.push_back(move(field));
 }
 void dat::appendToCsvBuffer(string &outbuf){
 	if (b == 0) return;

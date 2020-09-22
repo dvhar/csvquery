@@ -1,5 +1,4 @@
 #include "interpretor.h"
-#include "deps/json/escape.h"
 #include <stdlib.h>
 #include <ctype.h>
 #define max(a,b) (a) > (b) ? (a) : (b)
@@ -434,53 +433,31 @@ string handle_err(exception_ptr eptr) {
 }
 
 //order same as legacy version
-stringstream& singleQueryResult::tojson(){
-	static string_view com = ",";
-	static string_view nocom = "";
-	j << "{\"Numrows\":" << numrows
-		<< ",\"ShowLimit\":" << showLimit
-		<< ",\"Numcols\":" << numcols;
-	auto delim = &nocom;
-	j << ",\"Types\":[";
-	for (auto v : types){
-		j << *delim << v;
-		delim = &com;
-	}
-	j << "],\"Colnames\":[";
-	delim = &nocom;
-	for (auto &v : colnames){
-		j << *delim << '"' << escapeJSON(v) << '"';
-		delim = &com;
-	}
-	j << "],\"Pos\":[";
-	delim = &nocom;
-	for (auto v : pos){
-		j << *delim << v;
-		delim = &com;
-	}
-	j << "],\"Vals\":[";
-	delim = &nocom;
-	for (auto &v : Vals){
-		j << *delim << v;
-		delim = &com;
-	}
-	j << "],\"Status\":" << status
-		<< ",\"Query\":\"" << escapeJSON(query) << "\"}";
+json& singleQueryResult::tojson(){
+	j = {
+		{"Numrows",numrows},
+		{"ShowLimit",showLimit},
+		{"Numcols",numcols},
+		{"Types",types},
+		{"Pos",pos},
+		{"Colnames",colnames},
+		{"Vals",Vals},
+		{"Status",status},
+		{"Query",query},
+	};
 	return j;
 }
-stringstream& returnData::tojson(){
-	static string_view com = ",";
-	static string_view nocom = "";
- 	j	<< "{\"Entries\":[";
-	auto delim = &nocom;
-	for (auto &v : entries){
-		j << *delim << v->tojson().rdbuf();
-		delim = &com;
-	}
-	j << "],\"Status\":" << status
-		<< ",\"OriginalQuery\":\"" << escapeJSON(originalQuery)
-		<< "\",\"Clipped\":" << (clipped ? "true":"false")
-		<< ",\"Message\":\"" << escapeJSON(message) << "\"}";
+json& returnData::tojson(){
+	j = {
+		{"Status",status},
+		{"Clipped",clipped},
+		{"Message",message},
+		{"OriginalQuery",originalQuery},
+	};
+	vector<json> vj;
+	for (auto &v : entries)
+		vj.push_back(v->tojson());
+	j["Entries"] = vj;
 	return j;
 }
 
