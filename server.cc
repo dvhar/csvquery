@@ -3,8 +3,6 @@
 #include <boost/algorithm/string/erase.hpp>
 #include <boost/algorithm/string/replace.hpp>
 #include <boost/algorithm/string/split.hpp>
-#define BOOST_SPIRIT_THREADSAFE
-#include <boost/property_tree/json_parser.hpp>
 
 #if 0
 #elif defined _WIN32
@@ -31,16 +29,15 @@ void webserver::serve(){
 	server.resource["^/query/$"]["POST"] = [&](shared_ptr<HttpServer::Response> response, shared_ptr<HttpServer::Request> request){
 
 		// compatible with old version
-		ptree pt;
 		webquery wq;
 		SimpleWeb::CaseInsensitiveMultimap header;
 
 		try {
-			read_json(request->content, pt);
-			wq.savepath = pt.get("Savepath","");
-			wq.qamount = pt.get("Qamount",0);
-			wq.fileIO = pt.get("FileIO",0);
-			wq.querystring = regex_replace(pt.get("Query",""), endSemicolon, "");
+			json req = json::parse(request->content.string());
+			wq.savepath = fromjson<string>(req, "Savepath");
+			wq.qamount = fromjson<int>(req, "Qamount");
+			wq.fileIO = fromjson<int>(req, "FileIO");
+			wq.querystring = regex_replace(fromjson<string>(req,"Query"), endSemicolon, "");
 
 			auto ret = runqueries(wq);
 			ret->status = DAT_GOOD;
@@ -64,14 +61,20 @@ void webserver::serve(){
 
 	}; // end /query/
 
+	server.resource["^/info$"]["GET"] = [&](shared_ptr<HttpServer::Response> response, shared_ptr<HttpServer::Request> request){
+		auto params = request->parse_query_string();
+		auto info = params.find("info")->second;
+		if (info == "getState"){
+			response->write(state);
+		}
+	};
+
 	server.resource["^/info$"]["POST"] = [&](shared_ptr<HttpServer::Response> response, shared_ptr<HttpServer::Request> request){
 
-		ptree pt;
 		auto params = request->parse_query_string();
 		auto info = params.find("info")->second;
 		if (info == "setState"){
-			read_json(request->content, pt);
-			state.setState(pt);
+			state = request->content.string();
 			response->write("{}");
 			return;
 		} else if (info == "fileClick"){
@@ -103,36 +106,14 @@ shared_ptr<singleQueryResult> webserver::runWebQuery(webquery &wq){
 	return runqueryJson(q);
 }
 
-void stateInfo::setState(ptree& pt){
-	haveInfo = pt.get("haveInfo",false);
-	history.clear();
-	for (auto h : pt.get_child("history"))
-		history.push_back(h.second.data());
-	openDirList.setDir(pt.get_child("openDirList"));
-	saveDirList.setDir(pt.get_child("saveDirList"));
+void directory::setDir(json& j){
+	fpath = fromjson<string>(j,"Path");
+	parent = fromjson<string>(j,"Parent");
+	mode = fromjson<int>(j,"Mode");
+	files = fromjson<vector<string>>(j,"Files");
+	dirs = fromjson<vector<string>>(j,"Dirs");
 }
 
-void directory::setDir(ptree& pt){
-	fpath = pt.get("Path","");
-	parent = pt.get("Parent","");
-	mode = pt.get("Mode","");
-	files.clear();
-	dirs.clear();
-	for (auto h : pt.get_child("Files"))
-		files.push_back(h.second.data());
-	for (auto h : pt.get_child("Dirs"))
-		dirs.push_back(h.second.data());
-}
-
-json& stateInfo::tojson(){
-	j = {
-		{"HaveInfo",haveInfo},
-		{"History",history},
-		{"OpenDirList",openDirList.tojson()},
-		{"SaveDirList",saveDirList.tojson()},
-	};
-	return j;
-}
 json& directory::tojson(){
 	j = {
 		{"Path",fpath},
