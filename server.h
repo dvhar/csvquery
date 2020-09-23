@@ -7,8 +7,6 @@
 #include<iostream>
 #include "interpretor.h"
 
-#include <boost/property_tree/ptree.hpp>
-using namespace boost::property_tree;
 using HttpServer = SimpleWeb::Server<SimpleWeb::HTTP>;
 
 enum legacy_server {
@@ -28,17 +26,7 @@ class directory {
 	vector<string> files;
 	vector<string> dirs;
 	public:
-	void setDir(ptree&);
-	json& tojson();
-};
-class stateInfo {
-	json j;
-	bool haveInfo;
-	vector<string> history;
-	directory openDirList;
-	directory saveDirList;
-	public:
-	void setState(ptree&);
+	void setDir(json&);
 	json& tojson();
 };
 
@@ -54,7 +42,7 @@ class webquery {
 };
 
 class webserver {
-	stateInfo state;
+	string state;
 	HttpServer server;
 	public:
 	shared_ptr<returnData> runqueries(webquery &wq);
@@ -64,5 +52,13 @@ class webserver {
 };
 
 
+template<typename T>
+static T fromjson(json& j, string key){
+	try {
+		return j[key].get<T>();
+	} catch (exception e) {
+		return T{};
+	}
+}
 
 string handle_err(exception_ptr eptr);
