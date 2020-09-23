@@ -52,11 +52,11 @@ void webserver::serve(){
 			auto e = handle_err(current_exception());
 			cerr << "Error: " << e << endl;
 
-			auto ret = make_shared<returnData>();
-			ret->status = DAT_ERROR;
-			ret->message = move(e);
-			ret->originalQuery = move(wq.querystring);
-			response->write(ret->tojson().dump());
+			returnData ret;
+			ret.status = DAT_ERROR;
+			ret.message = move(e);
+			ret.originalQuery = move(wq.querystring);
+			response->write(ret.tojson().dump());
 		}
 
 	}; // end /query/
@@ -119,8 +119,8 @@ json& directory::tojson(){
 		{"Path",fpath},
 		{"Parent",parent},
 		{"Mode",mode},
-		{"files",files},
-		{"dirs",dirs},
+		{"Files",files},
+		{"Dirs",dirs},
 	};
 	return j;
 }
