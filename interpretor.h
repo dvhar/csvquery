@@ -281,10 +281,10 @@ class fileReader {
 
 class opcode {
 	public:
-	int code;
-	int p1;
-	int p2;
-	int p3;
+	int code =0;
+	int p1 =0;
+	int p2 =0;
+	int p3 =0;
 	void print();
 };
 
@@ -370,7 +370,7 @@ class valpos {
 
 class resultSpecs {
 	public:
-	int count;
+	int count =0;
 	vector<int> types;
 	vector<string> colnames;
 };
@@ -458,9 +458,9 @@ class returnData {
 	json j;
 	public:
 	list<shared_ptr<singleQueryResult>> entries;
-	int status;
+	int status =0;
 	string originalQuery;
-	bool clipped;
+	bool clipped =0;
 	string message;
 	json& tojson();
 };
