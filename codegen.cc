@@ -472,6 +472,7 @@ void cgen::genNormalOrderedQuery(unique_ptr<node> &n){
 	int reread = jumps.newPlaceholder();
 	int endreread = jumps.newPlaceholder();
 	pushvars();
+	addop(START_MESSAGE, messager::scanning);
 	normal_read = v.size();
 	wherenot = normal_read;
 	addop(RDLINE, sorter, 0);
@@ -480,8 +481,12 @@ void cgen::genNormalOrderedQuery(unique_ptr<node> &n){
 	addop(SAVEPOS);
 	addop(JMP, normal_read);
 	jumps.setPlace(sorter, v.size());
+	addop(STOP_MESSAGE);
+	addop(START_MESSAGE, messager::sorting);
 	addop(SORT);
+	addop(STOP_MESSAGE);
 	addop(PREP_REREAD);
+	addop(START_MESSAGE, messager::retrieving);
 	jumps.setPlace(reread, v.size());
 	addop(RDLINE_ORDERED, endreread);
 	vs.setscope(DISTINCT_FILTER, V_READ2_SCOPE);
@@ -493,6 +498,7 @@ void cgen::genNormalOrderedQuery(unique_ptr<node> &n){
 	genPrint();
 	addop((q->quantityLimit > 0 ? JMPCNT : JMP), reread);
 	jumps.setPlace(endreread, v.size());
+	addop(STOP_MESSAGE);
 	addop(POP); //rereader used 2 stack spaces
 	addop(POP);
 	popvars();
