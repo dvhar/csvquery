@@ -752,7 +752,6 @@ void dataTyper::checkFuncSemantics(unique_ptr<node> &n){
 	}
 }
 
-//do all typing
 void applyTypes(querySpecs &q){
 	dataTyper dt(q);
 	dt.typeInitialValue(q.tree, false);

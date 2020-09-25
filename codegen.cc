@@ -95,25 +95,8 @@ static int ident = 0;
 
 void jumpPositions::updateBytecode(vector<opcode> &vec) {
 	for (auto &v : vec)
-		switch (v.code){
-		case JMP:
-		case JMPCNT:
-		case JMPTRUE:
-		case JMPFALSE:
-		case RDLINE:
-		case RDLINE_ORDERED:
-		case NULFALSE1:
-		case NULFALSE2:
-		case NDIST:
-		case SDIST:
-		case JMPNOTNULL_ELSEPOP:
-		case NEXTMAP:
-		case NEXTVEC:
-		case READ_NEXT_GROUP:
-		case JOINSET_TRAV:
-			if (v.p1 < 0)
-				v.p1 = jumps[v.p1];
-		}
+		if (opDoesJump(v.code) && v.p1 < 0)
+			v.p1 = jumps[v.p1];
 };
 
 
@@ -135,9 +118,7 @@ void cgen::generateCode(){
 void cgen::finish(){
 	int i = 0;
 	for (auto c : v){
-		stringstream s;
-		s << "ip: " << left << setw(4) << i++;
-		perr(s.str());
+		perr(st("ip: ",left,setw(4),i++));
 		c.print();
 	}
 	q->bytecode = move(v);
