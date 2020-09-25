@@ -153,7 +153,14 @@ int addBtree(int type, querySpecs *q){
 	return 0;
 }
 
+void vmachine::endQuery() {
+	for (auto& op : q->bytecode){
+		if (opDoesJump(op.code))
+			op.p1 = q->bytecode.size()-1;
+	}
+}
 vmachine::vmachine(querySpecs &qs) : csvOutput(0) {
+	id = idCounter++;
 	q = &qs;
 	for (int i=0; i<q->numFiles; ++i){
 		files.push_back(q->files[st("_f", i)]);
@@ -397,12 +404,12 @@ flatmap<int,int> vmachine::relopIdx = {
 
 void messager::start(char* msg, int* n1, int* n2){
 	stop();
-	running.emplace_front(true);
 	runner.reset(new thread([&](char* msg,int* num1,int* num2){
-		auto active = &running.front();
+		bool active = true;
+		running.push_front(&active);
 		while(1){
 			if (delay) sleep(1);
-			if (!*active) return;
+			if (!active) return;
 			delay = false;
 			fprintf(stderr, msg, *num1, *num2);
 			if (!delay) sleep(1);
@@ -419,8 +426,77 @@ void messager::say(char* msg, int* n1, int* n2){
 void messager::stop(){
 	if (running.empty())
 		return;
-	running.front() = false;
+	*running.front() = false;
 	runner.reset(nullptr);
 	if (!delay)
 		cerr << "r\33[2K\r";
+}
+
+bool opDoesJump(int opcode){
+	switch (opcode){
+	case JMP:
+	case JMPCNT:
+	case JMPTRUE:
+	case JMPFALSE:
+	case RDLINE:
+	case RDLINE_ORDERED:
+	case NULFALSE1:
+	case NULFALSE2:
+	case NDIST:
+	case SDIST:
+	case JMPNOTNULL_ELSEPOP:
+	case NEXTMAP:
+	case NEXTVEC:
+	case READ_NEXT_GROUP:
+	case JOINSET_TRAV:
+		return true;
+	}
+	return false;
+}
+
+shared_ptr<singleQueryResult> vmachine::getJsonResult(){
+	jsonresult->types = q->colspec.types; //TODO: use originial pre-trivial types
+	jsonresult->colnames = q->colspec.colnames;
+	jsonresult->pos.resize(q->colspec.count);
+	jsonresult->query = q->queryString;
+	iota(jsonresult->pos.begin(), jsonresult->pos.end(),1); //TODO: update gui to not need this
+	return jsonresult;
+}
+
+
+future<void> queryQueue::runquery(querySpecs& q){
+	prepareQuery(q);
+	mtx.lock();
+	queries.emplace_back(q);
+	auto& thisq = queries.back();
+	mtx.unlock();
+	return async([&](){
+		thisq.run();
+		mtx.lock();
+		queries.remove_if([&](vmachine& v){ return v.id == thisq.id; });
+		mtx.unlock();
+	});
+}
+future<shared_ptr<singleQueryResult>> queryQueue::runqueryJson(querySpecs& q){
+	q.setoutputJson();
+	prepareQuery(q);
+	mtx.lock();
+	queries.emplace_back(q);
+	auto& thisq = queries.back();
+	mtx.unlock();
+	return async([&](){
+		thisq.run();
+		auto ret = thisq.getJsonResult();
+		mtx.lock();
+		queries.remove_if([&](vmachine& v){ return v.id == thisq.id; });
+		mtx.unlock();
+		return ret;
+	});
+}
+
+void queryQueue::endall(){
+	mtx.lock();
+	for (auto& vm : queries)
+		vm.endQuery();
+	mtx.unlock();
 }

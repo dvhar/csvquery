@@ -4,6 +4,8 @@
 #include "deps/btree/btree_set.h"
 #include "deps/b64/b64.h"
 #include <math.h>
+#include <mutex>
+#include <future>
 
 #define bset btree::btree_set
 
@@ -92,6 +94,7 @@ dat parseDateDat(const char* s);
 dat parseStringDat(const char* s);
 int addBtree(int type, querySpecs *q);
 
+bool opDoesJump(int opcode);
 //placeholder for jmp positions that can't be determined until later
 class jumpPositions {
 	map<int, int> jumps;
@@ -152,7 +155,7 @@ class stddev {
 
 class messager {
 	unique_ptr<thread> runner;
-	forward_list<atomic_bool> running;
+	forward_list<bool*> running;
 	int blank = 0;
 	atomic_bool delay;
 	public:
@@ -197,6 +200,7 @@ class vmachine {
 	ostream csvOutput;
 	ofstream outfile;
 	messager updates;
+	static atomic_int idCounter;
 	//datunion comparers
 	static const function<bool (const datunion, const datunion&)> uLessFuncs[3];
 	static const function<bool (const datunion, const datunion&)> uGrtFuncs[3];
@@ -207,10 +211,12 @@ class vmachine {
 	static const function<bool (const datunion, const datunion&)> uRxpFuncs[3];
 	static const function<bool (const datunion, const datunion&)>* uComparers[7];
 	public:
+	int id;
 	static flatmap<int,int> relopIdx;
 	vector<bset<i64>> bt_nums;
 	vector<bset<treeCString>> bt_strings;
 	querySpecs* q;
+	void endQuery();
 	void run();
 	shared_ptr<singleQueryResult> getJsonResult();
 	vmachine(querySpecs &q);
@@ -311,3 +317,12 @@ void strplus(dat &s1, dat &s2);
 void trav(rowgroup &r);
 int getSortComparer(querySpecs *q, int i);
 dat prepareLike(unique_ptr<node> &n);
+
+class queryQueue {
+	mutex mtx;
+	list<vmachine> queries;
+	public:
+	future<void> runquery(querySpecs&);
+	future<shared_ptr<singleQueryResult>> runqueryJson(querySpecs&);
+	void endall();
+};
