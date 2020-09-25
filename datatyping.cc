@@ -362,11 +362,10 @@ typer dataTyper::typeValueInnerNodes(unique_ptr<node> &n){
 		innerType = {n->datatype, 0};
 		break;
 	case VARIABLE:
-		for (auto &v : q->vars)
-			if (n->tok1.val == v.name){
-				innerType = {v.type, v.lit};
-				break;
-			}
+		{
+			auto& v = q->var(n->tok1.val);
+			innerType = {v.type, v.lit};
+		}
 		break;
 	}
 	return innerType;
@@ -455,12 +454,11 @@ typer dataTyper::typeInnerNodes(unique_ptr<node> &n){
 		break;
 	case N_VARS:
 		innerType = typeInnerNodes(n->node1);
-		for (auto &v : q->vars)
-			if (n->tok1.val == v.name){
-				v.type = innerType.type;
-				v.lit = innerType.lit;
-				break;
-			}
+		{
+			auto& v = q->var(n->tok1.val);
+			v.type = innerType.type;
+			v.lit = innerType.lit;
+		}
 		typeInnerNodes(n->node2);
 		break;
 	case N_EXPRNEG:
@@ -678,11 +676,7 @@ void dataTyper::typeFinalValues(unique_ptr<node> &n, int finaltype){
 		typeFunctionFinalNodes(n, finaltype);
 		break;
 	case N_VARS:
-		for (auto &v : q->vars)
-			if (n->tok1.val == v.name){
-				v.type = finaltype;
-				break;
-			}
+		q->var(n->tok1.val).type = finaltype;
 		typeFinalValues(n->node1, finaltype);
 		typeFinalValues(n->node2, -1);
 		break;

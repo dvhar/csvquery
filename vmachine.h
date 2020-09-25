@@ -75,10 +75,10 @@ static int operations[][6] = {
 //type conversion opcodes - [from][to]
 static int typeConv[6][6] = {
 	{0, 0,  0,  0,  0,  0 },
-	{0, CVNO, CVIF, CVNO, CVNO, CVIS },
-	{0, CVFI, CVNO, CVFI, CVFI, CVFS },
-	{0, CVNO, CVIF, CVNO, CVER, CVDTS},
-	{0, CVNO, CVIF, CVER, CVNO, CVDRS},
+	{0, CVNO, CVIF, CVER, CVER, CVIS },
+	{0, CVFI, CVNO, CVER, CVER, CVFS },
+	{0, CVER, CVER, CVNO, CVER, CVDTS},
+	{0, CVER, CVER, CVER, CVNO, CVDRS},
 	{0, CVSI, CVSF, CVSDT,CVSDR,CVNO},
 };
 

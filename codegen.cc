@@ -671,7 +671,7 @@ void cgen::genValue(unique_ptr<node> &n){
 		vtype = getVarType(n->tok1.val, q);
 		op = typeConv[vtype][n->datatype];
 		if (op == CVER)
-			error((ft("Error converting alias of type %1% to new type %2%") % vtype % n->datatype).str());
+			error(st("Cannot use alias '",n->tok1.val,"' of type ",nameMap.at(vtype)," with incompatible type ",nameMap.at(n->datatype)));
 		if (op != CVNO)
 			addop0(op);
 		break;
