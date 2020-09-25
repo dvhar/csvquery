@@ -481,10 +481,8 @@ void cgen::genNormalOrderedQuery(unique_ptr<node> &n){
 	addop(SAVEPOS);
 	addop(JMP, normal_read);
 	jumps.setPlace(sorter, v.size());
-	addop(STOP_MESSAGE);
 	addop(START_MESSAGE, messager::sorting);
 	addop(SORT);
-	addop(STOP_MESSAGE);
 	addop(PREP_REREAD);
 	addop(START_MESSAGE, messager::retrieving);
 	jumps.setPlace(reread, v.size());

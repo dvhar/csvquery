@@ -394,3 +394,33 @@ const function<bool (const datunion, const datunion&)>* vmachine::uComparers[7] 
 flatmap<int,int> vmachine::relopIdx = {
 	{SP_LESS,0},{SP_GREAT,1},{SP_LESSEQ,2},{SP_GREATEQ,3},{SP_EQ,4},{SP_NOEQ,5},{KW_LIKE,6}
 };
+
+void messager::start(char* msg, int* n1, int* n2){
+	stop();
+	running.emplace_front(true);
+	runner.reset(new thread([&](char* msg,int* num1,int* num2){
+		auto active = &running.front();
+		while(1){
+			if (delay) sleep(1);
+			if (!*active) return;
+			delay = false;
+			fprintf(stderr, msg, *num1, *num2);
+			if (!delay) sleep(1);
+		}
+	}, msg, n1?:&blank, n2?:&blank));
+	runner->detach();
+}
+void messager::say(char* msg, int* n1, int* n2){
+	if (delay)
+		return;
+	stop();
+	fprintf(stderr, msg, *(n1?:&blank), *(n2?:&blank));
+}
+void messager::stop(){
+	if (running.empty())
+		return;
+	running.front() = false;
+	runner.reset(nullptr);
+	if (!delay)
+		cerr << "r\33[2K\r";
+}
