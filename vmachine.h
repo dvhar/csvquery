@@ -152,33 +152,17 @@ class stddev {
 
 class messager {
 	unique_ptr<thread> runner;
-	forward_list<bool> running;
+	forward_list<atomic_bool> running;
 	int blank = 0;
+	atomic_bool delay;
 	public:
 	static const int scanning = 0;
 	static const int retrieving = 1;
 	static const int sorting = 2;
-	void say(char* msg, int* n1, int* n2){
-		fprintf(stderr, msg, *(n1?:&blank), *(n2?:&blank));
-	}
-	void start(char* msg, int* n1, int* n2){
-		running.push_front(true);
-		runner.reset(new thread([&](char* msg,int* num1,int* num2){
-			bool* active = &running.front();
-			while(1){
-				sleep(1);
-				if (!*active)
-					return;
-				fprintf(stderr, msg, *num1, *num2);
-			}
-		}, msg, n1?:&blank, n2?:&blank));
-		runner->detach();
-	}
-	void stop(){
-		running.front() = false;
-		runner.reset(nullptr);
-		cerr << "r\33[2K";
-	}
+	void say(char* msg, int* n1, int* n2);
+	void start(char* msg, int* n1, int* n2);
+	void stop();
+	messager(){ delay = true; }
 };
 
 class rowgroup;
