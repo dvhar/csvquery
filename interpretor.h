@@ -421,6 +421,7 @@ class querySpecs {
 	bool joining =0;
 	bool whereFiltering =0;
 	bool havingFiltering =0;
+	bool distinctFiltering =0;
 	token tok();
 	token nextTok();
 	token peekTok();

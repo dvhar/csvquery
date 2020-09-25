@@ -1230,10 +1230,16 @@ READ_NEXT_GROUP_:
 	next();
 
 START_MESSAGE_:
+	linesRead = 0;
 	switch(op->p1){
 	case 0: updates.start((char*) "\r\33[2KScanned %d lines", &linesRead, 0); break;
-	case 1: updates.start((char*) "\r\33[2KRetrieved %d results", &totalPrinted, 0); break;
+	case 1: updates.start((char*) "\r\33[2KFound %d results", &totalPrinted, 0); break;
 	case 2: updates.say((char*) "\r\33[2KSorting", 0, 0); break;
+	case 3: updates.start((char*) "\r\33[2KRead %d lines", &linesRead,0); break;
+	case 4: updates.start((char*) "\r\33[2KRead %d lines, Found %d results", &linesRead, &totalPrinted); break;
+	case 5: updates.start((char*) "\r\33[2KScanned %d lines from join file", &linesRead, 0); break;
+	case 6: updates.say((char*) "\r\33[2KProcessing indexes", 0, 0); break;
+	case 7: updates.start((char*) "\r\33[2KRead %d lines from file1, found %d join results", &linesRead, &totalPrinted); break;
 	}
 	nexti();
 STOP_MESSAGE_:

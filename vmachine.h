@@ -159,6 +159,11 @@ class messager {
 	static const int scanning = 0;
 	static const int retrieving = 1;
 	static const int sorting = 2;
+	static const int reading  = 3;
+	static const int readingfiltered = 4;
+	static const int scanningjoin = 5;
+	static const int indexing = 6;
+	static const int readingfirst = 7;
 	void say(char* msg, int* n1, int* n2);
 	void start(char* msg, int* n1, int* n2);
 	void stop();
