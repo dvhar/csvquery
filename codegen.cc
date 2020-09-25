@@ -204,12 +204,14 @@ void cgen::genJoiningQuery(unique_ptr<node> &n){
 void cgen::genTraverseJoins(unique_ptr<node> &n){
 	if (n == nullptr) return;
 	//start with base file
+	addop(START_MESSAGE, messager::readingfirst);
 	int endfile1 = jumps.newPlaceholder();
 	normal_read = v.size();
 	prevJoinRead = normal_read;
 	addop(RDLINE, endfile1, 0);
 	genJoinSets(n->node1);
 	jumps.setPlace(endfile1, v.size());
+	addop(STOP_MESSAGE);
 }
 //given 'join' node
 void cgen::genJoinSets(unique_ptr<node> &n){
@@ -362,6 +364,7 @@ void cgen::genScanJoinFiles(unique_ptr<node> &n){
 	for (auto jnode = joinNode.get(); jnode; jnode = jnode->node2.get()){
 		auto& f = q->files[jnode->tok4.val];
 		int afterfile = jumps.newPlaceholder();
+		addop(START_MESSAGE, messager::scanningjoin);
 		normal_read = v.size();
 		addop(RDLINE, afterfile, f->fileno);
 		joinFileIdx++;
@@ -374,6 +377,7 @@ void cgen::genScanJoinFiles(unique_ptr<node> &n){
 			addop(SAVEVALPOS, f->fileno, f->joinValpos.size());
 		addop(JMP, normal_read);
 		jumps.setPlace(afterfile, v.size());
+		addop(START_MESSAGE, messager::indexing);
 		genSortAnds(joinNode->node1);
 		for (u32 i=0; i<valposTypes.size(); i++)
 			addop(SORTVALPOS, f->fileno, i, funcTypes[valposTypes[i]]);
@@ -449,8 +453,11 @@ void cgen::genScannedJoinExprs(unique_ptr<node> &n, int fileno){
 
 void cgen::genNormalQuery(unique_ptr<node> &n){
 	e("normal");
+	int message = (q->whereFiltering || q->distinctFiltering) ?
+		messager::readingfiltered : messager::reading;
 	int endfile = jumps.newPlaceholder(); //where to jump when done reading file
 	pushvars();
+	addop(START_MESSAGE, message);
 	normal_read = v.size();
 	wherenot = normal_read;
 	addop(RDLINE, endfile, 0);
@@ -464,6 +471,7 @@ void cgen::genNormalQuery(unique_ptr<node> &n){
 	genPrint();
 	addop((q->quantityLimit > 0 ? JMPCNT : JMP), normal_read);
 	jumps.setPlace(endfile, v.size());
+	addop(STOP_MESSAGE);
 	popvars();
 	addop(ENDRUN);
 }
@@ -521,6 +529,7 @@ void cgen::genGroupingQuery(unique_ptr<node> &n){
 	agg_phase = 1;
 	int getgroups = jumps.newPlaceholder();
 	pushvars();
+	addop(START_MESSAGE, messager::scanning);
 	normal_read = v.size();
 	wherenot = normal_read;
 	addop(RDLINE, getgroups, 0);
@@ -534,6 +543,7 @@ void cgen::genGroupingQuery(unique_ptr<node> &n){
 	addop(JMP, normal_read);
 	jumps.setPlace(getgroups, v.size());
 	agg_phase = 2;
+	addop(STOP_MESSAGE);
 	genIterateGroups(n->node4->node2);
 	popvars();
 	addop(ENDRUN);

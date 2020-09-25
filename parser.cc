@@ -181,6 +181,7 @@ unique_ptr<node> parser::parseSelections() {
 		return n;
 	case KW_DISTINCT:
 		n->tok1 = t;
+		q->distinctFiltering = true;
 		t = q->nextTok();
 		if (t.lower() == "hidden"sv && !t.quoted) {
 			n->tok1 = t;
