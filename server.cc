@@ -15,6 +15,8 @@
 	#error "not win mac or linux"	
 #endif
 
+extern void servews();
+
 void runServer(){
 	webserver ws;
 	ws.serve();
@@ -83,9 +85,11 @@ void webserver::serve(){
 
 	};
 
-	//openbrowser();
+	openbrowser();
 	perr("starting http server\n");
+	auto ws = async(servews);
 	server.start();
+	ws.get();
 }
 
 shared_ptr<returnData> webserver::runqueries(webquery &wq){

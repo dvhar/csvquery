@@ -35,11 +35,11 @@ typedef unsigned int u32;
 typedef i64 dur_t;
 #define ft boost::format
 #define flatmap boost::container::flat_map
-#define error(A) throw invalid_argument(A)
 #define SMALLEST numeric_limits<i64>::min()
 using namespace std;
 using json = nlohmann::json;
 
+static void error(string A){ throw invalid_argument(A);}
 static void perr(string s){
 	cerr << s;
 }
