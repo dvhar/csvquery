@@ -4,7 +4,7 @@ project(cql)
 
 set(optimize "-O3 -pipe")
 set(applegcc /usr/local)
-set(staticlib "-static-libgcc -static-libstdc++")
+set(staticlib "-static-libgcc -static-libstdc++ -lssl -lcrypto")
 
 if (APPLE)
 	set(CMAKE_CXX_COMPILER ${applegcc}/bin/g++-10)
