@@ -16,6 +16,7 @@
 #endif
 
 extern void servews();
+extern void embedsite(HttpServer&);
 
 void runServer(){
 	webserver ws;
@@ -26,7 +27,7 @@ void runServer(){
 void webserver::serve(){
 	auto endSemicolon = regex(";\\s*$");
 	server.config.port = 8060;
-	embed(server);
+	embedsite(server);
 
 	server.resource["^/query/$"]["POST"] = [&](shared_ptr<HttpServer::Response> response, shared_ptr<HttpServer::Request> request){
 
