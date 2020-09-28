@@ -403,6 +403,7 @@ class querySpecs {
 	map<string, shared_ptr<fileReader>> files;
 	resultSpecs colspec = {0};
 	crypter crypt = {};
+	i64 sessionId = 0;
 	int distinctSFuncs =0;
 	int distinctNFuncs =0;
 	int midcount =0;
@@ -516,3 +517,12 @@ static string st(T first, Args... args) {
 }
 extern int runmode;
 enum runmodes { RUN_CMD, RUN_SINGLE, RUN_SERVER };
+
+template<typename T>
+static T fromjson(json& j, string key){
+	try {
+		return j[key].get<T>();
+	} catch (exception e) {
+		return T{};
+	}
+}
