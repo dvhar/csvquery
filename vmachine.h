@@ -154,11 +154,13 @@ class stddev {
 };
 
 class messager {
+	char buf[200];
 	unique_ptr<thread> runner;
 	forward_list<bool*> running;
 	int blank = 0;
 	atomic_bool delay;
 	public:
+	i64 sessionId;
 	static const int scanning = 0;
 	static const int retrieving = 1;
 	static const int sorting = 2;
@@ -170,6 +172,7 @@ class messager {
 	void say(char* msg, int* n1, int* n2);
 	void start(char* msg, int* n1, int* n2);
 	void stop();
+	void send();
 	messager(){ delay = true; }
 };
 
@@ -179,7 +182,7 @@ class vmachine {
 	vector<shared_ptr<fileReader>> files;
 	opcode* ops;
 	dat* torow;
-	dat distinctVal;
+	dat distinctVal = {0};
 	int torowSize =0;
 	int sortgroupsize =0;
 	int quantityLimit =0;
@@ -211,7 +214,8 @@ class vmachine {
 	static const function<bool (const datunion, const datunion&)> uRxpFuncs[3];
 	static const function<bool (const datunion, const datunion&)>* uComparers[7];
 	public:
-	int id;
+	i64 sessionId =0;
+	int id =0;
 	static flatmap<int,int> relopIdx;
 	vector<bset<i64>> bt_nums;
 	vector<bset<treeCString>> bt_strings;

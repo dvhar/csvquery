@@ -1,94 +1,65 @@
+#include "server.h"
 #include "deps/websocket/server_ws.hpp"
 #include "deps/websocket/client_ws.hpp"
-using namespace std;
 using WsServer = SimpleWeb::SocketServer<SimpleWeb::WS>;
 using WsClient = SimpleWeb::SocketClient<SimpleWeb::WS>;
 
+static WsServer server;
+static map<i64,shared_ptr<WsServer::Connection>> connections;
+static mutex seslock;
+
 void servews(){
-  WsServer server;
-  server.config.port = 8061;
+	server.config.port = 8061;
 
-  auto &echo = server.endpoint["^/socket/?$"];
+	auto &wsocket = server.endpoint["^/socket/?$"];
 
-  echo.on_message = [](shared_ptr<WsServer::Connection> connection, shared_ptr<WsServer::InMessage> in_message) {
-    auto out_message = in_message->string();
+	wsocket.on_message = [](shared_ptr<WsServer::Connection> connection, shared_ptr<WsServer::InMessage> in_message) {
+		auto out_message = in_message->string();
 
-    cerr << "Server: Message received: \"" << out_message << "\" from " << connection.get() << endl;
-
-    cerr << "Server: Sending message \"" << out_message << "\" to " << connection.get() << endl;
-
-    // connection->send is an asynchronous function
-    connection->send(out_message, [](const SimpleWeb::error_code &ec) {
-      if(ec) {
-        cerr << "Server: Error sending message. " <<
-            // See http://www.boost.org/doc/libs/1_55_0/doc/html/boost_asio/reference.html, Error Codes for error code meanings
-            "Error: " << ec << ", error message: " << ec.message() << endl;
-      }
-    });
-  };
+		cerr << "Server: Message received: \"" << out_message << "\" from " << (i64)connection.get() << endl;
+		connection->send(out_message);
+	};
 
 
-  echo.on_open = [](shared_ptr<WsServer::Connection> connection) {
-    cerr << "Server: Opened connection " << connection.get() << endl;
-  };
+	wsocket.on_open = [](shared_ptr<WsServer::Connection> connection) {
+		i64 sesid = (i64) connection.get();
+		seslock.lock();
+		connections[sesid] = connection;
+		seslock.unlock();
+		connection->send(json{{"Type",SK_ID},{"Id",sesid}}.dump());
+	};
 
-  // See RFC 6455 7.4.1. for status codes
-  echo.on_close = [](shared_ptr<WsServer::Connection> connection, int status, const string & /*reason*/) {
-    cerr << "Server: Closed connection " << connection.get() << " with status code " << status << endl;
-  };
+	wsocket.on_close = [](shared_ptr<WsServer::Connection> connection, int status, const string &) {
+		i64 sesid = (i64) connection.get();
+		seslock.lock();
+		connections.erase(sesid);
+		seslock.unlock();
+	};
 
-  // Can modify handshake response headers here if needed
-  echo.on_handshake = [](shared_ptr<WsServer::Connection> /*connection*/, SimpleWeb::CaseInsensitiveMultimap & /*response_header*/) {
-    return SimpleWeb::StatusCode::information_switching_protocols; // Upgrade to websocket
-  };
+	wsocket.on_handshake = [](shared_ptr<WsServer::Connection>, SimpleWeb::CaseInsensitiveMultimap &) {
+		return SimpleWeb::StatusCode::information_switching_protocols;
+	};
 
-  // See http://www.boost.org/doc/libs/1_55_0/doc/html/boost_asio/reference.html, Error Codes for error code meanings
-  echo.on_error = [](shared_ptr<WsServer::Connection> connection, const SimpleWeb::error_code &ec) {
-    cerr << "Server: Error in connection " << connection.get() << ". "
-         << "Error: " << ec << ", error message: " << ec.message() << endl;
-  };
+	wsocket.on_error = [](shared_ptr<WsServer::Connection> connection, const SimpleWeb::error_code &ec) {
+		cerr << "Server: Error in connection " << (i64)connection.get() << ". "
+				 << "Error: " << ec << ", error message: " << ec.message() << endl;
+	};
 
-  // Example 2: Echo thrice
-  // Demonstrating queuing of messages by sending a received message three times back to the client.
-  // Concurrent send operations are automatically queued by the library.
-  // Test with the following JavaScript:
-  //   var ws=new WebSocket("ws://localhost:8080/echo_thrice");
-  //   ws.onmessage=function(evt){console.log(evt.data);};
-  //   ws.send("test");
-  auto &echo_thrice = server.endpoint["^/echo_thrice/?$"];
-  echo_thrice.on_message = [](shared_ptr<WsServer::Connection> connection, shared_ptr<WsServer::InMessage> in_message) {
-    auto out_message = make_shared<string>(in_message->string());
-
-    connection->send(*out_message, [connection, out_message](const SimpleWeb::error_code &ec) {
-      if(!ec)
-        connection->send(*out_message); // Sent after the first send operation is finished
-    });
-    connection->send(*out_message); // Most likely queued. Sent after the first send operation is finished.
-  };
-
-  // Example 3: Echo to all WebSocket endpoints
-  // Sending received messages to all connected clients
-  // Test with the following JavaScript on more than one browser windows:
-  //   var ws=new WebSocket("ws://localhost:8080/echo_all");
-  //   ws.onmessage=function(evt){console.log(evt.data);};
-  //   ws.send("test");
-  auto &echo_all = server.endpoint["^/echo_all/?$"];
-  echo_all.on_message = [&server](shared_ptr<WsServer::Connection> /*connection*/, shared_ptr<WsServer::InMessage> in_message) {
-    auto out_message = in_message->string();
-
-    // echo_all.get_connections() can also be used to solely receive connections on this endpoint
-    for(auto &a_connection : server.get_connections())
-      a_connection->send(out_message);
-  };
-
-  // Start server and receive assigned port when server is listening for requests
-  promise<unsigned short> server_port;
-  auto a = async([&](){
-    server.start([&server_port](unsigned short port) {
-      server_port.set_value(port);
-    });
+	promise<unsigned short> server_port;
+	auto a = async([&](){
+		server.start([&server_port](unsigned short port) {
+			server_port.set_value(port);
+		});
 });
-  cerr << "ws Server listening on port '" << server_port.get_future().get() << "'" << endl
-       << endl;
-	   a.get();
+	cerr << "ws Server listening on port '" << server_port.get_future().get() << "'" << endl;
+		 a.get();
+}
+
+void sendMessageSock(i64 sesid, char* message){
+	seslock.lock();
+	auto conn = connections[sesid];
+	if (conn){
+		conn->send(json{{"Type",SK_MSG},{"Text",message}}.dump());
+	}
+	seslock.unlock();
 }

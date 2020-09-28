@@ -3,20 +3,21 @@
 #include <boost/algorithm/string/erase.hpp>
 #include <boost/algorithm/string/replace.hpp>
 #include <boost/algorithm/string/split.hpp>
+#include "deps/http/server_http.hpp"
+using HttpServer = SimpleWeb::Server<SimpleWeb::HTTP>;
 
-#if 0
-#elif defined _WIN32
+#if defined _WIN32
 #define openbrowser() system("cmd /c start http://localhost:8060")
 #elif defined __APPLE__
 #define openbrowser() system("open http://localhost:8060")
 #elif defined __linux__
 #define openbrowser() system("xdg-open http://localhost:8060")
 #else
-	#error "not win mac or linux"	
+#error "not win mac or linux"	
 #endif
 
-extern void servews();
-extern void embedsite(HttpServer&);
+void servews();
+void embedsite(HttpServer&);
 
 void runServer(){
 	webserver ws;
@@ -24,6 +25,7 @@ void runServer(){
 	json j;
 }
 
+static HttpServer server;
 void webserver::serve(){
 	auto endSemicolon = regex(";\\s*$");
 	server.config.port = 8060;
@@ -36,11 +38,14 @@ void webserver::serve(){
 		SimpleWeb::CaseInsensitiveMultimap header;
 
 		try {
-			json req = json::parse(request->content.string());
+			auto&& reqstr = request->content.string();
+			cerr << reqstr << endl;
+			json req = json::parse(reqstr);
 			wq.savepath = fromjson<string>(req, "Savepath");
 			wq.qamount = fromjson<int>(req, "Qamount");
 			wq.fileIO = fromjson<int>(req, "FileIO");
 			wq.querystring = regex_replace(fromjson<string>(req,"Query"), endSemicolon, "");
+			wq.sessionId = fromjson<i64>(req,"SessionId");
 
 			auto ret = runqueries(wq);
 			ret->status = DAT_GOOD;
@@ -78,6 +83,7 @@ void webserver::serve(){
 		auto info = params.find("info")->second;
 		if (info == "setState"){
 			state = request->content.string();
+			cerr << state << endl;
 			response->write("{}");
 			return;
 		} else if (info == "fileClick"){
@@ -106,6 +112,7 @@ shared_ptr<returnData> webserver::runqueries(webquery &wq){
 shared_ptr<singleQueryResult> webserver::runWebQuery(webquery &wq){
 	cout << "webquery " << wq.whichone << ": " << wq.queries[wq.whichone] << endl;
 	querySpecs q(wq.queries[wq.whichone]);
+	q.sessionId = wq.sessionId;
 	if (wq.isSaving())
 		q.setoutputCsv();
 	return runqueryJson(q);

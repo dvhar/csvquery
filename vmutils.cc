@@ -1,5 +1,6 @@
 #include "interpretor.h"
 #include "vmachine.h"
+#include "server.h"
 
 //map for printing opcodes
 flatmap<int, string_view> opMap = {
@@ -160,8 +161,10 @@ void vmachine::endQuery() {
 	}
 }
 vmachine::vmachine(querySpecs &qs) : csvOutput(0) {
-	id = idCounter++;
 	q = &qs;
+	id = idCounter++;
+	sessionId = q->sessionId;
+	updates.sessionId = sessionId;
 	for (int i=0; i<q->numFiles; ++i){
 		files.push_back(q->files[st("_f", i)]);
 	}
@@ -402,6 +405,11 @@ flatmap<int,int> vmachine::relopIdx = {
 	{SP_LESS,0},{SP_GREAT,1},{SP_LESSEQ,2},{SP_GREATEQ,3},{SP_EQ,4},{SP_NOEQ,5},{KW_LIKE,6}
 };
 
+void messager::send(){
+	fprintf(stderr, "\r\33[2K%s", buf);
+	if (runmode == RUN_SERVER)
+		sendMessageSock(sessionId, buf);
+}
 void messager::start(char* msg, int* n1, int* n2){
 	stop();
 	runner.reset(new thread([&](char* msg,int* num1,int* num2){
@@ -411,7 +419,8 @@ void messager::start(char* msg, int* n1, int* n2){
 			if (delay) sleep(1);
 			if (!active) return;
 			delay = false;
-			fprintf(stderr, msg, *num1, *num2);
+			snprintf(buf, 200, msg, *num1, *num2);
+			send();
 			if (!delay) sleep(1);
 		}
 	}, msg, n1?:&blank, n2?:&blank));
@@ -421,7 +430,8 @@ void messager::say(char* msg, int* n1, int* n2){
 	if (delay)
 		return;
 	stop();
-	fprintf(stderr, msg, *(n1?:&blank), *(n2?:&blank));
+	snprintf(buf, 200, msg, *(n1?:&blank), *(n2?:&blank));
+	send();
 }
 void messager::stop(){
 	if (running.empty())
