@@ -1259,7 +1259,10 @@ CVNO_:
 	error("Invalid opcode");
 }
 
-queryQueue runner;
+static queryQueue runner;
+void stopAllQueries(){
+	runner.endall();
+}
 
 atomic_int vmachine::idCounter = 0;
 void runquery(querySpecs &q){
