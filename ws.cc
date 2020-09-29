@@ -7,6 +7,7 @@ using WsClient = SimpleWeb::SocketClient<SimpleWeb::WS>;
 static WsServer server;
 static map<i64,shared_ptr<WsServer::Connection>> connections;
 static mutex seslock;
+void pingbrowsers();
 
 void servews(){
 	server.config.port = 8061;
@@ -14,19 +15,21 @@ void servews(){
 	auto &wsocket = server.endpoint["^/socket/?$"];
 
 	wsocket.on_message = [](shared_ptr<WsServer::Connection> connection, shared_ptr<WsServer::InMessage> in_message) {
-		auto out_message = in_message->string();
-
-		cerr << "Server: Message received: \"" << out_message << "\" from " << (i64)connection.get() << endl;
-		connection->send(out_message);
+		auto j = json::parse(in_message->string());
+		switch (fromjson<int>(j,"Type")){
+		case SK_STOP:
+			stopAllQueries();
+			cerr << "stopped queries\n";
+		}
 	};
-
 
 	wsocket.on_open = [](shared_ptr<WsServer::Connection> connection) {
 		i64 sesid = (i64) connection.get();
+		connection->send(json{{"Type",SK_ID},{"Id",sesid}}.dump());
 		seslock.lock();
 		connections[sesid] = connection;
 		seslock.unlock();
-		connection->send(json{{"Type",SK_ID},{"Id",sesid}}.dump());
+		cerr << "opened websocket connection " << connection.get() << endl;
 	};
 
 	wsocket.on_close = [](shared_ptr<WsServer::Connection> connection, int status, const string &) {
@@ -34,25 +37,27 @@ void servews(){
 		seslock.lock();
 		connections.erase(sesid);
 		seslock.unlock();
-	};
-
-	wsocket.on_handshake = [](shared_ptr<WsServer::Connection>, SimpleWeb::CaseInsensitiveMultimap &) {
-		return SimpleWeb::StatusCode::information_switching_protocols;
+		cerr << "closed websocket connection " << connection.get() << endl;
 	};
 
 	wsocket.on_error = [](shared_ptr<WsServer::Connection> connection, const SimpleWeb::error_code &ec) {
-		cerr << "Server: Error in connection " << (i64)connection.get() << ". "
-				 << "Error: " << ec << ", error message: " << ec.message() << endl;
+		cerr << "Error in connection " << (i64)connection.get() << ": "
+			<< ec << ", error message: " << ec.message() << endl;
 	};
 
-	promise<unsigned short> server_port;
-	auto a = async([&](){
-		server.start([&server_port](unsigned short port) {
-			server_port.set_value(port);
-		});
-});
-	cerr << "ws Server listening on port '" << server_port.get_future().get() << "'" << endl;
-		 a.get();
+	auto a = async([&](){server.start();});
+	auto b = async(pingbrowsers);
+	a.get();
+	b.get();
+}
+
+void pingbrowsers(){
+	string ping(json{{"Type",SK_PING}}.dump());
+	while(1){
+		sleep(1);
+		for (auto& c : server.get_connections())
+			c->send(ping);
+	}
 }
 
 void sendMessageSock(i64 sesid, char* message){

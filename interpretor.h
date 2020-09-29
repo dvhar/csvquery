@@ -495,6 +495,7 @@ void runServer();
 string handle_err(exception_ptr eptr);
 unique_ptr<node>& findFirstNode(unique_ptr<node> &n, int label);
 void prepareQuery(querySpecs &q);
+void stopAllQueries();
 
 struct freeC {
 	void operator()(void*x){ free(x); }
