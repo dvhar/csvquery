@@ -24,18 +24,6 @@ enum legacy_server {
 void sendMessageSock(i64,char*);
 void servews();
 
-class directory {
-	json j;
-	string fpath;
-	string parent;
-	string mode;
-	vector<string> files;
-	vector<string> dirs;
-	public:
-	void setDir(json&);
-	json& tojson();
-};
-
 class webquery {
 	public:
 	vector<string> queries;

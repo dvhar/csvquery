@@ -265,3 +265,29 @@ void openfiles(querySpecs &q, unique_ptr<node> &n){
 	openfiles(q, n->node2);
 	openfiles(q, n->node3);
 }
+
+shared_ptr<directory> filebrowse(json& dir){
+	static auto ext = regex("\\.csv$", regex::icase);
+	static auto hid = regex("/\\.[^/]+$");
+	filesystem::path thisdir(fromjson<string>(dir,"Path"));
+	if (!filesystem::exists(thisdir)){
+		return {};
+	}
+	auto resp = make_shared<directory>();
+	list<string> others;
+	for (auto& f : filesystem::directory_iterator(thisdir)){
+		if (regex_match((string)f.path(), hid)){}
+		else if (filesystem::is_directory(f.status())){
+			resp->dirs.push_back(f.path());
+		} else if (filesystem::is_regular_file(f.status())){
+			if (regex_match((string)f.path(), ext))
+				resp->files.push_back(f.path());
+			else
+				others.push_back(f.path());
+		}
+	}
+	resp->files.insert(resp->files.end(), others.begin(), others.end());
+	resp->parent = thisdir.parent_path();
+	resp->mode = fromjson<string>(dir,"Mode");
+	return resp;
+}
