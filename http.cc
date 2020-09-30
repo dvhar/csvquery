@@ -16,17 +16,18 @@ using HttpServer = SimpleWeb::Server<SimpleWeb::HTTP>;
 #error "not win mac or linux"	
 #endif
 
-void servews();
+static string state = "{}";
+static HttpServer server;
+static shared_ptr<returnData> runqueries(webquery &wq);
+static shared_ptr<singleQueryResult> runWebQuery(webquery &wq);
+static void serve();
 void embedsite(HttpServer&);
 
 void runServer(){
-	webserver ws;
-	ws.serve();
-	json j;
+	serve();
 }
 
-static HttpServer server;
-void webserver::serve(){
+static void serve(){
 	auto endSemicolon = regex(";\\s*$");
 	server.config.port = 8060;
 	embedsite(server);
@@ -40,12 +41,12 @@ void webserver::serve(){
 		try {
 			auto&& reqstr = request->content.string();
 			cerr << reqstr << endl;
-			json req = json::parse(reqstr);
-			wq.savepath = fromjson<string>(req, "Savepath");
-			wq.qamount = fromjson<int>(req, "Qamount");
-			wq.fileIO = fromjson<int>(req, "FileIO");
-			wq.querystring = regex_replace(fromjson<string>(req,"Query"), endSemicolon, "");
-			wq.sessionId = fromjson<i64>(req,"SessionId");
+			json j = json::parse(reqstr);
+			wq.savepath = fromjson<string>(j, "Savepath");
+			wq.qamount = fromjson<int>(j, "Qamount");
+			wq.fileIO = fromjson<int>(j, "FileIO");
+			wq.querystring = regex_replace(fromjson<string>(j,"Query"), endSemicolon, "");
+			wq.sessionId = fromjson<i64>(j,"SessionId");
 
 			auto ret = runqueries(wq);
 			ret->status = DAT_GOOD;
@@ -99,7 +100,7 @@ void webserver::serve(){
 	ws.get();
 }
 
-shared_ptr<returnData> webserver::runqueries(webquery &wq){
+static shared_ptr<returnData> runqueries(webquery &wq){
 	boost::split(wq.queries, wq.querystring, boost::is_any_of(";"));
 	auto ret = make_shared<returnData>();
 	for (auto &q: wq.queries){
@@ -109,7 +110,7 @@ shared_ptr<returnData> webserver::runqueries(webquery &wq){
 	return ret;
 }
 
-shared_ptr<singleQueryResult> webserver::runWebQuery(webquery &wq){
+static shared_ptr<singleQueryResult> runWebQuery(webquery &wq){
 	cout << "webquery " << wq.whichone << ": " << wq.queries[wq.whichone] << endl;
 	querySpecs q(wq.queries[wq.whichone]);
 	q.sessionId = wq.sessionId;
