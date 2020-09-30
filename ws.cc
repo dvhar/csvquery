@@ -66,7 +66,7 @@ static void pingbrowsers(){
 	}
 }
 
-void sendMessage(i64 sesid, char* message){
+void sendMessage(i64 sesid, const char* message){
 	seslock.lock();
 	if (auto& c = connections[sesid]; c)
 		c->send(json{{"Type",SK_MSG},{"Text",message}}.dump());

@@ -21,7 +21,7 @@ enum legacy_server {
 	SK_ID        = 7,
 };
 
-void sendMessage(i64,char*);
+void sendMessage(i64,const char*);
 void servews();
 
 class webquery {

@@ -55,8 +55,10 @@ static void serve(){
 			auto ret = runqueries(wq);
 			ret->status = DAT_GOOD;
 			ret->originalQuery = move(wq.querystring);
-			if (wq.isSaving())
-				ret->message = "Saved to " + wq.savepath;
+			if (wq.isSaving()){
+				auto msg = "Saved to " + wq.savepath;
+				sendMessage(wq.sessionId, msg.c_str());
+			}
 			response->write(ret->tojson().dump(), header);
 
 		} catch (...){
@@ -122,12 +124,14 @@ static shared_ptr<singleQueryResult> runWebQuery(webquery &wq){
 		q.setoutputCsv();
 		bool hascsv = !regexec(&extPattern, wq.savepath.c_str(), 0,0,0);
 		bool multi = wq.queries.size() > 1;
-		if (multi && !hascsv)
+		if (multi && !hascsv){
 			q.savepath = st(wq.savepath, '-', wq.whichone+1, ".csv");
-		else if (multi && hascsv)
+			wq.savepath += ".csv";
+		} else if (multi && hascsv){
 			q.savepath = st(wq.savepath.substr(0, wq.savepath.size()-4), '-', wq.whichone+1, ".csv");
-		else if (!hascsv)
-			q.savepath = wq.savepath + ".csv";
+		} else if (!hascsv){
+			q.savepath = wq.savepath += ".csv";
+		}
 	}
 	return runqueryJson(q);
 }
