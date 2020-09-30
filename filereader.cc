@@ -266,28 +266,32 @@ void openfiles(querySpecs &q, unique_ptr<node> &n){
 	openfiles(q, n->node3);
 }
 
-shared_ptr<directory> filebrowse(json& dir){
-	static auto ext = regex("\\.csv$", regex::icase);
-	static auto hid = regex("/\\.[^/]+$");
-	filesystem::path thisdir(fromjson<string>(dir,"Path"));
+regex_t extPattern;
+regex_t hidPattern;
+shared_ptr<directory> filebrowse(string dir){
+
+	filesystem::path thisdir(dir);
 	if (!filesystem::exists(thisdir)){
 		return {};
 	}
 	auto resp = make_shared<directory>();
-	list<string> others;
+	vector<string> others;
 	for (auto& f : filesystem::directory_iterator(thisdir)){
-		if (regex_match((string)f.path(), hid)){}
-		else if (filesystem::is_directory(f.status())){
+		if (!regexec(&hidPattern, f.path().c_str(), 0,0,0)){
+		} else if (filesystem::is_directory(f.status())){
 			resp->dirs.push_back(f.path());
 		} else if (filesystem::is_regular_file(f.status())){
-			if (regex_match((string)f.path(), ext))
+			if (!regexec(&extPattern, f.path().c_str(), 0,0,0))
 				resp->files.push_back(f.path());
 			else
 				others.push_back(f.path());
 		}
 	}
+	sort(resp->dirs.begin(), resp->dirs.end());
+	sort(resp->files.begin(), resp->files.end());
+	sort(others.begin(), others.end());
 	resp->files.insert(resp->files.end(), others.begin(), others.end());
 	resp->parent = thisdir.parent_path();
-	resp->mode = fromjson<string>(dir,"Mode");
+	resp->fpath = thisdir;
 	return resp;
 }

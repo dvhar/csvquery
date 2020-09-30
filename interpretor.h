@@ -165,6 +165,8 @@ extern regex_t leadingZeroString;
 extern regex_t durationPattern;
 extern regex_t intType;
 extern regex_t floatType;
+extern regex_t extPattern;
+extern regex_t hidPattern;
 extern regex cInt;
 extern regex posInt;
 extern regex colNum;
@@ -539,4 +541,4 @@ class directory {
 	void setDir(json&);
 	json& tojson();
 };
-shared_ptr<directory> filebrowse(json&);
+shared_ptr<directory> filebrowse(string);
