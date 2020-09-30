@@ -41,7 +41,7 @@ static void serve(){
 		try {
 			auto&& reqstr = request->content.string();
 			cerr << reqstr << endl;
-			json j = json::parse(reqstr);
+			auto j = json::parse(reqstr);
 			wq.savepath = fromjson<string>(j, "Savepath");
 			wq.qamount = fromjson<int>(j, "Qamount");
 			wq.fileIO = fromjson<int>(j, "FileIO");
@@ -86,11 +86,13 @@ static void serve(){
 			state = request->content.string();
 			cerr << state << endl;
 			response->write("{}");
-			return;
 		} else if (info == "fileClick"){
+			auto j = json::parse(request->content.string());
+			auto newlist = filebrowse(j);
+			response->write(newlist->tojson().dump());
+		} else {
+			response->write("{}");
 		}
-		response->write("{}");
-
 	};
 
 	openbrowser();

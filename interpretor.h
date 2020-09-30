@@ -527,3 +527,16 @@ static T fromjson(json& j, string&& key){
 		return T{};
 	}
 }
+
+class directory {
+	public:
+	json j;
+	string fpath;
+	string parent;
+	string mode;
+	vector<string> files;
+	vector<string> dirs;
+	void setDir(json&);
+	json& tojson();
+};
+shared_ptr<directory> filebrowse(json&);
