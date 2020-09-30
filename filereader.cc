@@ -228,18 +228,18 @@ void openfiles(querySpecs &q, unique_ptr<node> &n){
 		return;
 	if (n->label == N_FROM || n->label == N_JOIN){
 		//initialize and put in map
-		string path = n->tok1.val;
+		string& fpath = n->tok1.val;
 		string id = st("_f",q.numFiles);
-		shared_ptr<fileReader> fr(new fileReader(path));
+		auto fr = make_shared<fileReader>(fpath);
 		fr->id = id;
 		fr->fileno = q.numFiles;
 		q.files[id] = fr;
 		if (n->tok4.id)
 			q.files[n->tok4.val] = fr;
-		int a = path.find_last_of("/\\") + 1;
-		int b = path.size()-4-a;
-		path = path.substr(a, b);
-		q.files[path] = fr;
+		int a = fpath.find_last_of("/\\") + 1;
+		int b = fpath.size()-4-a;
+		fpath = fpath.substr(a, b);
+		q.files[fpath] = fr;
 
 		if (q.options & O_S)
 			fr->delim = ' ';

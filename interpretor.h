@@ -469,6 +469,17 @@ class returnData {
 	json& tojson();
 };
 
+class directory {
+	public:
+	json j;
+	string fpath;
+	string parent;
+	string mode;
+	vector<string> files;
+	vector<string> dirs;
+	void setDir(json&);
+	json& tojson();
+};
 
 void scanTokens(querySpecs &q);
 int varIsAgg(string lkup, querySpecs &q);
@@ -498,6 +509,7 @@ string handle_err(exception_ptr eptr);
 unique_ptr<node>& findFirstNode(unique_ptr<node> &n, int label);
 void prepareQuery(querySpecs &q);
 void stopAllQueries();
+shared_ptr<directory> filebrowse(string);
 
 struct freeC {
 	void operator()(void*x){ free(x); }
@@ -529,16 +541,3 @@ static T fromjson(json& j, string&& key){
 		return T{};
 	}
 }
-
-class directory {
-	public:
-	json j;
-	string fpath;
-	string parent;
-	string mode;
-	vector<string> files;
-	vector<string> dirs;
-	void setDir(json&);
-	json& tojson();
-};
-shared_ptr<directory> filebrowse(string);
