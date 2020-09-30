@@ -45,9 +45,8 @@ static void serve(){
 		webquery wq;
 		try {
 			auto&& reqstr = request->content.string();
-			cerr << reqstr << endl;
 			auto j = json::parse(reqstr);
-			wq.savepath = fromjson<string>(j, "Savepath");
+			wq.savepath = fromjson<string>(j, "SavePath");
 			wq.qamount = fromjson<int>(j, "Qamount");
 			wq.fileIO = fromjson<int>(j, "FileIO");
 			wq.querystring = regex_replace(fromjson<string>(j,"Query"), endSemicolon, "");
@@ -80,18 +79,19 @@ static void serve(){
 		if (info == "setState"){
 			state = json::parse(request->content.string());
 			response->write("{}");
+		} else if (info == "getState"){
+			response->write(state.dump(), header);
 		} else if (info == "fileClick"){
 			auto j = json::parse(request->content.string());
 			auto newlist = filebrowse(fromjson<string>(j,"path"));
 			newlist->mode = fromjson<string>(j,"mode");
+			j = newlist->tojson();
 			if (newlist->mode == "open"){
-				state["openDirList"] = newlist->tojson();
+				state["openDirList"] = j;
 			} else if (newlist->mode == "save"){
-				state["openDirList"] = newlist->tojson();
+				state["openDirList"] = j;
 			}
-			response->write(newlist->tojson().dump(), header);
-		} else if (info == "getState"){
-			response->write(state.dump());
+			response->write(j.dump(), header);
 		} else {
 			response->write("{}");
 		}
@@ -118,8 +118,17 @@ static shared_ptr<singleQueryResult> runWebQuery(webquery &wq){
 	cout << "webquery " << wq.whichone << ": " << wq.queries[wq.whichone] << endl;
 	querySpecs q(wq.queries[wq.whichone]);
 	q.sessionId = wq.sessionId;
-	if (wq.isSaving())
+	if (wq.isSaving()){
 		q.setoutputCsv();
+		bool hascsv = !regexec(&extPattern, wq.savepath.c_str(), 0,0,0);
+		bool multi = wq.queries.size() > 1;
+		if (multi && !hascsv)
+			q.savepath = st(wq.savepath, '-', wq.whichone+1, ".csv");
+		else if (multi && hascsv)
+			q.savepath = st(wq.savepath.substr(0, wq.savepath.size()-4), '-', wq.whichone+1, ".csv");
+		else if (!hascsv)
+			q.savepath = wq.savepath + ".csv";
+	}
 	return runqueryJson(q);
 }
 
