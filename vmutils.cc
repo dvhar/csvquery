@@ -408,7 +408,7 @@ flatmap<int,int> vmachine::relopIdx = {
 void messager::send(){
 	fprintf(stderr, "\r\33[2K%s", buf);
 	if (runmode == RUN_SERVER)
-		sendMessageSock(sessionId, buf);
+		sendMessage(sessionId, buf);
 }
 void messager::start(char* msg, int* n1, int* n2){
 	stop();
@@ -440,6 +440,8 @@ void messager::stop(){
 	runner.reset(nullptr);
 	if (!delay)
 		cerr << "r\33[2K\r";
+	if (runmode == RUN_SERVER)
+		sendMessage(sessionId, (char*)"");
 }
 
 bool opDoesJump(int opcode){
