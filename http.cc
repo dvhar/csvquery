@@ -34,8 +34,6 @@ static void serve(){
 	auto startdir = filebrowse(filesystem::current_path());
 	state["openDirList"] = startdir->tojson();
 	state["saveDirList"] = startdir->tojson();
-
-
 	auto endSemicolon = regex(";\\s*$");
 	server.config.port = 8060;
 	header.emplace("Cache-Control","no-store");
@@ -44,9 +42,7 @@ static void serve(){
 
 	server.resource["^/query/$"]["POST"] = [&](shared_ptr<HttpServer::Response> response, shared_ptr<HttpServer::Request> request){
 
-		// compatible with old version
 		webquery wq;
-
 		try {
 			auto&& reqstr = request->content.string();
 			cerr << reqstr << endl;
@@ -67,24 +63,15 @@ static void serve(){
 		} catch (...){
 			auto e = handle_err(current_exception());
 			cerr << "Error: " << e << endl;
-
 			returnData ret;
 			ret.status = DAT_ERROR;
 			ret.message = move(e);
 			ret.originalQuery = move(wq.querystring);
 			response->write(ret.tojson().dump());
 		}
-
-	}; // end /query/
-
-	server.resource["^/info$"]["GET"] = [&](shared_ptr<HttpServer::Response> response, shared_ptr<HttpServer::Request> request){
-		auto params = request->parse_query_string();
-		auto info = params.find("info")->second;
-		if (info == "getState"){
-			response->write(state.dump());
-		}
 	};
 
+	server.resource["^/info$"]["GET"] = 
 	server.resource["^/info$"]["POST"] = [&](shared_ptr<HttpServer::Response> response, shared_ptr<HttpServer::Request> request){
 
 		auto params = request->parse_query_string();
@@ -93,7 +80,6 @@ static void serve(){
 		if (info == "setState"){
 			state = json::parse(request->content.string());
 			response->write("{}");
-
 		} else if (info == "fileClick"){
 			auto j = json::parse(request->content.string());
 			auto newlist = filebrowse(fromjson<string>(j,"path"));
@@ -104,7 +90,8 @@ static void serve(){
 				state["openDirList"] = newlist->tojson();
 			}
 			response->write(newlist->tojson().dump(), header);
-
+		} else if (info == "getState"){
+			response->write(state.dump());
 		} else {
 			response->write("{}");
 		}

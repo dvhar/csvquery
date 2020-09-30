@@ -8,10 +8,10 @@ static WsServer server;
 static map<i64,shared_ptr<WsServer::Connection>> connections;
 static mutex seslock;
 static void pingbrowsers();
+static atomic_int clientCount{0};
 
 void servews(){
 	server.config.port = 8061;
-
 	auto &wsocket = server.endpoint["^/socket/?$"];
 
 	wsocket.on_message = [](shared_ptr<WsServer::Connection> connection, shared_ptr<WsServer::InMessage> in_message) {
@@ -29,6 +29,7 @@ void servews(){
 		seslock.lock();
 		connections[sesid] = connection;
 		seslock.unlock();
+		clientCount++;
 		cerr << "opened websocket connection " << connection.get() << endl;
 	};
 
@@ -37,6 +38,7 @@ void servews(){
 		seslock.lock();
 		connections.erase(sesid);
 		seslock.unlock();
+		clientCount--;
 		cerr << "closed websocket connection " << connection.get() << endl;
 	};
 
@@ -52,10 +54,15 @@ void servews(){
 
 static void pingbrowsers(){
 	string ping(json{{"Type",SK_PING}}.dump());
+	int deathcount = 0;
 	while(1){
 		sleep(1);
 		for (auto& c : server.get_connections())
 			c->send(ping);
+		if (clientCount > 0)
+			deathcount = 0;
+		else if (++deathcount >= 180)
+			exit(0);
 	}
 }
 
