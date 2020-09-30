@@ -520,7 +520,7 @@ extern int runmode;
 enum runmodes { RUN_CMD, RUN_SINGLE, RUN_SERVER };
 
 template<typename T>
-static T fromjson(json& j, string key){
+static T fromjson(json& j, string&& key){
 	try {
 		return j[key].get<T>();
 	} catch (exception e) {

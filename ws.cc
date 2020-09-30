@@ -7,7 +7,7 @@ using WsClient = SimpleWeb::SocketClient<SimpleWeb::WS>;
 static WsServer server;
 static map<i64,shared_ptr<WsServer::Connection>> connections;
 static mutex seslock;
-void pingbrowsers();
+static void pingbrowsers();
 
 void servews(){
 	server.config.port = 8061;
@@ -51,7 +51,7 @@ void servews(){
 	b.get();
 }
 
-void pingbrowsers(){
+static void pingbrowsers(){
 	string ping(json{{"Type",SK_PING}}.dump());
 	while(1){
 		sleep(1);
@@ -62,9 +62,7 @@ void pingbrowsers(){
 
 void sendMessageSock(i64 sesid, char* message){
 	seslock.lock();
-	auto conn = connections[sesid];
-	if (conn){
-		conn->send(json{{"Type",SK_MSG},{"Text",message}}.dump());
-	}
+	if (auto& c = connections[sesid]; c)
+		c->send(json{{"Type",SK_MSG},{"Text",message}}.dump());
 	seslock.unlock();
 }

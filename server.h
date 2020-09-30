@@ -22,6 +22,7 @@ enum legacy_server {
 };
 
 void sendMessageSock(i64,char*);
+void servews();
 
 class directory {
 	json j;
@@ -45,12 +46,4 @@ class webquery {
 	int fileIO =0;
 	i64 sessionId=0;
 	bool isSaving(){ return ((fileIO & F_CSV) != 0); }
-};
-
-class webserver {
-	string state;
-	public:
-	shared_ptr<returnData> runqueries(webquery &wq);
-	shared_ptr<singleQueryResult> runWebQuery(webquery &wq);
-	void serve();
 };
