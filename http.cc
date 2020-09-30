@@ -4,6 +4,7 @@
 #include <boost/algorithm/string/replace.hpp>
 #include <boost/algorithm/string/split.hpp>
 #include "deps/http/server_http.hpp"
+#include <filesystem>
 using HttpServer = SimpleWeb::Server<SimpleWeb::HTTP>;
 
 #if defined _WIN32
@@ -16,11 +17,12 @@ using HttpServer = SimpleWeb::Server<SimpleWeb::HTTP>;
 #error "not win mac or linux"	
 #endif
 
-static string state = "{}";
+static json state;
 static HttpServer server;
 static shared_ptr<returnData> runqueries(webquery &wq);
 static shared_ptr<singleQueryResult> runWebQuery(webquery &wq);
 static void serve();
+static SimpleWeb::CaseInsensitiveMultimap header;
 void embedsite(HttpServer&);
 
 void runServer(){
@@ -28,15 +30,22 @@ void runServer(){
 }
 
 static void serve(){
+
+	auto startdir = filebrowse(filesystem::current_path());
+	state["openDirList"] = startdir->tojson();
+	state["saveDirList"] = startdir->tojson();
+
+
 	auto endSemicolon = regex(";\\s*$");
 	server.config.port = 8060;
+	header.emplace("Cache-Control","no-store");
+	header.emplace("Content-Type", "text/plain");
 	embedsite(server);
 
 	server.resource["^/query/$"]["POST"] = [&](shared_ptr<HttpServer::Response> response, shared_ptr<HttpServer::Request> request){
 
 		// compatible with old version
 		webquery wq;
-		SimpleWeb::CaseInsensitiveMultimap header;
 
 		try {
 			auto&& reqstr = request->content.string();
@@ -53,8 +62,6 @@ static void serve(){
 			ret->originalQuery = move(wq.querystring);
 			if (wq.isSaving())
 				ret->message = "Saved to " + wq.savepath;
-			header.emplace("Cache-Control","no-store");
-			header.emplace("Content-Type", "text/plain");
 			response->write(ret->tojson().dump(), header);
 
 		} catch (...){
@@ -74,7 +81,7 @@ static void serve(){
 		auto params = request->parse_query_string();
 		auto info = params.find("info")->second;
 		if (info == "getState"){
-			response->write(state);
+			response->write(state.dump());
 		}
 	};
 
@@ -82,14 +89,22 @@ static void serve(){
 
 		auto params = request->parse_query_string();
 		auto info = params.find("info")->second;
+
 		if (info == "setState"){
-			state = request->content.string();
-			cerr << state << endl;
+			state = json::parse(request->content.string());
 			response->write("{}");
+
 		} else if (info == "fileClick"){
 			auto j = json::parse(request->content.string());
-			auto newlist = filebrowse(j);
-			response->write(newlist->tojson().dump());
+			auto newlist = filebrowse(fromjson<string>(j,"path"));
+			newlist->mode = fromjson<string>(j,"mode");
+			if (newlist->mode == "open"){
+				state["openDirList"] = newlist->tojson();
+			} else if (newlist->mode == "save"){
+				state["openDirList"] = newlist->tojson();
+			}
+			response->write(newlist->tojson().dump(), header);
+
 		} else {
 			response->write("{}");
 		}

@@ -45,10 +45,9 @@ void servews(){
 			<< ec << ", error message: " << ec.message() << endl;
 	};
 
-	auto a = async([&](){server.start();});
-	auto b = async(pingbrowsers);
+	auto a = async(pingbrowsers);
+	server.start();
 	a.get();
-	b.get();
 }
 
 static void pingbrowsers(){
