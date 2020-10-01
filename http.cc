@@ -85,15 +85,24 @@ static void serve(){
 			response->write(state.dump(), header);
 		} else if (info == "fileClick"){
 			auto j = json::parse(request->content.string());
-			auto newlist = filebrowse(fromjson<string>(j,"path"));
-			newlist->mode = fromjson<string>(j,"mode");
-			j = newlist->tojson();
-			if (newlist->mode == "open"){
-				state["openDirList"] = j;
-			} else if (newlist->mode == "save"){
-				state["openDirList"] = j;
+			cerr << j.dump() << endl;
+			string mode = fromjson<string>(j,"mode");
+			try {
+				auto newlist = filebrowse(fromjson<string>(j,"path"));
+				newlist->mode = fromjson<string>(j,"mode");
+				j = newlist->tojson();
+				if (mode == "open"){
+					state["openDirList"] = j;
+				} else if (mode == "save"){
+					state["openDirList"] = j;
+				}
+				response->write(j.dump(), header);
+			} catch (...) {
+				auto e = handle_err(current_exception());
+				cerr << e << endl;
+				sendMessage(fromjson<i64>(j,"SessionId"), e.c_str());
+				response->write("{}");
 			}
-			response->write(j.dump(), header);
 		} else {
 			response->write("{}");
 		}
