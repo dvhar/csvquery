@@ -413,11 +413,11 @@ void messager::send(){
 void messager::start(char* msg, int* n1, int* n2){
 	stop();
 	runner.reset(new thread([&](char* msg,int* num1,int* num2){
-		bool active = true;
-		running.push_front(&active);
+		running.push_front(true);
+		bool* active = &running.front();
 		while(1){
 			if (delay) sleep(1);
-			if (!active) return;
+			if (!*active) return;
 			delay = false;
 			snprintf(buf, 200, msg, *num1, *num2);
 			send();
@@ -436,7 +436,7 @@ void messager::say(char* msg, int* n1, int* n2){
 void messager::stop(){
 	if (running.empty())
 		return;
-	*running.front() = false;
+	running.front() = false;
 	runner.reset(nullptr);
 	if (!delay)
 		cerr << "r\33[2K\r";
