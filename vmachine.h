@@ -156,7 +156,7 @@ class stddev {
 class messager {
 	char buf[200];
 	unique_ptr<thread> runner;
-	forward_list<bool*> running;
+	forward_list<bool> running;
 	int blank = 0;
 	atomic_bool delay;
 	public:
