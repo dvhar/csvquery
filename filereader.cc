@@ -271,8 +271,8 @@ regex_t hidPattern;
 shared_ptr<directory> filebrowse(string dir){
 
 	filesystem::path thisdir(dir);
-	if (!filesystem::exists(thisdir)){
-		return {};
+	if (!filesystem::exists(thisdir) || !filesystem::is_directory(thisdir)){
+		error(st(dir," is not a directory"));
 	}
 	auto resp = make_shared<directory>();
 	vector<string> others;
