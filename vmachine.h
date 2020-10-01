@@ -155,8 +155,9 @@ class stddev {
 
 class messager {
 	char buf[200];
-	unique_ptr<thread> runner;
-	forward_list<bool> running;
+	future<void> stopslave;
+	promise<void> stopmaster;
+	thread runner;
 	int blank = 0;
 	atomic_bool delay;
 	public:

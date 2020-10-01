@@ -1,6 +1,7 @@
 #include "interpretor.h"
 #include "vmachine.h"
 #include "server.h"
+#include <chrono>
 
 //map for printing opcodes
 flatmap<int, string_view> opMap = {
@@ -412,32 +413,32 @@ void messager::send(){
 }
 void messager::start(char* msg, int* n1, int* n2){
 	stop();
-	runner.reset(new thread([&](char* msg,int* num1,int* num2){
-		running.push_front(true);
-		bool* active = &running.front();
-		while(1){
-			if (delay) sleep(1);
-			if (!*active) return;
+	stopmaster = promise<void>();
+	stopslave = stopmaster.get_future();
+	runner = thread([&](char* msg,int* num1,int* num2){
+		if (!delay){
+			snprintf(buf, 200, msg, *num1, *num2);
+			send();
+		}
+		while(stopslave.wait_for(chrono::milliseconds(1000)) == future_status::timeout){
 			delay = false;
 			snprintf(buf, 200, msg, *num1, *num2);
 			send();
-			if (!delay) sleep(1);
 		}
-	}, msg, n1?:&blank, n2?:&blank));
-	runner->detach();
+	}, msg, n1?:&blank, n2?:&blank);
 }
 void messager::say(char* msg, int* n1, int* n2){
+	stop();
 	if (delay)
 		return;
-	stop();
 	snprintf(buf, 200, msg, *(n1?:&blank), *(n2?:&blank));
 	send();
 }
 void messager::stop(){
-	if (running.empty())
-		return;
-	running.front() = false;
-	runner.reset(nullptr);
+	if (runner.joinable()){
+		stopmaster.set_value();
+		runner.join();
+	}
 	if (!delay)
 		cerr << "r\33[2K\r";
 	if (runmode == RUN_SERVER)
