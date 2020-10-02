@@ -143,6 +143,23 @@ static bool canBeString(unique_ptr<node> &n){
 		case FN_MDAY:
 		case FN_WDAY:
 		case FN_HOUR:
+		case FN_CIEL:
+		case FN_FLOOR:
+		case FN_ACOS:
+		case FN_ASIN:
+		case FN_ATAN:
+		case FN_COS:
+		case FN_SIN:
+		case FN_TAN:
+		case FN_EXP:
+		case FN_LOG:
+		case FN_LOG2:
+		case FN_LOG10:
+		case FN_SQRT:
+		case FN_RAND:
+		case FN_LEN:
+		case FN_INT:
+		case FN_FLOAT:
 			return false;
 		}
 	}
@@ -389,11 +406,21 @@ typer dataTyper::typeFunctionInnerNodes(unique_ptr<node> &n){
 		break;
 	case FN_ENCRYPT:
 	case FN_DECRYPT:
+	case FN_BASE64_ENCODE:
+	case FN_HEX_ENCODE:
+	case FN_MD5:
+	case FN_SHA1:
+	case FN_SHA256:
+	case FN_STRING:
+	case FN_UPPER:
+	case FN_LOWER:
+	case FN_SUBSTR:
+	case FN_BASE64_DECODE:
+	case FN_HEX_DECODE:
 		paramType = typeInnerNodes(n->node1);
 		innerType = {T_STRING, false};
-		if (!canBeString(n->node1)) {
+		if (!canBeString(n->node1))
 			n->tok5.id = paramType.type;
-		}
 		break;
 	case FN_YEAR:
 	case FN_MONTH:
@@ -413,6 +440,38 @@ typer dataTyper::typeFunctionInnerNodes(unique_ptr<node> &n){
 		if (innerType.type == T_INT)
 			innerType.type = T_FLOAT;
 		break;
+	case FN_CIEL:
+	case FN_FLOOR:
+	case FN_ACOS:
+	case FN_ASIN:
+	case FN_ATAN:
+	case FN_COS:
+	case FN_SIN:
+	case FN_TAN:
+	case FN_EXP:
+	case FN_LOG:
+	case FN_LOG2:
+	case FN_LOG10:
+	case FN_SQRT:
+	case FN_RAND:
+		typeInnerNodes(n->node1);
+		innerType = {T_FLOAT, false};
+		break;
+	case FN_LEN:
+		paramType = typeInnerNodes(n->node1);
+		innerType = {T_FLOAT, false};
+		if (!canBeString(n->node1))
+			n->tok5.id = paramType.type;
+	case FN_INT:
+		innerType = {T_INT, false};
+		n->tok5.id = typeInnerNodes(n->node1).type;
+		n->keep = true;
+	case FN_FLOAT:
+		innerType = {T_FLOAT, false};
+		n->tok5.id = typeInnerNodes(n->node1).type;
+		n->keep = true;
+		break;
+
 	default:
 		innerType = typeInnerNodes(n->node1);
 	}
@@ -570,6 +629,34 @@ void dataTyper::typeFunctionFinalNodes(unique_ptr<node> &n, int finaltype){
 	case FN_INC:
 	case FN_ENCRYPT:
 	case FN_DECRYPT:
+	case FN_BASE64_ENCODE:
+	case FN_HEX_ENCODE:
+	case FN_BASE64_DECODE:
+	case FN_HEX_DECODE:
+	case FN_MD5:
+	case FN_SHA1:
+	case FN_SHA256:
+	case FN_UPPER:
+	case FN_LOWER:
+	case FN_SUBSTR:
+	case FN_STRING:
+	case FN_CIEL:
+	case FN_FLOOR:
+	case FN_ACOS:
+	case FN_ASIN:
+	case FN_ATAN:
+	case FN_COS:
+	case FN_SIN:
+	case FN_TAN:
+	case FN_EXP:
+	case FN_LOG:
+	case FN_LOG2:
+	case FN_LOG10:
+	case FN_SQRT:
+	case FN_RAND:
+	case FN_LEN:
+	case FN_INT:
+	case FN_FLOAT:
 		//add type conversion node if needed
 		if (n->tok5.id){
 			typeFinalValues(n->node1, n->tok5.id);
