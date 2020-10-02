@@ -66,6 +66,7 @@ static void pingbrowsers(){
 	}
 }
 
+void sendMessage(i64 sesid, string message){ sendMessage(sesid, message.c_str()); }
 void sendMessage(i64 sesid, const char* message){
 	seslock.lock();
 	if (auto& c = connections[sesid]; c)

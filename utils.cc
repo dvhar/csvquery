@@ -449,7 +449,7 @@ json& singleQueryResult::tojson(){
 json& returnData::tojson(){
 	j = {
 		{"Status",status},
-		{"Clipped",clipped},
+		{"Clipped",maxclipped>0},
 		{"Message",message},
 		{"OriginalQuery",originalQuery},
 	};
