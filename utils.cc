@@ -186,6 +186,8 @@ const flatmap<string_view, int> functionMap = {
 	{"string",       FN_STRING},
 	{"int",          FN_INT},
 	{"float",        FN_FLOAT},
+	{"round",        FN_ROUND},
+	{"pow",          FN_POW},
 
 };
 //use WORD for these?

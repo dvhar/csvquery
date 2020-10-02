@@ -152,6 +152,8 @@ enum {
 	FN_STRING =        KEYWORD|93,
 	FN_INT =           KEYWORD|94,
 	FN_FLOAT =         KEYWORD|95,
+	FN_ROUND =         KEYWORD|96,
+	FN_POW =           KEYWORD|97,
 
 	SPECIALBIT =  1<<21,
 	SPECIAL =      FINAL|SPECIALBIT,

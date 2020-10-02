@@ -160,6 +160,8 @@ static bool canBeString(unique_ptr<node> &n){
 		case FN_LEN:
 		case FN_INT:
 		case FN_FLOAT:
+		case FN_ROUND:
+		case FN_POW:
 			return false;
 		}
 	}
@@ -454,6 +456,8 @@ typer dataTyper::typeFunctionInnerNodes(unique_ptr<node> &n){
 	case FN_LOG10:
 	case FN_SQRT:
 	case FN_RAND:
+	case FN_ROUND:
+	case FN_POW:
 		typeInnerNodes(n->node1);
 		innerType = {T_FLOAT, false};
 		break;
@@ -657,6 +661,8 @@ void dataTyper::typeFunctionFinalNodes(unique_ptr<node> &n, int finaltype){
 	case FN_LEN:
 	case FN_INT:
 	case FN_FLOAT:
+	case FN_ROUND:
+	case FN_POW:
 		//add type conversion node if needed
 		if (n->tok5.id){
 			typeFinalValues(n->node1, n->tok5.id);

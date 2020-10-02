@@ -1013,8 +1013,7 @@ ENCCHA_:
 		stk0.u.s = pt1.first;
 		stk0.z = pt1.second;
 		stk0.b = T_STRING|MAL;
-	}
-	nexti();
+	} nexti();
 DECCHA_:
 	ifvalid {
 		auto&& pt2 = q->crypt.chachaDecrypt(op->p1, stk0.z, stk0.u.s);
@@ -1022,8 +1021,7 @@ DECCHA_:
 		stk0.u.s = pt2.first;
 		stk0.z = pt2.second;
 		stk0.b = T_STRING|MAL;
-	}
-	nexti();
+	} nexti();
 #define get_tm() \
 	skipnull(); \
 	secs_to_tm(sec(stk0.u.i), &timetm);
@@ -1071,6 +1069,96 @@ FUNC_MONTHNAME_:
 	get_tm();
 	stk0 = { { s: monthnames[timetm.tm_mon] }, T_STRING, monthlens[timetm.tm_mon] };
 	nexti();
+FUNC_CIEL_:
+	ifvalid stk0.u.f = ceil(stk0.u.f);
+	nexti();
+FUNC_FLOOR_:
+	ifvalid stk0.u.f = floor(stk0.u.f);
+	nexti();
+FUNC_ACOS_:
+	ifvalid stk0.u.f = acos(stk0.u.f);
+	nexti();
+FUNC_ASIN_:
+	ifvalid stk0.u.f = asin(stk0.u.f);
+	nexti();
+FUNC_ATAN_:
+	ifvalid stk0.u.f = atan(stk0.u.f);
+	nexti();
+FUNC_COS_:
+	ifvalid stk0.u.f = cos(stk0.u.f);
+	nexti();
+FUNC_SIN_:
+	ifvalid stk0.u.f = sin(stk0.u.f);
+	nexti();
+FUNC_TAN_:
+	ifvalid stk0.u.f = tan(stk0.u.f);
+	nexti();
+FUNC_EXP_:
+	ifvalid stk0.u.f = exp(stk0.u.f);
+	nexti();
+FUNC_LOG_:
+	ifvalid stk0.u.f = log(stk0.u.f);
+	nexti();
+FUNC_LOG2_:
+	ifvalid stk0.u.f = log2(stk0.u.f);
+	nexti();
+FUNC_LOG10_:
+	ifvalid stk0.u.f = log10(stk0.u.f);
+	nexti();
+FUNC_SQRT_:
+	ifvalid stk0.u.f = sqrt(stk0.u.f);
+	nexti();
+FUNC_ROUND_:
+	ifvalid stk0.u.f = round(stk0.u.f);
+	nexti();
+FUNC_RAND_:
+	stk0.u.f = rand(); //TODO: args and better rng
+	nexti();
+FUNC_UPPER_:
+	ifvalid for(auto c = stk0.u.s; *c; ++c) *c = toupper(*c);
+	nexti();
+FUNC_LOWER_:
+	ifvalid for(auto c = stk0.u.s; *c; ++c) *c = tolower(*c);
+	nexti();
+FUNC_BASE64_ENCODE_:
+	ifvalid {
+		int newsize = encsize(stk0.z);
+		auto newstring = (char*)malloc(newsize);
+		b64_encode(stk0.u.s, (unsigned char*)newstring, stk0.z);
+		stk0.freedat();
+		stk0 = dat{ {s: newstring}, T_STRING|MAL, newsize};
+	} nexti();
+FUNC_BASE64_DECODE_:
+	ifvalid {
+		auto newstring = (char*)malloc(stk0.z+1);
+		b64_decode(stk0.u.s, (unsigned char*)newstring, stk0.z, &stk0.z);
+		newstring = realloc(newstring, stk0.z+1);
+		stk0.freedat();
+		stk0 = dat{ {s: newstring}, T_STRING|MAL, stk0.z};
+	} nexti();
+FUNC_HEX_ENCODE_:
+FUNC_HEX_DECODE_:
+FUNC_LEN_:
+	ifvalid {
+		auto d = stk0;
+		stk0 = dat{ {f: d.z}, T_FLOAT };
+		d.freedat();
+	} nexti();
+FUNC_SUBSTR_:
+	ifvalid {
+		if (op->p2 <= stk0.z) {
+			auto d = stk0;
+			stk0.u.s = (char*)malloc(op->p3);
+			strcpy(stk0.u.s, d.u.s+op->p1);
+			d.freedat();
+		} else
+			stk0.freedat();
+	} nexti();
+FUNC_MD5_:
+FUNC_SHA1_:
+FUNC_SHA256_:
+	//string(),int(),float() use conv instr
+
 //aggregates
 LDSTDVI_:
 	nexti(); //TODO
