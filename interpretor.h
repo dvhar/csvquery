@@ -420,8 +420,8 @@ class crypter {
 	public:
 	vector<chactx> ctxs;
 	int newChacha(string);
-	pair<char*,int> chachaEncrypt(int, int, char*);
-	pair<char*,int> chachaDecrypt(int, int, char*);
+	pair<char*,int> chachaEncrypt(int, size_t, char*);
+	pair<char*,int> chachaDecrypt(int, size_t, char*);
 };
 
 class querySpecs {
