@@ -443,6 +443,7 @@ class querySpecs {
 class singleQueryResult {
 	json j;
 	public:
+	bool clipped = false;
 	int numrows =0;
 	int showLimit =0;
 	int numcols =0;
@@ -463,8 +464,8 @@ class returnData {
 	public:
 	list<shared_ptr<singleQueryResult>> entries;
 	int status =0;
+	int maxclipped =0;
 	string originalQuery;
-	bool clipped =0;
 	string message;
 	json& tojson();
 };

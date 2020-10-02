@@ -55,10 +55,10 @@ static void serve(){
 			auto ret = runqueries(wq);
 			ret->status = DAT_GOOD;
 			ret->originalQuery = move(wq.querystring);
-			if (wq.isSaving()){
-				auto msg = "Saved to " + wq.savepath;
-				sendMessage(wq.sessionId, msg.c_str());
-			}
+			if (wq.isSaving())
+				sendMessage(wq.sessionId, "Saved to " + wq.savepath);
+			else if (ret->maxclipped)
+				sendMessage(wq.sessionId, st("Only showing first ",ret->maxclipped," results"));
 			response->write(ret->tojson().dump(), header);
 
 		} catch (...){
@@ -119,7 +119,10 @@ static shared_ptr<returnData> runqueries(webquery &wq){
 	boost::split(wq.queries, wq.querystring, boost::is_any_of(";"));
 	auto ret = make_shared<returnData>();
 	for (auto &q: wq.queries){
-		ret->entries.push_back(runWebQuery(wq));
+		auto&& singleResult = runWebQuery(wq);
+		ret->entries.push_back(singleResult);
+		if (singleResult->clipped)
+			ret->maxclipped = max(ret->maxclipped, singleResult->showLimit);
 		wq.whichone++;
 	}
 	return ret;

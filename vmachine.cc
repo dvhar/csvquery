@@ -935,6 +935,8 @@ PRINTJSON_:
 			torow[i].appendToJsonBuffer(row);
 		++numJsonPrinted;
 		jsonresult->Vals.push_back(move(row));
+	} else {
+		jsonresult->clipped = true;
 	}
 	jsonresult->numrows++;
 	totalPrinted += op->p1; //in case not csv printing

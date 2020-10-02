@@ -442,7 +442,7 @@ void messager::stop(){
 	if (!delay)
 		cerr << "r\33[2K\r";
 	if (runmode == RUN_SERVER)
-		sendMessage(sessionId, (char*)"");
+		sendMessage(sessionId, "");
 }
 
 bool opDoesJump(int opcode){
