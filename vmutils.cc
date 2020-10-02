@@ -1,6 +1,10 @@
 #include "interpretor.h"
 #include "vmachine.h"
 #include "server.h"
+#include "deps/crypto-algorithms/sha1.h"
+#include "deps/crypto-algorithms/sha256.h"
+#include "deps/crypto-algorithms/md5.h"
+#include "deps/crypto-algorithms/aes.h"
 #include <chrono>
 
 //map for printing opcodes
@@ -325,6 +329,8 @@ pair<char*, int> crypter::chachaDecrypt(int i, int len, char* input){
 	memcpy(finalResult, rawResult+3, finalSize);
 	finalResult[finalSize]=0;
 	return pair<char*,int>(finalResult, finalSize);
+}
+void sha1(dat& d){
 }
 
 
