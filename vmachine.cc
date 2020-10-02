@@ -28,7 +28,7 @@
 	next();
 #define skipnull() \
 	if (stk0.isnull()){ nexti() };
-#define ifvalid if (!stk0.isnull())
+#define ifnotnull if (!stk0.isnull())
 
 void vmachine::run(){
 	constexpr void* labels[] = { &&CVER_, &&CVNO_, &&CVIF_, &&CVIS_, &&CVFI_, &&CVFS_, &&CVDRS_, &&CVDTS_, &&CVSI_, &&CVSF_, &&CVSDR_, &&CVSDT_, &&IADD_, &&FADD_, &&TADD_, &&DTADD_, &&DRADD_, &&ISUB_, &&FSUB_, &&DTSUB_, &&DRSUB_, &&IMULT_, &&FMULT_, &&DRMULT_, &&IDIV_, &&FDIV_, &&DRDIV_, &&INEG_, &&FNEG_, &&PNEG_, &&IMOD_, &&FMOD_, &&IEXP_, &&FEXP_, &&JMP_, &&JMPCNT_, &&JMPTRUE_, &&JMPFALSE_, &&JMPNOTNULL_ELSEPOP_, &&RDLINE_, &&RDLINE_ORDERED_, &&PREP_REREAD_, &&PUT_, &&LDPUT_, &&LDPUTALL_, &&PUTVAR_, &&PUTVAR2_, &&LDINT_, &&LDFLOAT_, &&LDTEXT_, &&LDDATE_, &&LDDUR_, &&LDNULL_, &&LDLIT_, &&LDVAR_, &&HOLDVAR_, &&IEQ_, &&FEQ_, &&TEQ_, &&LIKE_, &&ILEQ_, &&FLEQ_, &&TLEQ_, &&ILT_, &&FLT_, &&TLT_, &&PRINTCSV_, &&PRINTJSON_, &&PUSH_, &&PUSH_N_, &&POP_, &&POPCPY_, &&ENDRUN_, &&NULFALSE1_, &&NULFALSE2_, &&NDIST_, &&SDIST_, &&PUTDIST_, &&LDDIST_, &&FINC_, &&ENCCHA_, &&DECCHA_, &&SAVESORTN_, &&SAVESORTS_, &&SAVEVALPOS_, &&SAVEPOS_, &&SORT_, &&GETGROUP_, &&ONEGROUP_, &&SUMI_, &&SUMF_, &&AVGI_, &&AVGF_, &&STDVI_, &&STDVF_, &&COUNT_, &&MINI_, &&MINF_, &&MINS_, &&MAXI_, &&MAXF_, &&MAXS_, &&NEXTMAP_, &&NEXTVEC_, &&ROOTMAP_, &&LDMID_, &&LDPUTMID_, &&LDPUTGRP_, &&LDSTDVI_, &&LDSTDVF_, &&LDAVGI_, &&LDAVGF_, &&ADD_GROUPSORT_ROW_, &&FREE_MIDROW_, &&GSORT_, &&READ_NEXT_GROUP_, &&NUL_TO_STR_, &&SORTVALPOS_, &&JOINSET_EQ_AND_, &&JOINSET_EQ_, &&JOINSET_LESS_, &&JOINSET_GRT_, &&JOINSET_LESS_AND_, &&JOINSET_GRT_AND_, &&JOINSET_INIT_, &&JOINSET_TRAV_, &&AND_SET_, &&OR_SET_, &&SAVEANDCHAIN_, &&SORT_ANDCHAIN_, &&FUNC_YEAR_, &&FUNC_MONTH_, &&FUNC_WEEK_, &&FUNC_YDAY_, &&FUNC_MDAY_, &&FUNC_WDAY_, &&FUNC_HOUR_, &&FUNC_MINUTE_, &&FUNC_SECOND_, &&FUNC_WDAYNAME_, &&FUNC_MONTHNAME_, &&FUNC_ABSF_, &&FUNC_ABSI_, &&START_MESSAGE_, &&STOP_MESSAGE_};
@@ -670,11 +670,11 @@ DRDIV_:
 	pop();
 	nexti();
 INEG_:
-	ifvalid
+	ifnotnull
 	if (stk0.u.i != 0) stk0.u.i *= -1;
 	nexti();
 FNEG_:
-	ifvalid
+	ifnotnull
 	if (stk0.u.i != 0) stk0.u.f *= -1;
 	nexti();
 PNEG_:
@@ -992,12 +992,12 @@ SDIST_:
 
 //functions
 FUNC_ABSI_:
-	ifvalid
+	ifnotnull
 	if (stk0.u.i < 0)
 		stk0.u.i *= -1;
 	nexti();
 FUNC_ABSF_:
-	ifvalid
+	ifnotnull
 	if (stk0.u.f < 0)
 		stk0.u.f *= -1;
 	nexti();
@@ -1007,7 +1007,7 @@ FINC_:
 	stk0 = q->dataholder[op->p1];
 	nexti();
 ENCCHA_:
-	ifvalid {
+	ifnotnull {
 		auto&& pt1 = q->crypt.chachaEncrypt(op->p1, stk0.z, stk0.u.s);
 		if (stk0.ismal()) free(stk0.u.s);
 		stk0.u.s = pt1.first;
@@ -1015,7 +1015,7 @@ ENCCHA_:
 		stk0.b = T_STRING|MAL;
 	} nexti();
 DECCHA_:
-	ifvalid {
+	ifnotnull {
 		auto&& pt2 = q->crypt.chachaDecrypt(op->p1, stk0.z, stk0.u.s);
 		if (stk0.ismal()) free(stk0.u.s);
 		stk0.u.s = pt2.first;
@@ -1070,82 +1070,82 @@ FUNC_MONTHNAME_:
 	stk0 = { { s: monthnames[timetm.tm_mon] }, T_STRING, monthlens[timetm.tm_mon] };
 	nexti();
 FUNC_CIEL_:
-	ifvalid stk0.u.f = ceil(stk0.u.f);
+	ifnotnull stk0.u.f = ceil(stk0.u.f);
 	nexti();
 FUNC_FLOOR_:
-	ifvalid stk0.u.f = floor(stk0.u.f);
+	ifnotnull stk0.u.f = floor(stk0.u.f);
 	nexti();
 FUNC_ACOS_:
-	ifvalid stk0.u.f = acos(stk0.u.f);
+	ifnotnull stk0.u.f = acos(stk0.u.f);
 	nexti();
 FUNC_ASIN_:
-	ifvalid stk0.u.f = asin(stk0.u.f);
+	ifnotnull stk0.u.f = asin(stk0.u.f);
 	nexti();
 FUNC_ATAN_:
-	ifvalid stk0.u.f = atan(stk0.u.f);
+	ifnotnull stk0.u.f = atan(stk0.u.f);
 	nexti();
 FUNC_COS_:
-	ifvalid stk0.u.f = cos(stk0.u.f);
+	ifnotnull stk0.u.f = cos(stk0.u.f);
 	nexti();
 FUNC_SIN_:
-	ifvalid stk0.u.f = sin(stk0.u.f);
+	ifnotnull stk0.u.f = sin(stk0.u.f);
 	nexti();
 FUNC_TAN_:
-	ifvalid stk0.u.f = tan(stk0.u.f);
+	ifnotnull stk0.u.f = tan(stk0.u.f);
 	nexti();
 FUNC_EXP_:
-	ifvalid stk0.u.f = exp(stk0.u.f);
+	ifnotnull stk0.u.f = exp(stk0.u.f);
 	nexti();
 FUNC_LOG_:
-	ifvalid stk0.u.f = log(stk0.u.f);
+	ifnotnull stk0.u.f = log(stk0.u.f);
 	nexti();
 FUNC_LOG2_:
-	ifvalid stk0.u.f = log2(stk0.u.f);
+	ifnotnull stk0.u.f = log2(stk0.u.f);
 	nexti();
 FUNC_LOG10_:
-	ifvalid stk0.u.f = log10(stk0.u.f);
+	ifnotnull stk0.u.f = log10(stk0.u.f);
 	nexti();
 FUNC_SQRT_:
-	ifvalid stk0.u.f = sqrt(stk0.u.f);
+	ifnotnull stk0.u.f = sqrt(stk0.u.f);
 	nexti();
 FUNC_ROUND_:
-	ifvalid stk0.u.f = round(stk0.u.f);
+	ifnotnull stk0.u.f = round(stk0.u.f);
 	nexti();
 FUNC_RAND_:
 	stk0.u.f = rand(); //TODO: args and better rng
 	nexti();
 FUNC_UPPER_:
-	ifvalid for(auto c = stk0.u.s; *c; ++c) *c = toupper(*c);
+	ifnotnull for(auto c = stk0.u.s; *c; ++c) *c = toupper(*c);
 	nexti();
 FUNC_LOWER_:
-	ifvalid for(auto c = stk0.u.s; *c; ++c) *c = tolower(*c);
+	ifnotnull for(auto c = stk0.u.s; *c; ++c) *c = tolower(*c);
 	nexti();
 FUNC_BASE64_ENCODE_:
-	ifvalid {
-		int newsize = encsize(stk0.z);
+	ifnotnull {
+		u32 newsize = encsize(stk0.z);
 		auto newstring = (char*)malloc(newsize);
-		b64_encode(stk0.u.s, (unsigned char*)newstring, stk0.z);
+		b64_encode((const unsigned char*)stk0.u.s, (unsigned char*) newstring, (int)stk0.z);
 		stk0.freedat();
 		stk0 = dat{ {s: newstring}, T_STRING|MAL, newsize};
 	} nexti();
 FUNC_BASE64_DECODE_:
-	ifvalid {
+	ifnotnull {
 		auto newstring = (char*)malloc(stk0.z+1);
-		b64_decode(stk0.u.s, (unsigned char*)newstring, stk0.z, &stk0.z);
-		newstring = realloc(newstring, stk0.z+1);
+		b64_decode((const char*)stk0.u.s, newstring, (int)stk0.z, (int*)&stk0.z);
+		newstring = (char*)realloc(newstring, stk0.z+1);
 		stk0.freedat();
 		stk0 = dat{ {s: newstring}, T_STRING|MAL, stk0.z};
 	} nexti();
 FUNC_HEX_ENCODE_:
 FUNC_HEX_DECODE_:
 FUNC_LEN_:
-	ifvalid {
+	ifnotnull {
 		auto d = stk0;
-		stk0 = dat{ {f: d.z}, T_FLOAT };
+		stk0 = dat{ {f: (double)d.z}, T_FLOAT };
 		d.freedat();
 	} nexti();
 FUNC_SUBSTR_:
-	ifvalid {
+	ifnotnull {
 		if (op->p2 <= stk0.z) {
 			auto d = stk0;
 			stk0.u.s = (char*)malloc(op->p3);
