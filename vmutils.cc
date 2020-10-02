@@ -1,10 +1,10 @@
 #include "interpretor.h"
 #include "vmachine.h"
 #include "server.h"
-#include "deps/crypto-algorithms/sha1.h"
-#include "deps/crypto-algorithms/sha256.h"
-#include "deps/crypto-algorithms/md5.h"
-#include "deps/crypto-algorithms/aes.h"
+//#include "deps/crypto/sha1.h"
+//#include "deps/crypto/sha256.h"
+//#include "deps/crypto/md5.h"
+//#include "deps/crypto/aes.h"
 #include <chrono>
 
 //map for printing opcodes
@@ -294,7 +294,7 @@ int crypter::newChacha(string pass){
 	return ctxs.size()-1;
 }
 //each row has own nonce so need to reinitialize chacha cipher each time
-pair<char*, int> crypter::chachaEncrypt(int i, int len, char* input){
+pair<char*, int> crypter::chachaEncrypt(int i, size_t len, char* input){
 	len++; //null terminator
 	auto ch = ctxs.data()+i;
 	auto rawResult = (uint8_t*) alloca(len+3);
@@ -308,16 +308,16 @@ pair<char*, int> crypter::chachaEncrypt(int i, int len, char* input){
 	chacha20_xor(&ch->ctx, rawResult+3, len);
 	int finalSize = encsize(len+3);
 	auto finalResult = (char*) malloc(finalSize+1);
-	b64_encode(rawResult, (unsigned char*)finalResult, len+3);
+	base64_encode((BYTE*)rawResult, (BYTE*)finalResult, len+3, 0);
 	finalResult[finalSize]=0;
 	return pair<char*,int>(finalResult, finalSize);
 }
-pair<char*, int> crypter::chachaDecrypt(int i, int len, char* input){
+pair<char*, int> crypter::chachaDecrypt(int i, size_t len, char* input){
 	len++; //null terminator
 	auto ch = ctxs.data()+i;
 	auto rawResult = (char*) alloca(len);
 	int finalSize;
-	b64_decode(input, rawResult, len, &finalSize);
+	finalSize = base64_decode((BYTE*)input, (BYTE*)rawResult, len);
 	finalSize -= 4;
 	ch->nonce[0] = rawResult[0];
 	ch->nonce[1] = rawResult[1];
