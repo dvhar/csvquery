@@ -15,6 +15,9 @@
 /****************************** MACROS ******************************/
 #define SHA256_BLOCK_SIZE 32            // SHA256 outputs a 32 byte digest
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 /**************************** DATA TYPES ****************************/
 typedef unsigned char BYTE;             // 8-bit byte
 typedef unsigned int  WORD;             // 32-bit word, change to "long" for 16-bit machines
@@ -31,4 +34,7 @@ void sha256_init(SHA256_CTX *ctx);
 void sha256_update(SHA256_CTX *ctx, const BYTE data[], size_t len);
 void sha256_final(SHA256_CTX *ctx, BYTE hash[]);
 
+#ifdef __cplusplus
+}
+#endif
 #endif   // SHA256_H
