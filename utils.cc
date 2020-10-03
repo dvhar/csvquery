@@ -2,9 +2,6 @@
 #include <stdlib.h>
 #include <ctype.h>
 #define max(a,b) (a) > (b) ? (a) : (b)
-#define isInt(A) !regexec(&intType, A, 0, NULL, 0) //make faster version
-#define isFloat(A) !regexec(&floatType, A, 0, NULL, 0)
-#define isDuration(A) !regexec(&durationPattern, A, 0, NULL, 0)
 
 regex_t leadingZeroString;
 regex_t durationPattern;
@@ -13,6 +10,9 @@ regex_t floatType;
 regex cInt("^c\\d+$");
 regex posInt("^\\d+$");
 regex colNum("^c?\\d+$");
+int isDuration(const char* s){ return !regexec(&durationPattern, s, 0, NULL, 0); }
+int isInt(const char* s){ return !regexec(&intType, s, 0, NULL, 0); }
+int isFloat(const char* s){ return !regexec(&floatType, s, 0, NULL, 0); }
 
 const flatmap<int, string_view> enumMap = {
 	{EOS ,           "EOS"},

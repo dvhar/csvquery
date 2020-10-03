@@ -960,6 +960,20 @@ void cgen::genFunction(unique_ptr<node> &n){
 		} else /* aes */ {
 		}
 		break;
+	case FN_SUBSTR:
+		genExprAll(n->node1);
+		if (!n->tok2.quoted) {
+			auto n1 = parseIntDat(n->tok2.val.c_str());
+			auto n2 = parseIntDat(n->tok3.val.c_str());
+			addop3(FUNC_SUBSTR, n1.u.i, n2.u.i, 0);
+		} else {
+			dat reg{{r: new regex_t}, RMAL};
+			if (regcomp(reg.u.r, n->tok2.val.c_str(), REG_EXTENDED))
+				error("Could not parse 'substr' pattern");
+			addop3(FUNC_SUBSTR, q->dataholder.size(), 0, 1);
+			q->dataholder.push_back(reg);
+		}
+		break;
 	case FN_STRING:
 	case FN_INT:
 	case FN_FLOAT:

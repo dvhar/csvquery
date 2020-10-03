@@ -731,12 +731,12 @@ unique_ptr<node> parser::parseFunction() {
 		case FN_SUBSTR:
 			n->node1 = parseExprAdd();
 			if (t = q->tok(); t.id != SP_COMMA)
-				error("SUBSTR function expected comma before first number. Found: " +t.val);
+				error("SUBSTR function expected comma before second parameter. Found: " +t.val);
 			n->tok2 = q->nextTok();
-			if (t = q->nextTok(); t.id != SP_COMMA)
-				error("SUBSTR function expected comma before second number. Found: " +t.val);
-			n->tok3 = q->nextTok();
-			q->nextTok();
+			if (t = q->nextTok(); t.id == SP_COMMA){
+				n->tok3 = q->nextTok();
+				q->nextTok();
+			}
 			break;
 		default:
 			n->node1 = parseExprAdd();
