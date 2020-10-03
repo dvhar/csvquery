@@ -1128,8 +1128,9 @@ FUNC_LOWER_:
 FUNC_BASE64_ENCODE_:
 	ifnotnull {
 		u32 newsize = encsize(stk0.z);
-		auto newstring = (char*)malloc(newsize);
+		auto newstring = (char*)malloc(newsize+1);
 		base64_encode((BYTE*)stk0.u.s, (BYTE*) newstring, (int)stk0.z, 0);
+		newstring[newsize] = 0;
 		stk0.freedat();
 		stk0 = dat{ {s: newstring}, T_STRING|MAL, newsize};
 	} nexti();
@@ -1138,6 +1139,7 @@ FUNC_BASE64_DECODE_:
 		auto newstring = (char*)malloc(stk0.z+1);
 		stk0.z = base64_decode((BYTE*)stk0.u.s, (BYTE*)newstring, (int)stk0.z);
 		newstring = (char*)realloc(newstring, stk0.z+1);
+		newstring[stk0.z] = 0;
 		stk0.freedat();
 		stk0 = dat{ {s: newstring}, T_STRING|MAL, stk0.z};
 	} nexti();

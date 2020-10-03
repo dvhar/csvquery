@@ -220,7 +220,9 @@ enum: int {
 	CHAINSIZE,
 	CHAINIDX,
 	FILENO,
-	TOSCAN
+	TOSCAN,
+	PARAMTYPE,
+	RETTYPE
 };
 class node {
 	public:

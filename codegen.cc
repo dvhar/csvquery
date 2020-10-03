@@ -1056,7 +1056,11 @@ void cgen::genTypeConv(unique_ptr<node> &n){
 	if (n == nullptr) return;
 	e("type convert");
 	genExprAll(n->node1);
-	addop0(typeConv[n->tok1.id][n->datatype]);
+	auto cnv = typeConv[n->tok1.id][n->datatype];
+	if (cnv == CVER)
+		error(st("Cannot use type ",nameMap.at(n->tok1.id)," with incompatible type ",nameMap.at(n->datatype)));
+	if (cnv != CVNO)
+		addop0(typeConv[n->tok1.id][n->datatype]);
 }
 
 void cgen::genGetGroup(unique_ptr<node> &n){
