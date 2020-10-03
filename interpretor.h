@@ -543,6 +543,7 @@ unique_ptr<node>& findFirstNode(unique_ptr<node> &n, int label);
 void prepareQuery(querySpecs &q);
 void stopAllQueries();
 shared_ptr<directory> filebrowse(string);
+string promptPassword();
 
 struct freeC {
 	void operator()(void*x){ free(x); }

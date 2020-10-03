@@ -462,6 +462,9 @@ string handle_err(exception_ptr eptr) {
         return  e.what();
     }
 }
+string promptPassword(){
+	return "dog";
+}
 
 json& singleQueryResult::tojson(){
 	j = {
