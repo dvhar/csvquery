@@ -1109,7 +1109,9 @@ FUNC_ROUND_:
 	ifnotnull stk0.u.f = round(stk0.u.f);
 	nexti();
 FUNC_RAND_:
-	stk0.u.f = rand(); //TODO: args and better rng
+	push();
+	stk0.u.f = rand(); //TODO: better rng
+	stk0.b = T_FLOAT;
 	nexti();
 FUNC_UPPER_:
 	ifnotnull {
@@ -1153,15 +1155,36 @@ FUNC_LEN_:
 	} nexti();
 FUNC_SUBSTR_:
 	ifnotnull {
-		if (op->p2 <= stk0.z) {
+		if (op->p3){
 			auto d = stk0;
-			stk0.u.s = (char*)malloc(op->p3);
-			stk0.b |= MAL;
-			stk0.z = op->p3-1;
-			strncpy(stk0.u.s, d.u.s+op->p1, op->p3);
+			regmatch_t pm[1];
+			if (!regexec(q->dataholder[op->p1].u.r, d.u.s, 1, pm, 0)){
+				stk0.z = pm[0].rm_eo - pm[0].rm_so;
+				stk0.u.s = (char*)malloc(stk0.z+1);
+				stk0.b |= MAL;
+				strncpy(stk0.u.s, d.u.s+pm[0].rm_so, stk0.z);
+				stk0.u.s[stk0.z] = 0;
+			} else
+				stk0.setnull();
 			d.freedat();
-		} else
-			stk0.freedat();
+		} else {
+			if (op->p1+op->p2 <= stk0.z) {
+				auto d = stk0;
+				stk0.u.s = (char*)malloc(op->p2+1);
+				stk0.b |= MAL;
+				stk0.z = op->p2;
+				strncpy(stk0.u.s, d.u.s+op->p1, op->p2);
+				stk0.u.s[op->p2] = 0;
+				d.freedat();
+			} else if (op->p1 < stk0.z) {
+				auto d = stk0;
+				stk0.u.s = strdup(d.u.s+op->p1);
+				stk0.z = strlen(stk0.u.s);
+				stk0.b |= MAL;
+				d.freedat();
+			} else
+				stk0.freedat();
+		}
 	} nexti();
 FUNC_MD5_:
 	ifnotnull md5(stk0);
