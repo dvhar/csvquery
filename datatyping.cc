@@ -477,14 +477,14 @@ typer dataTyper::typeFunctionInnerNodes(unique_ptr<node> &n){
 		innerType = {T_FLOAT, false};
 		if (!canBeString(n->node1))
 			n->tok5.id = paramType.type;
+		break;
 	case FN_INT:
 		innerType = {T_INT, false};
 		n->tok5.id = typeInnerNodes(n->node1).type;
-		n->keep = true;
+		break;
 	case FN_FLOAT:
 		innerType = {T_FLOAT, false};
 		n->tok5.id = typeInnerNodes(n->node1).type;
-		n->keep = true;
 		break;
 
 	default:
@@ -573,7 +573,6 @@ typer dataTyper::typeInnerNodes(unique_ptr<node> &n){
 		break;
 	case N_VALUE:
 		innerType = typeValueInnerNodes(n);
-		//will add type conversion node for variables
 		break;
 	case N_FUNCTION:
 		innerType = typeFunctionInnerNodes(n);
@@ -654,7 +653,6 @@ void dataTyper::typeFunctionFinalNodes(unique_ptr<node> &n, int finaltype){
 	case FN_UPPER:
 	case FN_LOWER:
 	case FN_SUBSTR:
-	case FN_STRING:
 	case FN_CIEL:
 	case FN_FLOOR:
 	case FN_ACOS:
@@ -672,6 +670,7 @@ void dataTyper::typeFunctionFinalNodes(unique_ptr<node> &n, int finaltype){
 	case FN_LEN:
 	case FN_INT:
 	case FN_FLOAT:
+	case FN_STRING:
 	case FN_ROUND:
 	case FN_POW:
 		//add type conversion node if needed
@@ -820,11 +819,11 @@ void dataTyper::checkMathSemantics(unique_ptr<node> &n){
 			error("cannot multiply 2 durations");
 		return;
 	case SP_MOD:
-		if (!is(T_INT) || !is(T_FLOAT))
+		if (!is(T_INT) && !is(T_FLOAT))
 			error(st("Cannot modulus type ",typestr));
 		return;
 	case SP_CARROT:
-		if (!is(T_INT) || !is(T_FLOAT))
+		if (!is(T_INT) && !is(T_FLOAT))
 			error(st("Cannot exponentiate type ",typestr));
 		return;
 	case SP_DIV:

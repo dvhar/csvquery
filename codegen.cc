@@ -960,6 +960,11 @@ void cgen::genFunction(unique_ptr<node> &n){
 		} else /* aes */ {
 		}
 		break;
+	case FN_STRING:
+	case FN_INT:
+	case FN_FLOAT:
+		genExprAll(n->node1); //has conv node from datatyper
+		break;
 	case FN_YEAR:
 	case FN_MONTH:
 	case FN_MONTHNAME:
@@ -995,9 +1000,6 @@ void cgen::genFunction(unique_ptr<node> &n){
 	case FN_MD5:
 	case FN_SHA1:
 	case FN_SHA256:
-	case FN_STRING:
-	case FN_INT:
-	case FN_FLOAT:
 	case FN_ROUND:
 		genExprAll(n->node1);
 		addop(functionCode[n->tok1.id]);

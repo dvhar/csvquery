@@ -155,9 +155,9 @@ LDFLOAT_:
 LDINT_:
 	push();
 	csvTemp = files[op->p1]->entries[op->p2];
-	stk0.u.i = strtol(csvTemp.val, &cstrTemp, 10);
+	stk0.u.i = strtoll(csvTemp.val, &cstrTemp, 10);
 	stk0.b = T_INT;
-	if (!valSize(csvTemp) || *cstrTemp) { stk0.setnull(); }
+	if (!valSize(csvTemp) || cstrTemp == csvTemp.val) { stk0.setnull(); }
 	nexti();
 LDNULL_:
 	push();
@@ -846,11 +846,12 @@ CVIF_:
 	nexti();
 CVSI_:
 	if (!stk0.isnull()){
-		iTemp1 = strtol(stk0.u.s, &cstrTemp, 10);
+		auto s = stk0.u.s;
+		iTemp1 = strtoll(s, &cstrTemp, 10);
 		stk0.freedat();
 		stk0.u.i = iTemp1;
 		stk0.b = T_INT;
-		if (*cstrTemp){ stk0.setnull(); }
+		if (cstrTemp == s){ stk0.setnull(); }
 	}
 	nexti();
 CVSF_:
