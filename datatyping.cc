@@ -129,6 +129,17 @@ static bool canBeString(unique_ptr<node> &n){
 		case FN_DECRYPT:
 		case FN_MONTHNAME:
 		case FN_WDAYNAME:
+		case FN_UPPER:
+		case FN_LOWER:
+		case FN_BASE64_ENCODE:
+		case FN_BASE64_DECODE:
+		case FN_HEX_ENCODE:
+		case FN_HEX_DECODE:
+		case FN_SUBSTR:
+		case FN_MD5:
+		case FN_SHA1:
+		case FN_SHA256:
+		case FN_STRING:
 			return true;
 		case FN_INC:
 		case FN_COUNT:
@@ -777,7 +788,7 @@ void dataTyper::typeFinalValues(unique_ptr<node> &n, int finaltype){
 }
 
 void dataTyper::checkMathSemantics(unique_ptr<node> &n){
-	if (n->label != N_EXPRADD || n->label != N_EXPRMULT)
+	if (n->label != N_EXPRADD && n->label != N_EXPRMULT)
 		return;
 	auto n1 = n->node1 == nullptr ? T_NULL : n->node1->datatype;
 	auto n2 = n->node2 == nullptr ? T_NULL : n->node2->datatype;

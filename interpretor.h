@@ -122,8 +122,6 @@ enum {
 	FN_ENCRYPT =  KEYWORD|49,
 	FN_DECRYPT =  KEYWORD|50,
 	FN_INC =      KEYWORD|51,
-
-	//TODO: implement these
 	FN_CIEL =          KEYWORD|68,
 	FN_FLOOR =         KEYWORD|69,
 	FN_ACOS =          KEYWORD|70,
@@ -154,7 +152,6 @@ enum {
 	FN_FLOAT =         KEYWORD|95,
 	FN_ROUND =         KEYWORD|96,
 	FN_POW =           KEYWORD|97,
-
 	SPECIALBIT =  1<<21,
 	SPECIAL =      FINAL|SPECIALBIT,
 	SP_EQ =        RELOP|SPECIAL|50,
