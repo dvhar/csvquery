@@ -971,6 +971,34 @@ void cgen::genFunction(unique_ptr<node> &n){
 	case FN_HOUR:
 	case FN_MINUTE:
 	case FN_SECOND:
+	case FN_CIEL:
+	case FN_FLOOR:
+	case FN_ACOS:
+	case FN_ASIN:
+	case FN_ATAN:
+	case FN_COS:
+	case FN_SIN:
+	case FN_TAN:
+	case FN_EXP:
+	case FN_LOG:
+	case FN_LOG2:
+	case FN_LOG10:
+	case FN_SQRT:
+	case FN_RAND:
+	case FN_UPPER:
+	case FN_LOWER:
+	case FN_BASE64_ENCODE:
+	case FN_BASE64_DECODE:
+	case FN_HEX_ENCODE:
+	case FN_HEX_DECODE:
+	case FN_LEN:
+	case FN_MD5:
+	case FN_SHA1:
+	case FN_SHA256:
+	case FN_STRING:
+	case FN_INT:
+	case FN_FLOAT:
+	case FN_ROUND:
 		genExprAll(n->node1);
 		addop(functionCode[n->tok1.id]);
 		break;
