@@ -6,8 +6,7 @@
 * Details:    Defines the API for the corresponding SHA1 implementation.
 *********************************************************************/
 
-#ifndef SHA1_H
-#define SHA1_H
+#pragma once
 
 /*************************** HEADER FILES ***************************/
 #include <stddef.h>
@@ -15,6 +14,9 @@
 /****************************** MACROS ******************************/
 #define SHA1_BLOCK_SIZE 20              // SHA1 outputs a 20 byte digest
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 /**************************** DATA TYPES ****************************/
 typedef unsigned char BYTE;             // 8-bit byte
 typedef unsigned int  WORD;             // 32-bit word, change to "long" for 16-bit machines
@@ -32,4 +34,6 @@ void sha1_init(SHA1_CTX *ctx);
 void sha1_update(SHA1_CTX *ctx, const BYTE data[], size_t len);
 void sha1_final(SHA1_CTX *ctx, BYTE hash[]);
 
-#endif   // SHA1_H
+#ifdef __cplusplus
+}
+#endif

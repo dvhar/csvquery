@@ -1,9 +1,9 @@
 #include "interpretor.h"
 #include "vmachine.h"
 #include "server.h"
-//#include "deps/crypto/sha1.h"
-//#include "deps/crypto/sha256.h"
-//#include "deps/crypto/md5.h"
+#include "deps/crypto/sha1.h"
+#include "deps/crypto/sha256.h"
+#include "deps/crypto/md5.h"
 //#include "deps/crypto/aes.h"
 #include <chrono>
 
@@ -331,6 +331,40 @@ pair<char*, int> crypter::chachaDecrypt(int i, size_t len, char* input){
 	return pair<char*,int>(finalResult, finalSize);
 }
 void sha1(dat& d){
+	SHA1_CTX ctx;
+	sha1_init(&ctx);
+	sha1_update(&ctx, (BYTE*)d.u.s, d.z);
+	d.freedat();
+	BYTE rawhash[20];
+	sha1_final(&ctx, rawhash);
+	d.z = encsize(20);
+	d.u.s = (char*) malloc(d.z+1);
+	d.b = T_STRING|MAL;
+	base64_encode(rawhash, (BYTE*)d.u.s, 20, 0);
+}
+void sha256(dat& d){
+	SHA256_CTX ctx;
+	sha256_init(&ctx);
+	sha256_update(&ctx, (BYTE*)d.u.s, d.z);
+	d.freedat();
+	BYTE rawhash[32];
+	sha256_final(&ctx, rawhash);
+	d.z = encsize(32);
+	d.u.s = (char*) malloc(d.z+1);
+	d.b = T_STRING|MAL;
+	base64_encode(rawhash, (BYTE*)d.u.s, 32, 0);
+}
+void md5(dat& d){
+	MD5_CTX ctx;
+	md5_init(&ctx);
+	md5_update(&ctx, (BYTE*)d.u.s, d.z);
+	d.freedat();
+	BYTE rawhash[16];
+	md5_final(&ctx, rawhash);
+	d.z = encsize(16);
+	d.u.s = (char*) malloc(d.z+1);
+	d.b = T_STRING|MAL;
+	base64_encode(rawhash, (BYTE*)d.u.s, 16, 0);
 }
 
 

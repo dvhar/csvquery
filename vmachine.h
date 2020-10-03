@@ -322,6 +322,9 @@ void strplus(dat &s1, dat &s2);
 void trav(rowgroup &r);
 int getSortComparer(querySpecs *q, int i);
 dat prepareLike(unique_ptr<node> &n);
+void sha1(dat&);
+void sha256(dat&);
+void md5(dat&);
 
 class queryQueue {
 	mutex mtx;

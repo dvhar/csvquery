@@ -1140,9 +1140,9 @@ FUNC_HEX_ENCODE_:
 FUNC_HEX_DECODE_:
 FUNC_LEN_:
 	ifnotnull {
-		auto d = stk0;
-		stk0 = dat{ {f: (double)d.z}, T_FLOAT };
-		d.freedat();
+		auto sz = stk0.z;
+		stk0.freedat();
+		stk0 = dat{ {f: (double)sz}, T_FLOAT };
 	} nexti();
 FUNC_SUBSTR_:
 	ifnotnull {
@@ -1155,9 +1155,15 @@ FUNC_SUBSTR_:
 			stk0.freedat();
 	} nexti();
 FUNC_MD5_:
+	ifnotnull md5(stk0);
+	nexti();
 FUNC_SHA1_:
+	ifnotnull sha1(stk0);
+	nexti();
 FUNC_SHA256_:
-	//string(),int(),float() use conv instr
+	ifnotnull sha256(stk0);
+	nexti();
+//string(),int(),float() use conv instr
 
 //aggregates
 LDSTDVI_:
