@@ -434,6 +434,13 @@ typer dataTyper::typeFunctionInnerNodes(unique_ptr<node> &n){
 		if (!canBeString(n->node1))
 			n->info[PARAMTYPE] = paramType.type;
 		break;
+	case FN_POW:{
+		auto n1 = typeInnerNodes(n->node1);
+		auto n2 = typeInnerNodes(n->node2);
+		innerType = typeCompute(n1, n2);
+		n->info[RETTYPE] = innerType.type;
+		}
+		break;
 	case FN_YEAR:
 	case FN_MONTH:
 	case FN_WEEK:
@@ -467,7 +474,6 @@ typer dataTyper::typeFunctionInnerNodes(unique_ptr<node> &n){
 	case FN_SQRT:
 	case FN_RAND:
 	case FN_ROUND:
-	case FN_POW:
 	case FN_INC:
 		if (auto pt = typeInnerNodes(n->node1).type; pt > T_FLOAT)
 			n->info[PARAMTYPE] = pt;
@@ -688,6 +694,7 @@ void dataTyper::typeFunctionFinalNodes(unique_ptr<node> &n, int finaltype){
 		//add type conversion node for parameter if needed
 		if (auto pt = n->info[PARAMTYPE]; pt){
 			typeFinalValues(n->node1, pt);
+			typeFinalValues(n->node2, pt);
 			convNode = new node(N_TYPECONV);
 			convNode->keep = true;
 			convNode->datatype = finaltype;
@@ -697,6 +704,7 @@ void dataTyper::typeFunctionFinalNodes(unique_ptr<node> &n, int finaltype){
 			n->node1.reset(convNode);
 		} else {
 			typeFinalValues(n->node1, finaltype);
+			typeFinalValues(n->node2, finaltype);
 		}
 		break;
 	case FN_MONTHNAME:
