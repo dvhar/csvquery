@@ -979,6 +979,11 @@ void cgen::genFunction(unique_ptr<node> &n){
 	case FN_FLOAT:
 		genExprAll(n->node1); //has conv node from datatyper
 		break;
+	case FN_POW:
+		genExprAll(n->node1);
+		genExprAll(n->node2);
+		addop0(operations[OPEXP][n->datatype]);
+		break;
 	case FN_YEAR:
 	case FN_MONTH:
 	case FN_MONTHNAME:
