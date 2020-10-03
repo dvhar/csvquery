@@ -680,13 +680,13 @@ unique_ptr<node> parser::parseFunction() {
 		q->nextTok();
 	//everything else
 	} else {
+		srand(time(0)); //TODO: better rng
 		if (t.lower() == "distinct"sv) {
 			n->tok3 = t;
 			t = q->nextTok();
 		}
 		bool needPrompt = true;
-		token commaOrParen;
-		string cipherTok = "aes";
+		string cipherTok = "chacha";
 		string password;
 		switch (n->tok1.id) {
 		case FN_COALESCE:
@@ -700,7 +700,7 @@ unique_ptr<node> parser::parseFunction() {
 				//second param is cipher
 				t = q->nextTok();
 				cipherTok = t.lower();
-				commaOrParen = q->nextTok();
+				auto commaOrParen = q->nextTok();
 				if (commaOrParen.id == SP_COMMA) {
 					//password is 3rd param
 					password = q->nextTok().val;
@@ -712,15 +712,31 @@ unique_ptr<node> parser::parseFunction() {
 			} else if (q->tok().id != SP_RPAREN) {
 				error("Expect closing parenthesis or comma after expression in crypto function. Found: "+q->tok().val);
 			}
-			//if (q->password == "" && needPrompt) q->password = promptPassword();
+			if (q->password == "" && needPrompt) q->password = promptPassword();
 			if (password == "") { password = q->password; }
-			if (cipherTok != "chacha"sv && cipherTok != "aes"sv)
-				error("Second parameter to encryption function is cipher type (aes or chacha). Found: "+cipherTok+". "
-						"Use aes for strong but bulky encryption, or chacha for something a government could probably crack but takes less space.");
 			n->tok3.val = cipherTok;
 			n->tok4.val = password;
 			break;
+
 		case FN_INC:
+		case FN_RAND:
+			break;
+		case FN_POW:
+			n->node1 = parseExprAdd();
+			if (t = q->tok(); t.id != SP_COMMA)
+				error("POW function expected comma before second expression. Found: " +t.val);
+			q->nextTok();
+			n->node2 = parseExprAdd();
+			break;
+		case FN_SUBSTR:
+			n->node1 = parseExprAdd();
+			if (t = q->tok(); t.id != SP_COMMA)
+				error("SUBSTR function expected comma before first number. Found: " +t.val);
+			n->tok2 = q->nextTok();
+			if (t = q->nextTok(); t.id != SP_COMMA)
+				error("SUBSTR function expected comma before second number. Found: " +t.val);
+			n->tok3 = q->nextTok();
+			q->nextTok();
 			break;
 		default:
 			n->node1 = parseExprAdd();
