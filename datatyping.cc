@@ -408,8 +408,7 @@ typer dataTyper::typeFunctionInnerNodes(unique_ptr<node> &n){
 	case FN_COUNT:
 		n->keep = true;
 		typeInnerNodes(n->node1);
-	case FN_INC:
-		innerType = {T_FLOAT, true};
+		innerType = {T_FLOAT, false};
 		break;
 	case FN_MONTHNAME:
 	case FN_WDAYNAME:
@@ -433,7 +432,7 @@ typer dataTyper::typeFunctionInnerNodes(unique_ptr<node> &n){
 		paramType = typeInnerNodes(n->node1);
 		innerType = {T_STRING, false};
 		if (!canBeString(n->node1))
-			n->tok5.id = paramType.type;
+			n->info[PARAMTYPE] = paramType.type;
 		break;
 	case FN_YEAR:
 	case FN_MONTH:
@@ -442,9 +441,9 @@ typer dataTyper::typeFunctionInnerNodes(unique_ptr<node> &n){
 	case FN_MDAY:
 	case FN_WDAY:
 	case FN_HOUR:
-		n->keep = true;
 		typeInnerNodes(n->node1);
 		innerType = {T_INT, true}; //TODO: reconsider these true/false values
+		n->info[RETTYPE] = T_INT;
 		break;
 	case FN_STDEV:
 	case FN_STDEVP:
@@ -469,22 +468,28 @@ typer dataTyper::typeFunctionInnerNodes(unique_ptr<node> &n){
 	case FN_RAND:
 	case FN_ROUND:
 	case FN_POW:
-		typeInnerNodes(n->node1);
+	case FN_INC:
+		if (auto pt = typeInnerNodes(n->node1).type; pt > T_FLOAT)
+			n->info[PARAMTYPE] = pt;
 		innerType = {T_FLOAT, false};
+		n->info[RETTYPE] = T_FLOAT;
 		break;
 	case FN_LEN:
 		paramType = typeInnerNodes(n->node1);
 		innerType = {T_FLOAT, false};
 		if (!canBeString(n->node1))
-			n->tok5.id = paramType.type;
+			n->info[PARAMTYPE] = paramType.type;
+		n->info[RETTYPE] = T_FLOAT;
 		break;
 	case FN_INT:
 		innerType = {T_INT, false};
-		n->tok5.id = typeInnerNodes(n->node1).type;
+		n->info[PARAMTYPE] = typeInnerNodes(n->node1).type;
+		n->info[RETTYPE] = T_INT;
 		break;
 	case FN_FLOAT:
 		innerType = {T_FLOAT, false};
-		n->tok5.id = typeInnerNodes(n->node1).type;
+		n->info[PARAMTYPE] = typeInnerNodes(n->node1).type;
+		n->info[RETTYPE] = T_FLOAT;
 		break;
 
 	default:
@@ -638,6 +643,13 @@ void dataTyper::typeFunctionFinalNodes(unique_ptr<node> &n, int finaltype){
 	if (n == nullptr) return;
 	if (n->keep) finaltype = -1;
 	node *convNode, *tempNode;
+	bool needRetConvert = false;
+	int oldret = finaltype;
+	if (auto rt = n->info[RETTYPE]; rt > 0 && finaltype > rt){
+		//need conversion from RETTYPE (can do) to original finaltype (need)
+		n->datatype = finaltype = rt;
+		needRetConvert = true;
+	}
 	switch (n->tok1.id){
 	case FN_COUNT:
 	case FN_INC:
@@ -673,15 +685,13 @@ void dataTyper::typeFunctionFinalNodes(unique_ptr<node> &n, int finaltype){
 	case FN_STRING:
 	case FN_ROUND:
 	case FN_POW:
-		//add type conversion node if needed
-		if (n->tok5.id){
-			typeFinalValues(n->node1, n->tok5.id);
-			convNode = new node();
-			*convNode = {0};
-			convNode->label = N_TYPECONV;
+		//add type conversion node for parameter if needed
+		if (auto pt = n->info[PARAMTYPE]; pt){
+			typeFinalValues(n->node1, pt);
+			convNode = new node(N_TYPECONV);
 			convNode->keep = true;
 			convNode->datatype = finaltype;
-			convNode->tok1.id = n->tok5.id;
+			convNode->tok1.id = pt;
 			tempNode = n->node1.release();
 			convNode->node1.reset(tempNode);
 			n->node1.reset(convNode);
@@ -703,6 +713,15 @@ void dataTyper::typeFunctionFinalNodes(unique_ptr<node> &n, int finaltype){
 	default:
 		typeFinalValues(n->node1, finaltype);
 		checkFuncSemantics(n);
+	}
+	if (needRetConvert){
+			convNode = new node(N_TYPECONV);
+			convNode->keep = true;
+			convNode->datatype = oldret;
+			convNode->tok1.id = n->info[RETTYPE];
+			tempNode = n.release();
+			convNode->node1.reset(tempNode);
+			n.reset(convNode);
 	}
 }
 

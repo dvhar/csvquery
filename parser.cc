@@ -663,7 +663,8 @@ unique_ptr<node> parser::parseOrder() {
 //tok2 is * for count(*)
 //tok3 is cipher or distinct
 //tok4 is password or (determined later) count of distinct N or S functions
-//tok5 is paramtype for type conversion
+//[PARAMTYPE] is paramtype for type conversion
+//[RETTYPE] is inflexible return type
 //[MIDIDX] is midrow index
 //node1 is expression in parens
 unique_ptr<node> parser::parseFunction() {
