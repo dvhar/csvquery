@@ -1,0 +1,308 @@
+//top bar back gradient
+$ttop: #091928;
+$ttp: #207cca;
+$bbt: #207cca;
+$bbot: #7db9e8;
+//top bar buttons
+$top-top: #FFD700;
+$top-bot: #FFFF70;
+$button1: #EEEEEE;
+$headcell: #FAFAFA;
+$bodycell: #FAFAFA;
+
+$ojgradient1: #feccb1;
+$ojgradient2: #f17432;
+$ojgradient3: #ea5507;
+$ojgradient4: #fb955e;
+
+$tablebg: #ccc;
+$dropdownbg: brown;
+	//background: linear-gradient(to bottom, #3b1212 0%,#71280b 50%,#752201 51%,#bf6e4e 100%);
+
+$loginTopBut: #a6e8a3;
+$topbarbg: $ttop;
+$loginbg: #fdffe5;
+$historyArrows: #ffff99;
+
+@mixin sgradient($top,$tp,$bt,$bot) {
+	background: $top;
+	background: linear-gradient(to bottom, $top 1%,$tp 22%,$bt 22%,$bot 100%);
+}
+@mixin gradient($top,$bot) {
+	background-color:$top;
+	background: linear-gradient(to bottom, $top, $bot); }
+
+html {
+	min-height: 100%;
+	background-color: #cccccc;
+	//background: linear-gradient(to bottom, rgba(153,125,96,1) 0%, rgba(218,183,140,1) 45%, rgba(195,169,150,1) 100%);
+	//background-image: url("/bg.jpg");
+}
+
+//dropdown menu
+.absolute-pos {
+	position: absolute;
+}
+.dropmenu-content{
+	display: none;
+	padding: 1em;
+	//background: $dropdownbg;
+	div {
+		padding: .2em .5em;
+		background-color: $button1;
+		border-radius: 4px;
+		margin: .2em .2em;
+	}
+}
+.dropSelect {
+	top: 0;
+	float: left;
+}
+.dropmenu:hover .dropmenu-content {
+	display: block;
+}
+.hiddenColumn {
+	color: red;
+}
+.dropButton {
+	display: block;
+	text-align: center;
+	margin: auto;
+}
+.queryFileBox {
+	display: inherit;
+	width: 99%;
+	margin-bottom: 0.3em;
+}
+.queryMenuDiv {
+	z-index: 10;
+	display: inline-block;
+	min-width: 12em;
+	padding: .2em .2em;
+	//@include sgradient($ojgradient1,$ojgradient2,$ojgradient3,$ojgradient4);
+	@include sgradient($ttop,$ttp,$bbt,$bbot);
+}
+.commandtitle {
+	margin: auto;
+}
+.queryMenuButton {
+	width: 15em;
+	padding: .2em .5em;
+	background-color: $button1;
+	border-radius: 4px;
+}
+.queryTextEntry {
+	width: calc(95vw);
+}
+.queryTextContainer {
+	padding: 0.2em;
+}
+.queryRunButton {
+	background: linear-gradient(to bottom, #ffffff 0%,#f1f1f1 50%,#e1e1e1 51%,#f6f6f6 100%);
+	padding: 0.2em 1em;
+	font-size: medium;
+}
+.queryRunButton:hover {
+	background: linear-gradient(to bottom, #e0f3fa 0%,#d8f0fc 50%,#b8e2f6 51%,#b6dffd 100%);
+}
+
+.tableModDiv {
+	z-index: 10;
+	display: inline-block;
+	min-width: 12em;
+	background-color: $button1;
+	padding: .2em .2em;
+	//background: linear-gradient(to bottom, #3b1212 0%,#71280b 50%,#752201 51%,#bf6e4e 100%);
+	@include gradient($ttop,$bbt);
+}
+.tableModDrop {
+	//background: linear-gradient(to bottom, #3b1212 0%,#71280b 50%,#752201 51%,#bf6e4e 100%);
+	@include sgradient($bbt,$bbot,$bbot,$bbot);
+}
+.tableModButton {
+	width: 15em;
+	padding: .2em .5em;
+	background-color: $button1;
+	border-radius: 4px;
+}
+
+//table display
+.tableHead {
+	td { background-color: $headcell; }
+	th { background-color: $headcell; }
+}
+.tableBody td {
+	background-color: $bodycell;
+}
+.tableCell {
+	text-align: center;
+	white-space:nowrap;
+	min-width: 4em;
+}
+.tableRow {
+	padding: 1em;
+}
+.tableDiv {
+	background: $tablebg;
+	position: static;
+	top: 3em;
+	max-height: calc(80vh - 100px);
+	max-width: calc(95%);
+	margin: auto;
+	border: 2px solid black;
+}
+.tableBodyDiv {
+	overflow: auto;
+}
+.tableHeadDiv {
+	overflow: hidden;
+	border-bottom: none;
+}
+.tableQuery {
+	margin: auto;
+	display: table;
+	background: linear-gradient(to top, #fefcea 0%,#fff5ac 100%);
+	border-radius: 0.4em;
+	padding: 0.3em 1em 0em 1em;
+}
+//bigger query section
+.querySelect {
+	margin-top: 2.3em;
+}
+.queryMenuContainer {
+	text-align: center;
+	margin-bottom: 1em;
+}
+.tableModifiers {
+	text-align: center;
+}
+
+//top bar
+.topBar {
+	background: $topbarbg;
+	//background: linear-gradient(to bottom, #3b1212 0%,#71280b 50%,#752201 51%,#bf6e4e 100%);
+	min-height: 2em;
+	padding: 0.2em;
+	display: flex;
+	justify-content: left;
+	position: fixed;
+	width: 100%;
+	top: 0;
+}
+.topMessage {
+	color: $historyArrows;
+	padding: 0.3em 1em 0em;
+}
+.topButton {
+	background: linear-gradient(to bottom, #ffffff 0%,#f1f1f1 50%,#e1e1e1 51%,#f6f6f6 100%);
+}
+.topButton:hover {
+	background: linear-gradient(to bottom, #e0f3fa 0%,#d8f0fc 50%,#b8e2f6 51%,#b6dffd 100%);
+}
+.popButton {
+	padding: 0.5em;
+}
+
+//save section
+.fileSelectShow {
+	padding: 0.3em;
+	background: linear-gradient(to top, #fefcea 0%,#fff5ac 100%);
+	top: 2.2em;
+	position: absolute;
+	border: 1px solid black;
+}
+.fileSelectShow label {
+	display: inline-block;
+}
+.fileSelectShow input[type="text"] {
+	min-width: 40em;
+	margin: 0.5em 0em 0.5em 0.5em;
+}
+.saveRadio {
+	margin: 0.6em;
+}
+.saveButton {
+	float: right;
+}
+
+//password popup
+.passPopup {
+	color: red;
+	text-align: center;
+}
+
+//file browser
+.fileBrowser {
+	min-width: 40em;
+	max-height: 33em;
+}
+.browseDirs {
+	height: 80%;
+	background-color: white;
+	border: 1px solid black;
+	overflow: auto;
+}
+.browseDir {
+	display: block;
+	width: 100%;
+	color: darkblue;
+}
+.browseFile {
+	display: block;
+	width: 100%;
+	color: darkGreen;
+}
+.browseCurrent {
+	width: -webkit-fill-available;
+	width: -moz-available;
+}
+.browseEntry:hover {
+	background-color: bisque;
+}
+
+//history arrows
+.historyArrows {
+	right: 0;
+	position: inherit;
+	color: $historyArrows;
+}
+.arrow {
+	font-size: x-large;
+}
+.show { display: block; }
+.dim { color: grey; }
+.noselect { user-select: none; }
+
+//helper
+.helpBox {
+	display: block;
+	position: fixed;
+	width: 90%;
+	left: 5%;
+	height: 90%;
+	border: 1px solid black;
+	background-color: beige;
+	margin: auto;
+	border-radius: 1em;
+	padding: 1em;
+	overflow-y: scroll;
+}
+
+//dynamic table
+.dynoDiv {
+	border: 1px solid black;
+	max-height: 20em;
+	overflow: auto;
+	display: inline-block;
+}
+.dynoTable {
+	border-collapse: collapse;
+}
+.dynoTableCell {
+	border: 1px solid grey;
+	height: 1.5em;
+}
+#scrollBuffer {
+	color: #cccccc;
+	background: #cccccc;
+}
