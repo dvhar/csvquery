@@ -94,7 +94,7 @@ static void serve(){
 				if (mode == "open"){
 					state["openDirList"] = j;
 				} else if (mode == "save"){
-					state["openDirList"] = j;
+					state["saveDirList"] = j;
 				}
 				response->write(j.dump(), header);
 			} catch (...) {

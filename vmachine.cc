@@ -29,6 +29,7 @@
 #define skipnull() \
 	if (stk0.isnull()){ nexti() };
 #define ifnotnull if (!stk0.isnull())
+#define ifneithernull if (stk0.isnull() || stk1.isnull()) { stk1.setnull(); } else
 
 void vmachine::run(){
 	constexpr void* labels[] = { &&CVER_, &&CVNO_, &&CVIF_, &&CVIS_, &&CVFI_, &&CVFS_, &&CVDRS_, &&CVDTS_, &&CVSI_, &&CVSF_, &&CVSDR_, &&CVSDT_, &&IADD_, &&FADD_, &&TADD_, &&DTADD_, &&DRADD_, &&ISUB_, &&FSUB_, &&DTSUB_, &&DRSUB_, &&IMULT_, &&FMULT_, &&DRMULT_, &&IDIV_, &&FDIV_, &&DRDIV_, &&INEG_, &&FNEG_, &&PNEG_, &&IMOD_, &&FMOD_, &&IEXP_, &&FEXP_, &&JMP_, &&JMPCNT_, &&JMPTRUE_, &&JMPFALSE_, &&JMPNOTNULL_ELSEPOP_, &&RDLINE_, &&RDLINE_ORDERED_, &&PREP_REREAD_, &&PUT_, &&LDPUT_, &&LDPUTALL_, &&PUTVAR_, &&PUTVAR2_, &&LDINT_, &&LDFLOAT_, &&LDTEXT_, &&LDDATE_, &&LDDUR_, &&LDNULL_, &&LDLIT_, &&LDVAR_, &&HOLDVAR_, &&IEQ_, &&FEQ_, &&TEQ_, &&LIKE_, &&ILEQ_, &&FLEQ_, &&TLEQ_, &&ILT_, &&FLT_, &&TLT_, &&PRINTCSV_, &&PRINTJSON_, &&PUSH_, &&PUSH_N_, &&POP_, &&POPCPY_, &&ENDRUN_, &&NULFALSE1_, &&NULFALSE2_, &&NDIST_, &&SDIST_, &&PUTDIST_, &&LDDIST_, &&FINC_, &&FUNC_ENCCHA_, &&FUNC_DECCHA_, &&SAVESORTN_, &&SAVESORTS_, &&SAVEVALPOS_, &&SAVEPOS_, &&SORT_, &&GETGROUP_, &&ONEGROUP_, &&SUMI_, &&SUMF_, &&AVGI_, &&AVGF_, &&STDVI_, &&STDVF_, &&COUNT_, &&MINI_, &&MINF_, &&MINS_, &&MAXI_, &&MAXF_, &&MAXS_, &&NEXTMAP_, &&NEXTVEC_, &&ROOTMAP_, &&LDMID_, &&LDPUTMID_, &&LDPUTGRP_, &&LDSTDVI_, &&LDSTDVF_, &&LDAVGI_, &&LDAVGF_, &&ADD_GROUPSORT_ROW_, &&FREE_MIDROW_, &&GSORT_, &&READ_NEXT_GROUP_, &&NUL_TO_STR_, &&SORTVALPOS_, &&JOINSET_EQ_AND_, &&JOINSET_EQ_, &&JOINSET_LESS_, &&JOINSET_GRT_, &&JOINSET_LESS_AND_, &&JOINSET_GRT_AND_, &&JOINSET_INIT_, &&JOINSET_TRAV_, &&AND_SET_, &&OR_SET_, &&SAVEANDCHAIN_, &&SORT_ANDCHAIN_, &&FUNC_YEAR_, &&FUNC_MONTH_, &&FUNC_WEEK_, &&FUNC_YDAY_, &&FUNC_MDAY_, &&FUNC_WDAY_, &&FUNC_HOUR_, &&FUNC_MINUTE_, &&FUNC_SECOND_, &&FUNC_WDAYNAME_, &&FUNC_MONTHNAME_, &&FUNC_ABSF_, &&FUNC_ABSI_, &&START_MESSAGE_, &&STOP_MESSAGE_, &&FUNC_CIEL_, &&FUNC_FLOOR_, &&FUNC_ACOS_, &&FUNC_ASIN_, &&FUNC_ATAN_, &&FUNC_COS_, &&FUNC_SIN_, &&FUNC_TAN_, &&FUNC_EXP_, &&FUNC_LOG_, &&FUNC_LOG2_, &&FUNC_LOG10_, &&FUNC_SQRT_, &&FUNC_RAND_, &&FUNC_UPPER_, &&FUNC_LOWER_, &&FUNC_BASE64_ENCODE_, &&FUNC_BASE64_DECODE_, &&FUNC_HEX_ENCODE_, &&FUNC_HEX_DECODE_, &&FUNC_LEN_, &&FUNC_SUBSTR_, &&FUNC_MD5_, &&FUNC_SHA1_, &&FUNC_SHA256_, &&FUNC_ROUND_};
@@ -573,13 +574,11 @@ GSORT_:
 
 //math operations
 IADD_:
-	if (stk0.isnull() || stk1.isnull()) { stk1.setnull(); }
-	else stk1.u.i += stk0.u.i;
+	ifneithernull stk1.u.i += stk0.u.i;
 	pop();
 	nexti();
 FADD_:
-	if (stk0.isnull() || stk1.isnull()) { stk1.setnull(); }
-	else stk1.u.f += stk0.u.f;
+	ifneithernull stk1.u.f += stk0.u.f;
 	pop();
 	nexti();
 TADD_:
@@ -587,50 +586,41 @@ TADD_:
 	pop();
 	nexti();
 DRADD_:
-	if (stk0.isnull() || stk1.isnull()) { stk1.setnull(); }
-	else { stk1.u.i += stk0.u.i; stk1.b = T_DURATION; }
+	ifneithernull { stk1.u.i += stk0.u.i; stk1.b = T_DURATION; }
 	pop();
 	nexti();
 DTADD_:
-	if (stk0.isnull() || stk1.isnull()) { stk1.setnull(); }
-	else { stk1.u.i += stk0.u.i; stk1.b = T_DATE; }
+	ifneithernull { stk1.u.i += stk0.u.i; stk1.b = T_DATE; }
 	pop();
 	nexti();
 ISUB_:
-	if (stk0.isnull() || stk1.isnull()) { stk1.setnull(); }
-	else stk1.u.i -= stk0.u.i;
+	ifneithernull stk1.u.i -= stk0.u.i;
 	pop();
 	nexti();
 FSUB_:
-	if (stk0.isnull() || stk1.isnull()) { stk1.setnull(); }
-	else stk1.u.f -= stk0.u.f;
+	ifneithernull stk1.u.f -= stk0.u.f;
 	pop();
 	nexti();
 DTSUB_:
 	//TODO: handle date-date
-	if (stk0.isnull() || stk1.isnull()) { stk1.setnull(); }
-	else { stk1.u.i -= stk0.u.i; stk1.b = T_DATE; }
+	ifneithernull { stk1.u.i -= stk0.u.i; stk1.b = T_DATE; }
 	pop();
 	nexti();
 DRSUB_:
-	if (stk0.isnull() || stk1.isnull()) { stk1.setnull(); }
-	else { stk1.u.i -= stk0.u.i; stk1.b = T_DURATION; }
+	ifneithernull { stk1.u.i -= stk0.u.i; stk1.b = T_DURATION; }
 	pop();
 	if (stk0.u.i < 0) stk0.u.i *= -1;
 	nexti();
 IMULT_:
-	if (stk0.isnull() || stk1.isnull()) { stk1.setnull(); }
-	else stk1.u.i *= stk0.u.i;
+	ifneithernull stk1.u.i *= stk0.u.i;
 	pop();
 	nexti();
 FMULT_:
-	if (stk0.isnull() || stk1.isnull()) { stk1.setnull(); }
-	else stk1.u.f *= stk0.u.f;
+	ifneithernull stk1.u.f *= stk0.u.f;
 	pop();
 	nexti();
 DRMULT_:
-	if (stk0.isnull() || stk1.isnull()) { stk1.setnull(); }
-	else {
+	ifneithernull {
 		iTemp1 = stk1.b; iTemp2 = stk0.b;
 		if (iTemp1 == T_DATE){
 			if (iTemp2 == T_INT){ // date * int
@@ -681,23 +671,19 @@ PNEG_:
 	stk0.u.p ^= true;
 	nexti();
 FEXP_:
-	if (stk0.isnull() || stk1.isnull()) { stk1.setnull(); }
-	else stk1.u.f = pow(stk1.u.f, stk0.u.f);
+	ifneithernull stk1.u.f = pow(stk1.u.f, stk0.u.f);
 	pop();
 	nexti();
 IEXP_:
-	if (stk0.isnull() || stk1.isnull()) { stk1.setnull(); }
-	else stk1.u.i = pow(stk1.u.i, stk0.u.i);
+	ifneithernull stk1.u.i = pow(stk1.u.i, stk0.u.i);
 	pop();
 	nexti();
 IMOD_:
-	if (stk0.isnull() || stk1.isnull()) { stk1.setnull(); }
-	else stk1.u.i = stk1.u.i % stk0.u.i;
+	ifneithernull stk1.u.i = stk1.u.i % stk0.u.i;
 	pop();
 	nexti();
 FMOD_:
-	if (stk0.isnull() || stk1.isnull()) { stk1.setnull(); }
-	else stk1.u.f = fmod(stk1.u.f, stk0.u.f);
+	ifneithernull stk1.u.f = fmod(stk1.u.f, stk0.u.f);
 	pop();
 	nexti();
 
@@ -817,7 +803,7 @@ NULFALSE2_:
 
 //type conversions
 CVIS_:
-	if (!stk0.isnull()){
+	ifnotnull{
 		stk0.z = sprintf(bufTemp, "%lld", stk0.u.i);
 		stk0.u.s = (char*) malloc(stk0.z+1);
 		memcpy(stk0.u.s, bufTemp, stk0.z+1);
@@ -825,7 +811,7 @@ CVIS_:
 	}
 	nexti();
 CVFS_:
-	if (!stk0.isnull()){
+	ifnotnull{
 		stk0.z = sprintf(bufTemp, "%.10g", stk0.u.f);
 		stk0.u.s = (char*) malloc(stk0.z+1);
 		memcpy(stk0.u.s, bufTemp, stk0.z+1);
@@ -833,19 +819,19 @@ CVFS_:
 	}
 	nexti();
 CVFI_:
-	if (!stk0.isnull()){
+	ifnotnull{
 		stk0.u.i = stk0.u.f;
 		stk0.b = T_INT;
 	}
 	nexti();
 CVIF_:
-	if (!stk0.isnull()){
+	ifnotnull{
 		stk0.u.f = stk0.u.i;
 		stk0.b = T_FLOAT;
 	}
 	nexti();
 CVSI_:
-	if (!stk0.isnull()){
+	ifnotnull{
 		auto s = stk0.u.s;
 		iTemp1 = strtoll(s, &cstrTemp, 10);
 		stk0.freedat();
@@ -855,7 +841,7 @@ CVSI_:
 	}
 	nexti();
 CVSF_:
-	if (!stk0.isnull()){
+	ifnotnull{
 		fTemp = strtof(stk0.u.s, &cstrTemp);
 		stk0.freedat();
 		stk0.u.f = fTemp;
@@ -864,7 +850,7 @@ CVSF_:
 	}
 	nexti();
 CVSDT_:
-	if (!stk0.isnull()){
+	ifnotnull{
 		iTemp1 = dateparse(stk0.u.s, &i64Temp, &iTemp2, stk0.z);
 		stk0.freedat();
 		stk0.u.i = i64Temp;
@@ -874,7 +860,7 @@ CVSDT_:
 	}
 	nexti();
 CVSDR_:
-	if (!stk0.isnull()){
+	ifnotnull{
 		iTemp1 = parseDuration(stk0.u.s, &i64Temp);
 		stk0.freedat();
 		stk0.u.i = i64Temp;
@@ -883,7 +869,7 @@ CVSDR_:
 	}
 	nexti();
 CVDRS_:
-	if (!stk0.isnull()){
+	ifnotnull{
 		stk0.u.s = (char*) malloc(24);
 		durstring(stk0.u.i, stk0.u.s);
 		stk0.b = T_STRING|MAL;
@@ -891,7 +877,7 @@ CVDRS_:
 	}
 	nexti();
 CVDTS_:
-	if (!stk0.isnull()){
+	ifnotnull{
 		//make version of datestring that writes directly to arg buf
 		cstrTemp = datestring(stk0.u.i);
 		stk0.u.s = (char*) malloc(20);
@@ -1004,21 +990,12 @@ FINC_:
 	stk0 = q->dataholder[op->p1];
 	nexti();
 FUNC_ENCCHA_:
-	ifnotnull {
-		auto&& pt1 = q->crypt.chachaEncrypt(op->p1, stk0.z, stk0.u.s);
-		if (stk0.ismal()) free(stk0.u.s);
-		stk0.u.s = pt1.first;
-		stk0.z = pt1.second;
-		stk0.b = T_STRING|MAL;
-	} nexti();
+	ifnotnull q->crypt.chachaEncrypt(stk0, op->p1);
+	nexti();
 FUNC_DECCHA_:
-	ifnotnull {
-		auto&& pt2 = q->crypt.chachaDecrypt(op->p1, stk0.z, stk0.u.s);
-		if (stk0.ismal()) free(stk0.u.s);
-		stk0.u.s = pt2.first;
-		stk0.z = pt2.second;
-		stk0.b = T_STRING|MAL;
-	} nexti();
+	ifnotnull q->crypt.chachaDecrypt(stk0, op->p1);
+	nexti();
+
 #define get_tm() \
 	skipnull(); \
 	secs_to_tm(sec(stk0.u.i), &timetm);
@@ -1116,14 +1093,12 @@ FUNC_RAND_:
 FUNC_UPPER_:
 	ifnotnull {
 		stk0 = stk0.heap();
-		stk0.b |= MAL;
 		for(auto c = stk0.u.s; *c; ++c) *c = toupper(*c);
 	}
 	nexti();
 FUNC_LOWER_:
 	ifnotnull {
 		stk0 = stk0.heap();
-		stk0.b |= MAL;
 		for(auto c = stk0.u.s; *c; ++c) *c = tolower(*c);
 	}
 	nexti();
@@ -1221,20 +1196,19 @@ LDAVGF_:
 	}
 	nexti();
 AVGI_:
-	if (!stk0.isnull())
-		torow[op->p1].z++;
+	ifnotnull torow[op->p1].z++;
 SUMI_:
-	if (!stk0.isnull()){
+	ifnotnull{
 		torow[op->p1].u.i += stk0.u.i;
 		torow[op->p1].b = stk0.b;
 	}
 	pop();
 	nexti();
 AVGF_:
-	if (!stk0.isnull())
+	ifnotnull
 		torow[op->p1].z++;
 SUMF_:
-	if (!stk0.isnull()){
+	ifnotnull{
 		torow[op->p1].u.f += stk0.u.f;
 		torow[op->p1].b = stk0.b;
 	}
@@ -1246,7 +1220,7 @@ STDVI_:
 	nexti();
 STDVF_:
 	{
-		if (!stk0.isnull()){
+		ifnotnull{
 			if (torow[op->p1].isnull()){
 				torow[op->p1] = {{i:static_cast<i64>(stdvs.size())},T_INT};
 				stdvs.emplace_back(stk0.u.f);
@@ -1262,7 +1236,7 @@ COUNT_:
 		torow[op->p1].b = T_FLOAT;
 		torow[op->p1].u.f++;
 	} else {
-		if (!stk0.isnull()) {
+		ifnotnull {
 			torow[op->p1].b = T_FLOAT;
 			torow[op->p1].u.f++;
 		}

@@ -40,7 +40,7 @@ using ft = boost::format;
 using json = nlohmann::json;
 using namespace std;
 
-extern minstd_rand0 rng;
+extern mt19937 rng;
 static void error(string A){ throw invalid_argument(A);}
 static void perr(string s){
 	cerr << s;
@@ -421,8 +421,8 @@ class crypter {
 	public:
 	vector<chactx> ctxs;
 	int newChacha(string);
-	pair<char*,int> chachaEncrypt(int, size_t, char*);
-	pair<char*,int> chachaDecrypt(int, size_t, char*);
+	void chachaEncrypt(dat&, int);
+	void chachaDecrypt(dat&, int);
 };
 
 class querySpecs {
@@ -437,6 +437,7 @@ class querySpecs {
 	vector<opcode> bytecode;
 	unique_ptr<node> tree;
 	map<string, shared_ptr<fileReader>> files;
+	vector<shared_ptr<fileReader>> filevec;
 	resultSpecs colspec = {0};
 	crypter crypt = {};
 	i64 sessionId = 0;
