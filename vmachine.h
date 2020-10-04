@@ -24,7 +24,7 @@ enum codes : int {
 	RDLINE, RDLINE_ORDERED, PREP_REREAD,
 	PUT, LDPUT, LDPUTALL, PUTVAR, PUTVAR2,
 	LDINT, LDFLOAT, LDTEXT, LDDATE, LDDUR,
-	LDNULL, LDLIT, LDVAR, HOLDVAR,
+	LDLIT, LDVAR, HOLDVAR,
 	IEQ, FEQ, TEQ, LIKE,
 	ILEQ, FLEQ, TLEQ,
 	ILT, FLT, TLT,
@@ -89,8 +89,6 @@ static int typeConv[6][6] = {
 	{0, CVSI, CVSF, CVSDT,CVSDR,CVNO},
 };
 
-inline static u32 valSize(csvEntry& d){ return (u32)(d.terminator - d.val); }
-static inline void freearr(dat* arr, u32 n) { for (u32 i=0; i<n; ++i) arr[i].freedat(); }
 bool isTrivial(unique_ptr<node> &n);
 dat parseIntDat(const char* s);
 dat parseFloatDat(const char* s);
@@ -179,7 +177,7 @@ class messager {
 	void start(char* msg, int* n1, int* n2);
 	void stop();
 	void send();
-	messager(){ delay = true; }
+	messager(): delay(true) {}
 };
 
 class rowgroup;
@@ -194,6 +192,8 @@ class vmachine {
 	int quantityLimit =0;
 	int totalPrinted =0;
 	int numJsonPrinted =0;
+	int linesRead = 0;
+	int ip = 0;
 	vector<stddev> stdvs;
 	vector<dat> destrow;
 	vector<dat> onegroup;
@@ -210,6 +210,11 @@ class vmachine {
 	ofstream outfile;
 	messager updates;
 	static atomic_int idCounter;
+	opcode *op;
+	rowgroup *groupTemp;
+	dat* midrow;
+	dat* stacktop;
+	dat* stackbot;
 	//datunion comparers
 	static const function<bool (const datunion, const datunion&)> uLessFuncs[3];
 	static const function<bool (const datunion, const datunion&)> uGrtFuncs[3];
@@ -278,17 +283,15 @@ class rowgroup {
 			return getVec();
 		}
 		void freeRow(){
-			freearr(data.vecp, meta.rowsize);
+			for(u32 i=meta.rowsize; i--;) data.vecp[i].freedat();
 			free(data.vecp);
 			meta.freed = true;
 		}
 		rowgroup(){ meta = {0}; data = {0}; }
 		~rowgroup(){
 			if (meta.rowOrGroup == 1){
-				if (!meta.freed){
-					freearr(data.vecp, meta.rowsize);
-					free(data.vecp);
-				}
+				if (!meta.freed)
+					freeRow();
 			} else if (meta.rowOrGroup == 2) {
 				if (meta.mallocedKey)
 					for (auto &m : getMap())

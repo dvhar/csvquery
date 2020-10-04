@@ -35,9 +35,7 @@ class parser {
 
 	querySpecs* q;
 	public:
-	parser(querySpecs &qs){
-		q = &qs;
-	}
+	parser(querySpecs &qs): q{&qs} {}
 	void parse(){
 		q->tree = newNode(N_QUERY);
 		q->tree->node1 = parsePreSelect();

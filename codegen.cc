@@ -3,12 +3,12 @@
 
 class cgen {
 
-	int normal_read;
-	int agg_phase; //0 is not grouping, 1 is first read, 2 is aggregate retrieval
-	int select_count;
-	int joinFileIdx;
-	int prevJoinRead;
-	int wherenot;
+	int normal_read =0;
+	int agg_phase =0; //0 is not grouping, 1 is first read, 2 is aggregate retrieval
+	int select_count =0;
+	int joinFileIdx =0;
+	int prevJoinRead =0;
+	int wherenot =0;
 	vector<int> valposTypes;
 	vector<opcode> v;
 	jumpPositions jumps;
@@ -63,11 +63,7 @@ class cgen {
 	void genSortedGroupRow(unique_ptr<node> &n, int nextgroup);
 	void finish();
 
-	cgen(querySpecs &qs){
-		q = &qs;
-		select_count = 0;
-		agg_phase = 0;
-	}
+	cgen(querySpecs &qs): q{&qs} {}
 };
 void cgen::addop(int code){ addop(code,0,0,0); }
 void cgen::addop(int code, int p1){ addop(code,p1,0,0); }
@@ -633,7 +629,7 @@ void cgen::genValue(unique_ptr<node> &n){
 		break;
 	case LITERAL:
 		if (n->tok1.lower() == "null"){
-			addop0(LDNULL);
+			addop0(PUSH);
 		} else {
 			switch (n->datatype){
 			case T_INT:      lit = parseIntDat(n->tok1.val.c_str());      break;
@@ -674,7 +670,7 @@ void cgen::genExprCase(unique_ptr<node> &n){
 			genCPredList(n->node1, caseEnd);
 			genExprAll(n->node3);
 			if (n->node3 == nullptr)
-				addop0(LDNULL);
+				addop0(PUSH);
 			jumps.setPlace(caseEnd, v.size());
 			break;
 		//expression matches expression list
@@ -685,7 +681,7 @@ void cgen::genExprCase(unique_ptr<node> &n){
 			addop0(POP); //don't need comparison value anymore
 			genExprAll(n->node3);
 			if (n->node3 == nullptr)
-				addop0(LDNULL);
+				addop0(PUSH);
 			jumps.setPlace(caseEnd, v.size());
 			break;
 		}
@@ -934,7 +930,7 @@ void cgen::genFunction(unique_ptr<node> &n){
 			genExprAll(nn->node1);
 			addop1(JMPNOTNULL_ELSEPOP, funcDone);
 		}
-		addop0(LDNULL);
+		addop0(PUSH);
 		break;
 	case FN_ABS:
 		genExprAll(n->node1);

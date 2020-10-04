@@ -2,21 +2,23 @@
 #define BS  (1024*1024*3)
 
 class bufreader {
+	FILE* f = NULL;
+	char* end = NULL;
+	char* nl = NULL;
+	char* line = NULL;
+	int biggestline = 0;
+	bool single = false;
 	char buf[BS+1];
-	FILE* f;
-	char* end;
-	char* nl;
-	char* line;
-	int biggestline;
-	bool single;
 	void refresh();
 	bufreader& operator=(bufreader);
 	public:
-	int linesize;
+	int linesize = 0;
 	char* getline();
-	void open(const char* fname);
-	bufreader(){f = NULL;}
+	bufreader(){}
 	~bufreader(){if (f) fclose(f);}
+	void open(const char* fname){
+		f = fopen(fname,"r");
+	};
 	//fill entire buffer when reread
 	void seekfull(long long pos){
 		fseek(f, pos, SEEK_SET);

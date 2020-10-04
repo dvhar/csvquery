@@ -46,9 +46,7 @@ class dataTyper {
 	void checkMathSemantics(unique_ptr<node> &n);
 	void checkFuncSemantics(unique_ptr<node> &n);
 
-	dataTyper(querySpecs& qs){
-		q = &qs;
-	};
+	dataTyper(querySpecs& qs): q{&qs} {};
 };
 
 //special cases handled later by keepSubtreeTypes()
@@ -824,9 +822,7 @@ void dataTyper::checkMathSemantics(unique_ptr<node> &n){
 		return;
 	auto n1 = n->node1 == nullptr ? T_NULL : n->node1->datatype;
 	auto n2 = n->node2 == nullptr ? T_NULL : n->node2->datatype;
-	auto combo = [&](int a, int b){
-		return (n1 == a && n2 == b) || (n1 == b && n2 == a);
-	};
+	auto combo = [&](int a, int b){ return (n1 == a && n2 == b) || (n1 == b && n2 == a); };
 	auto is = [&](int t){ return n->datatype == t; };
 	auto typestr = nameMap.at(n->datatype);
 
