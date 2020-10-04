@@ -31,7 +31,7 @@ void runServer(){
 
 static void serve(){
 
-	auto startdir = filebrowse(filesystem::current_path());
+	auto startdir = filebrowse(filesystem::current_path().u8string());
 	state["openDirList"] = startdir->tojson();
 	state["saveDirList"] = startdir->tojson();
 	auto endSemicolon = regex(";\\s*$");

@@ -56,7 +56,7 @@ static void pingbrowsers(){
 	string ping(json{{"Type",SK_PING}}.dump());
 	int deathcount = 0;
 	while(1){
-		sleep(1);
+		this_thread::sleep_for(chrono::seconds(1));
 		for (auto& c : server.get_connections())
 			c->send(ping);
 		if (clientCount > 0)
