@@ -197,10 +197,7 @@ vmachine::vmachine(querySpecs &qs) : csvOutput(0) {
 	id = idCounter++;
 	sessionId = q->sessionId;
 	updates.sessionId = sessionId;
-	for (int i=0; i<q->numFiles; ++i){
-		files.push_back(q->files[st("_f", i)]);
-	}
-
+	files = move(q->filevec);
 	destrow.resize(q->colspec.count, {0});
 	torow = destrow.data();
 	torowSize = q->colspec.count;
@@ -216,7 +213,6 @@ vmachine::vmachine(querySpecs &qs) : csvOutput(0) {
 		else
 			normalSortVals.resize(q->sortcount);
 	}
-
 	fill(stack.begin(), stack.end(), dat{0});
 	ops = q->bytecode.data();
 	quantityLimit = q->quantityLimit;
@@ -321,11 +317,11 @@ int crypter::newChacha(string pass){
 	return ctxs.size()-1;
 }
 //each row has own nonce so need to reinitialize chacha cipher each time
-pair<char*, int> crypter::chachaEncrypt(int i, size_t len, char* input){
-	len++; //null terminator
+void crypter::chachaEncrypt(dat& d, int i){
+	auto len = d.z+1;
 	auto ch = ctxs.data()+i;
 	auto rawResult = (uint8_t*) alloca(len+3);
-	memcpy(rawResult+3, input, len);
+	memcpy(rawResult+3, d.u.s, len);
 	int nonce = rng();
 	rawResult[0] = ch->nonce[0] = nonce;
 	rawResult[1] = ch->nonce[1] = nonce >> 8;
@@ -333,18 +329,19 @@ pair<char*, int> crypter::chachaEncrypt(int i, size_t len, char* input){
 	memcpy(&ch->ctx.key, ch->key, sizeof(ch->ctx.key));
 	chacha20_init_context(&ch->ctx, ch->key, ch->nonce, 1); //find out what counter param does
 	chacha20_xor(&ch->ctx, rawResult+3, len);
-	int finalSize = encsize(len+3);
+	u32 finalSize = encsize(len+3);
 	auto finalResult = (char*) malloc(finalSize+1);
 	base64_encode((BYTE*)rawResult, (BYTE*)finalResult, len+3, 0);
 	finalResult[finalSize]=0;
-	return pair<char*,int>(finalResult, finalSize);
+	d.freedat();
+	d = dat{ {s: finalResult}, T_STRING|MAL, finalSize };
 }
-pair<char*, int> crypter::chachaDecrypt(int i, size_t len, char* input){
-	len++; //null terminator
+void crypter::chachaDecrypt(dat& d, int i){
+	auto len = d.z+1;
 	auto ch = ctxs.data()+i;
 	auto rawResult = (char*) alloca(len);
-	int finalSize;
-	finalSize = base64_decode((BYTE*)input, (BYTE*)rawResult, len);
+	u32 finalSize;
+	finalSize = base64_decode((BYTE*)d.u.s, (BYTE*)rawResult, len);
 	finalSize -= 4;
 	ch->nonce[0] = rawResult[0];
 	ch->nonce[1] = rawResult[1];
@@ -355,7 +352,8 @@ pair<char*, int> crypter::chachaDecrypt(int i, size_t len, char* input){
 	auto finalResult = (char*) malloc(finalSize+1);
 	memcpy(finalResult, rawResult+3, finalSize);
 	finalResult[finalSize]=0;
-	return pair<char*,int>(finalResult, finalSize);
+	d.freedat();
+	d = dat{ {s: finalResult}, T_STRING|MAL, finalSize };
 }
 void sha1(dat& d){
 	SHA1_CTX ctx;

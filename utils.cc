@@ -14,7 +14,7 @@ int isDuration(const char* s){ return !regexec(&durationPattern, s, 0, NULL, 0);
 int isInt(const char* s){ return !regexec(&intType, s, 0, NULL, 0); }
 int isFloat(const char* s){ return !regexec(&floatType, s, 0, NULL, 0); }
 
-minstd_rand0 rng(time(0));
+mt19937 rng(time(0));
 
 const flatmap<int, string_view> enumMap = {
 	{EOS ,           "EOS"},

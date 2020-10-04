@@ -91,8 +91,6 @@ bool fileReader::readline(){
 			}
 			if (!(*pos2)){
 				terminator = pos2;
-				if (pos2 > buf && *(pos2-1) == '\r')
-					terminator--;
 				getField();
 				return checkWidth();
 			}
@@ -118,8 +116,6 @@ bool fileReader::readline(){
 			//end of line
 			case '\0':
 				terminator = pos2-1;
-				if (pos2-1 > buf && *(pos2-2) == '\r')
-					terminator--;
 				getField();
 				return checkWidth();
 			case ' ':
@@ -161,7 +157,7 @@ inline bool fileReader::checkWidth(){
 }
 inline void fileReader::getField(){
 	//trim trailing whitespace and push pointer
-	while (isblank(*(terminator-1))) --terminator;
+	while (isspace(*(terminator-1))) --terminator;
 	*terminator = '\0';
 	entriesVec.emplace_back(pos1, terminator);
 	++fieldsFound;
@@ -208,10 +204,11 @@ void fileReader::inferTypes() {
 	for (u32 i=0; i<entriesVec.size(); ++i)
 		if (!types[i])
 			types[i] = T_STRING; //maybe come up with better way of handling nulls
-	fs.seekfull(startData);
 	prevpos = startData;
 	if (small)
 		fill(entriesVec.begin(), entriesVec.end(), csvEntry{&blank,&blank});
+	else
+		fs.seekfull(startData);
 }
 
 int fileReader::getColIdx(string& colname){
@@ -229,7 +226,8 @@ void openfiles(querySpecs &q, unique_ptr<node> &n){
 		//initialize and put in map
 		string& fpath = n->tok1.val;
 		string id = st("_f",q.numFiles);
-		auto fr = make_shared<fileReader>(fpath);
+		q.filevec.push_back(make_shared<fileReader>(fpath));
+		auto& fr = q.filevec.back();
 		fr->id = id;
 		fr->fileno = q.numFiles;
 		q.files[id] = fr;
