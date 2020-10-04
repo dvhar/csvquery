@@ -21,6 +21,7 @@
 #include "deps/getline/bufreader.h"
 #include <forward_list>
 #include <nlohmann/json.hpp>
+#include <random>
 
 #ifdef __MINGW32__
 #include <getopt.h>
@@ -33,12 +34,13 @@ typedef struct chacha20_context chacha;
 typedef long long i64;
 typedef unsigned int u32;
 typedef i64 dur_t;
-#define ft boost::format
-#define flatmap boost::container::flat_map
-#define SMALLEST numeric_limits<i64>::min()
-using namespace std;
+template<typename A, typename B>
+using flatmap = boost::container::flat_map<A,B>;
+using ft = boost::format;
 using json = nlohmann::json;
+using namespace std;
 
+extern minstd_rand0 rng;
 static void error(string A){ throw invalid_argument(A);}
 static void perr(string s){
 	cerr << s;
@@ -262,7 +264,7 @@ class csvEntry {
 	public:
 	char* val;
 	char* terminator;
-	csvEntry(char* s,char* e){ val = s; terminator = e; };
+	csvEntry(char* s,char* e) : val(s), terminator(e) {};
 	csvEntry(){};
 };
 
@@ -468,7 +470,7 @@ class querySpecs {
 	shared_ptr<fileReader>& getFileReader(int);
 	variable& var(string);
 	~querySpecs();
-	querySpecs(string &s){ queryString = s; };
+	querySpecs(string &s) : queryString(s) {};
 };
 
 //might be replacable with just a json object?
@@ -519,13 +521,11 @@ int varIsAgg(string lkup, querySpecs &q);
 void parseQuery(querySpecs &q);
 bool is_number(const std::string& s);
 void printTree(unique_ptr<node> &n, int ident);
-int slcomp(const char*, const char*);
 int isInt(const char*);
 int isFloat(const char*);
 int dateParse(const char*, struct timeval*);
 int parseDuration(char*, date_t*);
 int getNarrowestType(char* value, int startType);
-int isInList(int n, int count, ...);
 void openfiles(querySpecs &q, unique_ptr<node> &n);
 void applyTypes(querySpecs &q);
 void analyzeTree(querySpecs &q);

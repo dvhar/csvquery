@@ -967,7 +967,7 @@ LDDIST_:
 	nexti();
 NDIST_:
 	iTemp1 = op->p3 ? groupTemp->meta.distinctNSetIdx : 0;
-	i64Temp = stk0.isnull() ? SMALLEST : stk0.u.i;
+	i64Temp = stk0.isnull() ? numeric_limits<i64>::min() : stk0.u.i;
 	if (bt_nums[op->p2+iTemp1].insert(i64Temp).second) {
 		distinctVal = stk0;
 		++ip;
@@ -1110,19 +1110,19 @@ FUNC_ROUND_:
 	nexti();
 FUNC_RAND_:
 	push();
-	stk0.u.f = rand(); //TODO: better rng
+	stk0.u.f = rng();
 	stk0.b = T_FLOAT;
 	nexti();
 FUNC_UPPER_:
 	ifnotnull {
-		stk0.u.s = strdup(stk0.u.s);
+		stk0 = stk0.heap();
 		stk0.b |= MAL;
 		for(auto c = stk0.u.s; *c; ++c) *c = toupper(*c);
 	}
 	nexti();
 FUNC_LOWER_:
 	ifnotnull {
-		stk0.u.s = strdup(stk0.u.s);
+		stk0 = stk0.heap();
 		stk0.b |= MAL;
 		for(auto c = stk0.u.s; *c; ++c) *c = tolower(*c);
 	}
@@ -1157,12 +1157,12 @@ FUNC_SUBSTR_:
 	ifnotnull {
 		if (op->p3){
 			auto d = stk0;
-			regmatch_t pm[1];
-			if (!regexec(q->dataholder[op->p1].u.r, d.u.s, 1, pm, 0)){
-				stk0.z = pm[0].rm_eo - pm[0].rm_so;
+			regmatch_t pm;
+			if (!regexec(q->dataholder[op->p1].u.r, d.u.s, 1, &pm, 0)){
+				stk0.z = pm.rm_eo - pm.rm_so;
 				stk0.u.s = (char*)malloc(stk0.z+1);
 				stk0.b |= MAL;
-				strncpy(stk0.u.s, d.u.s+pm[0].rm_so, stk0.z);
+				strncpy(stk0.u.s, d.u.s+pm.rm_so, stk0.z);
 				stk0.u.s[stk0.z] = 0;
 			} else
 				stk0.setnull();
@@ -1195,7 +1195,6 @@ FUNC_SHA1_:
 FUNC_SHA256_:
 	ifnotnull sha256(stk0);
 	nexti();
-//string(),int(),float() use conv instr
 
 //aggregates
 LDSTDVI_:

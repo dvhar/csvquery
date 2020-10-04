@@ -227,7 +227,7 @@ vmachine::vmachine(querySpecs &qs) : csvOutput(0) {
 		jsonresult.reset(new singleQueryResult(qs));
 	}
 	if (q->outputcsv){
-		if (q->savepath != ""){
+		if (!q->savepath.empty()){
 			outfile.open(qs.savepath, ofstream::out | ofstream::app);
 			csvOutput.rdbuf(outfile.rdbuf());
 		} else {
@@ -326,7 +326,7 @@ pair<char*, int> crypter::chachaEncrypt(int i, size_t len, char* input){
 	auto ch = ctxs.data()+i;
 	auto rawResult = (uint8_t*) alloca(len+3);
 	memcpy(rawResult+3, input, len);
-	auto nonce = rand(); //replace with secure version
+	int nonce = rng();
 	rawResult[0] = ch->nonce[0] = nonce;
 	rawResult[1] = ch->nonce[1] = nonce >> 8;
 	rawResult[2] = ch->nonce[2] = nonce >> 16;
