@@ -32,10 +32,10 @@
 #define ifneithernull if (stk0.isnull() || stk1.isnull()) { stk1.setnull(); } else
 
 void vmachine::run(){
-	constexpr void* labels[] = { &&CVER_, &&CVNO_, &&CVIF_, &&CVIS_, &&CVFI_, &&CVFS_, &&CVDRS_, &&CVDTS_, &&CVSI_, &&CVSF_, &&CVSDR_, &&CVSDT_, &&IADD_, &&FADD_, &&TADD_, &&DTADD_, &&DRADD_, &&ISUB_, &&FSUB_, &&DTSUB_, &&DRSUB_, &&IMULT_, &&FMULT_, &&DRMULT_, &&IDIV_, &&FDIV_, &&DRDIV_, &&INEG_, &&FNEG_, &&PNEG_, &&IMOD_, &&FMOD_, &&IEXP_, &&FEXP_, &&JMP_, &&JMPCNT_, &&JMPTRUE_, &&JMPFALSE_, &&JMPNOTNULL_ELSEPOP_, &&RDLINE_, &&RDLINE_ORDERED_, &&PREP_REREAD_, &&PUT_, &&LDPUT_, &&LDPUTALL_, &&PUTVAR_, &&PUTVAR2_, &&LDINT_, &&LDFLOAT_, &&LDTEXT_, &&LDDATE_, &&LDDUR_, &&LDNULL_, &&LDLIT_, &&LDVAR_, &&HOLDVAR_, &&IEQ_, &&FEQ_, &&TEQ_, &&LIKE_, &&ILEQ_, &&FLEQ_, &&TLEQ_, &&ILT_, &&FLT_, &&TLT_, &&PRINTCSV_, &&PRINTJSON_, &&PUSH_, &&PUSH_N_, &&POP_, &&POPCPY_, &&ENDRUN_, &&NULFALSE1_, &&NULFALSE2_, &&NDIST_, &&SDIST_, &&PUTDIST_, &&LDDIST_, &&FINC_, &&FUNC_ENCCHA_, &&FUNC_DECCHA_, &&SAVESORTN_, &&SAVESORTS_, &&SAVEVALPOS_, &&SAVEPOS_, &&SORT_, &&GETGROUP_, &&ONEGROUP_, &&SUMI_, &&SUMF_, &&AVGI_, &&AVGF_, &&STDVI_, &&STDVF_, &&COUNT_, &&MINI_, &&MINF_, &&MINS_, &&MAXI_, &&MAXF_, &&MAXS_, &&NEXTMAP_, &&NEXTVEC_, &&ROOTMAP_, &&LDMID_, &&LDPUTMID_, &&LDPUTGRP_, &&LDSTDVI_, &&LDSTDVF_, &&LDAVGI_, &&LDAVGF_, &&ADD_GROUPSORT_ROW_, &&FREE_MIDROW_, &&GSORT_, &&READ_NEXT_GROUP_, &&NUL_TO_STR_, &&SORTVALPOS_, &&JOINSET_EQ_AND_, &&JOINSET_EQ_, &&JOINSET_LESS_, &&JOINSET_GRT_, &&JOINSET_LESS_AND_, &&JOINSET_GRT_AND_, &&JOINSET_INIT_, &&JOINSET_TRAV_, &&AND_SET_, &&OR_SET_, &&SAVEANDCHAIN_, &&SORT_ANDCHAIN_, &&FUNC_YEAR_, &&FUNC_MONTH_, &&FUNC_WEEK_, &&FUNC_YDAY_, &&FUNC_MDAY_, &&FUNC_WDAY_, &&FUNC_HOUR_, &&FUNC_MINUTE_, &&FUNC_SECOND_, &&FUNC_WDAYNAME_, &&FUNC_MONTHNAME_, &&FUNC_ABSF_, &&FUNC_ABSI_, &&START_MESSAGE_, &&STOP_MESSAGE_, &&FUNC_CIEL_, &&FUNC_FLOOR_, &&FUNC_ACOS_, &&FUNC_ASIN_, &&FUNC_ATAN_, &&FUNC_COS_, &&FUNC_SIN_, &&FUNC_TAN_, &&FUNC_EXP_, &&FUNC_LOG_, &&FUNC_LOG2_, &&FUNC_LOG10_, &&FUNC_SQRT_, &&FUNC_RAND_, &&FUNC_UPPER_, &&FUNC_LOWER_, &&FUNC_BASE64_ENCODE_, &&FUNC_BASE64_DECODE_, &&FUNC_HEX_ENCODE_, &&FUNC_HEX_DECODE_, &&FUNC_LEN_, &&FUNC_SUBSTR_, &&FUNC_MD5_, &&FUNC_SHA1_, &&FUNC_SHA256_, &&FUNC_ROUND_};
+	constexpr void* labels[] = { &&CVER_, &&CVNO_, &&CVIF_, &&CVIS_, &&CVFI_, &&CVFS_, &&CVDRS_, &&CVDTS_, &&CVSI_, &&CVSF_, &&CVSDR_, &&CVSDT_, &&IADD_, &&FADD_, &&TADD_, &&DTADD_, &&DRADD_, &&ISUB_, &&FSUB_, &&DTSUB_, &&DRSUB_, &&IMULT_, &&FMULT_, &&DRMULT_, &&IDIV_, &&FDIV_, &&DRDIV_, &&INEG_, &&FNEG_, &&PNEG_, &&IMOD_, &&FMOD_, &&IEXP_, &&FEXP_, &&JMP_, &&JMPCNT_, &&JMPTRUE_, &&JMPFALSE_, &&JMPNOTNULL_ELSEPOP_, &&RDLINE_, &&RDLINE_ORDERED_, &&PREP_REREAD_, &&PUT_, &&LDPUT_, &&LDPUTALL_, &&PUTVAR_, &&PUTVAR2_, &&LDINT_, &&LDFLOAT_, &&LDTEXT_, &&LDDATE_, &&LDDUR_, &&LDLIT_, &&LDVAR_, &&HOLDVAR_, &&IEQ_, &&FEQ_, &&TEQ_, &&LIKE_, &&ILEQ_, &&FLEQ_, &&TLEQ_, &&ILT_, &&FLT_, &&TLT_, &&PRINTCSV_, &&PRINTJSON_, &&PUSH_, &&PUSH_N_, &&POP_, &&POPCPY_, &&ENDRUN_, &&NULFALSE1_, &&NULFALSE2_, &&NDIST_, &&SDIST_, &&PUTDIST_, &&LDDIST_, &&FINC_, &&FUNC_ENCCHA_, &&FUNC_DECCHA_, &&SAVESORTN_, &&SAVESORTS_, &&SAVEVALPOS_, &&SAVEPOS_, &&SORT_, &&GETGROUP_, &&ONEGROUP_, &&SUMI_, &&SUMF_, &&AVGI_, &&AVGF_, &&STDVI_, &&STDVF_, &&COUNT_, &&MINI_, &&MINF_, &&MINS_, &&MAXI_, &&MAXF_, &&MAXS_, &&NEXTMAP_, &&NEXTVEC_, &&ROOTMAP_, &&LDMID_, &&LDPUTMID_, &&LDPUTGRP_, &&LDSTDVI_, &&LDSTDVF_, &&LDAVGI_, &&LDAVGF_, &&ADD_GROUPSORT_ROW_, &&FREE_MIDROW_, &&GSORT_, &&READ_NEXT_GROUP_, &&NUL_TO_STR_, &&SORTVALPOS_, &&JOINSET_EQ_AND_, &&JOINSET_EQ_, &&JOINSET_LESS_, &&JOINSET_GRT_, &&JOINSET_LESS_AND_, &&JOINSET_GRT_AND_, &&JOINSET_INIT_, &&JOINSET_TRAV_, &&AND_SET_, &&OR_SET_, &&SAVEANDCHAIN_, &&SORT_ANDCHAIN_, &&FUNC_YEAR_, &&FUNC_MONTH_, &&FUNC_WEEK_, &&FUNC_YDAY_, &&FUNC_MDAY_, &&FUNC_WDAY_, &&FUNC_HOUR_, &&FUNC_MINUTE_, &&FUNC_SECOND_, &&FUNC_WDAYNAME_, &&FUNC_MONTHNAME_, &&FUNC_ABSF_, &&FUNC_ABSI_, &&START_MESSAGE_, &&STOP_MESSAGE_, &&FUNC_CIEL_, &&FUNC_FLOOR_, &&FUNC_ACOS_, &&FUNC_ASIN_, &&FUNC_ATAN_, &&FUNC_COS_, &&FUNC_SIN_, &&FUNC_TAN_, &&FUNC_EXP_, &&FUNC_LOG_, &&FUNC_LOG2_, &&FUNC_LOG10_, &&FUNC_SQRT_, &&FUNC_RAND_, &&FUNC_UPPER_, &&FUNC_LOWER_, &&FUNC_BASE64_ENCODE_, &&FUNC_BASE64_DECODE_, &&FUNC_HEX_ENCODE_, &&FUNC_HEX_DECODE_, &&FUNC_LEN_, &&FUNC_SUBSTR_, &&FUNC_MD5_, &&FUNC_SHA1_, &&FUNC_SHA256_, &&FUNC_ROUND_};
 
 
-	//vars for data
+	//vars for temp data
 	i64 i64Temp;
 	int iTemp1, iTemp2;
 	double fTemp;
@@ -45,19 +45,12 @@ void vmachine::run(){
 	dat *datpTemp;
 	csvEntry csvTemp;
 	u32 sizeTemp;
-	struct tm timetm;
+	struct tm tmTemp;
 
-	//vars for vm operations
-	int linesRead = 0;
-	dat* stacktop = stack.data();
-	dat* stackbot = stack.data();
+	//iterator stacks for groups and joins
 	decltype(groupTree->getMap().begin()) groupItstk[20];
 	typedef decltype(joinSetStack.front().begin()) jnit ;
 	vector<jnit> setItstk((q->numFiles-1)*2);
-	dat* midrow;
-	int ip = 0;
-	opcode *op;
-	rowgroup *groupTemp;
 
 	next();
 
@@ -70,11 +63,11 @@ PUT_:
 LDPUT_:
 	csvTemp = files[op->p3]->entries[op->p2];
 	torow[op->p1].freedat();
-	torow[op->p1] = dat{ { s: csvTemp.val }, T_STRING, valSize(csvTemp) };
+	torow[op->p1] = dat{ { s: csvTemp.val }, T_STRING, csvTemp.size() };
 	nexti();
 LDPUTGRP_:
 	csvTemp = files[op->p3]->entries[op->p2];
-	sizeTemp = valSize(csvTemp);
+	sizeTemp = csvTemp.size();
 	if (sizeTemp && torow[op->p1].isnull()){
 		torow[op->p1] = { { s:newStr(csvTemp.val, sizeTemp) }, T_STRING|MAL, sizeTemp };
 	}
@@ -84,7 +77,7 @@ LDPUTALL_:
 	for (auto &f : files){
 		for (auto e=f->entries, end=f->entries+f->numFields; e<end; ++e){
 			torow[iTemp1].freedat();
-			torow[iTemp1++] = dat{ { s: e->val }, T_STRING, valSize((*e)) };
+			torow[iTemp1++] = dat{ { s: e->val }, T_STRING, e->size() };
 		}
 	}
 	nexti();
@@ -135,14 +128,14 @@ LDDUR_:
 LDDATE_:
 	push();
 	csvTemp = files[op->p1]->entries[op->p2];
-	iTemp1 = dateparse(csvTemp.val, &i64Temp, &iTemp2, valSize(csvTemp));
+	iTemp1 = dateparse(csvTemp.val, &i64Temp, &iTemp2, csvTemp.size());
 	if (iTemp1) { stk0.setnull(); }
 	else stk0 = dat{ { i: i64Temp}, T_DATE, (u32) iTemp2 };
 	nexti();
 LDTEXT_:
 	push();
 	csvTemp = files[op->p1]->entries[op->p2];
-	sizeTemp = valSize(csvTemp);
+	sizeTemp = csvTemp.size();
 	if (!sizeTemp) { stk0.setnull(); }
 	else stk0 = dat{ { s: csvTemp.val }, T_STRING, sizeTemp };
 	nexti();
@@ -151,18 +144,14 @@ LDFLOAT_:
 	csvTemp = files[op->p1]->entries[op->p2];
 	stk0.u.f = strtof(csvTemp.val, &cstrTemp);
 	stk0.b = T_FLOAT;
-	if (!valSize(csvTemp) || *cstrTemp){ stk0.setnull(); }
+	if (!csvTemp.size() || *cstrTemp){ stk0.setnull(); }
 	nexti();
 LDINT_:
 	push();
 	csvTemp = files[op->p1]->entries[op->p2];
 	stk0.u.i = strtoll(csvTemp.val, &cstrTemp, 10);
 	stk0.b = T_INT;
-	if (!valSize(csvTemp) || cstrTemp == csvTemp.val) { stk0.setnull(); }
-	nexti();
-LDNULL_:
-	push();
-	stk0.setnull();
+	if (!csvTemp.size() || cstrTemp == csvTemp.val) { stk0.setnull(); }
 	nexti();
 LDLIT_:
 	push();
@@ -833,9 +822,9 @@ CVIF_:
 CVSI_:
 	ifnotnull{
 		auto s = stk0.u.s;
-		iTemp1 = strtoll(s, &cstrTemp, 10);
+		i64Temp = strtoll(s, &cstrTemp, 10);
 		stk0.freedat();
-		stk0.u.i = iTemp1;
+		stk0.u.i = i64Temp;
 		stk0.b = T_INT;
 		if (cstrTemp == s){ stk0.setnull(); }
 	}
@@ -998,50 +987,50 @@ FUNC_DECCHA_:
 
 #define get_tm() \
 	skipnull(); \
-	secs_to_tm(sec(stk0.u.i), &timetm);
+	secs_to_tm(sec(stk0.u.i), &tmTemp);
 FUNC_YEAR_:
 	get_tm();
-	stk0 = { { i: timetm.tm_year + 1900 }, T_INT };
+	stk0 = { { i: tmTemp.tm_year + 1900 }, T_INT };
 	nexti();
 FUNC_MONTH_:
 	get_tm();
-	stk0 = { { i: timetm.tm_mon }, T_INT };
+	stk0 = { { i: tmTemp.tm_mon }, T_INT };
 	nexti();
 FUNC_WEEK_:
 	get_tm();
-	stk0 = { { i: timetm.tm_yday / 7 + 1 }, T_INT };
+	stk0 = { { i: tmTemp.tm_yday / 7 + 1 }, T_INT };
 	nexti();
 FUNC_YDAY_:
 	get_tm();
-	stk0 = { { i: timetm.tm_yday }, T_INT };
+	stk0 = { { i: tmTemp.tm_yday }, T_INT };
 	nexti();
 FUNC_MDAY_:
 	get_tm();
-	stk0 = { { i: timetm.tm_mday }, T_INT };
+	stk0 = { { i: tmTemp.tm_mday }, T_INT };
 	nexti();
 FUNC_WDAY_:
 	get_tm();
-	stk0 = { { i: timetm.tm_wday }, T_INT };
+	stk0 = { { i: tmTemp.tm_wday }, T_INT };
 	nexti();
 FUNC_HOUR_:
 	get_tm();
-	stk0 = { { i: timetm.tm_hour }, T_INT };
+	stk0 = { { i: tmTemp.tm_hour }, T_INT };
 	nexti();
 FUNC_MINUTE_:
 	get_tm();
-	stk0 = { { i: timetm.tm_min }, T_INT };
+	stk0 = { { i: tmTemp.tm_min }, T_INT };
 	nexti();
 FUNC_SECOND_:
 	get_tm();
-	stk0 = { { i: timetm.tm_sec }, T_INT };
+	stk0 = { { i: tmTemp.tm_sec }, T_INT };
 	nexti();
 FUNC_WDAYNAME_:
 	get_tm();
-	stk0 = { { s: daynames[timetm.tm_wday] }, T_STRING, daylens[timetm.tm_wday] };
+	stk0 = { { s: daynames[tmTemp.tm_wday] }, T_STRING, daylens[tmTemp.tm_wday] };
 	nexti();
 FUNC_MONTHNAME_:
 	get_tm();
-	stk0 = { { s: monthnames[timetm.tm_mon] }, T_STRING, monthlens[timetm.tm_mon] };
+	stk0 = { { s: monthnames[tmTemp.tm_mon] }, T_STRING, monthlens[tmTemp.tm_mon] };
 	nexti();
 FUNC_CIEL_:
 	ifnotnull stk0.u.f = ceil(stk0.u.f);

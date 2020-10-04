@@ -79,7 +79,7 @@ bool fileReader::readline(){
 	equoteCount = 0;
 	while (1){
 		//trim leading space
-		while (*pos2 && isblank(*pos2)) ++pos2;
+		while (*pos2 && isspace(*pos2)) ++pos2;
 		pos1 = pos2;
 		//non-quoted field
 		if (*pos2 != '"'){

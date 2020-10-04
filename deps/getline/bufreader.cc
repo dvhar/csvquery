@@ -1,15 +1,6 @@
 #include<string.h>
 #include "bufreader.h"
 
-void bufreader::open(const char* fname){
-	end = line = NULL;
-	linesize = 0;
-	biggestline = 0;
-	single = false;
-	buf[BS] = 0;
-	f = fopen(fname,"r");
-}
-
 inline void bufreader::refresh(){
 	int offset = end - line;
 	auto readb = fread(buf+offset, 1, (single ? biggestline-offset : BS-offset), f);

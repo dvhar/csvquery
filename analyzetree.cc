@@ -6,9 +6,7 @@ class analyzer {
 	int andChainSize;
 	public:
 		querySpecs* q;
-		analyzer(querySpecs& qs){
-			q = &qs;
-		}
+		analyzer(querySpecs& qs): q{&qs} {}
 		void varUsedInFilter(unique_ptr<node> &n);
 		void setSubtreeVarFilter(unique_ptr<node> &n, int filter);
 		void selectAll();

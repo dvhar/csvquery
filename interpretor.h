@@ -264,8 +264,9 @@ class csvEntry {
 	public:
 	char* val;
 	char* terminator;
-	csvEntry(char* s,char* e) : val(s), terminator(e) {};
-	csvEntry(){};
+	csvEntry(char* s,char* e) : val(s), terminator(e) {}
+	csvEntry(){}
+	u32 size(){ return (u32)(terminator-val); }
 };
 
 class valpos;
