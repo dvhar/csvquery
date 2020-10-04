@@ -1,15 +1,7 @@
 #pragma once
-
-#include "deps/http/server_http.hpp"
-#include<memory>
-#include<string_view>
-#include<forward_list>
-#include<iostream>
 #include "interpretor.h"
 
-#include <boost/property_tree/ptree.hpp>
-using namespace boost::property_tree;
-using HttpServer = SimpleWeb::Server<SimpleWeb::HTTP>;
+
 
 enum legacy_server {
 	DAT_BLANK   = 0,
@@ -17,30 +9,21 @@ enum legacy_server {
 	DAT_GOOD    = 1 << 1,
 	DAT_BADPATH = 1 << 2,
 	DAT_IOERR   = 1 << 4,
-	F_CSV       = 1 << 5
+	F_CSV       = 1 << 5,
+
+	SK_MSG       = 0,
+	SK_PING      = 1,
+	SK_PONG      = 2,
+	SK_STOP      = 3,
+	SK_DIRLIST   = 4,
+	SK_FILECLICK = 5,
+	SK_PASS      = 6,
+	SK_ID        = 7,
 };
 
-class directory {
-	json j;
-	string fpath;
-	string parent;
-	string mode;
-	vector<string> files;
-	vector<string> dirs;
-	public:
-	void setDir(ptree&);
-	json& tojson();
-};
-class stateInfo {
-	json j;
-	bool haveInfo;
-	vector<string> history;
-	directory openDirList;
-	directory saveDirList;
-	public:
-	void setState(ptree&);
-	json& tojson();
-};
+void sendMessage(i64,const char*);
+void sendMessage(i64 sesid, string);
+void servews();
 
 class webquery {
 	public:
@@ -50,19 +33,6 @@ class webquery {
 	string savepath;
 	int qamount =0;
 	int fileIO =0;
+	i64 sessionId=0;
 	bool isSaving(){ return ((fileIO & F_CSV) != 0); }
 };
-
-class webserver {
-	stateInfo state;
-	HttpServer server;
-	public:
-	shared_ptr<returnData> runqueries(webquery &wq);
-	shared_ptr<singleQueryResult> runWebQuery(webquery &wq);
-	void embed(HttpServer&);
-	void serve();
-};
-
-
-
-string handle_err(exception_ptr eptr);
