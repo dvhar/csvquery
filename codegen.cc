@@ -95,25 +95,8 @@ static int ident = 0;
 
 void jumpPositions::updateBytecode(vector<opcode> &vec) {
 	for (auto &v : vec)
-		switch (v.code){
-		case JMP:
-		case JMPCNT:
-		case JMPTRUE:
-		case JMPFALSE:
-		case RDLINE:
-		case RDLINE_ORDERED:
-		case NULFALSE1:
-		case NULFALSE2:
-		case NDIST:
-		case SDIST:
-		case JMPNOTNULL_ELSEPOP:
-		case NEXTMAP:
-		case NEXTVEC:
-		case READ_NEXT_GROUP:
-		case JOINSET_TRAV:
-			if (v.p1 < 0)
-				v.p1 = jumps[v.p1];
-		}
+		if (opDoesJump(v.code) && v.p1 < 0)
+			v.p1 = jumps[v.p1];
 };
 
 
@@ -135,9 +118,7 @@ void cgen::generateCode(){
 void cgen::finish(){
 	int i = 0;
 	for (auto c : v){
-		stringstream s;
-		s << "ip: " << left << setw(4) << i++;
-		perr(s.str());
+		perr(st("ip: ",left,setw(4),i++));
 		c.print();
 	}
 	q->bytecode = move(v);
@@ -204,12 +185,14 @@ void cgen::genJoiningQuery(unique_ptr<node> &n){
 void cgen::genTraverseJoins(unique_ptr<node> &n){
 	if (n == nullptr) return;
 	//start with base file
+	addop(START_MESSAGE, messager::readingfirst);
 	int endfile1 = jumps.newPlaceholder();
 	normal_read = v.size();
 	prevJoinRead = normal_read;
 	addop(RDLINE, endfile1, 0);
 	genJoinSets(n->node1);
 	jumps.setPlace(endfile1, v.size());
+	addop(STOP_MESSAGE);
 }
 //given 'join' node
 void cgen::genJoinSets(unique_ptr<node> &n){
@@ -362,6 +345,7 @@ void cgen::genScanJoinFiles(unique_ptr<node> &n){
 	for (auto jnode = joinNode.get(); jnode; jnode = jnode->node2.get()){
 		auto& f = q->files[jnode->tok4.val];
 		int afterfile = jumps.newPlaceholder();
+		addop(START_MESSAGE, messager::scanningjoin);
 		normal_read = v.size();
 		addop(RDLINE, afterfile, f->fileno);
 		joinFileIdx++;
@@ -374,6 +358,7 @@ void cgen::genScanJoinFiles(unique_ptr<node> &n){
 			addop(SAVEVALPOS, f->fileno, f->joinValpos.size());
 		addop(JMP, normal_read);
 		jumps.setPlace(afterfile, v.size());
+		addop(START_MESSAGE, messager::indexing);
 		genSortAnds(joinNode->node1);
 		for (u32 i=0; i<valposTypes.size(); i++)
 			addop(SORTVALPOS, f->fileno, i, funcTypes[valposTypes[i]]);
@@ -449,8 +434,11 @@ void cgen::genScannedJoinExprs(unique_ptr<node> &n, int fileno){
 
 void cgen::genNormalQuery(unique_ptr<node> &n){
 	e("normal");
+	int message = (q->whereFiltering || q->distinctFiltering) ?
+		messager::readingfiltered : messager::reading;
 	int endfile = jumps.newPlaceholder(); //where to jump when done reading file
 	pushvars();
+	addop(START_MESSAGE, message);
 	normal_read = v.size();
 	wherenot = normal_read;
 	addop(RDLINE, endfile, 0);
@@ -464,6 +452,7 @@ void cgen::genNormalQuery(unique_ptr<node> &n){
 	genPrint();
 	addop((q->quantityLimit > 0 ? JMPCNT : JMP), normal_read);
 	jumps.setPlace(endfile, v.size());
+	addop(STOP_MESSAGE);
 	popvars();
 	addop(ENDRUN);
 }
@@ -472,6 +461,7 @@ void cgen::genNormalOrderedQuery(unique_ptr<node> &n){
 	int reread = jumps.newPlaceholder();
 	int endreread = jumps.newPlaceholder();
 	pushvars();
+	addop(START_MESSAGE, messager::scanning);
 	normal_read = v.size();
 	wherenot = normal_read;
 	addop(RDLINE, sorter, 0);
@@ -480,8 +470,10 @@ void cgen::genNormalOrderedQuery(unique_ptr<node> &n){
 	addop(SAVEPOS);
 	addop(JMP, normal_read);
 	jumps.setPlace(sorter, v.size());
+	addop(START_MESSAGE, messager::sorting);
 	addop(SORT);
 	addop(PREP_REREAD);
+	addop(START_MESSAGE, messager::retrieving);
 	jumps.setPlace(reread, v.size());
 	addop(RDLINE_ORDERED, endreread);
 	vs.setscope(DISTINCT_FILTER, V_READ2_SCOPE);
@@ -493,6 +485,7 @@ void cgen::genNormalOrderedQuery(unique_ptr<node> &n){
 	genPrint();
 	addop((q->quantityLimit > 0 ? JMPCNT : JMP), reread);
 	jumps.setPlace(endreread, v.size());
+	addop(STOP_MESSAGE);
 	addop(POP); //rereader used 2 stack spaces
 	addop(POP);
 	popvars();
@@ -517,6 +510,7 @@ void cgen::genGroupingQuery(unique_ptr<node> &n){
 	agg_phase = 1;
 	int getgroups = jumps.newPlaceholder();
 	pushvars();
+	addop(START_MESSAGE, messager::scanning);
 	normal_read = v.size();
 	wherenot = normal_read;
 	addop(RDLINE, getgroups, 0);
@@ -530,6 +524,7 @@ void cgen::genGroupingQuery(unique_ptr<node> &n){
 	addop(JMP, normal_read);
 	jumps.setPlace(getgroups, v.size());
 	agg_phase = 2;
+	addop(STOP_MESSAGE);
 	genIterateGroups(n->node4->node2);
 	popvars();
 	addop(ENDRUN);
@@ -657,7 +652,7 @@ void cgen::genValue(unique_ptr<node> &n){
 		vtype = getVarType(n->tok1.val, q);
 		op = typeConv[vtype][n->datatype];
 		if (op == CVER)
-			error((ft("Error converting alias of type %1% to new type %2%") % vtype % n->datatype).str());
+			error(st("Cannot use alias '",n->tok1.val,"' of type ",nameMap.at(vtype)," with incompatible type ",nameMap.at(n->datatype)));
 		if (op != CVNO)
 			addop0(op);
 		break;
@@ -965,6 +960,30 @@ void cgen::genFunction(unique_ptr<node> &n){
 		} else /* aes */ {
 		}
 		break;
+	case FN_SUBSTR:
+		genExprAll(n->node1);
+		if (!n->tok2.quoted) {
+			auto n1 = parseIntDat(n->tok2.val.c_str());
+			auto n2 = parseIntDat(n->tok3.val.c_str());
+			addop3(FUNC_SUBSTR, n1.u.i, n2.u.i, 0);
+		} else {
+			dat reg{{r: new regex_t}, RMAL};
+			if (regcomp(reg.u.r, n->tok2.val.c_str(), REG_EXTENDED))
+				error("Could not parse 'substr' pattern");
+			addop3(FUNC_SUBSTR, q->dataholder.size(), 0, 1);
+			q->dataholder.push_back(reg);
+		}
+		break;
+	case FN_STRING:
+	case FN_INT:
+	case FN_FLOAT:
+		genExprAll(n->node1); //has conv node from datatyper
+		break;
+	case FN_POW:
+		genExprAll(n->node1);
+		genExprAll(n->node2);
+		addop0(operations[OPEXP][n->datatype]);
+		break;
 	case FN_YEAR:
 	case FN_MONTH:
 	case FN_MONTHNAME:
@@ -976,7 +995,37 @@ void cgen::genFunction(unique_ptr<node> &n){
 	case FN_HOUR:
 	case FN_MINUTE:
 	case FN_SECOND:
+	case FN_CIEL:
+	case FN_FLOOR:
+	case FN_ACOS:
+	case FN_ASIN:
+	case FN_ATAN:
+	case FN_COS:
+	case FN_SIN:
+	case FN_TAN:
+	case FN_EXP:
+	case FN_LOG:
+	case FN_LOG2:
+	case FN_LOG10:
+	case FN_SQRT:
+	case FN_RAND:
+	case FN_UPPER:
+	case FN_LOWER:
+	case FN_BASE64_ENCODE:
+	case FN_BASE64_DECODE:
+	case FN_HEX_ENCODE:
+	case FN_HEX_DECODE:
+	case FN_MD5:
+	case FN_SHA1:
+	case FN_SHA256:
+	case FN_ROUND:
 		genExprAll(n->node1);
+		addop(functionCode[n->tok1.id]);
+		break;
+	case FN_LEN:
+		genExprAll(n->node1);
+		if (n->node1->datatype != T_STRING)
+			addop0(typeConv[n->node1->datatype][T_STRING]);
 		addop(functionCode[n->tok1.id]);
 		break;
 	}
@@ -1031,7 +1080,11 @@ void cgen::genTypeConv(unique_ptr<node> &n){
 	if (n == nullptr) return;
 	e("type convert");
 	genExprAll(n->node1);
-	addop0(typeConv[n->tok1.id][n->datatype]);
+	auto cnv = typeConv[n->tok1.id][n->datatype];
+	if (cnv == CVER)
+		error(st("Cannot use type ",nameMap.at(n->tok1.id)," with incompatible type ",nameMap.at(n->datatype)));
+	if (cnv != CVNO)
+		addop0(typeConv[n->tok1.id][n->datatype]);
 }
 
 void cgen::genGetGroup(unique_ptr<node> &n){

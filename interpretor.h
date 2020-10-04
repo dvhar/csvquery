@@ -21,6 +21,7 @@
 #include "deps/getline/bufreader.h"
 #include <forward_list>
 #include <nlohmann/json.hpp>
+#include <random>
 
 #ifdef __MINGW32__
 #include <getopt.h>
@@ -33,13 +34,14 @@ typedef struct chacha20_context chacha;
 typedef long long i64;
 typedef unsigned int u32;
 typedef i64 dur_t;
-#define ft boost::format
-#define flatmap boost::container::flat_map
-#define error(A) throw invalid_argument(A)
-#define SMALLEST numeric_limits<i64>::min()
-using namespace std;
+template<typename A, typename B>
+using flatmap = boost::container::flat_map<A,B>;
+using ft = boost::format;
 using json = nlohmann::json;
+using namespace std;
 
+extern minstd_rand0 rng;
+static void error(string A){ throw invalid_argument(A);}
 static void perr(string s){
 	cerr << s;
 }
@@ -122,6 +124,36 @@ enum {
 	FN_ENCRYPT =  KEYWORD|49,
 	FN_DECRYPT =  KEYWORD|50,
 	FN_INC =      KEYWORD|51,
+	FN_CIEL =          KEYWORD|68,
+	FN_FLOOR =         KEYWORD|69,
+	FN_ACOS =          KEYWORD|70,
+	FN_ASIN =          KEYWORD|71,
+	FN_ATAN =          KEYWORD|72,
+	FN_COS =           KEYWORD|73,
+	FN_SIN =           KEYWORD|74,
+	FN_TAN =           KEYWORD|75,
+	FN_EXP =           KEYWORD|76,
+	FN_LOG =           KEYWORD|77,
+	FN_LOG2 =          KEYWORD|78,
+	FN_LOG10 =         KEYWORD|79,
+	FN_SQRT =          KEYWORD|80,
+	FN_RAND =          KEYWORD|81,
+	FN_UPPER =         KEYWORD|82,
+	FN_LOWER =         KEYWORD|83,
+	FN_BASE64_ENCODE = KEYWORD|84,
+	FN_BASE64_DECODE = KEYWORD|85,
+	FN_HEX_ENCODE =    KEYWORD|86,
+	FN_HEX_DECODE =    KEYWORD|87,
+	FN_LEN =           KEYWORD|88,
+	FN_SUBSTR =        KEYWORD|89,
+	FN_MD5 =           KEYWORD|90,
+	FN_SHA1 =          KEYWORD|91,
+	FN_SHA256 =        KEYWORD|92,
+	FN_STRING =        KEYWORD|93,
+	FN_INT =           KEYWORD|94,
+	FN_FLOAT =         KEYWORD|95,
+	FN_ROUND =         KEYWORD|96,
+	FN_POW =           KEYWORD|97,
 	SPECIALBIT =  1<<21,
 	SPECIAL =      FINAL|SPECIALBIT,
 	SP_EQ =        RELOP|SPECIAL|50,
@@ -165,6 +197,8 @@ extern regex_t leadingZeroString;
 extern regex_t durationPattern;
 extern regex_t intType;
 extern regex_t floatType;
+extern regex_t extPattern;
+extern regex_t hidPattern;
 extern regex cInt;
 extern regex posInt;
 extern regex colNum;
@@ -188,7 +222,9 @@ enum: int {
 	CHAINSIZE,
 	CHAINIDX,
 	FILENO,
-	TOSCAN
+	TOSCAN,
+	PARAMTYPE,
+	RETTYPE
 };
 class node {
 	public:
@@ -228,7 +264,7 @@ class csvEntry {
 	public:
 	char* val;
 	char* terminator;
-	csvEntry(char* s,char* e){ val = s; terminator = e; };
+	csvEntry(char* s,char* e) : val(s), terminator(e) {};
 	csvEntry(){};
 };
 
@@ -281,10 +317,10 @@ class fileReader {
 
 class opcode {
 	public:
-	int code;
-	int p1;
-	int p2;
-	int p3;
+	int code =0;
+	int p1 =0;
+	int p2 =0;
+	int p3 =0;
 	void print();
 };
 
@@ -370,7 +406,7 @@ class valpos {
 
 class resultSpecs {
 	public:
-	int count;
+	int count =0;
 	vector<int> types;
 	vector<string> colnames;
 };
@@ -385,8 +421,8 @@ class crypter {
 	public:
 	vector<chactx> ctxs;
 	int newChacha(string);
-	pair<char*,int> chachaEncrypt(int, int, char*);
-	pair<char*,int> chachaDecrypt(int, int, char*);
+	pair<char*,int> chachaEncrypt(int, size_t, char*);
+	pair<char*,int> chachaDecrypt(int, size_t, char*);
 };
 
 class querySpecs {
@@ -403,6 +439,7 @@ class querySpecs {
 	map<string, shared_ptr<fileReader>> files;
 	resultSpecs colspec = {0};
 	crypter crypt = {};
+	i64 sessionId = 0;
 	int distinctSFuncs =0;
 	int distinctNFuncs =0;
 	int midcount =0;
@@ -421,6 +458,7 @@ class querySpecs {
 	bool joining =0;
 	bool whereFiltering =0;
 	bool havingFiltering =0;
+	bool distinctFiltering =0;
 	token tok();
 	token nextTok();
 	token peekTok();
@@ -432,13 +470,14 @@ class querySpecs {
 	shared_ptr<fileReader>& getFileReader(int);
 	variable& var(string);
 	~querySpecs();
-	querySpecs(string &s){ queryString = s; };
+	querySpecs(string &s) : queryString(s) {};
 };
 
 //might be replacable with just a json object?
 class singleQueryResult {
 	json j;
 	public:
+	bool clipped = false;
 	int numrows =0;
 	int showLimit =0;
 	int numcols =0;
@@ -458,26 +497,35 @@ class returnData {
 	json j;
 	public:
 	list<shared_ptr<singleQueryResult>> entries;
-	int status;
+	int status =0;
+	int maxclipped =0;
 	string originalQuery;
-	bool clipped;
 	string message;
 	json& tojson();
 };
 
+class directory {
+	public:
+	json j;
+	string fpath;
+	string parent;
+	string mode;
+	vector<string> files;
+	vector<string> dirs;
+	void setDir(json&);
+	json& tojson();
+};
 
 void scanTokens(querySpecs &q);
 int varIsAgg(string lkup, querySpecs &q);
 void parseQuery(querySpecs &q);
 bool is_number(const std::string& s);
 void printTree(unique_ptr<node> &n, int ident);
-int slcomp(const char*, const char*);
 int isInt(const char*);
 int isFloat(const char*);
 int dateParse(const char*, struct timeval*);
 int parseDuration(char*, date_t*);
 int getNarrowestType(char* value, int startType);
-int isInList(int n, int count, ...);
 void openfiles(querySpecs &q, unique_ptr<node> &n);
 void applyTypes(querySpecs &q);
 void analyzeTree(querySpecs &q);
@@ -493,6 +541,9 @@ void runServer();
 string handle_err(exception_ptr eptr);
 unique_ptr<node>& findFirstNode(unique_ptr<node> &n, int label);
 void prepareQuery(querySpecs &q);
+void stopAllQueries();
+shared_ptr<directory> filebrowse(string);
+string promptPassword();
 
 struct freeC {
 	void operator()(void*x){ free(x); }
@@ -515,3 +566,12 @@ static string st(T first, Args... args) {
 }
 extern int runmode;
 enum runmodes { RUN_CMD, RUN_SINGLE, RUN_SERVER };
+
+template<typename T>
+static T fromjson(json& j, string&& key){
+	try {
+		return j[key].get<T>();
+	} catch (exception e) {
+		return T{};
+	}
+}

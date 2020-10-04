@@ -1,9 +1,15 @@
 #include "interpretor.h"
 #include "vmachine.h"
+#include "server.h"
+#include "deps/crypto/sha1.h"
+#include "deps/crypto/sha256.h"
+#include "deps/crypto/md5.h"
+//#include "deps/crypto/aes.h"
+#include <chrono>
 
 //map for printing opcodes
 flatmap<int, string_view> opMap = {
-	{CVER,"CVER"}, {CVNO,"CVNO"}, {CVIF,"CVIF"}, {CVIS,"CVIS"}, {CVFI,"CVFI"}, {CVFS,"CVFS"}, {CVDRS,"CVDRS"}, {CVDTS,"CVDTS"}, {CVSI,"CVSI"}, {CVSF,"CVSF"}, {CVSDR,"CVSDR"}, {CVSDT,"CVSDT"}, {IADD,"IADD"}, {FADD,"FADD"}, {TADD,"TADD"}, {DTADD,"DTADD"}, {DRADD,"DRADD"}, {ISUB,"ISUB"}, {FSUB,"FSUB"}, {DTSUB,"DTSUB"}, {DRSUB,"DRSUB"}, {IMULT,"IMULT"}, {FMULT,"FMULT"}, {DRMULT,"DRMULT"}, {IDIV,"IDIV"}, {FDIV,"FDIV"}, {DRDIV,"DRDIV"}, {INEG,"INEG"}, {FNEG,"FNEG"}, {PNEG,"PNEG"}, {IMOD,"IMOD"}, {FMOD,"FMOD"}, {IEXP,"IEXP"}, {FEXP,"FEXP"}, {JMP,"JMP"}, {JMPCNT,"JMPCNT"}, {JMPTRUE,"JMPTRUE"}, {JMPFALSE,"JMPFALSE"}, {JMPNOTNULL_ELSEPOP,"JMPNOTNULL_ELSEPOP"}, {RDLINE,"RDLINE"}, {RDLINE_ORDERED,"RDLINE_ORDERED"}, {PREP_REREAD,"PREP_REREAD"}, {PUT,"PUT"}, {LDPUT,"LDPUT"}, {LDPUTALL,"LDPUTALL"}, {PUTVAR,"PUTVAR"}, {PUTVAR2,"PUTVAR2"}, {LDINT,"LDINT"}, {LDFLOAT,"LDFLOAT"}, {LDTEXT,"LDTEXT"}, {LDDATE,"LDDATE"}, {LDDUR,"LDDUR"}, {LDNULL,"LDNULL"}, {LDLIT,"LDLIT"}, {LDVAR,"LDVAR"}, {HOLDVAR,"HOLDVAR"}, {IEQ,"IEQ"}, {FEQ,"FEQ"}, {TEQ,"TEQ"}, {LIKE,"LIKE"}, {ILEQ,"ILEQ"}, {FLEQ,"FLEQ"}, {TLEQ,"TLEQ"}, {ILT,"ILT"}, {FLT,"FLT"}, {TLT,"TLT"}, {PRINTJSON,"PRINTJSON"}, {PRINTCSV,"PRINTCSV"}, {PUSH,"PUSH"}, {PUSH_N,"PUSH_N"}, {POP,"POP"}, {POPCPY,"POPCPY"}, {ENDRUN,"ENDRUN"}, {NULFALSE1,"NULFALSE1"}, {NULFALSE2,"NULFALSE2"}, {NDIST,"NDIST"}, {SDIST,"SDIST"}, {PUTDIST,"PUTDIST"}, {LDDIST,"LDDIST"}, {FINC,"FINC"}, {ENCCHA,"ENCCHA"}, {DECCHA,"DECCHA"}, {SAVESORTN,"SAVESORTN"}, {SAVESORTS,"SAVESORTS"}, {SAVEVALPOS,"SAVEVALPOS"}, {SAVEPOS,"SAVEPOS"}, {SORT,"SORT"}, {GETGROUP,"GETGROUP"}, {ONEGROUP,"ONEGROUP"}, {SUMI,"SUMI"}, {SUMF,"SUMF"}, {AVGI,"AVGI"}, {AVGF,"AVGF"}, {STDVI,"STDVI"}, {STDVF,"STDVF"}, {COUNT,"COUNT"}, {MINI,"MINI"}, {MINF,"MINF"}, {MINS,"MINS"}, {MAXI,"MAXI"}, {MAXF,"MAXF"}, {MAXS,"MAXS"}, {NEXTMAP,"NEXTMAP"}, {NEXTVEC,"NEXTVEC"}, {ROOTMAP,"ROOTMAP"}, {LDMID,"LDMID"}, {LDPUTMID,"LDPUTMID"}, {LDPUTGRP,"LDPUTGRP"}, {LDSTDVI,"LDSTDVI"}, {LDSTDVF,"LDSTDVF"}, {LDAVGI,"LDAVGI"}, {LDAVGF,"LDAVGF"}, {ADD_GROUPSORT_ROW,"ADD_GROUPSORT_ROW"}, {FREEMIDROW,"FREEMIDROW"}, {GSORT,"GSORT"}, {READ_NEXT_GROUP,"READ_NEXT_GROUP"}, {NUL_TO_STR,"NUL_TO_STR"}, {SORTVALPOS,"SORTVALPOS"}, {JOINSET_EQ,"JOINSET_EQ"}, {JOINSET_LESS,"JOINSET_LESS"}, {JOINSET_GRT,"JOINSET_GRT"}, {JOINSET_INIT,"JOINSET_INIT"}, {JOINSET_TRAV,"JOINSET_TRAV"}, {AND_SET,"AND_SET"}, {OR_SET,"OR_SET"}, {SAVEANDCHAIN,"SAVEANDCHAIN"}, {JOINSET_EQ_AND,"JOINSET_EQ_AND"}, {SORT_ANDCHAIN,"SORT_ANDCHAIN"},{FUNCYEAR,"FUNCYEAR"}, {FUNCMONTH,"FUNCMONTH"}, {FUNCWEEK,"FUNCWEEK"}, {FUNCYDAY,"FUNCYDAY"}, {FUNCMDAY,"FUNCMDAY"}, {FUNCWDAY,"FUNCWDAY"}, {FUNCHOUR,"FUNCHOUR"}, {FUNCMINUTE,"FUNCMINUTE"}, {FUNCSECOND,"FUNCSECOND"}, {FUNCWDAYNAME,"FUNCWDAYNAME"}, {FUNCMONTHNAME,"FUNCMONTHNAME"}, {JOINSET_LESS_AND,"JOINSET_LESS_AND"}, {JOINSET_GRT_AND,"JOINSET_GRT_AND"}, {FUNCABSF,"FUNCABSF"}, {FUNCABSI,"FUNCABSI"}
+	{CVER,"CVER"}, {CVNO,"CVNO"}, {CVIF,"CVIF"}, {CVIS,"CVIS"}, {CVFI,"CVFI"}, {CVFS,"CVFS"}, {CVDRS,"CVDRS"}, {CVDTS,"CVDTS"}, {CVSI,"CVSI"}, {CVSF,"CVSF"}, {CVSDR,"CVSDR"}, {CVSDT,"CVSDT"}, {IADD,"IADD"}, {FADD,"FADD"}, {TADD,"TADD"}, {DTADD,"DTADD"}, {DRADD,"DRADD"}, {ISUB,"ISUB"}, {FSUB,"FSUB"}, {DTSUB,"DTSUB"}, {DRSUB,"DRSUB"}, {IMULT,"IMULT"}, {FMULT,"FMULT"}, {DRMULT,"DRMULT"}, {IDIV,"IDIV"}, {FDIV,"FDIV"}, {DRDIV,"DRDIV"}, {INEG,"INEG"}, {FNEG,"FNEG"}, {PNEG,"PNEG"}, {IMOD,"IMOD"}, {FMOD,"FMOD"}, {IEXP,"IEXP"}, {FEXP,"FEXP"}, {JMP,"JMP"}, {JMPCNT,"JMPCNT"}, {JMPTRUE,"JMPTRUE"}, {JMPFALSE,"JMPFALSE"}, {JMPNOTNULL_ELSEPOP,"JMPNOTNULL_ELSEPOP"}, {RDLINE,"RDLINE"}, {RDLINE_ORDERED,"RDLINE_ORDERED"}, {PREP_REREAD,"PREP_REREAD"}, {PUT,"PUT"}, {LDPUT,"LDPUT"}, {LDPUTALL,"LDPUTALL"}, {PUTVAR,"PUTVAR"}, {PUTVAR2,"PUTVAR2"}, {LDINT,"LDINT"}, {LDFLOAT,"LDFLOAT"}, {LDTEXT,"LDTEXT"}, {LDDATE,"LDDATE"}, {LDDUR,"LDDUR"}, {LDNULL,"LDNULL"}, {LDLIT,"LDLIT"}, {LDVAR,"LDVAR"}, {HOLDVAR,"HOLDVAR"}, {IEQ,"IEQ"}, {FEQ,"FEQ"}, {TEQ,"TEQ"}, {LIKE,"LIKE"}, {ILEQ,"ILEQ"}, {FLEQ,"FLEQ"}, {TLEQ,"TLEQ"}, {ILT,"ILT"}, {FLT,"FLT"}, {TLT,"TLT"}, {PRINTJSON,"PRINTJSON"}, {PRINTCSV,"PRINTCSV"}, {PUSH,"PUSH"}, {PUSH_N,"PUSH_N"}, {POP,"POP"}, {POPCPY,"POPCPY"}, {ENDRUN,"ENDRUN"}, {NULFALSE1,"NULFALSE1"}, {NULFALSE2,"NULFALSE2"}, {NDIST,"NDIST"}, {SDIST,"SDIST"}, {PUTDIST,"PUTDIST"}, {LDDIST,"LDDIST"}, {FINC,"FINC"}, {ENCCHA,"ENCCHA"}, {DECCHA,"DECCHA"}, {SAVESORTN,"SAVESORTN"}, {SAVESORTS,"SAVESORTS"}, {SAVEVALPOS,"SAVEVALPOS"}, {SAVEPOS,"SAVEPOS"}, {SORT,"SORT"}, {GETGROUP,"GETGROUP"}, {ONEGROUP,"ONEGROUP"}, {SUMI,"SUMI"}, {SUMF,"SUMF"}, {AVGI,"AVGI"}, {AVGF,"AVGF"}, {STDVI,"STDVI"}, {STDVF,"STDVF"}, {COUNT,"COUNT"}, {MINI,"MINI"}, {MINF,"MINF"}, {MINS,"MINS"}, {MAXI,"MAXI"}, {MAXF,"MAXF"}, {MAXS,"MAXS"}, {NEXTMAP,"NEXTMAP"}, {NEXTVEC,"NEXTVEC"}, {ROOTMAP,"ROOTMAP"}, {LDMID,"LDMID"}, {LDPUTMID,"LDPUTMID"}, {LDPUTGRP,"LDPUTGRP"}, {LDSTDVI,"LDSTDVI"}, {LDSTDVF,"LDSTDVF"}, {LDAVGI,"LDAVGI"}, {LDAVGF,"LDAVGF"}, {ADD_GROUPSORT_ROW,"ADD_GROUPSORT_ROW"}, {FREEMIDROW,"FREEMIDROW"}, {GSORT,"GSORT"}, {READ_NEXT_GROUP,"READ_NEXT_GROUP"}, {NUL_TO_STR,"NUL_TO_STR"}, {SORTVALPOS,"SORTVALPOS"}, {JOINSET_EQ,"JOINSET_EQ"}, {JOINSET_LESS,"JOINSET_LESS"}, {JOINSET_GRT,"JOINSET_GRT"}, {JOINSET_INIT,"JOINSET_INIT"}, {JOINSET_TRAV,"JOINSET_TRAV"}, {AND_SET,"AND_SET"}, {OR_SET,"OR_SET"}, {SAVEANDCHAIN,"SAVEANDCHAIN"}, {JOINSET_EQ_AND,"JOINSET_EQ_AND"}, {SORT_ANDCHAIN,"SORT_ANDCHAIN"},{FUNCYEAR,"FUNCYEAR"}, {FUNCMONTH,"FUNCMONTH"}, {FUNCWEEK,"FUNCWEEK"}, {FUNCYDAY,"FUNCYDAY"}, {FUNCMDAY,"FUNCMDAY"}, {FUNCWDAY,"FUNCWDAY"}, {FUNCHOUR,"FUNCHOUR"}, {FUNCMINUTE,"FUNCMINUTE"}, {FUNCSECOND,"FUNCSECOND"}, {FUNCWDAYNAME,"FUNCWDAYNAME"}, {FUNCMONTHNAME,"FUNCMONTHNAME"}, {JOINSET_LESS_AND,"JOINSET_LESS_AND"}, {JOINSET_GRT_AND,"JOINSET_GRT_AND"}, {FUNCABSF,"FUNCABSF"}, {FUNCABSI,"FUNCABSI"}, {START_MESSAGE,"START_MESSAGE"}, {STOP_MESSAGE,"STOP_MESSAGE"}, {FUNC_CIEL,"FUNC_CIEL"}, {FUNC_FLOOR,"FUNC_FLOOR"}, {FUNC_ACOS,"FUNC_ACOS"}, {FUNC_ASIN,"FUNC_ASIN"}, {FUNC_ATAN,"FUNC_ATAN"}, {FUNC_COS,"FUNC_COS"}, {FUNC_SIN,"FUNC_SIN"}, {FUNC_TAN,"FUNC_TAN"}, {FUNC_EXP,"FUNC_EXP"}, {FUNC_LOG,"FUNC_LOG"}, {FUNC_LOG2,"FUNC_LOG2"}, {FUNC_LOG10,"FUNC_LOG10"}, {FUNC_SQRT,"FUNC_SQRT"}, {FUNC_RAND,"FUNC_RAND"}, {FUNC_UPPER,"FUNC_UPPER"}, {FUNC_LOWER,"FUNC_LOWER"}, {FUNC_BASE64_ENCODE,"FUNC_BASE64_ENCODE"}, {FUNC_BASE64_DECODE,"FUNC_BASE64_DECODE"}, {FUNC_HEX_ENCODE,"FUNC_HEX_ENCODE"}, {FUNC_HEX_DECODE,"FUNC_HEX_DECODE"}, {FUNC_LEN,"FUNC_LEN"}, {FUNC_SUBSTR,"FUNC_SUBSTR"}, {FUNC_MD5,"FUNC_MD5"}, {FUNC_SHA1,"FUNC_SHA1"}, {FUNC_SHA256,"FUNC_SHA256"}, {FUNC_ROUND,"FUNC_ROUND"}
 };
 
 
@@ -20,6 +26,33 @@ flatmap<int, int> functionCode = {
 	{FN_HOUR, FUNCHOUR},
 	{FN_MINUTE, FUNCMINUTE},
 	{FN_SECOND, FUNCSECOND},
+	{FN_CIEL, FUNC_CIEL},
+	{FN_FLOOR, FUNC_FLOOR},
+	{FN_ACOS, FUNC_ACOS},
+	{FN_ASIN, FUNC_ASIN},
+	{FN_ATAN, FUNC_ATAN},
+	{FN_COS, FUNC_COS},
+	{FN_SIN, FUNC_SIN},
+	{FN_TAN, FUNC_TAN},
+	{FN_EXP, FUNC_EXP},
+	{FN_LOG, FUNC_LOG},
+	{FN_LOG2, FUNC_LOG2},
+	{FN_LOG10, FUNC_LOG10},
+	{FN_SQRT, FUNC_SQRT},
+	{FN_RAND, FUNC_RAND},
+	{FN_UPPER, FUNC_UPPER},
+	{FN_LOWER, FUNC_LOWER},
+	{FN_BASE64_ENCODE, FUNC_BASE64_ENCODE},
+	{FN_BASE64_DECODE, FUNC_BASE64_DECODE},
+	{FN_HEX_ENCODE, FUNC_HEX_ENCODE},
+	{FN_HEX_DECODE, FUNC_HEX_DECODE},
+	{FN_LEN, FUNC_LEN},
+	{FN_SUBSTR, FUNC_SUBSTR},
+	{FN_MD5, FUNC_MD5},
+	{FN_SHA1, FUNC_SHA1},
+	{FN_SHA256, FUNC_SHA256},
+	{FN_ROUND, FUNC_ROUND},
+	//make pow use N_MULT
 };
 
 void opcode::print(){
@@ -153,8 +186,17 @@ int addBtree(int type, querySpecs *q){
 	return 0;
 }
 
+void vmachine::endQuery() {
+	for (auto& op : q->bytecode){
+		if (opDoesJump(op.code))
+			op.p1 = q->bytecode.size()-1;
+	}
+}
 vmachine::vmachine(querySpecs &qs) : csvOutput(0) {
 	q = &qs;
+	id = idCounter++;
+	sessionId = q->sessionId;
+	updates.sessionId = sessionId;
 	for (int i=0; i<q->numFiles; ++i){
 		files.push_back(q->files[st("_f", i)]);
 	}
@@ -185,7 +227,7 @@ vmachine::vmachine(querySpecs &qs) : csvOutput(0) {
 		jsonresult.reset(new singleQueryResult(qs));
 	}
 	if (q->outputcsv){
-		if (q->savepath != ""){
+		if (!q->savepath.empty()){
 			outfile.open(qs.savepath, ofstream::out | ofstream::app);
 			csvOutput.rdbuf(outfile.rdbuf());
 		} else {
@@ -279,12 +321,12 @@ int crypter::newChacha(string pass){
 	return ctxs.size()-1;
 }
 //each row has own nonce so need to reinitialize chacha cipher each time
-pair<char*, int> crypter::chachaEncrypt(int i, int len, char* input){
+pair<char*, int> crypter::chachaEncrypt(int i, size_t len, char* input){
 	len++; //null terminator
 	auto ch = ctxs.data()+i;
 	auto rawResult = (uint8_t*) alloca(len+3);
 	memcpy(rawResult+3, input, len);
-	auto nonce = rand(); //replace with secure version
+	int nonce = rng();
 	rawResult[0] = ch->nonce[0] = nonce;
 	rawResult[1] = ch->nonce[1] = nonce >> 8;
 	rawResult[2] = ch->nonce[2] = nonce >> 16;
@@ -293,16 +335,16 @@ pair<char*, int> crypter::chachaEncrypt(int i, int len, char* input){
 	chacha20_xor(&ch->ctx, rawResult+3, len);
 	int finalSize = encsize(len+3);
 	auto finalResult = (char*) malloc(finalSize+1);
-	b64_encode(rawResult, (unsigned char*)finalResult, len+3);
+	base64_encode((BYTE*)rawResult, (BYTE*)finalResult, len+3, 0);
 	finalResult[finalSize]=0;
 	return pair<char*,int>(finalResult, finalSize);
 }
-pair<char*, int> crypter::chachaDecrypt(int i, int len, char* input){
+pair<char*, int> crypter::chachaDecrypt(int i, size_t len, char* input){
 	len++; //null terminator
 	auto ch = ctxs.data()+i;
 	auto rawResult = (char*) alloca(len);
 	int finalSize;
-	b64_decode(input, rawResult, len, &finalSize);
+	finalSize = base64_decode((BYTE*)input, (BYTE*)rawResult, len);
 	finalSize -= 4;
 	ch->nonce[0] = rawResult[0];
 	ch->nonce[1] = rawResult[1];
@@ -314,6 +356,45 @@ pair<char*, int> crypter::chachaDecrypt(int i, int len, char* input){
 	memcpy(finalResult, rawResult+3, finalSize);
 	finalResult[finalSize]=0;
 	return pair<char*,int>(finalResult, finalSize);
+}
+void sha1(dat& d){
+	SHA1_CTX ctx;
+	sha1_init(&ctx);
+	sha1_update(&ctx, (BYTE*)d.u.s, d.z);
+	d.freedat();
+	BYTE rawhash[20];
+	sha1_final(&ctx, rawhash);
+	d.z = encsize(20);
+	d.u.s = (char*) malloc(d.z+1);
+	d.b = T_STRING|MAL;
+	base64_encode(rawhash, (BYTE*)d.u.s, 20, 0);
+	d.u.s[d.z] = 0;
+}
+void sha256(dat& d){
+	SHA256_CTX ctx;
+	sha256_init(&ctx);
+	sha256_update(&ctx, (BYTE*)d.u.s, d.z);
+	d.freedat();
+	BYTE rawhash[32];
+	sha256_final(&ctx, rawhash);
+	d.z = encsize(32);
+	d.u.s = (char*) malloc(d.z+1);
+	d.b = T_STRING|MAL;
+	base64_encode(rawhash, (BYTE*)d.u.s, 32, 0);
+	d.u.s[d.z] = 0;
+}
+void md5(dat& d){
+	MD5_CTX ctx;
+	md5_init(&ctx);
+	md5_update(&ctx, (BYTE*)d.u.s, d.z);
+	d.freedat();
+	BYTE rawhash[16];
+	md5_final(&ctx, rawhash);
+	d.z = encsize(16);
+	d.u.s = (char*) malloc(d.z+1);
+	d.b = T_STRING|MAL;
+	base64_encode(rawhash, (BYTE*)d.u.s, 16, 0);
+	d.u.s[d.z] = 0;
 }
 
 
@@ -394,3 +475,111 @@ const function<bool (const datunion, const datunion&)>* vmachine::uComparers[7] 
 flatmap<int,int> vmachine::relopIdx = {
 	{SP_LESS,0},{SP_GREAT,1},{SP_LESSEQ,2},{SP_GREATEQ,3},{SP_EQ,4},{SP_NOEQ,5},{KW_LIKE,6}
 };
+
+void messager::send(){
+	fprintf(stderr, "\r\33[2K%s", buf);
+	if (runmode == RUN_SERVER)
+		sendMessage(sessionId, buf);
+}
+void messager::start(char* msg, int* n1, int* n2){
+	stop();
+	stopmaster = promise<void>();
+	stopslave = stopmaster.get_future();
+	runner = thread([&](char* msg,int* num1,int* num2){
+		if (!delay){
+			snprintf(buf, 200, msg, *num1, *num2);
+			send();
+		}
+		while(stopslave.wait_for(chrono::milliseconds(1000)) == future_status::timeout){
+			delay = false;
+			snprintf(buf, 200, msg, *num1, *num2);
+			send();
+		}
+	}, msg, n1?:&blank, n2?:&blank);
+}
+void messager::say(char* msg, int* n1, int* n2){
+	stop();
+	if (delay)
+		return;
+	snprintf(buf, 200, msg, *(n1?:&blank), *(n2?:&blank));
+	send();
+}
+void messager::stop(){
+	if (runner.joinable()){
+		stopmaster.set_value();
+		runner.join();
+	}
+	if (!delay)
+		cerr << "r\33[2K\r";
+	if (runmode == RUN_SERVER)
+		sendMessage(sessionId, "");
+}
+
+bool opDoesJump(int opcode){
+	switch (opcode){
+	case JMP:
+	case JMPCNT:
+	case JMPTRUE:
+	case JMPFALSE:
+	case RDLINE:
+	case RDLINE_ORDERED:
+	case NULFALSE1:
+	case NULFALSE2:
+	case NDIST:
+	case SDIST:
+	case JMPNOTNULL_ELSEPOP:
+	case NEXTMAP:
+	case NEXTVEC:
+	case READ_NEXT_GROUP:
+	case JOINSET_TRAV:
+		return true;
+	}
+	return false;
+}
+
+shared_ptr<singleQueryResult> vmachine::getJsonResult(){
+	jsonresult->types = q->colspec.types; //TODO: use originial pre-trivial types
+	jsonresult->colnames = q->colspec.colnames;
+	jsonresult->pos.resize(q->colspec.count);
+	jsonresult->query = q->queryString;
+	iota(jsonresult->pos.begin(), jsonresult->pos.end(),1); //TODO: update gui to not need this
+	return jsonresult;
+}
+
+
+future<void> queryQueue::runquery(querySpecs& q){
+	prepareQuery(q);
+	mtx.lock();
+	queries.emplace_back(q);
+	auto& thisq = queries.back();
+	mtx.unlock();
+	return async([&](){
+		thisq.run();
+		mtx.lock();
+		queries.remove_if([&](vmachine& v){ return v.id == thisq.id; });
+		mtx.unlock();
+	});
+}
+future<shared_ptr<singleQueryResult>> queryQueue::runqueryJson(querySpecs& q){
+	q.setoutputJson();
+	prepareQuery(q);
+	mtx.lock();
+	queries.emplace_back(q);
+	auto& thisq = queries.back();
+	mtx.unlock();
+	return async([&](){
+		thisq.run();
+		auto ret = thisq.getJsonResult();
+		mtx.lock();
+		queries.remove_if([&](vmachine& v){ return v.id == thisq.id; });
+		mtx.unlock();
+		return ret;
+	});
+}
+
+void queryQueue::endall(){
+	mtx.lock();
+	for (auto& vm : queries)
+		vm.endQuery();
+	mtx.unlock();
+}

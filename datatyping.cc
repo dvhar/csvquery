@@ -129,6 +129,17 @@ static bool canBeString(unique_ptr<node> &n){
 		case FN_DECRYPT:
 		case FN_MONTHNAME:
 		case FN_WDAYNAME:
+		case FN_UPPER:
+		case FN_LOWER:
+		case FN_BASE64_ENCODE:
+		case FN_BASE64_DECODE:
+		case FN_HEX_ENCODE:
+		case FN_HEX_DECODE:
+		case FN_SUBSTR:
+		case FN_MD5:
+		case FN_SHA1:
+		case FN_SHA256:
+		case FN_STRING:
 			return true;
 		case FN_INC:
 		case FN_COUNT:
@@ -143,6 +154,25 @@ static bool canBeString(unique_ptr<node> &n){
 		case FN_MDAY:
 		case FN_WDAY:
 		case FN_HOUR:
+		case FN_CIEL:
+		case FN_FLOOR:
+		case FN_ACOS:
+		case FN_ASIN:
+		case FN_ATAN:
+		case FN_COS:
+		case FN_SIN:
+		case FN_TAN:
+		case FN_EXP:
+		case FN_LOG:
+		case FN_LOG2:
+		case FN_LOG10:
+		case FN_SQRT:
+		case FN_RAND:
+		case FN_LEN:
+		case FN_INT:
+		case FN_FLOAT:
+		case FN_ROUND:
+		case FN_POW:
 			return false;
 		}
 	}
@@ -362,11 +392,10 @@ typer dataTyper::typeValueInnerNodes(unique_ptr<node> &n){
 		innerType = {n->datatype, 0};
 		break;
 	case VARIABLE:
-		for (auto &v : q->vars)
-			if (n->tok1.val == v.name){
-				innerType = {v.type, v.lit};
-				break;
-			}
+		{
+			auto& v = q->var(n->tok1.val);
+			innerType = {v.type, v.lit};
+		}
 		break;
 	}
 	return innerType;
@@ -379,8 +408,7 @@ typer dataTyper::typeFunctionInnerNodes(unique_ptr<node> &n){
 	case FN_COUNT:
 		n->keep = true;
 		typeInnerNodes(n->node1);
-	case FN_INC:
-		innerType = {T_FLOAT, true};
+		innerType = {T_FLOAT, false};
 		break;
 	case FN_MONTHNAME:
 	case FN_WDAYNAME:
@@ -390,10 +418,27 @@ typer dataTyper::typeFunctionInnerNodes(unique_ptr<node> &n){
 		break;
 	case FN_ENCRYPT:
 	case FN_DECRYPT:
+	case FN_BASE64_ENCODE:
+	case FN_HEX_ENCODE:
+	case FN_MD5:
+	case FN_SHA1:
+	case FN_SHA256:
+	case FN_STRING:
+	case FN_UPPER:
+	case FN_LOWER:
+	case FN_SUBSTR:
+	case FN_BASE64_DECODE:
+	case FN_HEX_DECODE:
 		paramType = typeInnerNodes(n->node1);
 		innerType = {T_STRING, false};
-		if (!canBeString(n->node1)) {
-			n->tok5.id = paramType.type;
+		if (!canBeString(n->node1))
+			n->info[PARAMTYPE] = paramType.type;
+		break;
+	case FN_POW:{
+		auto n1 = typeInnerNodes(n->node1);
+		auto n2 = typeInnerNodes(n->node2);
+		innerType = typeCompute(n1, n2);
+		n->info[RETTYPE] = innerType.type;
 		}
 		break;
 	case FN_YEAR:
@@ -403,9 +448,9 @@ typer dataTyper::typeFunctionInnerNodes(unique_ptr<node> &n){
 	case FN_MDAY:
 	case FN_WDAY:
 	case FN_HOUR:
-		n->keep = true;
 		typeInnerNodes(n->node1);
 		innerType = {T_INT, true}; //TODO: reconsider these true/false values
+		n->info[RETTYPE] = T_INT;
 		break;
 	case FN_STDEV:
 	case FN_STDEVP:
@@ -414,6 +459,45 @@ typer dataTyper::typeFunctionInnerNodes(unique_ptr<node> &n){
 		if (innerType.type == T_INT)
 			innerType.type = T_FLOAT;
 		break;
+	case FN_CIEL:
+	case FN_FLOOR:
+	case FN_ACOS:
+	case FN_ASIN:
+	case FN_ATAN:
+	case FN_COS:
+	case FN_SIN:
+	case FN_TAN:
+	case FN_EXP:
+	case FN_LOG:
+	case FN_LOG2:
+	case FN_LOG10:
+	case FN_SQRT:
+	case FN_RAND:
+	case FN_ROUND:
+	case FN_INC:
+		if (auto pt = typeInnerNodes(n->node1).type; pt > T_FLOAT)
+			n->info[PARAMTYPE] = pt;
+		innerType = {T_FLOAT, false};
+		n->info[RETTYPE] = T_FLOAT;
+		break;
+	case FN_LEN:
+		innerType = {T_FLOAT, false};
+		n->info[RETTYPE] = T_FLOAT;
+		n->tok2.id = typeInnerNodes(n->node1).type;
+		if (canBeString(n->node1))
+			n->tok2.id = T_STRING;
+		break;
+	case FN_INT:
+		innerType = {T_INT, false};
+		n->info[PARAMTYPE] = typeInnerNodes(n->node1).type;
+		n->info[RETTYPE] = T_INT;
+		break;
+	case FN_FLOAT:
+		innerType = {T_FLOAT, false};
+		n->info[PARAMTYPE] = typeInnerNodes(n->node1).type;
+		n->info[RETTYPE] = T_FLOAT;
+		break;
+
 	default:
 		innerType = typeInnerNodes(n->node1);
 	}
@@ -455,12 +539,11 @@ typer dataTyper::typeInnerNodes(unique_ptr<node> &n){
 		break;
 	case N_VARS:
 		innerType = typeInnerNodes(n->node1);
-		for (auto &v : q->vars)
-			if (n->tok1.val == v.name){
-				v.type = innerType.type;
-				v.lit = innerType.lit;
-				break;
-			}
+		{
+			auto& v = q->var(n->tok1.val);
+			v.type = innerType.type;
+			v.lit = innerType.lit;
+		}
 		typeInnerNodes(n->node2);
 		break;
 	case N_EXPRNEG:
@@ -501,7 +584,6 @@ typer dataTyper::typeInnerNodes(unique_ptr<node> &n){
 		break;
 	case N_VALUE:
 		innerType = typeValueInnerNodes(n);
-		//will add type conversion node for variables
 		break;
 	case N_FUNCTION:
 		innerType = typeFunctionInnerNodes(n);
@@ -567,25 +649,68 @@ void dataTyper::typeFunctionFinalNodes(unique_ptr<node> &n, int finaltype){
 	if (n == nullptr) return;
 	if (n->keep) finaltype = -1;
 	node *convNode, *tempNode;
+	bool needRetConvert = false;
+	int oldret = finaltype;
+	if (auto rt = n->info[RETTYPE]; rt > 0 && finaltype > rt){
+		//need conversion from RETTYPE (can do) to original finaltype (need)
+		n->datatype = finaltype = rt;
+		needRetConvert = true;
+	}
 	switch (n->tok1.id){
+	case FN_LEN:{
+		if (n->tok2.id == T_STRING){
+			typeFinalValues(n->node1, T_STRING);
+			break;
+		}
+		finaltype = n->tok2.id;
+	}
 	case FN_COUNT:
 	case FN_INC:
 	case FN_ENCRYPT:
 	case FN_DECRYPT:
-		//add type conversion node if needed
-		if (n->tok5.id){
-			typeFinalValues(n->node1, n->tok5.id);
-			convNode = new node();
-			*convNode = {0};
-			convNode->label = N_TYPECONV;
+	case FN_BASE64_ENCODE:
+	case FN_HEX_ENCODE:
+	case FN_BASE64_DECODE:
+	case FN_HEX_DECODE:
+	case FN_MD5:
+	case FN_SHA1:
+	case FN_SHA256:
+	case FN_UPPER:
+	case FN_LOWER:
+	case FN_SUBSTR:
+	case FN_CIEL:
+	case FN_FLOOR:
+	case FN_ACOS:
+	case FN_ASIN:
+	case FN_ATAN:
+	case FN_COS:
+	case FN_SIN:
+	case FN_TAN:
+	case FN_EXP:
+	case FN_LOG:
+	case FN_LOG2:
+	case FN_LOG10:
+	case FN_SQRT:
+	case FN_RAND:
+	case FN_INT:
+	case FN_FLOAT:
+	case FN_STRING:
+	case FN_ROUND:
+	case FN_POW:
+		//add type conversion node for parameter if needed
+		if (auto pt = n->info[PARAMTYPE]; pt){
+			typeFinalValues(n->node1, pt);
+			typeFinalValues(n->node2, pt);
+			convNode = new node(N_TYPECONV);
 			convNode->keep = true;
 			convNode->datatype = finaltype;
-			convNode->tok1.id = n->tok5.id;
+			convNode->tok1.id = pt;
 			tempNode = n->node1.release();
 			convNode->node1.reset(tempNode);
 			n->node1.reset(convNode);
 		} else {
 			typeFinalValues(n->node1, finaltype);
+			typeFinalValues(n->node2, finaltype);
 		}
 		break;
 	case FN_MONTHNAME:
@@ -601,7 +726,16 @@ void dataTyper::typeFunctionFinalNodes(unique_ptr<node> &n, int finaltype){
 		break;
 	default:
 		typeFinalValues(n->node1, finaltype);
-		checkFuncSemantics(n);
+	}
+	checkFuncSemantics(n);
+	if (needRetConvert){
+			convNode = new node(N_TYPECONV);
+			convNode->keep = true;
+			convNode->datatype = oldret;
+			convNode->tok1.id = n->info[RETTYPE];
+			tempNode = n.release();
+			convNode->node1.reset(tempNode);
+			n.reset(convNode);
 	}
 }
 
@@ -678,11 +812,7 @@ void dataTyper::typeFinalValues(unique_ptr<node> &n, int finaltype){
 		typeFunctionFinalNodes(n, finaltype);
 		break;
 	case N_VARS:
-		for (auto &v : q->vars)
-			if (n->tok1.val == v.name){
-				v.type = finaltype;
-				break;
-			}
+		q->var(n->tok1.val).type = finaltype;
 		typeFinalValues(n->node1, finaltype);
 		typeFinalValues(n->node2, -1);
 		break;
@@ -690,7 +820,7 @@ void dataTyper::typeFinalValues(unique_ptr<node> &n, int finaltype){
 }
 
 void dataTyper::checkMathSemantics(unique_ptr<node> &n){
-	if (n->label != N_EXPRADD || n->label != N_EXPRMULT)
+	if (n->label != N_EXPRADD && n->label != N_EXPRMULT)
 		return;
 	auto n1 = n->node1 == nullptr ? T_NULL : n->node1->datatype;
 	auto n2 = n->node2 == nullptr ? T_NULL : n->node2->datatype;
@@ -722,11 +852,11 @@ void dataTyper::checkMathSemantics(unique_ptr<node> &n){
 			error("cannot multiply 2 durations");
 		return;
 	case SP_MOD:
-		if (!is(T_INT) || !is(T_FLOAT))
+		if (!is(T_INT) && !is(T_FLOAT))
 			error(st("Cannot modulus type ",typestr));
 		return;
 	case SP_CARROT:
-		if (!is(T_INT) || !is(T_FLOAT))
+		if (!is(T_INT) && !is(T_FLOAT))
 			error(st("Cannot exponentiate type ",typestr));
 		return;
 	case SP_DIV:
@@ -743,22 +873,37 @@ void dataTyper::checkFuncSemantics(unique_ptr<node> &n){
 	auto typestr = nameMap.at(n->datatype);
 
 	switch (n->tok1.id){
-		case FN_SUM:
-		case FN_AVG:
-		case FN_STDEV:
-		case FN_STDEVP:
-			if (n1 == T_STRING || n1 == T_DATE || n1 == T_DURATION)
-				error(st("Cannot use ",n->tok1.val," function with type ",typestr));
-			//TODO: implement stdev and avg for date and duration
-			break;
-		case FN_ABS:
-			if (n1 == T_STRING || n1 == T_DATE)
-				error(st("Cannot use ",n->tok1.val," function with type ",typestr));
-			break;
+	case FN_SUM:
+	case FN_AVG:
+	case FN_STDEV:
+	case FN_STDEVP:
+		if (n1 == T_STRING || n1 == T_DATE || n1 == T_DURATION)
+			error(st("Cannot use ",n->tok1.val," function with type ",typestr));
+		//TODO: implement stdev and avg for date and duration
+		break;
+	case FN_ABS:
+		if (n1 == T_STRING || n1 == T_DATE)
+			error(st("Cannot use ",n->tok1.val," function with type ",typestr));
+		break;
+	case FN_ENCRYPT:
+	case FN_DECRYPT:
+		if (n->tok3.val == "chacha" || n->tok3.val == "small")
+			n->tok3.id = 1;
+		else if (n->tok3.val == "aes" || n->tok3.val == "big")
+			n->tok3.id = 2;
+		else
+			error("Expected second parameter to crypt function to be cipher type. Found: "+n->tok3.val+". "
+				"Use 'aes' or 'big' for strong but bulky encryption. Use 'chacha' or 'small' to save space but not obscure the size of values.");
+		break;
+	case FN_SUBSTR:
+		if (n->tok2.quoted){
+			if (n->tok3.id)
+				error("SUBSTR function requires 2 numbers or 1 pattern");
+		} else if (!isInt(n->tok2.val.c_str()) || !isInt(n->tok3.val.c_str()))
+				error("SUBSTR function requires 2 numbers or 1 pattern");
 	}
 }
 
-//do all typing
 void applyTypes(querySpecs &q){
 	dataTyper dt(q);
 	dt.typeInitialValue(q.tree, false);

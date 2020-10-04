@@ -16,7 +16,7 @@
 
 #define debugOpcode
 #ifndef debugOpcode
-#define debugOpcode  perr(ft("\nip %1% opcode %2% stack %3%")% ip% opMap[op->code]% (stacktop-stack.data()));
+#define debugOpcode  perr(st("\nip ",ip," opcode ",opMap[op->code]," stack ",stacktop-stack.data()));
 #endif
 //jump to next operation
 #define next() \
@@ -28,10 +28,10 @@
 	next();
 #define skipnull() \
 	if (stk0.isnull()){ nexti() };
-#define ifvalid if (!stk0.isnull())
+#define ifnotnull if (!stk0.isnull())
 
 void vmachine::run(){
-	constexpr void* labels[] = { &&CVER_, &&CVNO_, &&CVIF_, &&CVIS_, &&CVFI_, &&CVFS_, &&CVDRS_, &&CVDTS_, &&CVSI_, &&CVSF_, &&CVSDR_, &&CVSDT_, &&IADD_, &&FADD_, &&TADD_, &&DTADD_, &&DRADD_, &&ISUB_, &&FSUB_, &&DTSUB_, &&DRSUB_, &&IMULT_, &&FMULT_, &&DRMULT_, &&IDIV_, &&FDIV_, &&DRDIV_, &&INEG_, &&FNEG_, &&PNEG_, &&IMOD_, &&FMOD_, &&IEXP_, &&FEXP_, &&JMP_, &&JMPCNT_, &&JMPTRUE_, &&JMPFALSE_, &&JMPNOTNULL_ELSEPOP_, &&RDLINE_, &&RDLINE_ORDERED_, &&PREP_REREAD_, &&PUT_, &&LDPUT_, &&LDPUTALL_, &&PUTVAR_, &&PUTVAR2_, &&LDINT_, &&LDFLOAT_, &&LDTEXT_, &&LDDATE_, &&LDDUR_, &&LDNULL_, &&LDLIT_, &&LDVAR_, &&HOLDVAR_, &&IEQ_, &&FEQ_, &&TEQ_, &&LIKE_, &&ILEQ_, &&FLEQ_, &&TLEQ_, &&ILT_, &&FLT_, &&TLT_, &&PRINTCSV_, &&PRINTJSON_, &&PUSH_, &&PUSH_N_, &&POP_, &&POPCPY_, &&ENDRUN_, &&NULFALSE1_, &&NULFALSE2_, &&NDIST_, &&SDIST_, &&PUTDIST_, &&LDDIST_, &&FINC_, &&ENCCHA_, &&DECCHA_, &&SAVESORTN_, &&SAVESORTS_, &&SAVEVALPOS_, &&SAVEPOS_, &&SORT_, &&GETGROUP_, &&ONEGROUP_, &&SUMI_, &&SUMF_, &&AVGI_, &&AVGF_, &&STDVI_, &&STDVF_, &&COUNT_, &&MINI_, &&MINF_, &&MINS_, &&MAXI_, &&MAXF_, &&MAXS_, &&NEXTMAP_, &&NEXTVEC_, &&ROOTMAP_, &&LDMID_, &&LDPUTMID_, &&LDPUTGRP_, &&LDSTDVI_, &&LDSTDVF_, &&LDAVGI_, &&LDAVGF_, &&ADD_GROUPSORT_ROW_, &&FREE_MIDROW_, &&GSORT_, &&READ_NEXT_GROUP_, &&NUL_TO_STR_, &&SORTVALPOS_, &&JOINSET_EQ_AND_, &&JOINSET_EQ_, &&JOINSET_LESS_, &&JOINSET_GRT_, &&JOINSET_LESS_AND_, &&JOINSET_GRT_AND_, &&JOINSET_INIT_, &&JOINSET_TRAV_, &&AND_SET_, &&OR_SET_, &&SAVEANDCHAIN_, &&SORT_ANDCHAIN_, &&FUNC_YEAR_, &&FUNC_MONTH_, &&FUNC_WEEK_, &&FUNC_YDAY_, &&FUNC_MDAY_, &&FUNC_WDAY_, &&FUNC_HOUR_, &&FUNC_MINUTE_, &&FUNC_SECOND_, &&FUNC_WDAYNAME_, &&FUNC_MONTHNAME_, &&FUNC_ABSF_, &&FUNC_ABSI_};
+	constexpr void* labels[] = { &&CVER_, &&CVNO_, &&CVIF_, &&CVIS_, &&CVFI_, &&CVFS_, &&CVDRS_, &&CVDTS_, &&CVSI_, &&CVSF_, &&CVSDR_, &&CVSDT_, &&IADD_, &&FADD_, &&TADD_, &&DTADD_, &&DRADD_, &&ISUB_, &&FSUB_, &&DTSUB_, &&DRSUB_, &&IMULT_, &&FMULT_, &&DRMULT_, &&IDIV_, &&FDIV_, &&DRDIV_, &&INEG_, &&FNEG_, &&PNEG_, &&IMOD_, &&FMOD_, &&IEXP_, &&FEXP_, &&JMP_, &&JMPCNT_, &&JMPTRUE_, &&JMPFALSE_, &&JMPNOTNULL_ELSEPOP_, &&RDLINE_, &&RDLINE_ORDERED_, &&PREP_REREAD_, &&PUT_, &&LDPUT_, &&LDPUTALL_, &&PUTVAR_, &&PUTVAR2_, &&LDINT_, &&LDFLOAT_, &&LDTEXT_, &&LDDATE_, &&LDDUR_, &&LDNULL_, &&LDLIT_, &&LDVAR_, &&HOLDVAR_, &&IEQ_, &&FEQ_, &&TEQ_, &&LIKE_, &&ILEQ_, &&FLEQ_, &&TLEQ_, &&ILT_, &&FLT_, &&TLT_, &&PRINTCSV_, &&PRINTJSON_, &&PUSH_, &&PUSH_N_, &&POP_, &&POPCPY_, &&ENDRUN_, &&NULFALSE1_, &&NULFALSE2_, &&NDIST_, &&SDIST_, &&PUTDIST_, &&LDDIST_, &&FINC_, &&FUNC_ENCCHA_, &&FUNC_DECCHA_, &&SAVESORTN_, &&SAVESORTS_, &&SAVEVALPOS_, &&SAVEPOS_, &&SORT_, &&GETGROUP_, &&ONEGROUP_, &&SUMI_, &&SUMF_, &&AVGI_, &&AVGF_, &&STDVI_, &&STDVF_, &&COUNT_, &&MINI_, &&MINF_, &&MINS_, &&MAXI_, &&MAXF_, &&MAXS_, &&NEXTMAP_, &&NEXTVEC_, &&ROOTMAP_, &&LDMID_, &&LDPUTMID_, &&LDPUTGRP_, &&LDSTDVI_, &&LDSTDVF_, &&LDAVGI_, &&LDAVGF_, &&ADD_GROUPSORT_ROW_, &&FREE_MIDROW_, &&GSORT_, &&READ_NEXT_GROUP_, &&NUL_TO_STR_, &&SORTVALPOS_, &&JOINSET_EQ_AND_, &&JOINSET_EQ_, &&JOINSET_LESS_, &&JOINSET_GRT_, &&JOINSET_LESS_AND_, &&JOINSET_GRT_AND_, &&JOINSET_INIT_, &&JOINSET_TRAV_, &&AND_SET_, &&OR_SET_, &&SAVEANDCHAIN_, &&SORT_ANDCHAIN_, &&FUNC_YEAR_, &&FUNC_MONTH_, &&FUNC_WEEK_, &&FUNC_YDAY_, &&FUNC_MDAY_, &&FUNC_WDAY_, &&FUNC_HOUR_, &&FUNC_MINUTE_, &&FUNC_SECOND_, &&FUNC_WDAYNAME_, &&FUNC_MONTHNAME_, &&FUNC_ABSF_, &&FUNC_ABSI_, &&START_MESSAGE_, &&STOP_MESSAGE_, &&FUNC_CIEL_, &&FUNC_FLOOR_, &&FUNC_ACOS_, &&FUNC_ASIN_, &&FUNC_ATAN_, &&FUNC_COS_, &&FUNC_SIN_, &&FUNC_TAN_, &&FUNC_EXP_, &&FUNC_LOG_, &&FUNC_LOG2_, &&FUNC_LOG10_, &&FUNC_SQRT_, &&FUNC_RAND_, &&FUNC_UPPER_, &&FUNC_LOWER_, &&FUNC_BASE64_ENCODE_, &&FUNC_BASE64_DECODE_, &&FUNC_HEX_ENCODE_, &&FUNC_HEX_DECODE_, &&FUNC_LEN_, &&FUNC_SUBSTR_, &&FUNC_MD5_, &&FUNC_SHA1_, &&FUNC_SHA256_, &&FUNC_ROUND_};
 
 
 	//vars for data
@@ -47,6 +47,7 @@ void vmachine::run(){
 	struct tm timetm;
 
 	//vars for vm operations
+	int linesRead = 0;
 	dat* stacktop = stack.data();
 	dat* stackbot = stack.data();
 	decltype(groupTree->getMap().begin()) groupItstk[20];
@@ -154,9 +155,9 @@ LDFLOAT_:
 LDINT_:
 	push();
 	csvTemp = files[op->p1]->entries[op->p2];
-	stk0.u.i = strtol(csvTemp.val, &cstrTemp, 10);
+	stk0.u.i = strtoll(csvTemp.val, &cstrTemp, 10);
 	stk0.b = T_INT;
-	if (!valSize(csvTemp) || *cstrTemp) { stk0.setnull(); }
+	if (!valSize(csvTemp) || cstrTemp == csvTemp.val) { stk0.setnull(); }
 	nexti();
 LDNULL_:
 	push();
@@ -170,6 +171,7 @@ LDLIT_:
 //read a new line from a file
 RDLINE_:
 	ip = files[op->p2]->readline() ? op->p1 : ip+1;
+	++linesRead;
 	next();
 RDLINE_ORDERED_:
 	//stk0 has current read index, stk1 has vector.size()
@@ -668,11 +670,11 @@ DRDIV_:
 	pop();
 	nexti();
 INEG_:
-	ifvalid
+	ifnotnull
 	if (stk0.u.i != 0) stk0.u.i *= -1;
 	nexti();
 FNEG_:
-	ifvalid
+	ifnotnull
 	if (stk0.u.i != 0) stk0.u.f *= -1;
 	nexti();
 PNEG_:
@@ -844,11 +846,12 @@ CVIF_:
 	nexti();
 CVSI_:
 	if (!stk0.isnull()){
-		iTemp1 = strtol(stk0.u.s, &cstrTemp, 10);
+		auto s = stk0.u.s;
+		iTemp1 = strtoll(s, &cstrTemp, 10);
 		stk0.freedat();
 		stk0.u.i = iTemp1;
 		stk0.b = T_INT;
-		if (*cstrTemp){ stk0.setnull(); }
+		if (cstrTemp == s){ stk0.setnull(); }
 	}
 	nexti();
 CVSF_:
@@ -933,6 +936,8 @@ PRINTJSON_:
 			torow[i].appendToJsonBuffer(row);
 		++numJsonPrinted;
 		jsonresult->Vals.push_back(move(row));
+	} else {
+		jsonresult->clipped = true;
 	}
 	jsonresult->numrows++;
 	totalPrinted += op->p1; //in case not csv printing
@@ -943,6 +948,7 @@ PRINTCSV_:
 	printcsvfield:
 	torow[iTemp1].appendToCsvBuffer(outbuf);
 	if (outbuf.size() > 900){
+		//TODO: clear and stop messager stderr output
 		csvOutput << outbuf;
 		outbuf.clear();
 	}
@@ -961,7 +967,7 @@ LDDIST_:
 	nexti();
 NDIST_:
 	iTemp1 = op->p3 ? groupTemp->meta.distinctNSetIdx : 0;
-	i64Temp = stk0.isnull() ? SMALLEST : stk0.u.i;
+	i64Temp = stk0.isnull() ? numeric_limits<i64>::min() : stk0.u.i;
 	if (bt_nums[op->p2+iTemp1].insert(i64Temp).second) {
 		distinctVal = stk0;
 		++ip;
@@ -987,38 +993,32 @@ SDIST_:
 
 //functions
 FUNC_ABSI_:
-	ifvalid
-	if (stk0.u.i < 0)
-		stk0.u.i *= -1;
+	ifnotnull if (stk0.u.i < 0) stk0.u.i *= -1;
 	nexti();
 FUNC_ABSF_:
-	ifvalid
-	if (stk0.u.f < 0)
-		stk0.u.f *= -1;
+	ifnotnull if (stk0.u.f < 0) stk0.u.f *= -1;
 	nexti();
 FINC_:
 	q->dataholder[op->p1].u.f++;
 	push();
 	stk0 = q->dataholder[op->p1];
 	nexti();
-ENCCHA_:
-	ifvalid {
+FUNC_ENCCHA_:
+	ifnotnull {
 		auto&& pt1 = q->crypt.chachaEncrypt(op->p1, stk0.z, stk0.u.s);
 		if (stk0.ismal()) free(stk0.u.s);
 		stk0.u.s = pt1.first;
 		stk0.z = pt1.second;
 		stk0.b = T_STRING|MAL;
-	}
-	nexti();
-DECCHA_:
-	ifvalid {
+	} nexti();
+FUNC_DECCHA_:
+	ifnotnull {
 		auto&& pt2 = q->crypt.chachaDecrypt(op->p1, stk0.z, stk0.u.s);
 		if (stk0.ismal()) free(stk0.u.s);
 		stk0.u.s = pt2.first;
 		stk0.z = pt2.second;
 		stk0.b = T_STRING|MAL;
-	}
-	nexti();
+	} nexti();
 #define get_tm() \
 	skipnull(); \
 	secs_to_tm(sec(stk0.u.i), &timetm);
@@ -1066,6 +1066,136 @@ FUNC_MONTHNAME_:
 	get_tm();
 	stk0 = { { s: monthnames[timetm.tm_mon] }, T_STRING, monthlens[timetm.tm_mon] };
 	nexti();
+FUNC_CIEL_:
+	ifnotnull stk0.u.f = ceil(stk0.u.f);
+	nexti();
+FUNC_FLOOR_:
+	ifnotnull stk0.u.f = floor(stk0.u.f);
+	nexti();
+FUNC_ACOS_:
+	ifnotnull stk0.u.f = acos(stk0.u.f);
+	nexti();
+FUNC_ASIN_:
+	ifnotnull stk0.u.f = asin(stk0.u.f);
+	nexti();
+FUNC_ATAN_:
+	ifnotnull stk0.u.f = atan(stk0.u.f);
+	nexti();
+FUNC_COS_:
+	ifnotnull stk0.u.f = cos(stk0.u.f);
+	nexti();
+FUNC_SIN_:
+	ifnotnull stk0.u.f = sin(stk0.u.f);
+	nexti();
+FUNC_TAN_:
+	ifnotnull stk0.u.f = tan(stk0.u.f);
+	nexti();
+FUNC_EXP_:
+	ifnotnull stk0.u.f = exp(stk0.u.f);
+	nexti();
+FUNC_LOG_:
+	ifnotnull stk0.u.f = log(stk0.u.f);
+	nexti();
+FUNC_LOG2_:
+	ifnotnull stk0.u.f = log2(stk0.u.f);
+	nexti();
+FUNC_LOG10_:
+	ifnotnull stk0.u.f = log10(stk0.u.f);
+	nexti();
+FUNC_SQRT_:
+	ifnotnull stk0.u.f = sqrt(stk0.u.f);
+	nexti();
+FUNC_ROUND_:
+	ifnotnull stk0.u.f = round(stk0.u.f);
+	nexti();
+FUNC_RAND_:
+	push();
+	stk0.u.f = rng();
+	stk0.b = T_FLOAT;
+	nexti();
+FUNC_UPPER_:
+	ifnotnull {
+		stk0 = stk0.heap();
+		stk0.b |= MAL;
+		for(auto c = stk0.u.s; *c; ++c) *c = toupper(*c);
+	}
+	nexti();
+FUNC_LOWER_:
+	ifnotnull {
+		stk0 = stk0.heap();
+		stk0.b |= MAL;
+		for(auto c = stk0.u.s; *c; ++c) *c = tolower(*c);
+	}
+	nexti();
+FUNC_BASE64_ENCODE_:
+	ifnotnull {
+		u32 newsize = encsize(stk0.z);
+		auto newstring = (char*)malloc(newsize+1);
+		base64_encode((BYTE*)stk0.u.s, (BYTE*) newstring, (int)stk0.z, 0);
+		newstring[newsize] = 0;
+		stk0.freedat();
+		stk0 = dat{ {s: newstring}, T_STRING|MAL, newsize};
+	} nexti();
+FUNC_BASE64_DECODE_:
+	ifnotnull {
+		auto newstring = (char*)malloc(stk0.z+1);
+		stk0.z = base64_decode((BYTE*)stk0.u.s, (BYTE*)newstring, (int)stk0.z);
+		newstring = (char*)realloc(newstring, stk0.z+1);
+		newstring[stk0.z] = 0;
+		stk0.freedat();
+		stk0 = dat{ {s: newstring}, T_STRING|MAL, stk0.z};
+	} nexti();
+FUNC_HEX_ENCODE_:
+FUNC_HEX_DECODE_:
+FUNC_LEN_:
+	ifnotnull {
+		auto sz = stk0.z;
+		stk0.freedat();
+		stk0 = dat{ {f: (double)sz}, T_FLOAT };
+	} nexti();
+FUNC_SUBSTR_:
+	ifnotnull {
+		if (op->p3){
+			auto d = stk0;
+			regmatch_t pm;
+			if (!regexec(q->dataholder[op->p1].u.r, d.u.s, 1, &pm, 0)){
+				stk0.z = pm.rm_eo - pm.rm_so;
+				stk0.u.s = (char*)malloc(stk0.z+1);
+				stk0.b |= MAL;
+				strncpy(stk0.u.s, d.u.s+pm.rm_so, stk0.z);
+				stk0.u.s[stk0.z] = 0;
+			} else
+				stk0.setnull();
+			d.freedat();
+		} else {
+			if (op->p1+op->p2 <= stk0.z) {
+				auto d = stk0;
+				stk0.u.s = (char*)malloc(op->p2+1);
+				stk0.b |= MAL;
+				stk0.z = op->p2;
+				strncpy(stk0.u.s, d.u.s+op->p1, op->p2);
+				stk0.u.s[op->p2] = 0;
+				d.freedat();
+			} else if (op->p1 < stk0.z) {
+				auto d = stk0;
+				stk0.u.s = strdup(d.u.s+op->p1);
+				stk0.z = strlen(stk0.u.s);
+				stk0.b |= MAL;
+				d.freedat();
+			} else
+				stk0.freedat();
+		}
+	} nexti();
+FUNC_MD5_:
+	ifnotnull md5(stk0);
+	nexti();
+FUNC_SHA1_:
+	ifnotnull sha1(stk0);
+	nexti();
+FUNC_SHA256_:
+	ifnotnull sha256(stk0);
+	nexti();
+
 //aggregates
 LDSTDVI_:
 	nexti(); //TODO
@@ -1227,7 +1357,25 @@ READ_NEXT_GROUP_:
 	}
 	next();
 
+START_MESSAGE_:
+	linesRead = 0;
+	switch(op->p1){
+	case 0: updates.start((char*) "Scanned %d lines", &linesRead, 0); break;
+	case 1: updates.start((char*) "Found %d results", &totalPrinted, 0); break;
+	case 2: updates.say((char*) "Sorting", 0, 0); break;
+	case 3: updates.start((char*) "Read %d lines", &linesRead,0); break;
+	case 4: updates.start((char*) "Read %d lines, Found %d results", &linesRead, &totalPrinted); break;
+	case 5: updates.start((char*) "Scanned %d lines from join file", &linesRead, 0); break;
+	case 6: updates.say((char*) "Processing indexes", 0, 0); break;
+	case 7: updates.start((char*) "Read %d lines from file1, found %d join results", &linesRead, &totalPrinted); break;
+	}
+	nexti();
+STOP_MESSAGE_:
+	updates.stop();
+	nexti();
+
 ENDRUN_:
+	updates.stop();
 	csvOutput << outbuf;
 	csvOutput.flush();
 	return;
@@ -1238,24 +1386,17 @@ CVNO_:
 	error("Invalid opcode");
 }
 
-void runquery(querySpecs &q){
-	prepareQuery(q);
-	vmachine vm(q);
-	vm.run();
-}
-shared_ptr<singleQueryResult> runqueryJson(querySpecs &q){
-	q.setoutputJson();
-	prepareQuery(q);
-	vmachine vm(q);
-	vm.run();
-	return vm.getJsonResult();
+static queryQueue runner;
+void stopAllQueries(){
+	runner.endall();
 }
 
-shared_ptr<singleQueryResult> vmachine::getJsonResult(){
-	jsonresult->types = q->colspec.types; //TODO: use originial pre-trivial types
-	jsonresult->colnames = q->colspec.colnames;
-	jsonresult->pos.resize(q->colspec.count);
-	jsonresult->query = q->queryString;
-	iota(jsonresult->pos.begin(), jsonresult->pos.end(),1); //TODO: update gui to not need this
-	return jsonresult;
+atomic_int vmachine::idCounter = 0;
+void runquery(querySpecs &q){
+	auto r = runner.runquery(q);
+	r.get();
+}
+shared_ptr<singleQueryResult> runqueryJson(querySpecs &q){
+	auto r = runner.runqueryJson(q);
+	return r.get();
 }

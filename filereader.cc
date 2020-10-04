@@ -5,7 +5,7 @@
 #include "interpretor.h"
 
 
-fileReader::fileReader(string& fname){
+fileReader::fileReader(string& fname) : filename(fname) {
 	if (!filesystem::exists(fname)){
 		if (fname.length() <= 4 
 				|| fname.compare(fname.length() - 4, 4, ".csv"sv) != 0
@@ -20,7 +20,6 @@ fileReader::fileReader(string& fname){
 	}
 	//filesize optimizations more beneficial for joined files
 	small = filesystem::file_size(fname) < (fileno>0? 100:1)*1024*1024;
-	filename = fname;
 	fs.open(fname.c_str());	
 }
 char fileReader::blank = 0;
@@ -228,18 +227,18 @@ void openfiles(querySpecs &q, unique_ptr<node> &n){
 		return;
 	if (n->label == N_FROM || n->label == N_JOIN){
 		//initialize and put in map
-		string path = n->tok1.val;
+		string& fpath = n->tok1.val;
 		string id = st("_f",q.numFiles);
-		shared_ptr<fileReader> fr(new fileReader(path));
+		auto fr = make_shared<fileReader>(fpath);
 		fr->id = id;
 		fr->fileno = q.numFiles;
 		q.files[id] = fr;
 		if (n->tok4.id)
 			q.files[n->tok4.val] = fr;
-		int a = path.find_last_of("/\\") + 1;
-		int b = path.size()-4-a;
-		path = path.substr(a, b);
-		q.files[path] = fr;
+		int a = fpath.find_last_of("/\\") + 1;
+		int b = fpath.size()-4-a;
+		fpath = fpath.substr(a, b);
+		q.files[fpath] = fr;
 
 		if (q.options & O_S)
 			fr->delim = ' ';
@@ -264,4 +263,34 @@ void openfiles(querySpecs &q, unique_ptr<node> &n){
 	openfiles(q, n->node1);
 	openfiles(q, n->node2);
 	openfiles(q, n->node3);
+}
+
+regex_t extPattern;
+regex_t hidPattern;
+shared_ptr<directory> filebrowse(string dir){
+
+	filesystem::path thisdir(dir);
+	if (!filesystem::exists(thisdir) || !filesystem::is_directory(thisdir)){
+		error(st(dir," is not a directory"));
+	}
+	auto resp = make_shared<directory>();
+	vector<string> others;
+	for (auto& f : filesystem::directory_iterator(thisdir)){
+		if (!regexec(&hidPattern, f.path().c_str(), 0,0,0)){
+		} else if (filesystem::is_directory(f.status())){
+			resp->dirs.push_back(f.path());
+		} else if (filesystem::is_regular_file(f.status())){
+			if (!regexec(&extPattern, f.path().c_str(), 0,0,0))
+				resp->files.push_back(f.path());
+			else
+				others.push_back(f.path());
+		}
+	}
+	sort(resp->dirs.begin(), resp->dirs.end());
+	sort(resp->files.begin(), resp->files.end());
+	sort(others.begin(), others.end());
+	resp->files.insert(resp->files.end(), others.begin(), others.end());
+	resp->parent = thisdir.parent_path();
+	resp->fpath = thisdir;
+	return resp;
 }

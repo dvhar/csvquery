@@ -2,8 +2,10 @@
 
 #include "interpretor.h"
 #include "deps/btree/btree_set.h"
-#include "deps/b64/b64.h"
+#include "deps/crypto/base64.h"
 #include <math.h>
+#include <mutex>
+#include <future>
 
 #define bset btree::btree_set
 
@@ -39,7 +41,13 @@ enum codes : int {
 	JOINSET_INIT, JOINSET_TRAV, AND_SET, OR_SET,
 	SAVEANDCHAIN, SORT_ANDCHAIN,
 	FUNCYEAR, FUNCMONTH, FUNCWEEK, FUNCYDAY, FUNCMDAY, FUNCWDAY, FUNCHOUR, FUNCMINUTE, FUNCSECOND, FUNCWDAYNAME, FUNCMONTHNAME,
-	FUNCABSF, FUNCABSI
+	FUNCABSF, FUNCABSI,
+	START_MESSAGE, STOP_MESSAGE,
+	FUNC_CIEL, FUNC_FLOOR, FUNC_ACOS, FUNC_ASIN, FUNC_ATAN, FUNC_COS, FUNC_SIN, FUNC_TAN, FUNC_EXP,
+	FUNC_LOG, FUNC_LOG2, FUNC_LOG10, FUNC_SQRT, FUNC_RAND, FUNC_UPPER, FUNC_LOWER, FUNC_BASE64_ENCODE,
+	FUNC_BASE64_DECODE, FUNC_HEX_ENCODE, FUNC_HEX_DECODE, FUNC_LEN, FUNC_SUBSTR, FUNC_MD5, FUNC_SHA1,
+	FUNC_SHA256, FUNC_ROUND
+
 };
 
 //2d array for ops indexed by operation and datatype
@@ -74,10 +82,10 @@ static int operations[][6] = {
 //type conversion opcodes - [from][to]
 static int typeConv[6][6] = {
 	{0, 0,  0,  0,  0,  0 },
-	{0, CVNO, CVIF, CVNO, CVNO, CVIS },
-	{0, CVFI, CVNO, CVFI, CVFI, CVFS },
-	{0, CVNO, CVIF, CVNO, CVER, CVDTS},
-	{0, CVNO, CVIF, CVER, CVNO, CVDRS},
+	{0, CVNO, CVIF, CVER, CVER, CVIS },
+	{0, CVFI, CVNO, CVER, CVER, CVFS },
+	{0, CVER, CVER, CVNO, CVER, CVDTS},
+	{0, CVER, CVER, CVER, CVNO, CVDRS},
 	{0, CVSI, CVSF, CVSDT,CVSDR,CVNO},
 };
 
@@ -91,6 +99,7 @@ dat parseDateDat(const char* s);
 dat parseStringDat(const char* s);
 int addBtree(int type, querySpecs *q);
 
+bool opDoesJump(int opcode);
 //placeholder for jmp positions that can't be determined until later
 class jumpPositions {
 	map<int, int> jumps;
@@ -149,13 +158,37 @@ class stddev {
 	}
 };
 
+class messager {
+	char buf[200];
+	future<void> stopslave;
+	promise<void> stopmaster;
+	thread runner;
+	int blank = 0;
+	atomic_bool delay;
+	public:
+	i64 sessionId;
+	static const int scanning = 0;
+	static const int retrieving = 1;
+	static const int sorting = 2;
+	static const int reading  = 3;
+	static const int readingfiltered = 4;
+	static const int scanningjoin = 5;
+	static const int indexing = 6;
+	static const int readingfirst = 7;
+	void say(char* msg, int* n1, int* n2);
+	void start(char* msg, int* n1, int* n2);
+	void stop();
+	void send();
+	messager(){ delay = true; }
+};
+
 class rowgroup;
 class singleQueryResult;
 class vmachine {
 	vector<shared_ptr<fileReader>> files;
 	opcode* ops;
 	dat* torow;
-	dat distinctVal;
+	dat distinctVal = {0};
 	int torowSize =0;
 	int sortgroupsize =0;
 	int quantityLimit =0;
@@ -175,6 +208,8 @@ class vmachine {
 	string outbuf;
 	ostream csvOutput;
 	ofstream outfile;
+	messager updates;
+	static atomic_int idCounter;
 	//datunion comparers
 	static const function<bool (const datunion, const datunion&)> uLessFuncs[3];
 	static const function<bool (const datunion, const datunion&)> uGrtFuncs[3];
@@ -185,10 +220,13 @@ class vmachine {
 	static const function<bool (const datunion, const datunion&)> uRxpFuncs[3];
 	static const function<bool (const datunion, const datunion&)>* uComparers[7];
 	public:
+	i64 sessionId =0;
+	int id =0;
 	static flatmap<int,int> relopIdx;
 	vector<bset<i64>> bt_nums;
 	vector<bset<treeCString>> bt_strings;
 	querySpecs* q;
+	void endQuery();
 	void run();
 	shared_ptr<singleQueryResult> getJsonResult();
 	vmachine(querySpecs &q);
@@ -289,3 +327,15 @@ void strplus(dat &s1, dat &s2);
 void trav(rowgroup &r);
 int getSortComparer(querySpecs *q, int i);
 dat prepareLike(unique_ptr<node> &n);
+void sha1(dat&);
+void sha256(dat&);
+void md5(dat&);
+
+class queryQueue {
+	mutex mtx;
+	list<vmachine> queries;
+	public:
+	future<void> runquery(querySpecs&);
+	future<shared_ptr<singleQueryResult>> runqueryJson(querySpecs&);
+	void endall();
+};
