@@ -14,6 +14,8 @@ int isDuration(const char* s){ return !regexec(&durationPattern, s, 0, NULL, 0);
 int isInt(const char* s){ return !regexec(&intType, s, 0, NULL, 0); }
 int isFloat(const char* s){ return !regexec(&floatType, s, 0, NULL, 0); }
 
+minstd_rand0 rng(time(0));
+
 const flatmap<int, string_view> enumMap = {
 	{EOS ,           "EOS"},
 	{ERROR_STATE ,   "ERROR_STATE"},
@@ -273,24 +275,6 @@ void printTree(unique_ptr<node> &n, int ident){
 	printTree(n->node4,ident);
 }
 
-int slcomp(const char* s1, const char*s2){
-	while (*s1 && tolower(*s1)==*s2) { ++s1; ++s2; }
-	return *s1 - *s2;
-}
-int isInList(int n, int count, ...)
-{
-    int i, temp;
-    va_list args;
-    va_start(args, count);
-    for(i=0; i<count; i++)
-    {
-        temp = va_arg(args, int);
-		if (n == temp) return 1;
-    }
-    va_end(args);
-    return 0;
-}
-
 int parseDuration(char* str, date_t* t) {
 	if (!isDuration(str)) {return -1;}
 	char* part2;
@@ -323,7 +307,7 @@ int parseDuration(char* str, date_t* t) {
 
 int getNarrowestType(char* value, int startType) {
 	date_t t;
-	if (value[0] == '\0' || !slcomp(value,"null") || !strcmp(value,"NA")) {
+	if (value[0] == '\0' || !strcasecmp(value,"null") || !strcmp(value,"NA")) {
 	  startType = max(T_NULL, startType);
 	} else if (!regexec(&leadingZeroString, value, 0, NULL, 0)){ startType = T_STRING;
 	} else if (isInt(value))                       { startType = max(T_INT, startType);

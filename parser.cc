@@ -680,7 +680,6 @@ unique_ptr<node> parser::parseFunction() {
 		q->nextTok();
 	//everything else
 	} else {
-		srand(time(0)); //TODO: better rng
 		if (t.lower() == "distinct"sv) {
 			n->tok3 = t;
 			t = q->nextTok();

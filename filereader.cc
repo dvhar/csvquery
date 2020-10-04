@@ -5,7 +5,7 @@
 #include "interpretor.h"
 
 
-fileReader::fileReader(string& fname){
+fileReader::fileReader(string& fname) : filename(fname) {
 	if (!filesystem::exists(fname)){
 		if (fname.length() <= 4 
 				|| fname.compare(fname.length() - 4, 4, ".csv"sv) != 0
@@ -20,7 +20,6 @@ fileReader::fileReader(string& fname){
 	}
 	//filesize optimizations more beneficial for joined files
 	small = filesystem::file_size(fname) < (fileno>0? 100:1)*1024*1024;
-	filename = fname;
 	fs.open(fname.c_str());	
 }
 char fileReader::blank = 0;
