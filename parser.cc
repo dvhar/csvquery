@@ -660,7 +660,7 @@ unique_ptr<node> parser::parseOrder() {
 }
 
 //tok1 is function id
-//tok2 is * for count(*)
+//tok2 is * for count(*), preconv paramtype for len()
 //tok3 is cipher or distinct
 //tok4 is password or (determined later) count of distinct N or S functions
 //[PARAMTYPE] is paramtype for type conversion

@@ -481,11 +481,11 @@ typer dataTyper::typeFunctionInnerNodes(unique_ptr<node> &n){
 		n->info[RETTYPE] = T_FLOAT;
 		break;
 	case FN_LEN:
-		paramType = typeInnerNodes(n->node1);
 		innerType = {T_FLOAT, false};
-		if (!canBeString(n->node1))
-			n->info[PARAMTYPE] = paramType.type;
 		n->info[RETTYPE] = T_FLOAT;
+		n->tok2.id = typeInnerNodes(n->node1).type;
+		if (canBeString(n->node1))
+			n->tok2.id = T_STRING;
 		break;
 	case FN_INT:
 		innerType = {T_INT, false};
@@ -657,6 +657,13 @@ void dataTyper::typeFunctionFinalNodes(unique_ptr<node> &n, int finaltype){
 		needRetConvert = true;
 	}
 	switch (n->tok1.id){
+	case FN_LEN:{
+		if (n->tok2.id == T_STRING){
+			typeFinalValues(n->node1, T_STRING);
+			break;
+		}
+		finaltype = n->tok2.id;
+	}
 	case FN_COUNT:
 	case FN_INC:
 	case FN_ENCRYPT:
@@ -685,7 +692,6 @@ void dataTyper::typeFunctionFinalNodes(unique_ptr<node> &n, int finaltype){
 	case FN_LOG10:
 	case FN_SQRT:
 	case FN_RAND:
-	case FN_LEN:
 	case FN_INT:
 	case FN_FLOAT:
 	case FN_STRING:

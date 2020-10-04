@@ -1015,12 +1015,17 @@ void cgen::genFunction(unique_ptr<node> &n){
 	case FN_BASE64_DECODE:
 	case FN_HEX_ENCODE:
 	case FN_HEX_DECODE:
-	case FN_LEN:
 	case FN_MD5:
 	case FN_SHA1:
 	case FN_SHA256:
 	case FN_ROUND:
 		genExprAll(n->node1);
+		addop(functionCode[n->tok1.id]);
+		break;
+	case FN_LEN:
+		genExprAll(n->node1);
+		if (n->node1->datatype != T_STRING)
+			addop0(typeConv[n->node1->datatype][T_STRING]);
 		addop(functionCode[n->tok1.id]);
 		break;
 	}
