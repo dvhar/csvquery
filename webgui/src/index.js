@@ -8,6 +8,7 @@ import * as display from './display.js';
 import * as help from './help.js';
 import * as topbar from './topbar.js';
 import * as serviceWorker from './serviceWorker';
+//import testdata from './testdata.json';
 
 
 class Main extends React.Component {
@@ -195,6 +196,7 @@ class Main extends React.Component {
 			if (window.performance.now() > bugtimer+20000)
 				that.setState({ topMessage : "Query Engine Disconnected!"})
 		},2000);
+		//that.showLoadedQuery(testdata);
 	}
 	componentWillMount() { document.title = 'CSV Query Tool' }
 }

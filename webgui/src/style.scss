@@ -15,7 +15,7 @@ $ojgradient2: #f17432;
 $ojgradient3: #ea5507;
 $ojgradient4: #fb955e;
 
-$tablebg: #ccc;
+$tablebg: #dfdfdf;
 $dropdownbg: brown;
 	//background: linear-gradient(to bottom, #3b1212 0%,#71280b 50%,#752201 51%,#bf6e4e 100%);
 
@@ -34,7 +34,7 @@ $historyArrows: #ffff99;
 
 html {
 	min-height: 100%;
-	background-color: #cccccc;
+	background-color: #ccc9c9;
 	//background: linear-gradient(to bottom, rgba(153,125,96,1) 0%, rgba(218,183,140,1) 45%, rgba(195,169,150,1) 100%);
 	//background-image: url("/bg.jpg");
 }
@@ -76,7 +76,7 @@ html {
 }
 .queryMenuDiv {
 	z-index: 10;
-	display: inline-block;
+	//display: inline-block;
 	min-width: 12em;
 	padding: .2em .2em;
 	//@include sgradient($ojgradient1,$ojgradient2,$ojgradient3,$ojgradient4);
@@ -92,7 +92,7 @@ html {
 	border-radius: 4px;
 }
 .queryTextEntry {
-	width: calc(95vw);
+	width: calc(98vw);
 }
 .queryTextContainer {
 	padding: 0.2em;
@@ -105,15 +105,19 @@ html {
 .queryRunButton:hover {
 	background: linear-gradient(to bottom, #e0f3fa 0%,#d8f0fc 50%,#b8e2f6 51%,#b6dffd 100%);
 }
-
+.viewContainer {
+	display: inline-block;
+	margin: auto;
+	max-width: calc(100%);
+}
 .tableModDiv {
 	z-index: 10;
 	display: inline-block;
 	min-width: 12em;
-	background-color: $button1;
+	//background-color: $button1;
 	padding: .2em .2em;
 	//background: linear-gradient(to bottom, #3b1212 0%,#71280b 50%,#752201 51%,#bf6e4e 100%);
-	@include gradient($ttop,$bbt);
+	//@include gradient($ttop,$bbt);
 }
 .tableModDrop {
 	//background: linear-gradient(to bottom, #3b1212 0%,#71280b 50%,#752201 51%,#bf6e4e 100%);
@@ -122,14 +126,15 @@ html {
 .tableModButton {
 	width: 15em;
 	padding: .2em .5em;
-	background-color: $button1;
+	background: linear-gradient(to bottom, #ffffff 0%,#f1f1f1 50%,#e1e1e1 51%,#f6f6f6 100%);
+	//background-color: $button1;
 	border-radius: 4px;
 }
 
 //table display
 .tableHead {
-	td { background-color: $headcell; }
-	th { background-color: $headcell; }
+	//td { background-color: $headcell; }
+	//th { background-color: $headcell; }
 }
 .tableBody td {
 	background-color: $bodycell;
@@ -139,17 +144,17 @@ html {
 	white-space:nowrap;
 	min-width: 4em;
 }
-.tableRow {
-	padding: 1em;
+.typeCell {
+	color: #333;
 }
 .tableDiv {
 	background: $tablebg;
 	position: static;
 	top: 3em;
 	max-height: calc(80vh - 100px);
-	max-width: calc(95%);
+	//max-width: calc(95%);
 	margin: auto;
-	border: 2px solid black;
+	border: 1px solid black;
 }
 .tableBodyDiv {
 	overflow: auto;
@@ -157,23 +162,26 @@ html {
 .tableHeadDiv {
 	overflow: hidden;
 	border-bottom: none;
+	background: linear-gradient(to bottom, #ffffff 0%,#f1f1f1 50%,#e1e1e1 51%,#f6f6f6 100%);
 }
 .tableQuery {
 	margin: auto;
 	display: table;
-	background: linear-gradient(to top, #fefcea 0%,#fff5ac 100%);
 	border-radius: 0.4em;
-	padding: 0.3em 1em 0em 1em;
+	padding: 0.3em 0em 0em 0em;
 }
 //bigger query section
 .querySelect {
 	margin-top: 2.3em;
+	text-align: center;
 }
 .queryMenuContainer {
 	text-align: center;
 	margin-bottom: 1em;
 }
 .tableModifiers {
+	border-radius: 1em 1em .3em .3em;
+	background: linear-gradient(to top, #fefcea 0%,#fff5ac 100%);
 	text-align: center;
 }
 
@@ -288,21 +296,7 @@ html {
 	overflow-y: scroll;
 }
 
-//dynamic table
-.dynoDiv {
-	border: 1px solid black;
-	max-height: 20em;
-	overflow: auto;
-	display: inline-block;
-}
-.dynoTable {
-	border-collapse: collapse;
-}
-.dynoTableCell {
-	border: 1px solid grey;
-	height: 1.5em;
-}
 #scrollBuffer {
-	color: #cccccc;
-	background: #cccccc;
+	color: $tablebg;
+	background: $tablebg;
 }
