@@ -1,6 +1,6 @@
 html {
   min-height: 100%;
-  background-color: #cccccc; }
+  background-color: #ccc9c9; }
 
 .absolute-pos {
   position: absolute; }
@@ -36,7 +36,6 @@ html {
 
 .queryMenuDiv {
   z-index: 10;
-  display: inline-block;
   min-width: 12em;
   padding: .2em .2em;
   background: #091928;
@@ -52,7 +51,7 @@ html {
   border-radius: 4px; }
 
 .queryTextEntry {
-  width: calc(95vw); }
+  width: calc(98vw); }
 
 .queryTextContainer {
   padding: 0.2em; }
@@ -65,14 +64,16 @@ html {
 .queryRunButton:hover {
   background: linear-gradient(to bottom, #e0f3fa 0%, #d8f0fc 50%, #b8e2f6 51%, #b6dffd 100%); }
 
+.viewContainer {
+  display: inline-block;
+  margin: auto;
+  max-width: calc(100%); }
+
 .tableModDiv {
   z-index: 10;
   display: inline-block;
   min-width: 12em;
-  background-color: #EEEEEE;
-  padding: .2em .2em;
-  background-color: #091928;
-  background: linear-gradient(to bottom, #091928, #207cca); }
+  padding: .2em .2em; }
 
 .tableModDrop {
   background: #207cca;
@@ -81,14 +82,8 @@ html {
 .tableModButton {
   width: 15em;
   padding: .2em .5em;
-  background-color: #EEEEEE;
+  background: linear-gradient(to bottom, #ffffff 0%, #f1f1f1 50%, #e1e1e1 51%, #f6f6f6 100%);
   border-radius: 4px; }
-
-.tableHead td {
-  background-color: #FAFAFA; }
-
-.tableHead th {
-  background-color: #FAFAFA; }
 
 .tableBody td {
   background-color: #FAFAFA; }
@@ -98,40 +93,42 @@ html {
   white-space: nowrap;
   min-width: 4em; }
 
-.tableRow {
-  padding: 1em; }
+.typeCell {
+  color: #333; }
 
 .tableDiv {
-  background: #ccc;
+  background: #dfdfdf;
   position: static;
   top: 3em;
   max-height: calc(80vh - 100px);
-  max-width: calc(95%);
   margin: auto;
-  border: 2px solid black; }
+  border: 1px solid black; }
 
 .tableBodyDiv {
   overflow: auto; }
 
 .tableHeadDiv {
   overflow: hidden;
-  border-bottom: none; }
+  border-bottom: none;
+  background: linear-gradient(to bottom, #ffffff 0%, #f1f1f1 50%, #e1e1e1 51%, #f6f6f6 100%); }
 
 .tableQuery {
   margin: auto;
   display: table;
-  background: linear-gradient(to top, #fefcea 0%, #fff5ac 100%);
   border-radius: 0.4em;
-  padding: 0.3em 1em 0em 1em; }
+  padding: 0.3em 0em 0em 0em; }
 
 .querySelect {
-  margin-top: 2.3em; }
+  margin-top: 2.3em;
+  text-align: center; }
 
 .queryMenuContainer {
   text-align: center;
   margin-bottom: 1em; }
 
 .tableModifiers {
+  border-radius: 1em 1em .3em .3em;
+  background: linear-gradient(to top, #fefcea 0%, #fff5ac 100%);
   text-align: center; }
 
 .topBar {
@@ -238,19 +235,6 @@ html {
   padding: 1em;
   overflow-y: scroll; }
 
-.dynoDiv {
-  border: 1px solid black;
-  max-height: 20em;
-  overflow: auto;
-  display: inline-block; }
-
-.dynoTable {
-  border-collapse: collapse; }
-
-.dynoTableCell {
-  border: 1px solid grey;
-  height: 1.5em; }
-
 #scrollBuffer {
-  color: #cccccc;
-  background: #cccccc; }
+  color: #dfdfdf;
+  background: #dfdfdf; }

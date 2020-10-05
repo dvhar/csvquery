@@ -129,7 +129,7 @@ class TableGrid extends React.Component {
 		)});
 		var info = this.props.table.Types.map((name,ii)=>{
 			if (this.props.hideColumns[ii]===0) return (
-			<td key={ii} className="tableCell" onClick={()=>this.sorter(ii)}>
+			<td key={ii} className="tableCell typeCell" onClick={()=>this.sorter(ii)}>
 				{`${this.props.table.Pos[ii]} `}
 				<span className="noselect">
 				- {t[this.props.table.Types[ii]]}
