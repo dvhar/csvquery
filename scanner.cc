@@ -82,6 +82,7 @@ class stringLookahead {
 	u32 idx =0;
 	int getc();
 	int peek();
+	char* nextCstr();
 };
 int stringLookahead::getc() {
 	if (idx >= Str.length()) { return EOS; }
@@ -92,6 +93,10 @@ int stringLookahead::peek() {
 	if (idx >= Str.length()) { return EOS; }
 	return (int) Str[idx];
 }
+char* stringLookahead::nextCstr() {
+	if (idx >= Str.length()) { return nullptr; }
+	return &Str[idx];
+}
 
 class scanner {
 	int lineNo = 1;
@@ -100,6 +105,7 @@ class scanner {
 	stringLookahead input;
 	public:
 		token scanToken();
+		token scanQuotedToken(int);
 		scanner(querySpecs &q){
 			initable();
 			input = {q.queryString, 0};
@@ -170,21 +176,29 @@ token scanner::scanToken() {
 
 }
 
+token scanner::scanQuotedToken(int qtype) {
+	string S;
+	if (auto tokstart = input.nextCstr(); tokstart){
+		int toklen = 0;
+		auto c = tokstart;
+		for (; *c && *c != qtype; ++c, ++toklen)
+			if (*c == '\n'){ lineNo++; colNo=0; }
+		if (*c != qtype)
+			error("Quote was not terminated");
+		input.idx += toklen;
+		return {WORD_TK, string(tokstart, toklen), lineNo, colNo, true };
+	}
+	error("Quote was not terminated");
+	return {};
+}
 
 void scanTokens(querySpecs &q) {
 	scanner sc(q);
 	while(1) {
 		token t = sc.scanToken();
-		//turn tokens inside quotes into single token
 		if (t.id == SP_SQUOTE || t.id == SP_DQUOTE) {
-			int quote = t.id;
-			string S = "";
-			for (token tk = sc.scanToken(); tk.id != quote && tk.id != EOS ; tk = sc.scanToken()) {
-				if (tk.id == ERROR_STATE) error("scanner error: "+tk.val);
-				S += tk.val;
-			}
-			if (t.id != quote)  error("Quote was not terminated");
-			t = {WORD_TK,S,t.line,t.col,true};
+			t = sc.scanQuotedToken(t.val[0]);
+			sc.scanToken(); //end quote
 		}
 		q.tokArray.push_back(t);
 		if (t.id == ERROR_STATE) error("scanner error: "+t.val);
