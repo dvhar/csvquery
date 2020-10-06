@@ -248,10 +248,7 @@ void querySpecs::addVar(string name) {
 }
 bool querySpecs::numIsCol() { return (options & O_C) != 0; }
 shared_ptr<fileReader>& querySpecs::getFileReader(int i) {
-	for (auto &f : files)
-		if (f.second->fileno == i)
-			return f.second;
-	error("File not found");
+	return filevec.at(i);
 }
 
 void printTree(unique_ptr<node> &n, int ident){
@@ -350,7 +347,7 @@ int getVarType(string lkup, querySpecs *q){
 }
 
 int getFileNo(string s, querySpecs *q){
-	auto& f = q->files[s];
+	auto& f = q->filemap[s];
 	if (f == nullptr)
 		error("file number not founde");
 	return f->fileno;
@@ -447,7 +444,27 @@ string handle_err(exception_ptr eptr) {
     }
 }
 string promptPassword(){
-	return "dog";
+	return "dog"; //TODO
+}
+
+bool isTrivial(unique_ptr<node> &n){
+	if (n == nullptr) return false;
+	if (n->label == N_VALUE && n->tok3.id)
+		return true;
+	return isTrivial(n->node1);
+}
+string nodeName(unique_ptr<node> &n, querySpecs* q){
+	if (n == nullptr) return "";
+	if (n->label == N_VALUE){
+		if (n->tok2.id == COLUMN && n->tok3.id){
+			if (!q->filemap[n->tok3.val]->noheader)
+			return q->filemap[n->tok3.val]->colnames[n->tok1.id];
+		}
+		if (n->tok2.id == VARIABLE)
+			return n->tok1.val;
+		return "";
+	}
+	return nodeName(n->node1, q);
 }
 
 json& singleQueryResult::tojson(){

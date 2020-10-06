@@ -437,7 +437,7 @@ class querySpecs {
 	vector<dat> dataholder;
 	vector<opcode> bytecode;
 	unique_ptr<node> tree;
-	map<string, shared_ptr<fileReader>> files;
+	map<string, shared_ptr<fileReader>> filemap;
 	vector<shared_ptr<fileReader>> filevec;
 	resultSpecs colspec = {0};
 	crypter crypt = {};
@@ -546,6 +546,8 @@ void prepareQuery(querySpecs &q);
 void stopAllQueries();
 shared_ptr<directory> filebrowse(string);
 string promptPassword();
+bool isTrivial(unique_ptr<node> &n);
+string nodeName(unique_ptr<node> &n, querySpecs* q);
 
 struct freeC {
 	void operator()(void*x){ free(x); }

@@ -176,6 +176,7 @@ unique_ptr<node> parser::parseSelections() {
 	case SP_STAR:
 		n->tok1 = t;
 		q->nextTok();
+		n->node2 = parseSelections();
 		return n;
 	case KW_DISTINCT:
 		n->tok1 = t;
