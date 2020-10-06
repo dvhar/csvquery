@@ -332,6 +332,7 @@ dat prepareLike(unique_ptr<node> &n);
 void sha1(dat&);
 void sha256(dat&);
 void md5(dat&);
+double round(double input, int decimals);
 
 class queryQueue {
 	mutex mtx;

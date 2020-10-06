@@ -1016,7 +1016,7 @@ void cgen::genFunction(unique_ptr<node> &n){
 	case FN_SHA256:
 	case FN_ROUND:
 		genExprAll(n->node1);
-		addop(functionCode[n->tok1.id]);
+		addop(functionCode[n->tok1.id], n->tok2.id);
 		break;
 	case FN_LEN:
 		genExprAll(n->node1);

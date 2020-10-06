@@ -1072,7 +1072,7 @@ FUNC_SQRT_:
 	ifnotnull stk0.u.f = sqrt(stk0.u.f);
 	nexti();
 FUNC_ROUND_:
-	ifnotnull stk0.u.f = round(stk0.u.f);
+	ifnotnull stk0.u.f = round(stk0.u.f, op->p1);
 	nexti();
 FUNC_RAND_:
 	push();

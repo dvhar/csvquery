@@ -10,7 +10,6 @@
 
 #include <openssl/buffer.h>
 #include <openssl/evp.h>
-#include <openssl/md5.h>
 #include <openssl/sha.h>
 
 namespace SimpleWeb {
@@ -93,37 +92,6 @@ namespace SimpleWeb {
       return hex_stream.str();
     }
 
-    /// Returns md5 hash value from input string.
-    static std::string md5(const std::string &input, std::size_t iterations = 1) noexcept {
-      std::string hash;
-
-      hash.resize(128 / 8);
-      MD5(reinterpret_cast<const unsigned char *>(&input[0]), input.size(), reinterpret_cast<unsigned char *>(&hash[0]));
-
-      for(std::size_t c = 1; c < iterations; ++c)
-        MD5(reinterpret_cast<const unsigned char *>(&hash[0]), hash.size(), reinterpret_cast<unsigned char *>(&hash[0]));
-
-      return hash;
-    }
-
-    /// Returns md5 hash value from input stream.
-    static std::string md5(std::istream &stream, std::size_t iterations = 1) noexcept {
-      MD5_CTX context;
-      MD5_Init(&context);
-      std::streamsize read_length;
-      std::vector<char> buffer(buffer_size);
-      while((read_length = stream.read(&buffer[0], buffer_size).gcount()) > 0)
-        MD5_Update(&context, buffer.data(), static_cast<std::size_t>(read_length));
-      std::string hash;
-      hash.resize(128 / 8);
-      MD5_Final(reinterpret_cast<unsigned char *>(&hash[0]), &context);
-
-      for(std::size_t c = 1; c < iterations; ++c)
-        MD5(reinterpret_cast<const unsigned char *>(&hash[0]), hash.size(), reinterpret_cast<unsigned char *>(&hash[0]));
-
-      return hash;
-    }
-
     /// Returns sha1 hash value from input string.
     static std::string sha1(const std::string &input, std::size_t iterations = 1) noexcept {
       std::string hash;
@@ -155,67 +123,6 @@ namespace SimpleWeb {
       return hash;
     }
 
-    /// Returns sha256 hash value from input string.
-    static std::string sha256(const std::string &input, std::size_t iterations = 1) noexcept {
-      std::string hash;
-
-      hash.resize(256 / 8);
-      SHA256(reinterpret_cast<const unsigned char *>(&input[0]), input.size(), reinterpret_cast<unsigned char *>(&hash[0]));
-
-      for(std::size_t c = 1; c < iterations; ++c)
-        SHA256(reinterpret_cast<const unsigned char *>(&hash[0]), hash.size(), reinterpret_cast<unsigned char *>(&hash[0]));
-
-      return hash;
-    }
-
-    /// Returns sha256 hash value from input stream.
-    static std::string sha256(std::istream &stream, std::size_t iterations = 1) noexcept {
-      SHA256_CTX context;
-      SHA256_Init(&context);
-      std::streamsize read_length;
-      std::vector<char> buffer(buffer_size);
-      while((read_length = stream.read(&buffer[0], buffer_size).gcount()) > 0)
-        SHA256_Update(&context, buffer.data(), static_cast<std::size_t>(read_length));
-      std::string hash;
-      hash.resize(256 / 8);
-      SHA256_Final(reinterpret_cast<unsigned char *>(&hash[0]), &context);
-
-      for(std::size_t c = 1; c < iterations; ++c)
-        SHA256(reinterpret_cast<const unsigned char *>(&hash[0]), hash.size(), reinterpret_cast<unsigned char *>(&hash[0]));
-
-      return hash;
-    }
-
-    /// Returns sha512 hash value from input string.
-    static std::string sha512(const std::string &input, std::size_t iterations = 1) noexcept {
-      std::string hash;
-
-      hash.resize(512 / 8);
-      SHA512(reinterpret_cast<const unsigned char *>(&input[0]), input.size(), reinterpret_cast<unsigned char *>(&hash[0]));
-
-      for(std::size_t c = 1; c < iterations; ++c)
-        SHA512(reinterpret_cast<const unsigned char *>(&hash[0]), hash.size(), reinterpret_cast<unsigned char *>(&hash[0]));
-
-      return hash;
-    }
-
-    /// Returns sha512 hash value from input stream.
-    static std::string sha512(std::istream &stream, std::size_t iterations = 1) noexcept {
-      SHA512_CTX context;
-      SHA512_Init(&context);
-      std::streamsize read_length;
-      std::vector<char> buffer(buffer_size);
-      while((read_length = stream.read(&buffer[0], buffer_size).gcount()) > 0)
-        SHA512_Update(&context, buffer.data(), static_cast<std::size_t>(read_length));
-      std::string hash;
-      hash.resize(512 / 8);
-      SHA512_Final(reinterpret_cast<unsigned char *>(&hash[0]), &context);
-
-      for(std::size_t c = 1; c < iterations; ++c)
-        SHA512(reinterpret_cast<const unsigned char *>(&hash[0]), hash.size(), reinterpret_cast<unsigned char *>(&hash[0]));
-
-      return hash;
-    }
 
     /// Returns PBKDF2 hash value from the given password
     /// Input parameter key_size  number of bytes of the returned key.
