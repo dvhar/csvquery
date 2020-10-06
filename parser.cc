@@ -659,7 +659,7 @@ unique_ptr<node> parser::parseOrder() {
 }
 
 //tok1 is function id
-//tok2 is * for count(*), preconv paramtype for len()
+//tok2 is * for count(*), preconv paramtype for len(), round() dec places
 //tok3 is cipher or distinct
 //tok4 is password or (determined later) count of distinct N or S functions
 //[PARAMTYPE] is paramtype for type conversion
@@ -718,6 +718,13 @@ unique_ptr<node> parser::parseFunction() {
 
 		case FN_INC:
 		case FN_RAND:
+			break;
+		case FN_ROUND:
+			n->node1 = parseExprAdd();
+			if (t = q->tok(); t.id == SP_COMMA){
+				n->tok2 = q->nextTok();
+				q->nextTok();
+			}
 			break;
 		case FN_POW:
 			n->node1 = parseExprAdd();

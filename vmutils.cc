@@ -392,6 +392,13 @@ void md5(dat& d){
 	base64_encode(rawhash, (BYTE*)d.u.s, 16, 0);
 	d.u.s[d.z] = 0;
 }
+double round(double input, int decimals){
+	static double ms[] = {
+		1,10,100,1000,10000,100000,1000000,10000000,100000000,1000000000,10000000000
+	};
+	double m = ms[decimals];
+	return round(input*m)/m;
+}
 
 
 int getSortComparer(querySpecs *q, int i){

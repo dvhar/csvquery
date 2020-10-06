@@ -867,6 +867,7 @@ void dataTyper::checkMathSemantics(unique_ptr<node> &n){
 void dataTyper::checkFuncSemantics(unique_ptr<node> &n){
 	auto n1 = n->node1 == nullptr ? T_NULL : n->node1->datatype;
 	auto typestr = nameMap.at(n->datatype);
+	char* e = NULL;
 
 	switch (n->tok1.id){
 	case FN_SUM:
@@ -897,6 +898,11 @@ void dataTyper::checkFuncSemantics(unique_ptr<node> &n){
 				error("SUBSTR function requires 2 numbers or 1 pattern");
 		} else if (!isInt(n->tok2.val.c_str()) || !isInt(n->tok3.val.c_str()))
 				error("SUBSTR function requires 2 numbers or 1 pattern");
+	case FN_ROUND:
+		if (!n->tok2.id) return;
+		n->tok2.id = strtol(n->tok2.val.c_str(), &e, 10);
+		if (*e != 0 || n->tok2.id < 0 || n->tok2.id > 9)
+			error("ROUND function 2nd value must be integer from 0-9");
 	}
 }
 
