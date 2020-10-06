@@ -230,13 +230,13 @@ void openfiles(querySpecs &q, unique_ptr<node> &n){
 		auto& fr = q.filevec.back();
 		fr->id = id;
 		fr->fileno = q.numFiles;
-		q.files[id] = fr;
+		q.filemap[id] = fr;
 		if (n->tok4.id)
-			q.files[n->tok4.val] = fr;
+			q.filemap[n->tok4.val] = fr;
 		int a = fpath.find_last_of("/\\") + 1;
 		int b = fpath.size()-4-a;
 		fpath = fpath.substr(a, b);
-		q.files[fpath] = fr;
+		q.filemap[fpath] = fr;
 
 		if (q.options & O_S)
 			fr->delim = ' ';
@@ -274,14 +274,15 @@ shared_ptr<directory> filebrowse(string dir){
 	auto resp = make_shared<directory>();
 	vector<string> others;
 	for (auto& f : filesystem::directory_iterator(thisdir)){
-		if (!regexec(&hidPattern, f.path().u8string().c_str(), 0,0,0)){
+		auto&& S = f.path().u8string();
+		if (!regexec(&hidPattern, S.c_str(), 0,0,0)){
 		} else if (filesystem::is_directory(f.status())){
-			resp->dirs.push_back(f.path().u8string());
+			resp->dirs.push_back(S);
 		} else if (filesystem::is_regular_file(f.status())){
-			if (!regexec(&extPattern, f.path().u8string().c_str(), 0,0,0))
-				resp->files.push_back(f.path().u8string());
+			if (!regexec(&extPattern, S.c_str(), 0,0,0))
+				resp->files.push_back(S);
 			else
-				others.push_back(f.path().u8string());
+				others.push_back(S);
 		}
 	}
 	sort(resp->dirs.begin(), resp->dirs.end());

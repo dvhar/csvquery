@@ -339,7 +339,7 @@ void cgen::genScanJoinFiles(unique_ptr<node> &n){
 	e("scan joins");
 	auto& joinNode = findFirstNode(n, N_JOIN);
 	for (auto jnode = joinNode.get(); jnode; jnode = jnode->node2.get()){
-		auto& f = q->files[jnode->tok4.val];
+		auto& f = q->filemap[jnode->tok4.val];
 		int afterfile = jumps.newPlaceholder();
 		addop(START_MESSAGE, messager::scanningjoin);
 		normal_read = v.size();
@@ -875,8 +875,8 @@ void cgen::genPredCompare(unique_ptr<node> &n){
 
 void cgen::genSelectAll(){
 	addop(LDPUTALL, select_count);
-	for (int i=0; i<q->numFiles; ++i)
-		select_count += q->files[st("_f", i)]->numFields;
+	for (auto& f : q->filevec)
+		select_count += f->numFields;
 }
 
 void cgen::genWhere(unique_ptr<node> &nn){

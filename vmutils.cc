@@ -130,12 +130,6 @@ void dat::appendToCsvBuffer(string &outbuf){
 	}
 }
 
-bool isTrivial(unique_ptr<node> &n){
-	if (n == nullptr) return false;
-	if (n->label == N_VALUE && n->tok3.id)
-		return true;
-	return isTrivial(n->node1);
-}
 dat parseIntDat(const char* s){
 	char* end = NULL;
 	dat idat = { { i: strtol(s, &end, 10) }, T_INT };
@@ -492,7 +486,7 @@ void messager::start(char* msg, int* n1, int* n2){
 			snprintf(buf, 200, msg, *num1, *num2);
 			send();
 		}
-		while(stopslave.wait_for(chrono::milliseconds(1000)) == future_status::timeout){
+		while(stopslave.wait_for(chrono::milliseconds(500)) == future_status::timeout){
 			delay = false;
 			snprintf(buf, 200, msg, *num1, *num2);
 			send();

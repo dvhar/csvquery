@@ -87,12 +87,15 @@ void analyzer::varUsedInFilter(unique_ptr<node> &n){
 }
 
 void analyzer::selectAll(){
-	for (int i=0; i<q->numFiles; ++i){
-		auto f = q->files[st("_f", i)];
+	for (auto& f: q->filevec){
 		for (auto &c : f->types){
-			q->colspec.colnames.push_back(st("col",++q->colspec.count));
+			++q->colspec.count;
+			if (f->noheader)
+				q->colspec.colnames.push_back(st("col",q->colspec.count));
 			q->colspec.types.push_back(T_STRING);
 		}
+		if (!f->noheader)
+			q->colspec.colnames.insert(q->colspec.colnames.end(), f->colnames.begin(), f->colnames.end());
 	}
 }
 
@@ -106,7 +109,12 @@ void analyzer::recordResultColumns(unique_ptr<node> &n){
 			selectAll();
 		} else {
 			n->tok4.id = q->colspec.count++;
-			q->colspec.colnames.push_back(n->tok2.val);
+			auto name = n->tok2.val;
+			if (name.empty())
+				name = nodeName(n->node1, q);
+			if (name.empty())
+				name = st("col",q->colspec.count);
+			q->colspec.colnames.push_back(name); //TODO: names for non-aliased columns
 			q->colspec.types.push_back(n->datatype);
 		}
 		recordResultColumns(n->node2);
@@ -343,7 +351,7 @@ set<int> analyzer::whichFilesReferenced(unique_ptr<node> &n){
 	switch (n->label){
 		case N_VALUE:
 			if (n->tok2.id == COLUMN)
-				return {q->files[n->tok3.val]->fileno };
+				return {q->filemap[n->tok3.val]->fileno };
 			else if (n->tok2.id == VARIABLE)
 				return q->var(n->tok1.val).filesReferenced;
 			else
@@ -465,7 +473,7 @@ void analyzer::findIndexableJoinValues(unique_ptr<node> &n, int fileno){
 		break;
 	case N_JOIN:
 		{
-			auto& f = q->files[n->tok4.val];
+			auto& f = q->filemap[n->tok4.val];
 			if (!f)
 				error("Could not find file matching join alias "+n->tok4.val);
 			fileno = f->fileno;

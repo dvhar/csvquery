@@ -89,7 +89,6 @@ static int typeConv[6][6] = {
 	{0, CVSI, CVSF, CVSDT,CVSDR,CVNO},
 };
 
-bool isTrivial(unique_ptr<node> &n);
 dat parseIntDat(const char* s);
 dat parseFloatDat(const char* s);
 dat parseDurationDat(const char* s) ;

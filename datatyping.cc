@@ -225,9 +225,9 @@ void dataTyper::typeInitialValue(unique_ptr<node> &n, bool trivial){
 		int i;
 		if (period != -1){
 			string alias = val.substr(0, period);
-			if (q->files.count(alias)){
+			if (q->filemap.count(alias)){
 				string column = val.substr(period+1, val.length()-period);
-				shared_ptr<fileReader> f = q->files[alias];
+				shared_ptr<fileReader> f = q->filemap[alias];
 				i = f->getColIdx(column);
 				if (i != -1){
 					//found column name with file alias
@@ -260,20 +260,20 @@ void dataTyper::typeInitialValue(unique_ptr<node> &n, bool trivial){
 			}
 		}
 		//no file alias
-		for (auto &f : q->files){
-			i = f.second->getColIdx(val);
+		for (auto &f : q->filevec){
+			i = f->getColIdx(val);
 			if (i != -1){
 				//found column name without file alias
 				n->tok1.id = i;
 				n->tok2.id = COLUMN;
-				n->tok3.val = f.second->id;
-				n->datatype = f.second->types[i];
+				n->tok3.val = f->id;
+				n->datatype = f->types[i];
 				goto donetyping;
 			}
 		}
 		if (!n->tok1.quoted && regex_match(val, cInt)){
 			i = stoi(val.substr(1))-1;
-			auto f = q->files["_f0"];
+			auto& f = q->filevec.front();
 			if (i <= f->numFields){
 				//found column idx without file alias
 				n->tok1.id = i;
@@ -284,7 +284,7 @@ void dataTyper::typeInitialValue(unique_ptr<node> &n, bool trivial){
 			}
 		} else if (!n->tok1.quoted && q->numIsCol() && regex_match(val, posInt)){
 			i = stoi(val)-1;
-			auto f = q->files["_f0"];
+			auto& f = q->filevec.front();
 			if (i <= f->numFields){
 				//found column idx without file alias
 				n->tok1.id = i;
