@@ -1032,11 +1032,14 @@ FUNC_MONTHNAME_:
 	get_tm();
 	stk0 = { { s: monthnames[tmTemp.tm_mon] }, T_STRING, monthlens[tmTemp.tm_mon] };
 	nexti();
+FUNC_ROUND_:
+	ifnotnull stk0.u.f = round(stk0.u.f, op->p1);
+	nexti();
 FUNC_CIEL_:
-	ifnotnull stk0.u.f = ceil(stk0.u.f);
+	ifnotnull stk0.u.f = ceil(stk0.u.f, op->p1);
 	nexti();
 FUNC_FLOOR_:
-	ifnotnull stk0.u.f = floor(stk0.u.f);
+	ifnotnull stk0.u.f = floor(stk0.u.f, op->p1);
 	nexti();
 FUNC_ACOS_:
 	ifnotnull stk0.u.f = acos(stk0.u.f);
@@ -1070,9 +1073,6 @@ FUNC_LOG10_:
 	nexti();
 FUNC_SQRT_:
 	ifnotnull stk0.u.f = sqrt(stk0.u.f);
-	nexti();
-FUNC_ROUND_:
-	ifnotnull stk0.u.f = round(stk0.u.f, op->p1);
 	nexti();
 FUNC_RAND_:
 	push();

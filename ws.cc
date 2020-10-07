@@ -61,8 +61,11 @@ static void pingbrowsers(){
 			c->send(ping);
 		if (clientCount > 0)
 			deathcount = 0;
-		else if (++deathcount >= 180)
-			exit(0);
+		else if (++deathcount >= 180){
+			server.stop();
+			stopAllQueries();
+			return;
+		}
 	}
 }
 

@@ -991,7 +991,7 @@ void cgen::genFunction(unique_ptr<node> &n){
 	case FN_HOUR:
 	case FN_MINUTE:
 	case FN_SECOND:
-	case FN_CIEL:
+	case FN_CEIL:
 	case FN_FLOOR:
 	case FN_ACOS:
 	case FN_ASIN:

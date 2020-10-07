@@ -111,8 +111,10 @@ static void serve(){
 	openbrowser();
 	perr("starting http server\n");
 	auto ws = async(servews);
-	server.start();
+	auto hs = async([](){server.start();});
 	ws.get();
+	server.stop();
+	hs.get();
 }
 
 static shared_ptr<returnData> runqueries(webquery &wq){

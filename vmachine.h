@@ -177,6 +177,7 @@ class messager {
 	void stop();
 	void send();
 	messager(): delay(true) {}
+	~messager();
 };
 
 class rowgroup;
@@ -333,6 +334,8 @@ void sha1(dat&);
 void sha256(dat&);
 void md5(dat&);
 double round(double input, int decimals);
+double ceil(double input, int decimals);
+double floor(double input, int decimals);
 
 class queryQueue {
 	mutex mtx;
