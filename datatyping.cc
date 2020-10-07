@@ -904,7 +904,9 @@ void dataTyper::checkFuncSemantics(unique_ptr<node> &n){
 		if (!n->tok2.id) return;
 		n->tok2.id = strtol(n->tok2.val.c_str(), &e, 10);
 		if (*e != 0 || n->tok2.id < 0 || n->tok2.id > 9)
-			error(st(n->tok1.val," function 2nd value must be integer from 0-9"));
+			error(st(n->tok1.val," function 2nd value must be integer from -9 to 9"));
+		if (n->tok3.id == SP_MINUS)
+			n->tok2.id *= -1;
 	}
 }
 
