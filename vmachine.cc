@@ -68,18 +68,16 @@ LDPUT_:
 LDPUTGRP_:
 	csvTemp = files[op->p3]->entries[op->p2];
 	sizeTemp = csvTemp.size();
-	if (sizeTemp && torow[op->p1].isnull()){
+	if (sizeTemp && torow[op->p1].isnull())
 		torow[op->p1] = { { s:newStr(csvTemp.val, sizeTemp) }, T_STRING|MAL, sizeTemp };
-	}
 	nexti();
 LDPUTALL_:
 	iTemp1 = op->p1;
-	for (auto &f : files){
+	for (auto &f : files)
 		for (auto e=f->entries, end=f->entries+f->numFields; e<end; ++e){
 			torow[iTemp1].freedat();
 			torow[iTemp1++] = dat{ { s: e->val }, T_STRING, e->size() };
 		}
-	}
 	nexti();
 //put data from midrow to torow
 LDPUTMID_:
@@ -111,8 +109,7 @@ HOLDVAR_:
 	if (stkb(op->p1).ismal()){
 		groupSortVars.emplace_front(stkb(op->p1).u.s);
 		stkb(op->p1).disown();
-	}
-	nexti();
+	} nexti();
 LDVAR_:
 	push();
 	stk0 = stkb(op->p1);
@@ -171,8 +168,7 @@ RDLINE_ORDERED_:
 		++ip;
 	} else {
 		ip = op->p1;
-	}
-	next();
+	} next();
 PREP_REREAD_:
 	push();
 	stk0.u.i = sortIdxs.size();
@@ -182,8 +178,7 @@ PREP_REREAD_:
 NUL_TO_STR_:
 	if (stk0.isnull()){
 		stk0 = dat{ { .s = (char*) calloc(1,1) }, T_STRING|MAL, 0 };
-	}
-	nexti();
+	} nexti();
 SAVESORTN_:
 	normalSortVals[op->p1].push_back(stk0.u);
 	pop();
@@ -202,8 +197,7 @@ SAVEANDCHAIN_:
 			chain.values[i].push_back(stkt(size-i-1).heap().u);
 		}
 		stacktop -= size;
-	}
-	nexti();
+	} nexti();
 SAVEVALPOS_:
 	{
 		iTemp1 = op->p2-1;
@@ -213,8 +207,7 @@ SAVEVALPOS_:
 			--iTemp1;
 		}
 		stacktop -= op->p2;
-	}
-	nexti();
+	} nexti();
 JOINSET_EQ_AND_:
 	{
 		auto& chain = files[op->p1]->andchains[op->p2];
@@ -246,8 +239,7 @@ JOINSET_EQ_AND_:
 			++l;
 		}
 		stacktop -= chsize;
-	}
-	nexti();
+	} nexti();
 JOINSET_GRT_AND_:
 	{
 		auto& chain = files[op->p1]->andchains[op->p2];
@@ -287,8 +279,7 @@ JOINSET_GRT_AND_:
 			++r;
 		}
 		stacktop -= (chsize+1);
-	}
-	nexti();
+	} nexti();
 JOINSET_LESS_AND_:
 	{
 		auto& chain = files[op->p1]->andchains[op->p2];
@@ -329,8 +320,7 @@ JOINSET_LESS_AND_:
 			--l;
 		}
 		stacktop -= (chsize+1);
-	}
-	nexti();
+	} nexti();
 JOINSET_GRT_:
 	{
 		auto& grtfunc = uGrtFuncs[op->p3];
@@ -408,8 +398,7 @@ AND_SET_:
 		bset<i64> tempset2(move(target));
 		set_intersection(tempset1.begin(), tempset1.end(), tempset2.begin(), tempset2.end(),
 				inserter(target, target.begin()));
-	}
-	nexti();
+	} nexti();
 OR_SET_:
 	{
 		bset<i64> tempset(move(joinSetStack.front()));
@@ -417,8 +406,7 @@ OR_SET_:
 		auto& target = joinSetStack.front();
 		for (auto loc : tempset)
 			target.insert(loc);
-	}
-	nexti();
+	} nexti();
 JOINSET_INIT_:
 	{
 		auto& jset = joinSetStack.front();
@@ -436,8 +424,7 @@ JOINSET_TRAV_:
 	} else {
 		files[op->p3]->readlineat(*(setItstk[op->p2]++));
 		++ip;
-	}
-	next();
+	} next();
 SAVEPOS_:
 	for (auto &f : files)
 		f->positions.push_back(f->pos);
@@ -453,8 +440,7 @@ SORT_ANDCHAIN_:
 			[&](const int a, const int b) { return strcmp(chain.values[0][a].s, chain.values[0][b].s) < 0; },
 		};
 		sort(parallel() chain.indexes.begin(), chain.indexes.end(), uComparers[chain.functionTypes[0]]);
-	}
-	nexti();
+	} nexti();
 SORTVALPOS_:
 	{
 		auto& vpvector = files[op->p1]->joinValpos[op->p2];
@@ -467,8 +453,7 @@ SORTVALPOS_:
 			},
 		};
 		sort(parallel() vpvector.begin(), vpvector.end(), valposComparers[op->p3]);
-	}
-	nexti();
+	} nexti();
 
 //normal sorter
 SORT_:
@@ -490,10 +475,8 @@ SORT_:
 				if (q->sortInfo[i-1].second == T_STRING){
 					if (strcmp(normalSortVals[prevVal-backidx][sortIdxs[start]].s, normalSortVals[prevVal-backidx][sortIdxs[end+1]].s))
 						return false;
-				} else {
-					if (normalSortVals[prevVal-backidx][sortIdxs[start]].i != normalSortVals[prevVal-backidx][sortIdxs[end+1]].i)
-						return false;
-				}
+				} else if (normalSortVals[prevVal-backidx][sortIdxs[start]].i != normalSortVals[prevVal-backidx][sortIdxs[end+1]].i)
+					return false;
 				--i; ++backidx;
 			}
 			return true;
@@ -507,9 +490,8 @@ SORT_:
 			while (start < last){
 				while (end < last && backcheck(i))
 					++end;
-				if (end > start){
+				if (end > start)
 					sort(parallel() sortIdxs.begin()+start, sortIdxs.begin()+end+1, comp);
-				}
 				start = end + 1;
 			}
 		}
@@ -535,10 +517,8 @@ GSORT_:
 				if (q->sortInfo[i-1].second == T_STRING){
 					if (strcmp(groupSorter[start][prevVal-backidx].u.s, groupSorter[end+1][prevVal-backidx].u.s))
 						return false;
-				} else {
-					if (groupSorter[start][prevVal-backidx].u.i != groupSorter[end+1][prevVal-backidx].u.i)
-						return false;
-				}
+				} else if (groupSorter[start][prevVal-backidx].u.i != groupSorter[end+1][prevVal-backidx].u.i)
+					return false;
 				--i; ++backidx;
 			}
 			return true;
@@ -552,14 +532,12 @@ GSORT_:
 			while (start < last){
 				while (end < last && backcheck(i))
 					++end;
-				if (end > start){
+				if (end > start)
 					sort(parallel() groupSorter.begin()+start, groupSorter.begin()+end+1, comp);
-				}
 				start = end + 1;
 			}
 		}
-	}
-	nexti();
+	} nexti();
 
 //math operations
 IADD_:
@@ -758,8 +736,7 @@ LIKE_:
 		iTemp1 = !regexec(q->dataholder[op->p1].u.r, stk0.u.s, 0, 0, 0)^op->p2;
 		stk0.freedat();
 		stk0.u.p = iTemp1;
-	}
-	nexti();
+	} nexti();
 
 PUSH_N_:
 	push();
@@ -797,28 +774,24 @@ CVIS_:
 		stk0.u.s = (char*) malloc(stk0.z+1);
 		memcpy(stk0.u.s, bufTemp, stk0.z+1);
 		stk0.b = T_STRING|MAL;
-	}
-	nexti();
+	} nexti();
 CVFS_:
 	ifnotnull{
 		stk0.z = sprintf(bufTemp, "%.10g", stk0.u.f);
 		stk0.u.s = (char*) malloc(stk0.z+1);
 		memcpy(stk0.u.s, bufTemp, stk0.z+1);
 		stk0.b = T_STRING|MAL;
-	}
-	nexti();
+	} nexti();
 CVFI_:
 	ifnotnull{
 		stk0.u.i = stk0.u.f;
 		stk0.b = T_INT;
-	}
-	nexti();
+	} nexti();
 CVIF_:
 	ifnotnull{
 		stk0.u.f = stk0.u.i;
 		stk0.b = T_FLOAT;
-	}
-	nexti();
+	} nexti();
 CVSI_:
 	ifnotnull{
 		auto s = stk0.u.s;
@@ -827,8 +800,7 @@ CVSI_:
 		stk0.u.i = i64Temp;
 		stk0.b = T_INT;
 		if (cstrTemp == s){ stk0.setnull(); }
-	}
-	nexti();
+	} nexti();
 CVSF_:
 	ifnotnull{
 		fTemp = strtof(stk0.u.s, &cstrTemp);
@@ -836,8 +808,7 @@ CVSF_:
 		stk0.u.f = fTemp;
 		stk0.b = T_FLOAT;
 		if (*cstrTemp){ stk0.setnull(); }
-	}
-	nexti();
+	} nexti();
 CVSDT_:
 	ifnotnull{
 		iTemp1 = dateparse(stk0.u.s, &i64Temp, &iTemp2, stk0.z);
@@ -846,8 +817,7 @@ CVSDT_:
 		stk0.b = T_DATE;
 		stk0.z = iTemp2;
 		if (iTemp1) { stk0.setnull(); }
-	}
-	nexti();
+	} nexti();
 CVSDR_:
 	ifnotnull{
 		iTemp1 = parseDuration(stk0.u.s, &i64Temp);
@@ -855,16 +825,14 @@ CVSDR_:
 		stk0.u.i = i64Temp;
 		stk0.b = T_DURATION;
 		if (iTemp1) { stk0.setnull(); }
-	}
-	nexti();
+	} nexti();
 CVDRS_:
 	ifnotnull{
 		stk0.u.s = (char*) malloc(24);
 		durstring(stk0.u.i, stk0.u.s);
 		stk0.b = T_STRING|MAL;
 		stk0.z = strlen(stk0.u.s);
-	}
-	nexti();
+	} nexti();
 CVDTS_:
 	ifnotnull{
 		//make version of datestring that writes directly to arg buf
@@ -873,10 +841,8 @@ CVDTS_:
 		strncpy(stk0.u.s, cstrTemp, 19);
 		stk0.b = T_STRING|MAL;
 		stk0.z = strlen(stk0.u.s);
-	}
-	nexti();
+	} nexti();
 
-//jump instructions
 JMP_:
 	ip = op->p1;
 	next();
@@ -901,8 +867,7 @@ JMPNOTNULL_ELSEPOP_:
 		++ip;
 	} else {
 		ip = op->p1;
-	}
-	next();
+	} next();
 
 PRINTJSON_:
 	if (numJsonPrinted < jsonresult->showLimit){
@@ -1083,14 +1048,12 @@ FUNC_UPPER_:
 	ifnotnull {
 		stk0 = stk0.heap();
 		for(auto c = stk0.u.s; *c; ++c) *c = toupper(*c);
-	}
-	nexti();
+	} nexti();
 FUNC_LOWER_:
 	ifnotnull {
 		stk0 = stk0.heap();
 		for(auto c = stk0.u.s; *c; ++c) *c = tolower(*c);
-	}
-	nexti();
+	} nexti();
 FUNC_BASE64_ENCODE_:
 	ifnotnull {
 		u32 newsize = encsize(stk0.z);
@@ -1116,6 +1079,8 @@ FUNC_LEN_:
 		auto sz = stk0.z;
 		stk0.freedat();
 		stk0 = dat{ {f: (double)sz}, T_FLOAT };
+	} else {
+		stk0 = dat{ {f: 0}, T_FLOAT };
 	} nexti();
 FUNC_SUBSTR_:
 	ifnotnull {
@@ -1174,16 +1139,14 @@ LDAVGI_:
 	if (!datpTemp->isnull() && datpTemp->z){
 		stk0.u.i = datpTemp->u.i / datpTemp->z;
 		stk0.b = T_INT;
-	}
-	nexti();
+	} nexti();
 LDAVGF_:
 	push();
 	datpTemp = &midrow[op->p1];
 	if (!datpTemp->isnull() && datpTemp->z){
 		stk0.u.f = datpTemp->u.f / datpTemp->z;
 		stk0.b = T_FLOAT;
-	}
-	nexti();
+	} nexti();
 AVGI_:
 	ifnotnull torow[op->p1].z++;
 SUMI_:
@@ -1213,9 +1176,8 @@ STDVF_:
 			if (torow[op->p1].isnull()){
 				torow[op->p1] = {{i:static_cast<i64>(stdvs.size())},T_INT};
 				stdvs.emplace_back(stk0.u.f);
-			} else {
+			} else
 				stdvs[torow[op->p1].u.i].numbers.push_front(stk0.u.f);
-			}
 		}
 	}
 	pop();
@@ -1230,8 +1192,7 @@ COUNT_:
 			torow[op->p1].u.f++;
 		}
 		pop();
-	}
-	nexti();
+	} nexti();
 MINI_:
 	if (dat& t = torow[op->p1]; t.isnull() || (!stk0.isnull() && t.u.i > stk0.u.i))
 		t = stk0;
@@ -1291,8 +1252,7 @@ NEXTMAP_:
 		groupItstk[op->p2]   = groupTemp->getMap().begin();
 		groupItstk[op->p2+1] = groupTemp->getMap().end();
 		++ip;
-	}
-	next();
+	} next();
 NEXTVEC_:
 	if (groupItstk[op->p2] == groupItstk[op->p2+1]){
 		ip = op->p1;
@@ -1300,8 +1260,7 @@ NEXTVEC_:
 		groupTemp = &(groupItstk[op->p2]++)->second;
 		midrow = groupTemp->getVec();
 		++ip;
-	}
-	next();
+	} next();
 ADD_GROUPSORT_ROW_:
 	torow = (dat*) calloc(sortgroupsize, sizeof(dat));
 	groupSorter.emplace_back(torow);
@@ -1317,8 +1276,7 @@ READ_NEXT_GROUP_:
 		torow = groupSorter[stk0.u.i].get();
 		++stk0.u.i;
 		++ip;
-	}
-	next();
+	} next();
 
 START_MESSAGE_:
 	linesRead = 0;
@@ -1331,8 +1289,7 @@ START_MESSAGE_:
 	case 5: updates.start((char*) "Scanned %d lines from join file", &linesRead, 0); break;
 	case 6: updates.say((char*) "Processing indexes", 0, 0); break;
 	case 7: updates.start((char*) "Read %d lines from file1, found %d join results", &linesRead, &totalPrinted); break;
-	}
-	nexti();
+	} nexti();
 STOP_MESSAGE_:
 	updates.stop();
 	nexti();
