@@ -391,17 +391,17 @@ void md5(dat& d){
 	base64_encode(rawhash, (BYTE*)d.u.s, 16, 0);
 	d.u.s[d.z] = 0;
 }
-static double dec_places[] = { 1,10,100,1000,10000,100000,1000000,10000000,100000000,1000000000,10000000000 };
+static double dec_places[] = { .000000001,.00000001,.0000001,.000001,.00001,.0001,.001,.01,.1,1,10,100,1000,10000,100000,1000000,10000000,100000000,1000000000,10000000000 };
 double round(double input, int decimals){
-	double m = dec_places[decimals];
+	double m = dec_places[decimals+9];
 	return round(input*m)/m;
 }
 double floor(double input, int decimals){
-	double m = dec_places[decimals];
+	double m = dec_places[decimals+9];
 	return floor(input*m)/m;
 }
 double ceil(double input, int decimals){
-	double m = dec_places[decimals];
+	double m = dec_places[decimals+9];
 	return ceil(input*m)/m;
 }
 
