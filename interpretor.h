@@ -124,7 +124,7 @@ enum {
 	FN_ENCRYPT =  KEYWORD|49,
 	FN_DECRYPT =  KEYWORD|50,
 	FN_INC =      KEYWORD|51,
-	FN_CIEL =          KEYWORD|68,
+	FN_CEIL =          KEYWORD|68,
 	FN_FLOOR =         KEYWORD|69,
 	FN_ACOS =          KEYWORD|70,
 	FN_ASIN =          KEYWORD|71,

@@ -160,7 +160,7 @@ const flatmap<string_view, int> functionMap = {
 	{"second" ,   FN_SECOND},
 	{"encrypt" ,  FN_ENCRYPT},
 	{"decrypt" ,  FN_DECRYPT},
-	{"ciel",         FN_CIEL},
+	{"ceil",         FN_CEIL},
 	{"floor",        FN_FLOOR},
 	{"acos",         FN_ACOS},
 	{"asin",         FN_ASIN},

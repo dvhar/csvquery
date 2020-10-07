@@ -26,7 +26,7 @@ flatmap<int, int> functionCode = {
 	{FN_HOUR, FUNCHOUR},
 	{FN_MINUTE, FUNCMINUTE},
 	{FN_SECOND, FUNCSECOND},
-	{FN_CIEL, FUNC_CIEL},
+	{FN_CEIL, FUNC_CIEL},
 	{FN_FLOOR, FUNC_FLOOR},
 	{FN_ACOS, FUNC_ACOS},
 	{FN_ASIN, FUNC_ASIN},
@@ -392,12 +392,18 @@ void md5(dat& d){
 	base64_encode(rawhash, (BYTE*)d.u.s, 16, 0);
 	d.u.s[d.z] = 0;
 }
+static double dec_places[] = { 1,10,100,1000,10000,100000,1000000,10000000,100000000,1000000000,10000000000 };
 double round(double input, int decimals){
-	static double ms[] = {
-		1,10,100,1000,10000,100000,1000000,10000000,100000000,1000000000,10000000000
-	};
-	double m = ms[decimals];
+	double m = dec_places[decimals];
 	return round(input*m)/m;
+}
+double floor(double input, int decimals){
+	double m = dec_places[decimals];
+	return floor(input*m)/m;
+}
+double ceil(double input, int decimals){
+	double m = dec_places[decimals];
+	return ceil(input*m)/m;
 }
 
 
@@ -516,6 +522,12 @@ void messager::stop(){
 		cerr << "r\33[2K\r";
 	if (runmode == RUN_SERVER)
 		sendMessage(sessionId, "");
+}
+messager::~messager(){
+	if (runner.joinable()){
+		stopmaster.set_value();
+		runner.join();
+	}
 }
 
 bool opDoesJump(int opcode){

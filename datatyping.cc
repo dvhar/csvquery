@@ -152,7 +152,7 @@ static bool canBeString(unique_ptr<node> &n){
 		case FN_MDAY:
 		case FN_WDAY:
 		case FN_HOUR:
-		case FN_CIEL:
+		case FN_CEIL:
 		case FN_FLOOR:
 		case FN_ACOS:
 		case FN_ASIN:
@@ -457,7 +457,7 @@ typer dataTyper::typeFunctionInnerNodes(unique_ptr<node> &n){
 		if (innerType.type == T_INT)
 			innerType.type = T_FLOAT;
 		break;
-	case FN_CIEL:
+	case FN_CEIL:
 	case FN_FLOOR:
 	case FN_ACOS:
 	case FN_ASIN:
@@ -676,7 +676,7 @@ void dataTyper::typeFunctionFinalNodes(unique_ptr<node> &n, int finaltype){
 	case FN_UPPER:
 	case FN_LOWER:
 	case FN_SUBSTR:
-	case FN_CIEL:
+	case FN_CEIL:
 	case FN_FLOOR:
 	case FN_ACOS:
 	case FN_ASIN:
@@ -899,10 +899,12 @@ void dataTyper::checkFuncSemantics(unique_ptr<node> &n){
 		} else if (!isInt(n->tok2.val.c_str()) || !isInt(n->tok3.val.c_str()))
 				error("SUBSTR function requires 2 numbers or 1 pattern");
 	case FN_ROUND:
+	case FN_CEIL:
+	case FN_FLOOR:
 		if (!n->tok2.id) return;
 		n->tok2.id = strtol(n->tok2.val.c_str(), &e, 10);
 		if (*e != 0 || n->tok2.id < 0 || n->tok2.id > 9)
-			error("ROUND function 2nd value must be integer from 0-9");
+			error(st(n->tok1.val," function 2nd value must be integer from 0-9"));
 	}
 }
 
