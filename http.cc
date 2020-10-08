@@ -30,9 +30,10 @@ void runServer(){
 	serve();
 }
 
-bool rejectNonLocals(shared_ptr<HttpServer::Request>& request){
-	if (request->remote_endpoint().address() != localhost){
-		cerr << "attempted connection from non-localhost\n";
+static bool rejectNonLocals(shared_ptr<HttpServer::Request>& request){
+	auto addr = request->remote_endpoint().address();
+	if (addr != localhost){
+		cerr << "attempted connection from non-localhost: " << addr << endl;
 		return true;
 	}
 	return false;
