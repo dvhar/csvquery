@@ -9,10 +9,6 @@ constexpr u32 len(T &a) {
 string token::lower() {
 	return boost::to_lower_copy(val);
 }
-void token::print() {
-	cout << "    id: " << id << " -> " << enumMap.at(id) << endl
-		<< "    val: " << val << endl;
-}
 
 const int specials[] = { '*','=','!','<','>','\'','"','(',')',',','+','-','%','/','^' };
 const int others[] = { '\\',':','_','.','[',']','~','{','}' };
@@ -78,24 +74,24 @@ void initable(){
 
 class stringLookahead {
 	public:
-	string Str;
+	string text;
 	u32 idx =0;
 	int getc();
 	int peek();
 	char* nextCstr();
 };
 int stringLookahead::getc() {
-	if (idx >= Str.length()) { return EOS; }
+	if (idx >= text.length()) { return EOS; }
 	idx++;
-	return (int) Str[idx-1];
+	return (int) text[idx-1];
 }
 int stringLookahead::peek() {
-	if (idx >= Str.length()) { return EOS; }
-	return (int) Str[idx];
+	if (idx >= text.length()) { return EOS; }
+	return (int) text[idx];
 }
 char* stringLookahead::nextCstr() {
-	if (idx >= Str.length()) { return nullptr; }
-	return &Str[idx];
+	if (idx >= text.length()) { return nullptr; }
+	return &text[idx];
 }
 
 class scanner {

@@ -42,18 +42,9 @@ class parser {
 		q->tree->node2 = parseSelect();
 		q->tree->node3 = parseFrom();
 		q->tree->node4 = parseAfterFrom();
-		parseLimit();
 	}
 };
 
-void node::print(){
-	perr(st(treeMap.at(label) , '\n'));
-	tok1.print();
-	tok2.print();
-	tok3.print();
-	tok4.print();
-	tok5.print();
-}
 
 //run recursive descent parser for query
 void parseQuery(querySpecs &q) {
@@ -90,6 +81,9 @@ unique_ptr<node> parser::parseAfterFrom() {
 		case KW_ORDER:
 			n->node4 = parseOrder();
 			break;
+		case KW_LIMIT:
+			parseLimit();
+			break;
 		default:
 			goto done;
 		}
@@ -101,13 +95,13 @@ unique_ptr<node> parser::parseAfterFrom() {
 void parser::parseOptions() {
 	token t = q->tok();
 	string s = t.lower();
-	if (s == "c"sv) {
+	if (s == "c") {
 		q->options |= O_C;
-	} else if (s == "nh"sv || s == "noheader"sv) {
+	} else if (s == "nh" || s == "noheader") {
 		q->options |= O_NH;
-	} else if (s == "h"sv || s == "header"sv) {
+	} else if (s == "h" || s == "header") {
 		q->options |= O_H;
-	} else if (s == "s"sv) {
+	} else if (s == "s") {
 		q->options |= O_S;
 	} else {
 		return;
@@ -119,7 +113,7 @@ void parser::parseOptions() {
 //node1 is vars
 unique_ptr<node> parser::parseWith() {
 	token t = q->tok();
-	if (t.lower() != "with"sv) { return nullptr; }
+	if (t.lower() != "with") { return nullptr; }
 	unique_ptr<node> n = newNode(N_WITH);
 	q->nextTok();
 	n->node1 = parseVars();
@@ -135,12 +129,12 @@ unique_ptr<node> parser::parseVars() {
 	unique_ptr<node> n = newNode(N_VARS);
 	n->node1 = parseExprAdd();
 	t = q->tok();
-	if (t.lower() != "as"sv) error("Expected 'as' after expression. Found "+t.val);
+	if (t.lower() != "as") error("Expected 'as' after expression. Found "+t.val);
 	t = q->nextTok();
 	if (t.id != WORD_TK) error("Expected variable name. Found "+t.val);
 	n->tok1 = t;
 	t = q->nextTok();
-	if (t.lower() == "and"sv || t.id == SP_COMMA) {
+	if (t.lower() == "and" || t.id == SP_COMMA) {
 		q->nextTok();
 		n->node2 = parseVars();
 	}
@@ -151,7 +145,7 @@ unique_ptr<node> parser::parseVars() {
 unique_ptr<node> parser::parseSelect() {
 	token t = q->tok();
 	unique_ptr<node> n = newNode(N_SELECT);
-	if (t.lower() != "select"sv) error("Expected 'select'. Found "+t.val);
+	if (t.lower() != "select") error("Expected 'select'. Found "+t.val);
 	q->nextTok();
 	parseTop();
 	n->node1 = parseSelections();
@@ -167,7 +161,7 @@ unique_ptr<node> parser::parseSelect() {
 //  tok4.id will be destrow index
 unique_ptr<node> parser::parseSelections() {
 	token t = q->tok();
-	if (t.lower() == "from"sv){
+	if (t.lower() == "from"){
 		return nullptr;
 	}
 	unique_ptr<node> n = newNode(N_SELECTIONS);
@@ -182,7 +176,7 @@ unique_ptr<node> parser::parseSelections() {
 		n->tok1 = t;
 		q->distinctFiltering = true;
 		t = q->nextTok();
-		if (t.lower() == "hidden"sv && !t.quoted) {
+		if (t.lower() == "hidden" && !t.quoted) {
 			n->tok1 = t;
 			n->tok1.id = KW_DISTINCT;
 			t = q->nextTok();
@@ -203,7 +197,7 @@ unique_ptr<node> parser::parseSelections() {
 		} else {
 			n->node1 = parseExprAdd();
 			t = q->tok();
-			if (t.lower() == "as"sv) {
+			if (t.lower() == "as") {
 				t = q->nextTok();
 				n->tok2 = t;
 				q->nextTok();
@@ -245,7 +239,7 @@ unique_ptr<node> parser::parseExprMult() {
 	t = q->tok();
 	switch (t.id) {
 	case SP_STAR:
-		if (q->peekTok().lower() == "from"sv) { break; }
+		if (q->peekTok().lower() == "from") { break; }
 	case SP_MOD:
 	case SP_CARROT:
 	case SP_DIV:
@@ -297,7 +291,7 @@ unique_ptr<node> parser::parseExprCase() {
 			n->tok2 = t2;
 			n->node1 = parseExprAdd();
 			t = q->tok();
-			if (t.lower() != "when"sv) error("Expected 'when' after case expression. Found "+t.val);
+			if (t.lower() != "when") error("Expected 'when' after case expression. Found "+t.val);
 			n->node2 = parseCaseWhenExprList();
 			break;
 		default: error("Expected expression or 'when'. Found "+q->tok().val);
@@ -311,7 +305,7 @@ unique_ptr<node> parser::parseExprCase() {
 			t = q->nextTok();
 			n->node3 = parseExprAdd();
 			t = q->tok();
-			if (t.lower() != "end"sv) error("Expected 'end' after 'else' expression. Found "+t.val);
+			if (t.lower() != "end") error("Expected 'end' after 'else' expression. Found "+t.val);
 			q->nextTok();
 			break;
 		default:
@@ -366,7 +360,7 @@ unique_ptr<node> parser::parseCaseWhenPredList() {
 	unique_ptr<node> n = newNode(N_CPREDLIST);
 	n->node1 = parseCasePredicate();
 	t = q->tok();
-	if (t.lower() == "when"sv) {
+	if (t.lower() == "when") {
 		n->node2 = parseCaseWhenPredList();
 	}
 	return n;
@@ -380,7 +374,7 @@ unique_ptr<node> parser::parseCasePredicate() {
 	q->nextTok(); //eat when token
 	n->node1 = parsePredicates();
 	t = q->tok();
-	if (t.lower() != "then"sv) error("Expected 'then' after predicate. Found: "+q->tok().val);
+	if (t.lower() != "then") error("Expected 'then' after predicate. Found: "+q->tok().val);
 	q->nextTok(); //eat then token
 	n->node2 = parseExprAdd();
 	return n;
@@ -484,7 +478,7 @@ unique_ptr<node> parser::parseCaseWhenExprList() {
 	unique_ptr<node> n = newNode(N_CWEXPRLIST);
 	n->node1 = parseCaseWhenExpr();
 	t = q->tok();
-	if (t.lower() == "when"sv)
+	if (t.lower() == "when")
 		n->node2 = parseCaseWhenExprList();
 	return n;
 }
@@ -505,7 +499,7 @@ unique_ptr<node> parser::parseCaseWhenExpr() {
 //row limit at front of query
 void parser::parseTop() {
 	token t = q->tok();
-	if (t.lower() == "top"sv) {
+	if (t.lower() == "top") {
 		t = q->nextTok();
 		if (!is_number(t.val)) error("Expected number after 'top'. Found "+t.val);
 		q->quantityLimit = atoi(t.val.c_str());
@@ -516,7 +510,7 @@ void parser::parseTop() {
 //row limit at end of query
 void parser::parseLimit() {
 	token t = q->tok();
-	if (t.lower() == "limit"sv) {
+	if (t.lower() == "limit") {
 		t = q->nextTok();
 		if (!is_number(t.val)) error("Expected number after 'limit'. Found "+t.val);
 		q->quantityLimit = atoi(t.val.c_str());
@@ -531,12 +525,12 @@ void parser::parseLimit() {
 unique_ptr<node> parser::parseFrom() {
 	token t = q->tok();
 	unique_ptr<node> n = newNode(N_FROM);
-	if (t.lower() != "from"sv) error("Expected 'from'. Found: "+t.val);
+	if (t.lower() != "from") error("Expected 'from'. Found: "+t.val);
 	t = q->nextTok();
 	n->tok1.val = boost::replace_first_copy(t.val, "~/", string(getenv("HOME"))+"/");
 	t = q->nextTok();
 	string s = t.lower();
-	if (s == "noheader"sv || s == "nh"sv || s == "header"sv || s == "h") {
+	if (s == "noheader" || s == "nh" || s == "header" || s == "h") {
 		n->tok5 = t;
 		t = q->nextTok();
 	}
@@ -551,7 +545,7 @@ unique_ptr<node> parser::parseFrom() {
 	}
 	t = q->tok();
 	s = t.lower();
-	if (s == "noheader"sv || s == "nh"sv || s == "header"sv || s == "h"sv) {
+	if (s == "noheader" || s == "nh" || s == "header" || s == "h") {
 		n->tok5 = t;
 		q->nextTok();
 	}
@@ -573,13 +567,13 @@ unique_ptr<node> parser::parseJoin() {
 	if (joinMap.count(s) == 0)
 		return nullptr;
 	q->joining = true;
-	if (s == "left"sv || s == "inner"sv){
+	if (s == "left" || s == "inner"){
 		n->tok3 = t;
 		q->nextTok();
 	}
 	t = q->tok();
 	s = t.lower();
-	if (s == "join"sv ){
+	if (s == "join"){
 		n->tok2 = t;
 		t = q->nextTok();
 	} else {
@@ -591,7 +585,7 @@ unique_ptr<node> parser::parseJoin() {
 	//1st after filepath
 	t = q->nextTok();
 	s = t.lower();
-	if (s == "noheader"sv || s == "nh"sv || s == "header"sv || s == "h"sv) {
+	if (s == "noheader" || s == "nh" || s == "header" || s == "h") {
 		n->tok5 = t;
 		t = q->nextTok();
 	}
@@ -601,19 +595,19 @@ unique_ptr<node> parser::parseJoin() {
 		t = q->nextTok();
 		if (t.id != WORD_TK || t.lower() == "on") error("Expected alias after as. Found: "+t.val);
 	case WORD_TK:
-		if (t.lower() == "on"sv) break;
+		if (t.lower() == "on") break;
 		n->tok4 = t;
 		t = q->nextTok();
 		break;
 	}
 	s = t.lower();
-	if (s == "noheader"sv || s == "nh"sv || s == "header"sv || s == "h"sv) {
+	if (s == "noheader" || s == "nh" || s == "header" || s == "h") {
 		n->tok5 = t;
 		t = q->nextTok();
 	}
 	if (n->tok4.id == 0)
 		error("Joined file requires an alias.");
-	if (t.lower() != "on"sv) error("Expected 'on'. Found: "+t.val);
+	if (t.lower() != "on") error("Expected 'on'. Found: "+t.val);
 	q->nextTok();
 	n->node1 = parsePredicates();
 	n->node2 = parseJoin();
@@ -623,7 +617,7 @@ unique_ptr<node> parser::parseJoin() {
 //node1 is conditions
 unique_ptr<node> parser::parseWhere() {
 	token t = q->tok();
-	if (t.lower() != "where"sv) { return nullptr; }
+	if (t.lower() != "where") { return nullptr; }
 	q->whereFiltering = true;
 	unique_ptr<node> n = newNode(N_WHERE);
 	q->nextTok();
@@ -634,7 +628,7 @@ unique_ptr<node> parser::parseWhere() {
 //node1 is conditions
 unique_ptr<node> parser::parseHaving() {
 	token t = q->tok();
-	if (t.lower() != "having"sv) { return nullptr; }
+	if (t.lower() != "having") { return nullptr; }
 	q->havingFiltering = true;
 	unique_ptr<node> n = newNode(N_HAVING);
 	q->nextTok();
@@ -647,8 +641,8 @@ unique_ptr<node> parser::parseHaving() {
 //tok1 is asc
 unique_ptr<node> parser::parseOrder() {
 	token t = q->tok();
-	if (t.lower() == "order"sv) {
-		if (q->nextTok().lower() != "by"sv) error("Expected 'by' after 'order'. Found "+q->tok().val);
+	if (t.lower() == "order") {
+		if (q->nextTok().lower() != "by") error("Expected 'by' after 'order'. Found "+q->tok().val);
 		q->sorting = 1;
 		q->nextTok();
 		unique_ptr<node> n = newNode(N_ORDER);
@@ -674,12 +668,12 @@ unique_ptr<node> parser::parseFunction() {
 	q->nextTok(); // (
 	t = q->nextTok();
 	//count(*)
-	if (t.id == SP_STAR && n->tok1.lower() == "count"sv) {
+	if (t.id == SP_STAR && n->tok1.lower() == "count") {
 		n->tok2 = t;
 		q->nextTok();
 	//everything else
 	} else {
-		if (t.lower() == "distinct"sv) {
+		if (t.lower() == "distinct") {
 			n->tok3 = t;
 			t = q->nextTok();
 		}
@@ -766,7 +760,7 @@ unique_ptr<node> parser::parseFunction() {
 //node1 is groupExpressions
 unique_ptr<node> parser::parseGroupby() {
 	token t = q->tok();
-	if (!(t.lower() == "group"sv && q->peekTok().lower() == "by"sv)) { return nullptr; }
+	if (!(t.lower() == "group" && q->peekTok().lower() == "by")) { return nullptr; }
 	q->grouping = max(q->grouping,2);
 	unique_ptr<node> n = newNode(N_GROUPBY);
 	q->nextTok();
@@ -788,8 +782,8 @@ unique_ptr<node> parser::parseExpressionList(bool interdependant, bool sortlist)
 	unique_ptr<node> n = newNode(label);
 	n->node1 = parseExprAdd();
 	t = q->tok();
-	if (sortlist && (t.lower() == "asc"sv || t.lower() == "desc"sv)){
-		n->tok1.id = t.lower() == "asc"sv;
+	if (sortlist && (t.lower() == "asc" || t.lower() == "desc")){
+		n->tok1.id = t.lower() == "asc";
 		t = q->nextTok();
 	}
 	n->tok2.id = sortlist;

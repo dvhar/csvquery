@@ -165,6 +165,7 @@ static bool canBeString(unique_ptr<node> &n){
 		case FN_LOG2:
 		case FN_LOG10:
 		case FN_SQRT:
+		case FN_CBRT:
 		case FN_RAND:
 		case FN_LEN:
 		case FN_INT:
@@ -372,7 +373,7 @@ typer dataTyper::typePredCompareInnerNodes(unique_ptr<node> &n){
 		innerType = typeCompute(innerType,n3);
 		if (n->tok1.id == KW_LIKE) //keep raw string if using regex
 			innerType.type = T_STRING;
-	} else { n->print(); error("bad comparision node"); }
+	} else { error("bad comparision node"); }
 	return innerType;
 }
 
@@ -470,6 +471,7 @@ typer dataTyper::typeFunctionInnerNodes(unique_ptr<node> &n){
 	case FN_LOG2:
 	case FN_LOG10:
 	case FN_SQRT:
+	case FN_CBRT:
 	case FN_RAND:
 	case FN_ROUND:
 	case FN_INC:
@@ -689,6 +691,7 @@ void dataTyper::typeFunctionFinalNodes(unique_ptr<node> &n, int finaltype){
 	case FN_LOG2:
 	case FN_LOG10:
 	case FN_SQRT:
+	case FN_CBRT:
 	case FN_RAND:
 	case FN_INT:
 	case FN_FLOAT:
@@ -780,7 +783,7 @@ void dataTyper::typeFinalValues(unique_ptr<node> &n, int finaltype){
 	//may or may not preserve subtree types
 	case N_EXPRNEG:
 		if (n->tok1.id && (finaltype == T_STRING || finaltype == T_DATE))
-			error(st("Minus sign does not work with type ",nameMap.at(finaltype)));
+			error(st("Minus sign does not work with type ",typeNames.at(finaltype)));
 	case N_EXPRADD:
 	case N_EXPRMULT:
 		if (n->keep) finaltype = -1;
@@ -824,7 +827,7 @@ void dataTyper::checkMathSemantics(unique_ptr<node> &n){
 	auto n2 = n->node2 == nullptr ? T_NULL : n->node2->datatype;
 	auto combo = [&](int a, int b){ return (n1 == a && n2 == b) || (n1 == b && n2 == a); };
 	auto is = [&](int t){ return n->datatype == t; };
-	auto typestr = nameMap.at(n->datatype);
+	auto typestr = typeNames.at(n->datatype);
 
 	switch (n->tok1.id){
 	case SP_PLUS:
@@ -866,7 +869,7 @@ void dataTyper::checkMathSemantics(unique_ptr<node> &n){
 
 void dataTyper::checkFuncSemantics(unique_ptr<node> &n){
 	auto n1 = n->node1 == nullptr ? T_NULL : n->node1->datatype;
-	auto typestr = nameMap.at(n->datatype);
+	auto typestr = typeNames.at(n->datatype);
 	char* e = NULL;
 
 	switch (n->tok1.id){
