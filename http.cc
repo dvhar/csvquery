@@ -23,10 +23,19 @@ static shared_ptr<returnData> runqueries(webquery &wq);
 static shared_ptr<singleQueryResult> runWebQuery(webquery &wq);
 static void serve();
 static SimpleWeb::CaseInsensitiveMultimap header;
+static auto localhost = boost::asio::ip::address::from_string("::1");
 void embedsite(HttpServer&);
 
 void runServer(){
 	serve();
+}
+
+bool rejectNonLocals(shared_ptr<HttpServer::Request>& request){
+	if (request->remote_endpoint().address() != localhost){
+		cerr << "attempted connection from non-localhost\n";
+		return true;
+	}
+	return false;
 }
 
 static void serve(){
@@ -42,6 +51,7 @@ static void serve(){
 
 	server.resource["^/query/$"]["POST"] = [&](shared_ptr<HttpServer::Response> response, shared_ptr<HttpServer::Request> request){
 
+		if (rejectNonLocals(request)) return;
 		webquery wq;
 		try {
 			auto&& reqstr = request->content.string();
@@ -75,6 +85,7 @@ static void serve(){
 	server.resource["^/info$"]["GET"] = 
 	server.resource["^/info$"]["POST"] = [&](shared_ptr<HttpServer::Response> response, shared_ptr<HttpServer::Request> request){
 
+		if (rejectNonLocals(request)) return;
 		auto params = request->parse_query_string();
 		auto info = params.find("info")->second;
 

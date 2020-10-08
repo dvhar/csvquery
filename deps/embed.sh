@@ -12,6 +12,7 @@ dostuff(){
 	buf=`mbin $1 -n`
 	len="`mbin -n $1`_len"
 	render "server.resource[\"^/$filename$\"][\"GET\"] = [](shared_ptr<HttpServer::Response> response, shared_ptr<HttpServer::Request> request){
+		if (rejectNonLocals(request)) return;
 		response->write(string_view($buf, $len)); };"
 	render
 }
@@ -22,4 +23,5 @@ find webgui/build -regextype posix-egrep -regex ".*(js|css|map|json|png|txt|html
 buf=`mbin webgui/build/index.html -n`
 len="`mbin webgui/build/index.html -n`_len"
 render "server.default_resource[\"GET\"] = [](shared_ptr<HttpServer::Response> response, shared_ptr<HttpServer::Request> request){
+		if (rejectNonLocals(request)) return;
 		response->write(string_view($buf, $len)); };"

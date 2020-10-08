@@ -231,10 +231,8 @@ vmachine::vmachine(querySpecs &qs) :
 }
 
 vmachine::~vmachine(){
-	/* enable when ready for release
 	if (runmode == RUN_SINGLE) //skip garbage collection if one-off query
 		return;
-	*/
 	distinctVal.freedat();
 	for (auto &d : stack)   d.freedat();
 	for (auto &d : destrow) d.freedat();
