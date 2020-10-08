@@ -1,64 +1,59 @@
 #include "interpretor.h"
 #include <iostream>
 void init();
-int runmode = RUN_CMD;
+
+int runmode;
 
 int main(int argc, char** argv){
 
 	init();
 	FILE *fp;
-	string qs;
-	char cc[1], c;
+	string querystring;
+	runmode = argc > 1 ? RUN_FILE : RUN_SERVER;
 
+	char c;
 	while((c = getopt(argc, argv, "c:hs")) != -1)
 		switch(c){
 		//run query from command line argument
 		case 'c':
-			qs = string(optarg);
+			querystring = string(optarg);
 			runmode = RUN_SINGLE;
 			break;
-		//run http server
+		//run query from stdin
 		case 's':
-			runmode = RUN_SERVER;
+			runmode = RUN_FILE;
 			break;
 		//help
 		case 'h':
 			cout << '\n' << argv[0] << " <file>\n\tRun query from file\n\n"sv
 				<< argv[0] << " -c \"select from 'data.csv'\"\n\tRun query from command line argument\n\n"sv
-				<< argv[0] << "\n\tRun query from stdin. Later this will be changed to run gui server\n\n"sv;
-			exit(0);
+				<< argv[0] << " -s \n\tRun query from stdin\n\n"sv
+				<< argv[0] << "\n\tRun server to use graphic interface in web browser\n\n"sv;
+			return 0;
 			break;
 		}
 
 	switch (runmode){
-	case RUN_CMD:
+	case RUN_FILE:
 		//get query from file or stdin
 		if (argc == 2)
 			fp = fopen(argv[1], "r");
 		else
 			fp = stdin;
-		while (!feof(fp)){
-			fread(cc, 1, 1, fp);
-			qs.push_back(*cc);
-		}
-		break;
-	case RUN_SINGLE:
-		//already got query string from -c
+		while (!feof(fp))
+			querystring.push_back((char)getc(fp));
 		break;
 	case RUN_SERVER:
 		runServer();
-		return 0;;
-	}
-	if (runmode != 1){
+		return 0;
 	}
 
 	try {
-		querySpecs q(qs);
+		querySpecs q(querystring);
 		q.setoutputCsv();
 		runquery(q);
 	} catch (...) {
-		auto ia = current_exception();
-		cerr << "Error: "sv << handle_err(ia) << endl;
+		cerr << "Error: "<< handle_err(current_exception()) << endl;
 		return 1;
 	}
 	return 0;

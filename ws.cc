@@ -9,12 +9,15 @@ static map<i64,shared_ptr<WsServer::Connection>> connections;
 static mutex seslock;
 static void pingbrowsers();
 static atomic_int clientCount{0};
+static auto localhost = boost::asio::ip::address::from_string("::1");
+#define rejectNonlocals() if (connection->remote_endpoint().address() != localhost) return;
 
 void servews(){
 	server.config.port = 8061;
 	auto &wsocket = server.endpoint["^/socket/?$"];
 
 	wsocket.on_message = [](shared_ptr<WsServer::Connection> connection, shared_ptr<WsServer::InMessage> in_message) {
+		rejectNonlocals();
 		auto j = json::parse(in_message->string());
 		switch (fromjson<int>(j,"Type")){
 		case SK_STOP:
@@ -24,6 +27,7 @@ void servews(){
 	};
 
 	wsocket.on_open = [](shared_ptr<WsServer::Connection> connection) {
+		rejectNonlocals();
 		i64 sesid = (i64) connection.get();
 		connection->send(json{{"Type",SK_ID},{"Id",sesid}}.dump());
 		seslock.lock();
@@ -34,6 +38,7 @@ void servews(){
 	};
 
 	wsocket.on_close = [](shared_ptr<WsServer::Connection> connection, int status, const string &) {
+		rejectNonlocals();
 		i64 sesid = (i64) connection.get();
 		seslock.lock();
 		connections.erase(sesid);
@@ -43,6 +48,7 @@ void servews(){
 	};
 
 	wsocket.on_error = [](shared_ptr<WsServer::Connection> connection, const SimpleWeb::error_code &ec) {
+		rejectNonlocals();
 		cerr << "Error in connection " << (i64)connection.get() << ": "
 			<< ec << ", error message: " << ec.message() << endl;
 	};
