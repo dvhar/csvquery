@@ -154,6 +154,7 @@ enum {
 	FN_FLOAT =         KEYWORD|95,
 	FN_ROUND =         KEYWORD|96,
 	FN_POW =           KEYWORD|97,
+	FN_CBRT =          KEYWORD|98,
 	SPECIALBIT =  1<<21,
 	SPECIAL =      FINAL|SPECIALBIT,
 	SP_EQ =        RELOP|SPECIAL|50,
@@ -185,23 +186,22 @@ enum {
 	O_S = 8
 };
 
-extern const flatmap<int, string_view> enumMap;
 extern const flatmap<int, string_view> treeMap;
 extern const flatmap<string_view, int> keywordMap;
 extern const flatmap<string_view, int> functionMap;
 extern const flatmap<string_view, int> joinMap;
 extern const flatmap<string_view, int> specialMap;
-extern const flatmap<int, string_view> nameMap;
+extern const flatmap<int, string_view> typeNames;
 
 extern regex_t leadingZeroString;
 extern regex_t durationPattern;
 extern regex_t intType;
 extern regex_t floatType;
-extern regex_t extPattern;
-extern regex_t hidPattern;
 extern regex cInt;
 extern regex posInt;
 extern regex colNum;
+extern regex extPat;
+extern regex hidPat;
 
 class token {
 	public:
@@ -211,7 +211,6 @@ class token {
 	int col =0;
 	bool quoted =0;
 	string lower();
-	void print();
 };
 //node info keys
 enum: int {
@@ -246,7 +245,6 @@ class node {
 	node(int);
 	node();
 	node& operator=(const node&);
-	void print();
 };
 class variable {
 	public:
@@ -324,6 +322,11 @@ class opcode {
 	int p3 =0;
 	void print();
 };
+inline static char* newStr(char* src, int size){
+	char* s = (char*) malloc(size+1);
+	strcpy(s, src);
+	return s;
+}
 
 union datunion {
 	i64 i; //also used for date and duration
@@ -331,13 +334,7 @@ union datunion {
 	char* s;
 	bool p;
 	regex_t* r;
-	chacha* ch;
 };
-inline static char* newStr(char* src, int size){
-	char* s = (char*) malloc(size+1);
-	strcpy(s, src);
-	return s;
-}
 class dat {
 	public:
 	datunion u;
@@ -350,7 +347,7 @@ class dat {
 	bool istext() const { return (b & 7) == T_STRING; }
 	bool isnull() const { return b == 0; }
 	bool ismal() const { return b & MAL; }
-	void setnull(){ b = 0; u.i = 0; }
+	void setnull(){ *this = {0}; }
 	void disown(){ b &=(~MAL); }
 	void freedat(){
 		if (ismal())
@@ -360,7 +357,7 @@ class dat {
 	friend bool operator<(const dat& l, const dat& r){
 		if (r.isnull())
 			return false;
-		if (l.istext())
+		if (l.istext()) //false if null
 			return strcmp(l.u.s, r.u.s) < 0;
 		if (l.isnull())
 			return true;
@@ -380,7 +377,8 @@ class dat {
 		return d;
 	}
 	void mov(dat& d){
-		freedat();
+		if (ismal())
+			free(u.s);
 		*this = d;
 		d.disown();
 	}
@@ -469,6 +467,9 @@ class querySpecs {
 	void setoutputJson(){ outputjson = true; };
 	void init(string);
 	void addVar(string);
+	int getVarIdx(string);
+	int getVarType(string);
+	int getFileNo(string s);
 	shared_ptr<fileReader>& getFileReader(int);
 	variable& var(string);
 	~querySpecs();
@@ -519,7 +520,6 @@ class directory {
 };
 
 void scanTokens(querySpecs &q);
-int varIsAgg(string lkup, querySpecs &q);
 void parseQuery(querySpecs &q);
 bool is_number(const std::string& s);
 void printTree(unique_ptr<node> &n, int ident);
@@ -534,10 +534,6 @@ void analyzeTree(querySpecs &q);
 void codeGen(querySpecs &q);
 void runquery(querySpecs &q);
 shared_ptr<singleQueryResult> runqueryJson(querySpecs &q);
-int getVarLocation(string lkup, querySpecs *q);
-int getVarIdx(string lkup, querySpecs *q);
-int getVarType(string lkup, querySpecs *q);
-int getFileNo(string s, querySpecs *q);
 char* durstring(dur_t dur, char* str);
 void runServer();
 string handle_err(exception_ptr eptr);

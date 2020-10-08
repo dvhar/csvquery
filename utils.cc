@@ -10,68 +10,18 @@ regex_t floatType;
 regex cInt("^c\\d+$");
 regex posInt("^\\d+$");
 regex colNum("^c?\\d+$");
+regex extPat(".*\\.csv$", regex_constants::icase);
+regex hidPat(".*/\\.[^/]+$");
 int isDuration(const char* s){ return !regexec(&durationPattern, s, 0, NULL, 0); }
 int isInt(const char* s){ return !regexec(&intType, s, 0, NULL, 0); }
 int isFloat(const char* s){ return !regexec(&floatType, s, 0, NULL, 0); }
 
 mt19937 rng(time(0));
 
-const flatmap<int, string_view> enumMap = {
-	{EOS ,           "EOS"},
-	{ERROR_STATE ,   "ERROR_STATE"},
-	{FINAL ,         "FINAL"},
-	{KEYBIT ,        "KEYBIT"},
-	{LOGOP ,         "LOGOP"},
-	{RELOP ,         "RELOP"},
-	{WORD_TK ,       "WORD"},
-	{NUMBER ,        "NUMBER"},
-	{KEYWORD ,       "KEYWORD"},
-	{KW_AND ,        "KW_AND"},
-	{KW_OR  ,        "KW_OR"},
-	{KW_XOR  ,       "KW_XOR"},
-	{KW_SELECT ,     "KW_SELECT"},
-	{KW_FROM  ,      "KW_FROM"},
-	{KW_HAVING  ,    "KW_HAVING"},
-	{KW_AS  ,        "KW_AS"},
-	{KW_WHERE ,      "KW_WHERE"},
-	{KW_ORDER ,      "KW_ORDER"},
-	{KW_BY ,         "KW_BY"},
-	{KW_DISTINCT ,   "KW_DISTINCT"},
-	{KW_ORDHOW ,     "KW_ORDHOW"},
-	{KW_CASE ,       "KW_CASE"},
-	{KW_WHEN ,       "KW_WHEN"},
-	{KW_THEN ,       "KW_THEN"},
-	{KW_ELSE ,       "KW_ELSE"},
-	{KW_END ,        "KW_END"},
-	{SPECIALBIT ,    "SPECIALBIT"},
-	{SPECIAL ,       "SPECIAL"},
-	{SP_EQ ,         "SP_EQ"},
-	{SP_NEGATE ,     "SP_NEGATE"},
-	{SP_NOEQ ,       "SP_NOEQ"},
-	{SP_LESS ,       "SP_LESS"},
-	{SP_LESSEQ ,     "SP_LESSEQ"},
-	{SP_GREAT ,      "SP_GREAT"},
-	{SP_GREATEQ ,    "SP_GREATEQ"},
-	{SP_SQUOTE ,     "SP_SQUOTE"},
-	{SP_DQUOTE ,     "SP_DQUOTE"},
-	{SP_COMMA ,      "SP_COMMA"},
-	{SP_LPAREN ,     "SP_LPAREN"},
-	{SP_RPAREN ,     "SP_RPAREN"},
-	{SP_STAR ,       "SP_STAR"},
-	{SP_DIV ,        "SP_DIV"},
-	{SP_MOD ,        "SP_MOD"},
-	{SP_MINUS ,      "SP_MINUS"},
-	{SP_PLUS ,       "SP_PLUS"},
-	{STATE_INITAL ,  "STATE_INITAL"},
-	{STATE_SSPECIAL ,"STATE_SSPECIAL"},
-	{STATE_DSPECIAL ,"STATE_DSPECIAL"},
-	{STATE_MBSPECIAL,"STATE_MBSPECIAL"},
-	{STATE_WORD ,    "STATE_WORD"},
-};
-const flatmap<int, string_view> nameMap = {
+const flatmap<int, string_view> typeNames = {
 	{T_STRING,   "text"},
-	{T_INT,      "number"},
-	{T_FLOAT,    "number"},
+	{T_INT,      "int"},
+	{T_FLOAT,    "float"},
 	{T_DATE,     "date"},
 	{T_DURATION, "duration"},
 	{T_NULL,     "null"},
@@ -190,6 +140,7 @@ const flatmap<string_view, int> functionMap = {
 	{"float",        FN_FLOAT},
 	{"round",        FN_ROUND},
 	{"pow",          FN_POW},
+	{"cbrt",         FN_CBRT},
 
 };
 //use WORD for these?
@@ -250,6 +201,28 @@ bool querySpecs::numIsCol() { return (options & O_C) != 0; }
 shared_ptr<fileReader>& querySpecs::getFileReader(int i) {
 	return filevec.at(i);
 }
+int querySpecs::getVarIdx(string lkup){
+	for (u32 i=0; i<vars.size(); i++)
+		if (lkup == vars[i].name)
+			return i;
+	error("variable not found");
+	return 0;
+}
+int querySpecs::getVarType(string lkup){
+	for (auto &v : vars)
+		if (lkup == v.name)
+			return v.type;
+	error("variable not found");
+	return 0;
+}
+
+int querySpecs::getFileNo(string s){
+	auto& f = filemap[s];
+	if (f == nullptr)
+		error("file number not founde");
+	return f->fileno;
+}
+
 
 void printTree(unique_ptr<node> &n, int ident){
 	if (n == nullptr) return;
@@ -315,42 +288,6 @@ int getNarrowestType(char* value, int startType) {
 	} else if (!parseDuration(value, &t))          { startType = max(T_DURATION, startType);
 	} else                                         { startType = T_STRING; }
 	return startType;
-}
-
-int varIsAgg(string lkup, querySpecs *q){
-	for (auto &v : q->vars)
-		if (lkup == v.name)
-			return v.phase;
-	error("variable not found");
-	return 0;
-}
-int getVarLocation(string lkup, querySpecs *q){
-	for (auto &v : q->vars)
-		if (lkup == v.name)
-			return v.mrindex;
-	error("variable not found");
-	return 0;
-}
-int getVarIdx(string lkup, querySpecs *q){
-	for (u32 i=0; i<q->vars.size(); i++)
-		if (lkup == q->vars[i].name)
-			return i;
-	error("variable not found");
-	return 0;
-}
-int getVarType(string lkup, querySpecs *q){
-	for (auto &v : q->vars)
-		if (lkup == v.name)
-			return v.type;
-	error("variable not found");
-	return 0;
-}
-
-int getFileNo(string s, querySpecs *q){
-	auto& f = q->filemap[s];
-	if (f == nullptr)
-		error("file number not founde");
-	return f->fileno;
 }
 
 //use static buf if null arg, otherwise make sure size 24

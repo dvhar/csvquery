@@ -7,9 +7,7 @@
 
 fileReader::fileReader(string& fname) : filename(fname) {
 	if (!filesystem::exists(fname)){
-		if (fname.length() <= 4 
-				|| fname.compare(fname.length() - 4, 4, ".csv"sv) != 0
-				|| fname.compare(fname.length() - 4, 4, ".CSV"sv) != 0){
+		if (!regex_match(fname,extPat)){
 			fname += ".csv";
 			if (!filesystem::exists(fname)){
 				error("Could not open file "+fname);
@@ -263,8 +261,6 @@ void openfiles(querySpecs &q, unique_ptr<node> &n){
 	openfiles(q, n->node3);
 }
 
-regex_t extPattern;
-regex_t hidPattern;
 shared_ptr<directory> filebrowse(string dir){
 
 	filesystem::path thisdir(dir);
@@ -275,11 +271,11 @@ shared_ptr<directory> filebrowse(string dir){
 	vector<string> others;
 	for (auto& f : filesystem::directory_iterator(thisdir)){
 		auto&& S = f.path().u8string();
-		if (!regexec(&hidPattern, S.c_str(), 0,0,0)){
+		if (regex_match(S,hidPat)){
 		} else if (filesystem::is_directory(f.status())){
 			resp->dirs.push_back(S);
 		} else if (filesystem::is_regular_file(f.status())){
-			if (!regexec(&extPattern, S.c_str(), 0,0,0))
+			if (regex_match(S,extPat))
 				resp->files.push_back(S);
 			else
 				others.push_back(S);

@@ -76,7 +76,7 @@ static const int funcTypes[]  = { 0,0,1,0,0,2 };
 
 //for debugging
 static int ident = 0;
-//#define e //turn off debug printer
+#define e //turn off debug printer
 #ifndef e
 #define e(A) for (int i=0; i< ident; i++) perr("    "); \
 	perr(st( A , "\n")); ident++; \
@@ -487,7 +487,6 @@ void cgen::genNormalOrderedQuery(unique_ptr<node> &n){
 	popvars();
 	addop(ENDRUN);
 };
- //update sorter to work with list
 void cgen::genNormalSortList(unique_ptr<node> &n){
 	vs.setscope(ORDER_FILTER, V_READ1_SCOPE);
 	genVars(q->tree->node1);
@@ -547,7 +546,7 @@ void cgen::genVars(unique_ptr<node> &n){
 		break;
 	case N_VARS:
 		{
-			int i = getVarIdx(n->tok1.val, q);
+			int i = q->getVarIdx(n->tok1.val);
 			auto& var = q->vars[i];
 			if (vs.neededHere(i, var.filter, var.maxfileno)){
 				genExprAll(n->node1);
@@ -561,7 +560,7 @@ void cgen::genVars(unique_ptr<node> &n){
 					}
 				} else {
 					addop1(PUTVAR, i);
-					int vartype = getVarType(n->tok1.val, q);
+					int vartype = q->getVarType(n->tok1.val);
 					if (agg_phase == 2 && q->sorting && vartype == T_STRING)
 						addop1(HOLDVAR, i);
 				}
@@ -602,7 +601,7 @@ void cgen::genExprMult(unique_ptr<node> &n){
 		addop0(operations[OPDIV][n->datatype]);
 		break;
 	case SP_CARROT:
-		addop0(operations[OPEXP][n->datatype]);
+		addop0(operations[OPPOW][n->datatype]);
 		break;
 	case SP_MOD:
 		addop0(operations[OPMOD][n->datatype]);
@@ -625,7 +624,7 @@ void cgen::genValue(unique_ptr<node> &n){
 	int vtype, op;
 	switch (n->tok2.id){
 	case COLUMN:
-		addop2(operations[OPLD][n->datatype], getFileNo(n->tok3.val, q), n->tok1.id);
+		addop2(operations[OPLD][n->datatype], q->getFileNo(n->tok3.val), n->tok1.id);
 		break;
 	case LITERAL:
 		if (n->tok1.lower() == "null"){
@@ -643,12 +642,12 @@ void cgen::genValue(unique_ptr<node> &n){
 		}
 		break;
 	case VARIABLE:
-		addop1(LDVAR, getVarIdx(n->tok1.val, q));
+		addop1(LDVAR, q->getVarIdx(n->tok1.val));
 		//variable may be used in operations with different types
-		vtype = getVarType(n->tok1.val, q);
+		vtype = q->getVarType(n->tok1.val);
 		op = typeConv[vtype][n->datatype];
 		if (op == CVER)
-			error(st("Cannot use alias '",n->tok1.val,"' of type ",nameMap.at(vtype)," with incompatible type ",nameMap.at(n->datatype)));
+			error(st("Cannot use alias '",n->tok1.val,"' of type ",typeNames.at(vtype)," with incompatible type ",typeNames.at(n->datatype)));
 		if (op != CVNO)
 			addop0(op);
 		break;
@@ -761,12 +760,12 @@ void cgen::genSelections(unique_ptr<node> &n){
 			switch (agg_phase){
 			case 0:
 				for (auto nn = n.get(); nn; nn = nn->node1.get()) if (nn->label == N_VALUE){
-					addop3(LDPUT, n->tok4.id, nn->tok1.id, getFileNo(nn->tok3.val, q));
+					addop3(LDPUT, n->tok4.id, nn->tok1.id, q->getFileNo(nn->tok3.val));
 					break;
 				} break;
 			case 1:
 				for (auto nn = n.get(); nn; nn = nn->node1.get()) if (nn->label == N_VALUE){
-					addop3(LDPUTGRP, n->tok3.id, nn->tok1.id, getFileNo(nn->tok3.val, q));
+					addop3(LDPUTGRP, n->tok3.id, nn->tok1.id, q->getFileNo(nn->tok3.val));
 					break;
 				} break;
 			case 2:
@@ -978,7 +977,7 @@ void cgen::genFunction(unique_ptr<node> &n){
 	case FN_POW:
 		genExprAll(n->node1);
 		genExprAll(n->node2);
-		addop0(operations[OPEXP][n->datatype]);
+		addop0(operations[OPPOW][n->datatype]);
 		break;
 	case FN_YEAR:
 	case FN_MONTH:
@@ -1004,6 +1003,7 @@ void cgen::genFunction(unique_ptr<node> &n){
 	case FN_LOG2:
 	case FN_LOG10:
 	case FN_SQRT:
+	case FN_CBRT:
 	case FN_RAND:
 	case FN_UPPER:
 	case FN_LOWER:
@@ -1078,7 +1078,7 @@ void cgen::genTypeConv(unique_ptr<node> &n){
 	genExprAll(n->node1);
 	auto cnv = typeConv[n->tok1.id][n->datatype];
 	if (cnv == CVER)
-		error(st("Cannot use type ",nameMap.at(n->tok1.id)," with incompatible type ",nameMap.at(n->datatype)));
+		error(st("Cannot use type ",typeNames.at(n->tok1.id)," with incompatible type ",typeNames.at(n->datatype)));
 	if (cnv != CVNO)
 		addop0(typeConv[n->tok1.id][n->datatype]);
 }
