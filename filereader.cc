@@ -238,6 +238,10 @@ void openfiles(querySpecs &q, unique_ptr<node> &n){
 
 		if (q.options & O_S)
 			fr->delim = ' ';
+		else if (q.options & O_P)
+			fr->delim = '|';
+		else if (q.options & O_T)
+			fr->delim = '\t';
 		else
 			fr->delim = ',';
 

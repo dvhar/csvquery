@@ -103,6 +103,10 @@ void parser::parseOptions() {
 		q->options |= O_H;
 	} else if (s == "s") {
 		q->options |= O_S;
+	} else if (s == "p") {
+		q->options |= O_P;
+	} else if (s == "t") {
+		q->options |= O_T;
 	} else {
 		return;
 	}
