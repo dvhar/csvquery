@@ -183,7 +183,9 @@ enum {
 	O_C = 1,
 	O_NH = 2,
 	O_H = 4,
-	O_S = 8
+	O_S = 8,
+	O_P = 16,
+	O_T = 32
 };
 
 extern const flatmap<int, string_view> treeMap;
