@@ -24,18 +24,18 @@ const funclist = [
 	["rand","random number",0],
 	["abs" ,"absolute value",1],
 	["coalesce" ,"first non-null expression",5],
-	["year" ,"year number",1],
-	["month" ,"0-11 month number",1],
+	["year" ,"year",1],
+	["month" ,"0-11 month",1],
 	["monthname","month name",1],
-	["week" ,"0-52 week of year number",1],
-	["day" ,"day of month number (same as dayofmonth())",1],
+	["week" ,"0-52 week of year",1],
+	["day" ,"day of month (same as dayofmonth())",1],
 	["dayname" ,"day name",1],
-	["dayofyear","day of year number",1],
-	["dayofmonth","day of month number",1],
-	["dayofweek","0-6 day of week number",1],
-	["hour" ,"0-23 hour number",1],
-	["minute" ,"0-59 minute number",1],
-	["second" ,"0-59 second number",1],
+	["dayofyear","day of year",1],
+	["dayofmonth","day of month",1],
+	["dayofweek","0-6 day of week",1],
+	["hour" ,"0-23 hour",1],
+	["minute" ,"0-59 minute",1],
+	["second" ,"0-59 second",1],
 	["ceil","round up",6],
 	["floor","round down",6],
 	["round","round up or down to nearest",6],
@@ -55,17 +55,19 @@ const funclist = [
 	["upper","upper case",1],
 	["lower","lower case",1],
 	["len","lenth of text",1],
-	["substr","sustring from indexes or pattern matching",3],
-	["md5","md5 hash",1],
-	["sha1","sha1 hash",1],
-	["sha256","sha256 hash",1],
+	["substr","substring from indexes or pattern matching",3],
+	["md5","md5 hash in base64",1],
+	["sha1","sha1 hash in base64",1],
+	["sha256","sha256 hash in base64",1],
 	["string","convert datatype to text",1],
 	["int","convert datatype to integer",1],
 	["float","convert datatype to floating point number",1],
-	["encrypt" ,"encrypt with chacha cipher, output base64",4],
-	["decrypt" ,"input base64, decrypt with chacha cipher",4],
-	["base64_encode","encode as bas64 (not needed for encrypting)",1],
-	["base64_decode","decode from base64 (not needed for encryption)",1],
+	//["encrypt" ,"encrypt with chacha cipher, output base64",4],
+	//["decrypt" ,"input base64, decrypt with chacha cipher",4],
+	//["base64_encode","encode as bas64 (not needed for encrypting)",1],
+	//["base64_decode","decode from base64 (not needed for encryption)",1],
+	["base64_encode","encode as bas64",1],
+	["base64_decode","decode from base64",1],
 
 ]
 
@@ -77,49 +79,57 @@ const Func = ({fun,usage,params}) => {
 	);
 }
 class FuncTable extends React.Component {
-	render(){
-		return (
-		<table>
-			<th>Function</th><th>parameters</th><th>description</th>
-			{funclist.map((f,i)=>{return(<Func fun={f[0]} usage={f[1]} params={f[2]}/>);})}
-		</table>
+	constructor(){
+		super();
+		this.table =  (
+			<table>
+				<th>Function</th><th>parameters</th><th>description</th>
+				{funclist.map((f)=>{return(<Func fun={f[0]} usage={f[1]} params={f[2]}/>);})}
+			</table>
 		);
+		this.showbut = ( <button onClick={()=>{this.show=true;}} >show list of functions</button> );
+		this.show = false;
+	}
+	render(){
+		return this.show == true ? this.table : this.showbut;
 	}
 };
 
 export class Help extends React.Component {
 	render(){
-		//if (!this.props.show) return <></>
+		if (!this.props.show) return <></>
 		return ( 
 			<div className="helpBox">
 			<h3>What this software does</h3>
 			<hr/>
-			{"Run queries on csv files, display the results, and save to new csv files. It can handle big csv files that are too big for other programs."}
+			{"Run 'select' queries on csv files, display the results, and save to new csv files. It can handle big csv files that are too big for other programs."}
 			<br/>
-			{"The program will show you the first several hundred results in the browser, with 2 options for viewing certain rows or columns. You can click on a column header to sort the displayed results by that column."}
+			{"It will show you the first several hundred results in the browser, with 2 options for viewing certain rows or columns. You can click on a column header to sort the displayed results by that column."}
 			<h3>How to save files</h3>
 			<hr/>
 			{"After running a query, hit the save button. Navigate to where you want to save, type in the file name, and hit the save button to the right. All the queries on the page will run again, but this time they will be saved to csv files. If there are multiple queries on the page, you still only need to specify one file and a number will be added to the filename for each one."}
 			<h3>How to use the query language</h3>
 			<hr/>
-			{"This program uses a custom version of SQL based on TSQL. Some features like Unions, Subqueries, and @variables are not implemented yet."}
+			{"This program uses a custom version of SQL loosely based on TSQL. Some features like Unions, Subqueries, and @variables are not implemented yet."}
 			<br/>
 			<blockquote>
 				<h4>Specifying a file</h4>
-					{"Click 'Browse Files' to find files, and double click one to add it to the query. If a file has no header, add 'nh' or 'noheader' after the file path or alias, or before 'select'."}
-					<h4>Selecting some columns</h4>
-					{"Columns can be specified by name or number. Select column numbers by prefacing the number with 'c', or by using a plain unquoted number if putting a 'c' in front of the whole query. Commas between selections are optional. Aliases use the 'as' keyword."}
+					{"Click 'Browse Files' to find files, and double click one to add it to the query. If a file has no header, add 'nh' or 'noheader' after the file path or alias, or at the very beginning of a query."}
+				<h4>Using non-comma delimiters</h4>
+					{"If the delimiter is not a comma, add the letter for that delimiter to the very beginning of the query. Use 's' for spaces, 't' for tabs, or 'p' for pipes, which are this character: |. Future versions will be able to specify different delimiters for each file in a joining query."}
+				<h4>Selecting some columns</h4>
+					{"Columns can be specified by name or number. Select column numbers by prefacing the number with 'c', or by using a plain unquoted number if putting a 'c' in front of the whole query. Commas between selections are optional. Result columns can be renamed with the 'as' keyword."}
 					<br/><br/>
-					Example: selecting columns 1-3, dogs, and cats from a file<br/>
+					Example: selecting columns 1-3, dogs, and cats from a file with no header<br/>
 					<blockquote>
-						{"select c1, c2 as 'food', c3, dogs, cats from '/home/user/pets.csv'"}
+						{"noheader select c1, c2 as 'food', c3, dogs, cats from '/home/user/pets.csv'"}
 						<br/>
 						{"select c1 c2 c3 dogs cats from 'C:\\users\\dave\\pets.csv' nh"}
 						<br/>
-						{"c select 1 2 3 dogs cats from 'C:\\users\\dave\\pets.csv'"}
+						{"c nh select 1 2 3 dogs cats from 'C:\\users\\dave\\pets.csv'"}
 					</blockquote>
 				<h4>Selecting all columns</h4>
-					{"'select * ' works how you'd expect. If you don't specify any columns at all, it will also select all. "}
+					{"'select * ' works how you'd expect. If you don't specify any values at all, it will also select all. "}
 					<br/><br/>
 					Examples:
 					<br/>
@@ -140,7 +150,7 @@ export class Help extends React.Component {
 						{"select case c1 / c4 when (c3+c3)*2 then dog when c1*10 then cat end from '/home/user/pets.csv'"}
 					</blockquote>
 				<h4>Expression Aliases</h4>
-					{"Begin a query with 'with <expression> as <alias>' to use that value throughout the query. Separate aliases with ',' or 'and'.'"}
+					{"Begin a query with 'with <expression> as <alias>' to use that value throughout the query. Separate aliases with ',' or 'and'."}
 					<br/><br/>
 					Example:
 					<br/>
@@ -150,15 +160,21 @@ export class Help extends React.Component {
 				<h4>Functions</h4>
 					<blockquote>
 						<FuncTable/>
+						<br/>
+					{"Aggregate functions can be used with a 'group by' clause and group by as many values as you want. Without a 'group by' clause, they will return a single row with the aggregate calculations of the whole file."}
 					</blockquote>
-				<h4>Selecting rows with a distinct value</h4>
-					{"Put the 'distinct' keyword in front of the expression that you want to be distinct. Put 'hidden' after 'distinct' if you don't want that value to show up as a result column."}
+				<h4>Selecting rows or aggregates with a distinct value</h4>
+					{"To only return rows with a distinct value, put the 'distinct' keyword in front of the expression that you want to be distinct. Put 'hidden' after 'distinct' if you don't want that value to show up as a result column."}
+					<br/><br/>
+					{"To calculate aggregate function of distinct values, put the 'distinct' keyword in the function call."}
 					<br/><br/>
 					Examples:
 					<blockquote>
 						{"select distinct c3 from '/home/user/pets.csv'"}
 						<br/>
 						{"select distinct hidden dogtypes, fluffiness from '/home/user/pets.csv'"}
+						<br/>
+						{"select count(distinct species) from '/home/user/pets.csv'"}
 					</blockquote>
 				<h4>Selecting a number of rows</h4>
 					{"Use the 'top' keyword after 'select', or 'limit' at the end of the query. Be careful not to confuse the number after 'top' for part of an expression."}
@@ -202,9 +218,9 @@ export class Help extends React.Component {
 						<br/>
 						{"select pet.name, code.c1, fur.flufftype from '/home/user/pets.csv' pet"
 							+" inner join '/home/user/fur.csv' fur"
-							+" on pet.fluffiness = fur.fluff"
+							+" on pet.fluffiness = fur.fluff and fur.flufftype <> hairless"
 							+" left join '/home/user/codes.csv' code"
-							+" on pet.species = code.species"}
+							+" on pet.species = code.species or pet.genus = species.genus"}
 					</blockquote>
 			</blockquote>
 			<h3>Ending queries early, viewing older queries, and exiting</h3>
@@ -216,7 +232,7 @@ export class Help extends React.Component {
 			{"To exit the program, just leave the browser page. The program exits if it goes 3 minutes without being viewed in a browser."}
 			<h3>Waiting for results to load</h3>
 			<hr/>
-			{"Browsers can take a while to load big results, even when limiting the number of rows. If the results of a query look similar to the results of the previous query, you can confirm that they are new by checkng the query number in the top-right corner."}
+			{"Browsers can take a while to load big results, even when limiting the number of rows. If the results of a query look similar to the results of the previous query, you can confirm that they are new by checkng the query number in the top-right corner, or by reading the query text in the yellow area above the table."}
 			<br/><br/>
 			<hr/>
 			version 1.0.0 - 10/8/2020

@@ -119,7 +119,7 @@ bool fileReader::readline(){
 			case ' ':
 				terminator = pos2-1;
 				getField();
-				while (*pos2 != delim) ++pos2;
+				while (*pos2 && *pos2 != delim) ++pos2;
 				pos1 = ++pos2;
 			}
 			//end of field
