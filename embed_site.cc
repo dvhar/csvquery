@@ -4,9 +4,11 @@
 using HttpServer = SimpleWeb::Server<SimpleWeb::HTTP>;
 using namespace std;
 static auto localhost = boost::asio::ip::address::from_string("::1");
+static auto localhost2 = boost::asio::ip::address::from_string("127.0.0.1");
 static bool rejectNonLocals(shared_ptr<HttpServer::Request>& request){
+	return false;
 	auto addr = request->remote_endpoint().address();
-	if (addr != localhost){
+	if (addr != localhost && addr != localhost2){
 		cerr << "attempted connection from non-localhost: " << addr << endl;
 		return true;
 	}
