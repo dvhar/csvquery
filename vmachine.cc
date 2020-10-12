@@ -589,20 +589,19 @@ FMULT_:
 DRMULT_:
 	ifneithernull {
 		iTemp1 = stk1.b; iTemp2 = stk0.b;
-		if (iTemp1 == T_DATE){
-			if (iTemp2 == T_INT){ // date * int
+		switch (iTemp1 | (iTemp2<<4)){
+			case T_INT | (T_DURATION<<4):
+			case T_DURATION | (T_INT<<4):
 				stk1.u.i = stk1.u.i * stk0.u.i;
-			} else { // date * float
-				stk1.u.i = stk1.u.i * stk0.u.f;
-			}
-		} else {
-			if (iTemp2 == T_INT){ // int * date
-				stk1.u.i = stk1.u.i * stk0.u.i;
-			} else { // float * date
+				break;
+			case T_FLOAT | (T_DURATION<<4):
 				stk1.u.i = stk1.u.f * stk0.u.i;
-			}
-			stk1.b = T_DURATION;
+				break;
+			case T_DURATION | (T_FLOAT<<4):
+				stk1.u.i = stk1.u.i * stk0.u.f;
+				break;
 		}
+		stk1.b = T_DURATION;
 	}
 	pop();
 	nexti();
