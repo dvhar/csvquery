@@ -108,31 +108,30 @@ bool fileReader::readline(){
 			switch (*pos2){
 			// "" escaped quote
 			case '"':
+				do {
 				compactQuote();
-				++pos2;
+				} while (*(++pos2) == '"' && *(pos2+1) != delim && *(pos2+1) != '\n'); // """ and beyond
 				goto inquote;
 			//end of line
 			case '\0':
 				terminator = pos2-1;
 				getField();
 				return checkWidth();
-			case ' ':
-				terminator = pos2-1;
-				getField();
-				while (*pos2 && *pos2 != delim) ++pos2;
-				pos1 = ++pos2;
-			}
-			//end of field
-			if (*pos2 == delim){
-				if (equoteCount){
-					memmove(escapedQuote-equoteCount, escapedQuote, pos2-escapedQuote);
-					terminator = pos2-1-equoteCount;
-					equoteCount = 0;
-				} else {
-					terminator = pos2-1;
+			default:
+				//end of field
+				if (*pos2 == delim){
+					if (equoteCount){
+						memmove(escapedQuote-equoteCount, escapedQuote, pos2-escapedQuote);
+						terminator = pos2-1-equoteCount;
+						equoteCount = 0;
+					} else {
+						terminator = pos2-1;
+					}
+					getField();
+					pos1 = ++pos2;
+					break;
 				}
-				getField();
-				pos1 = ++pos2;
+				//TODO: end of quote but not end field?
 			}
 		}
 

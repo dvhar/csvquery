@@ -255,7 +255,7 @@ namespace SimpleWeb {
       }
 
       /// Deprecated, please use remote_endpoint().address().to_string() instead.
-      DEPRECATED std::string remote_endpoint_address() const noexcept {
+      std::string remote_endpoint_address() const noexcept {
         try {
           if(auto connection = this->connection.lock())
             return connection->socket->lowest_layer().remote_endpoint().address().to_string();
@@ -266,7 +266,7 @@ namespace SimpleWeb {
       }
 
       /// Deprecated, please use remote_endpoint().port() instead.
-      DEPRECATED unsigned short remote_endpoint_port() const noexcept {
+      unsigned short remote_endpoint_port() const noexcept {
         try {
           if(auto connection = this->connection.lock())
             return connection->socket->lowest_layer().remote_endpoint().port();
