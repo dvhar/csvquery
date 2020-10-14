@@ -5,6 +5,7 @@
 #include "deps/crypto/sha256.h"
 #include "deps/crypto/md5.h"
 //#include "deps/crypto/aes.h"
+#include "deps/json/escape.h"
 #include <chrono>
 
 //map for printing opcodes
@@ -87,14 +88,7 @@ void dat::appendToJsonBuffer(string &outbuf){
 	case T_STRING:
 		for (auto c = (unsigned char*)u.s; *c; c++) a |= abnormal[*c];
 		if (a & 4) {
-			char* s = u.s;
-			auto q = strpbrk(s, pbrk);
-			do {
-				outbuf += string_view(s, q-s);
-				outbuf += '\\';
-				s = q;
-			} while (q = strpbrk(s+1, pbrk));
-			outbuf += s;
+			outbuf += escapeJSON(string_view(u.s));
 		} else {
 			outbuf += u.s;
 		}
