@@ -6,7 +6,8 @@ void init();
 int runmode;
 
 void help(char* prog){
-	cout << '\n' << prog << " <file>\n\tRun query from file\n\n"sv
+	cout << '\n'
+		<< prog << " <file>\n\tRun query from file\n\n"sv
 		<< prog << " \"select from 'data.csv'\"\n\tRun query from command line argument\n\n"sv
 		<< prog << "\n\tRun server to use graphic interface in web browser\n\n"sv;
 	exit(0);

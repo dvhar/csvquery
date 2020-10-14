@@ -552,11 +552,11 @@ struct freeC {
 };
 
 template<typename T>
-static void __st(stringstream& ss, T v) {
+static void __st(stringstream& ss, T& v) {
 	ss << v;
 }
 template<typename T, typename... Args>
-static void __st(stringstream& ss, T first, Args... args) {
+static void __st(stringstream& ss, T& first, Args&... args) {
 	ss << first;
 	__st(ss, args...);
 }
@@ -567,9 +567,9 @@ static string st(T first, Args... args) {
 	return ss.str();
 }
 template<typename T>
-static string st(T first) {
+static string st(T v) {
 	stringstream ss;
-	__st(ss, first);
+	__st(ss, v);
 	return ss.str();
 }
 extern int runmode;
