@@ -1,4 +1,5 @@
 #include "interpretor.h"
+#include <chrono>
 #include <stdlib.h>
 #include <ctype.h>
 #define max(a,b) (a) > (b) ? (a) : (b)
@@ -16,7 +17,7 @@ int isDuration(const char* s){ return !regexec(&durationPattern, s, 0, NULL, 0);
 int isInt(const char* s){ return !regexec(&intType, s, 0, NULL, 0); }
 int isFloat(const char* s){ return !regexec(&floatType, s, 0, NULL, 0); }
 
-mt19937 rng(time(0));
+mt19937 rng(chrono::high_resolution_clock::now().time_since_epoch().count());
 
 const flatmap<int, string_view> typeNames = {
 	{T_STRING,   "text"},
