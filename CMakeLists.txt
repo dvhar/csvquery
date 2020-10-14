@@ -27,6 +27,7 @@ set(CQL_SOURCE ${CQL_SOURCE} deps/crypto/sha1.c)
 set(CQL_SOURCE ${CQL_SOURCE} deps/crypto/sha256.c)
 set(CQL_SOURCE ${CQL_SOURCE} deps/crypto/md5.c)
 set(CQL_SOURCE ${CQL_SOURCE} deps/getline/bufreader.cc)
+set(CQL_SOURCE ${CQL_SOURCE} deps/json/escape.cc)
 add_executable(cql ${CQL_SOURCE})
 
 if (WIN32)
