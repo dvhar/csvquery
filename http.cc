@@ -72,7 +72,7 @@ static void serve(){
 				sendMessage(wq.sessionId, "Saved to " + wq.savepath);
 			else if (ret->maxclipped)
 				sendMessage(wq.sessionId, st("Only showing first ",ret->maxclipped," results"));
-			response->write(ret->tojson().dump(), header);
+			response->write(ret->tojson().str(), header);
 
 		} catch (...){
 			auto e = handle_err(current_exception());
@@ -81,7 +81,7 @@ static void serve(){
 			ret.status = DAT_ERROR;
 			ret.message = move(e);
 			ret.originalQuery = move(wq.querystring);
-			response->write(ret.tojson().dump());
+			response->write(ret.tojson().str());
 		}
 	};
 

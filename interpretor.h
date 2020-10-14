@@ -344,7 +344,7 @@ class dat {
 	u32 z; // string size and avg count
 	static char abnormal[];
 	void appendToCsvBuffer(string&);
-	void appendToJsonBuffer(vector<string>&);
+	void appendToJsonBuffer(string&);
 	string str(){ string st; appendToCsvBuffer(st); return st; }
 	bool istext() const { return (b & 7) == T_STRING; }
 	bool isnull() const { return b == 0; }
@@ -478,35 +478,35 @@ class querySpecs {
 	querySpecs(string &s) : queryString(s) {};
 };
 
-//might be replacable with just a json object?
 class singleQueryResult {
-	json j;
+	stringstream j;
 	public:
-	bool clipped = false;
 	int numrows =0;
 	int showLimit =0;
 	int numcols =0;
 	int status =0;
+	int clipped =0;
 	vector<int> types;
 	vector<string> colnames;
 	vector<int> pos;
-	list<vector<string>> Vals;
+	list<string> Vals; //each string is whole row
 	string query;
-	json& tojson();
+	stringstream& tojson();
 	singleQueryResult(querySpecs &q){
 		numcols = q.colspec.count;
 		showLimit = 20000 / numcols;
 	}
 };
 class returnData {
-	json j;
+	stringstream j;
 	public:
 	list<shared_ptr<singleQueryResult>> entries;
 	int status =0;
 	int maxclipped =0;
+	bool clipped =0;
 	string originalQuery;
 	string message;
-	json& tojson();
+	stringstream& tojson();
 };
 
 class directory {

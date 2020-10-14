@@ -870,13 +870,17 @@ JMPNOTNULL_ELSEPOP_:
 
 PRINTJSON_:
 	if (numJsonPrinted < jsonresult->showLimit){
-		vector<string> row;
-		for (int i=0; i<torowSize; ++i)
-			torow[i].appendToJsonBuffer(row);
+		iTemp1 = 0;	
+		string jbuf = "[";
+		printjsonfield:
+		torow[iTemp1].appendToJsonBuffer(jbuf);
+		if (++iTemp1 < torowSize){
+			jbuf += ',';
+			goto printjsonfield;
+		}
+		jbuf += ']';
 		++numJsonPrinted;
-		jsonresult->Vals.push_back(move(row));
-	} else {
-		jsonresult->clipped = true;
+		jsonresult->Vals.push_back(move(jbuf));
 	}
 	jsonresult->numrows++;
 	totalPrinted += op->p1; //in case not csv printing

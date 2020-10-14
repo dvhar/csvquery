@@ -2,6 +2,7 @@
 #include <chrono>
 #include <stdlib.h>
 #include <ctype.h>
+#include "deps/json/escape.h"
 #define max(a,b) (a) > (b) ? (a) : (b)
 
 regex_t leadingZeroString;
@@ -405,30 +406,54 @@ string nodeName(unique_ptr<node> &n, querySpecs* q){
 	return nodeName(n->node1, q);
 }
 
-json& singleQueryResult::tojson(){
-	j = {
-		{"Numrows",numrows},
-		{"ShowLimit",showLimit},
-		{"Numcols",numcols},
-		{"Types",types},
-		{"Pos",pos},
-		{"Colnames",colnames},
-		{"Vals",Vals},
-		{"Status",status},
-		{"Query",query},
-	};
+//nlohmann library can't handle invalid utf-8
+stringstream& singleQueryResult::tojson(){
+	static string_view com = ",";
+	static string_view nocom = "";
+	j << "{\"Numrows\":" << numrows
+		<< ",\"ShowLimit\":" << showLimit
+		<< ",\"Numcols\":" << numcols;
+	auto delim = &nocom;
+	j << ",\"Types\":[";
+	for (auto v : types){
+		j << *delim << v;
+		delim = &com;
+	}
+	j << "],\"Colnames\":[";
+	delim = &nocom;
+	for (auto &v : colnames){
+		j << *delim << '"' << escapeJSON(v) << '"';
+		delim = &com;
+	}
+	j << "],\"Pos\":[";
+	delim = &nocom;
+	for (auto v : pos){
+		j << *delim << v;
+		delim = &com;
+	}
+	j << "],\"Vals\":[";
+	delim = &nocom;
+	for (auto &v : Vals){
+		j << *delim << v;
+		delim = &com;
+	}
+	j << "],\"Status\":" << status
+		<< ",\"Query\":\"" << escapeJSON(query) << "\"}";
 	return j;
 }
-json& returnData::tojson(){
-	j = {
-		{"Status",status},
-		{"Clipped",maxclipped>0},
-		{"Message",message},
-		{"OriginalQuery",originalQuery},
-	};
-	auto& vj = j["Entries"] = vector<json>();
-	for (auto &v : entries)
-		vj.push_back(v->tojson());
+stringstream& returnData::tojson(){
+	static string_view com = ",";
+	static string_view nocom = "";
+ 	j	<< "{\"Entries\":[";
+	auto delim = &nocom;
+	for (auto &v : entries){
+		j << *delim << v->tojson().rdbuf();
+		delim = &com;
+	}
+	j << "],\"Status\":" << status
+		<< ",\"OriginalQuery\":\"" << escapeJSON(originalQuery)
+		<< "\",\"Clipped\":" << (clipped ? "true":"false")
+		<< ",\"Message\":\"" << escapeJSON(message) << "\"}";
 	return j;
 }
 
