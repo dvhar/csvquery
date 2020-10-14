@@ -566,8 +566,14 @@ static string st(T first, Args... args) {
 	__st(ss, first, args...);
 	return ss.str();
 }
+template<typename T>
+static string st(T first) {
+	stringstream ss;
+	__st(ss, first);
+	return ss.str();
+}
 extern int runmode;
-enum runmodes { RUN_FILE, RUN_SINGLE, RUN_SERVER };
+enum runmodes { RUN_SINGLE, RUN_SERVER };
 
 template<typename T>
 static T fromjson(json& j, string&& key){

@@ -1,47 +1,34 @@
 #include "interpretor.h"
 #include <iostream>
+#include <filesystem>
 void init();
 
 int runmode;
 
+void help(char* prog){
+	cout << '\n' << prog << " <file>\n\tRun query from file\n\n"sv
+		<< prog << " \"select from 'data.csv'\"\n\tRun query from command line argument\n\n"sv
+		<< prog << "\n\tRun server to use graphic interface in web browser\n\n"sv;
+	exit(0);
+}
+
 int main(int argc, char** argv){
 
 	init();
-	FILE *fp;
 	string querystring;
-	runmode = argc > 1 ? RUN_FILE : RUN_SERVER;
-
-	char c;
-	while((c = getopt(argc, argv, "c:hs")) != -1)
-		switch(c){
-		//run query from command line argument
-		case 'c':
-			querystring = string(optarg);
-			runmode = RUN_SINGLE;
-			break;
-		//run query from stdin
-		case 's':
-			runmode = RUN_FILE;
-			break;
-		//help
-		case 'h':
-			cout << '\n' << argv[0] << " <file>\n\tRun query from file\n\n"sv
-				<< argv[0] << " -c \"select from 'data.csv'\"\n\tRun query from command line argument\n\n"sv
-				<< argv[0] << " -s \n\tRun query from stdin\n\n"sv
-				<< argv[0] << "\n\tRun server to use graphic interface in web browser\n\n"sv;
-			return 0;
-			break;
-		}
+	runmode = argc > 1 ? RUN_SINGLE : RUN_SERVER;
 
 	switch (runmode){
-	case RUN_FILE:
-		//get query from file or stdin
-		if (argc == 2)
-			fp = fopen(argv[1], "r");
+	case RUN_SINGLE:
+		//show help and exit
+		if (!strcmp(argv[1], "help"))
+			help(argv[0]);
+		//get query from file
+		if (filesystem::is_regular_file(argv[1]))
+			querystring = st(ifstream(argv[1]).rdbuf());
+		//get query from arg text
 		else
-			fp = stdin;
-		while (!feof(fp))
-			querystring.push_back((char)getc(fp));
+			querystring = string(argv[1]);
 		break;
 	case RUN_SERVER:
 		runServer();

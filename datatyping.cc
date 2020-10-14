@@ -152,6 +152,8 @@ static bool canBeString(unique_ptr<node> &n){
 		case FN_MDAY:
 		case FN_WDAY:
 		case FN_HOUR:
+		case FN_MINUTE:
+		case FN_SECOND:
 		case FN_CEIL:
 		case FN_FLOOR:
 		case FN_ACOS:
@@ -447,6 +449,8 @@ typer dataTyper::typeFunctionInnerNodes(unique_ptr<node> &n){
 	case FN_MDAY:
 	case FN_WDAY:
 	case FN_HOUR:
+	case FN_MINUTE:
+	case FN_SECOND:
 		typeInnerNodes(n->node1);
 		innerType = {T_INT, true}; //TODO: reconsider these true/false values
 		n->info[RETTYPE] = T_INT;
@@ -635,13 +639,9 @@ void dataTyper::typePredCompFinalNodes(unique_ptr<node> &n){
 	if (n->tok1.id == SP_LPAREN){
 		typeFinalValues(n->node1, -1);
 	} else if (n->tok1.id & RELOP) {
-		if (n->tok1.id == KW_LIKE)
-			typeFinalValues(n->node2, n->datatype);
-		else {
-			typeFinalValues(n->node1, n->datatype);
-			typeFinalValues(n->node2, n->datatype);
-			typeFinalValues(n->node3, n->datatype);
-		}
+		typeFinalValues(n->node1, n->datatype);
+		typeFinalValues(n->node2, n->datatype);
+		typeFinalValues(n->node3, n->datatype);
 	}
 }
 
@@ -723,6 +723,8 @@ void dataTyper::typeFunctionFinalNodes(unique_ptr<node> &n, int finaltype){
 	case FN_MDAY:
 	case FN_WDAY:
 	case FN_HOUR:
+	case FN_MINUTE:
+	case FN_SECOND:
 		typeFinalValues(n->node1, T_DATE);
 		break;
 	default:
