@@ -834,7 +834,7 @@ CVDRS_:
 	} nexti();
 CVDTS_:
 	ifnotnull{
-		//make version of datestring that writes directly to arg buf
+		//TODO: make version of datestring that writes directly to arg buf
 		cstrTemp = datestring(stk0.u.i);
 		stk0.u.s = (char*) malloc(20);
 		strncpy(stk0.u.s, cstrTemp, 19);
@@ -1279,8 +1279,7 @@ READ_NEXT_GROUP_:
 	if (stk0.u.i >= (i64)groupSorter.size()){
 		ip = op->p1;
 	} else {
-		torow = groupSorter[stk0.u.i].get();
-		++stk0.u.i;
+		torow = groupSorter[stk0.u.i++].get();
 		++ip;
 	} next();
 

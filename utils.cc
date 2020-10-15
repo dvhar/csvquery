@@ -140,6 +140,7 @@ const flatmap<string_view, int> functionMap = {
 	{"sha1",         FN_SHA1},
 	{"sha256",       FN_SHA256},
 	{"string",       FN_STRING},
+	{"text",         FN_STRING},
 	{"int",          FN_INT},
 	{"float",        FN_FLOAT},
 	{"round",        FN_ROUND},
@@ -183,6 +184,9 @@ bool is_number(const std::string& s)
         s.end(), [](char c) { return !std::isdigit(c); }) == s.end();
 }
 
+token querySpecs::lastTok() {
+	return tokIdx > 0 ? tokArray[tokIdx-1] : token{};
+}
 token querySpecs::nextTok() {
 	if (tokIdx < tokArray.size()-1) tokIdx++;
 	return tokArray[tokIdx];

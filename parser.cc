@@ -207,6 +207,9 @@ unique_ptr<node> parser::parseSelections() {
 				q->nextTok();
 			}
 		}
+		if (q->tok().id == SP_LPAREN)
+			error(st("Cannot start expression after '", q->lastTok().val,
+						"' with parenthesis. Did you misspell a function or forget a comma between selections?"));
 		n->node2 = parseSelections();
 		return n;
 	default:
