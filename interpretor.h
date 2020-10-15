@@ -306,6 +306,7 @@ class fileReader {
 		int fileno =0;
 		int numFields =0;
 	inline void getField();
+	inline void getQuotedField();
 	inline void compactQuote();
 	inline bool checkWidth();
 	void inferTypes();
@@ -464,6 +465,7 @@ class querySpecs {
 	token tok();
 	token nextTok();
 	token peekTok();
+	token lastTok();
 	bool numIsCol();
 	void setoutputCsv(){ outputcsv = true; };
 	void setoutputJson(){ outputjson = true; };
@@ -560,16 +562,10 @@ static void __st(stringstream& ss, T& first, Args&... args) {
 	ss << first;
 	__st(ss, args...);
 }
-template<typename T, typename... Args>
-static string st(T first, Args... args) {
+template<typename... Args>
+static string st(Args... args) {
 	stringstream ss;
-	__st(ss, first, args...);
-	return ss.str();
-}
-template<typename T>
-static string st(T v) {
-	stringstream ss;
-	__st(ss, v);
+	__st(ss, args...);
 	return ss.str();
 }
 extern int runmode;
