@@ -110,7 +110,7 @@ bool fileReader::readline(){
 			case '"':
 				do {
 				compactQuote();
-				} while (*(++pos2) == '"' && *(pos2+1) != delim && *(pos2+1) != '\n'); // """ and beyond
+				} while (*(++pos2) == '"' && *(pos2+1) != delim && *(pos2+1) != '\n'); // """ and beyond (TODO:fix compacting)
 				goto inquote;
 			//end of line
 			case '\0':
@@ -131,7 +131,9 @@ bool fileReader::readline(){
 					pos1 = ++pos2;
 					break;
 				}
-				//TODO: end of quote but not end field?
+				//TODO: look ahead to see if delim or quote comes first
+				//unescaped quote - yuck. assumes there's another quote coming up before end of field
+				goto inquote;
 			}
 		}
 

@@ -575,6 +575,19 @@ static string st(T v) {
 extern int runmode;
 enum runmodes { RUN_SINGLE, RUN_SERVER };
 
+static string_view gettypename(int i){
+	try { return typeNames.at(i); } catch (...){ return ""sv; }}
+static string_view getnodename(int i){
+	try { return treeMap.at(i); } catch (...){ return ""sv; }}
+static int getkeyword(basic_string_view<char> s){
+	try { return keywordMap.at(s); } catch (...){ return 0; }}
+static int getfunc(basic_string_view<char> s){
+	try { return functionMap.at(s); } catch (...){ return 0; }}
+static int getjoinkw(basic_string_view<char> s){
+	try { return joinMap.at(s); } catch (...){ return 0; }}
+static int getspecial(basic_string_view<char> s){
+	try { return specialMap.at(s); } catch (...){ return 0; }}
+
 template<typename T>
 static T fromjson(json& j, string&& key){
 	try {

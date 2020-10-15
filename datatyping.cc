@@ -593,7 +593,7 @@ typer dataTyper::typeInnerNodes(unique_ptr<node> &n){
 		innerType = typeFunctionInnerNodes(n);
 		break;
 	default:
-		error(st("missed a node type: ",treeMap.at(n->label)));
+		error(st("missed a node type: ",getnodename(n->label)));
 	}
 	n->datatype = innerType.type;
 	//cerr << "type node " << treeMap[n->label] << " as " << n->datatype << endl;
@@ -785,7 +785,7 @@ void dataTyper::typeFinalValues(unique_ptr<node> &n, int finaltype){
 	//may or may not preserve subtree types
 	case N_EXPRNEG:
 		if (n->tok1.id && (finaltype == T_STRING || finaltype == T_DATE))
-			error(st("Minus sign does not work with type ",typeNames.at(finaltype)));
+			error(st("Minus sign does not work with type ",gettypename(finaltype)));
 	case N_EXPRADD:
 	case N_EXPRMULT:
 		if (n->keep) finaltype = -1;
@@ -829,7 +829,7 @@ void dataTyper::checkMathSemantics(unique_ptr<node> &n){
 	auto n2 = n->node2 == nullptr ? T_NULL : n->node2->datatype;
 	auto combo = [&](int a, int b){ return (n1 == a && n2 == b) || (n1 == b && n2 == a); };
 	auto is = [&](int t){ return n->datatype == t; };
-	auto typestr = typeNames.at(n->datatype);
+	auto typestr = gettypename(n->datatype);
 
 	switch (n->tok1.id){
 	case SP_PLUS:
@@ -871,7 +871,7 @@ void dataTyper::checkMathSemantics(unique_ptr<node> &n){
 
 void dataTyper::checkFuncSemantics(unique_ptr<node> &n){
 	auto n1 = n->node1 == nullptr ? T_NULL : n->node1->datatype;
-	auto typestr = typeNames.at(n->datatype);
+	auto typestr = gettypename(n->datatype);
 	char* e = NULL;
 
 	switch (n->tok1.id){

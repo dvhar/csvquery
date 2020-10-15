@@ -668,7 +668,7 @@ unique_ptr<node> parser::parseFunction() {
 	token t = q->tok();
 	unique_ptr<node> n = newNode(N_FUNCTION);
 	n->tok1 = t;
-	n->tok1.id = functionMap.at(t.lower());
+	n->tok1.id = getfunc(t.lower());
 	q->nextTok(); // (
 	t = q->nextTok();
 	//count(*)
