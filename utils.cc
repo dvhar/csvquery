@@ -94,7 +94,9 @@ const flatmap<string_view, int> functionMap = {
 	{"max" ,      FN_MAX},
 	{"count" ,    FN_COUNT},
 	{"stdev" ,    FN_STDEV},
+	{"stddev" ,   FN_STDEV},
 	{"stdevp" ,   FN_STDEVP},
+	{"stddevp" ,  FN_STDEVP},
 	{"abs" ,      FN_ABS},
 	//{"format" ,   FN_FORMAT},
 	{"coalesce" , FN_COALESCE},
@@ -231,7 +233,7 @@ void printTree(unique_ptr<node> &n, int ident){
 	ident++;
 	string s = "";
 	for (int i=0;i<ident;i++) s += "  ";
-	perr(st( s , treeMap.at(n->label) , '\n',
+	perr(st( s , getnodename(n->label) , '\n',
 		s ,
 		ft("[%1% %2% %3% %4% %5%] t:%6% ph:%7%")
 		% n->tok1.val
@@ -296,8 +298,8 @@ int getNarrowestType(char* value, int startType) {
 char* durstring(dur_t dur, char* str){
 	static char durbuf[24];
 	static char* formats[2][2] = {
-		{ (char*)"%lld:%lld:%lld", (char*)"%lld:%lld:%lld.%lld" },
-		{ (char*)"_%lld:%lld:%lld", (char*)"_%lld:%lld:%lld.%lld"}
+		{ (char*)"%02lld:%02lld:%02lld", (char*)"%02lld:%02lld:%02lld.%02lld" },
+		{ (char*)"_%02lld:%02lld:%02lld", (char*)"_%02lld:%02lld:%02lld.%02lld"}
 	};
 	if (dur < 0)
 		dur *= -1;

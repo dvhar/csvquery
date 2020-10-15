@@ -647,7 +647,7 @@ void cgen::genValue(unique_ptr<node> &n){
 		vtype = q->getVarType(n->tok1.val);
 		op = typeConv[vtype][n->datatype];
 		if (op == CVER)
-			error(st("Cannot use alias '",n->tok1.val,"' of type ",typeNames.at(vtype)," with incompatible type ",typeNames.at(n->datatype)));
+			error(st("Cannot use alias '",n->tok1.val,"' of type ",gettypename(vtype)," with incompatible type ",gettypename(n->datatype)));
 		if (op != CVNO)
 			addop0(op);
 		break;
@@ -1078,7 +1078,7 @@ void cgen::genTypeConv(unique_ptr<node> &n){
 	genExprAll(n->node1);
 	auto cnv = typeConv[n->tok1.id][n->datatype];
 	if (cnv == CVER)
-		error(st("Cannot use type ",typeNames.at(n->tok1.id)," with incompatible type ",typeNames.at(n->datatype)));
+		error(st("Cannot use type ",gettypename(n->tok1.id)," with incompatible type ",gettypename(n->datatype)));
 	if (cnv != CVNO)
 		addop0(typeConv[n->tok1.id][n->datatype]);
 }
