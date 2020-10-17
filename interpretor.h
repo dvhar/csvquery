@@ -281,7 +281,6 @@ class fileReader {
 	bufreader fs;
 	string filename;
 	vector<vector<csvEntry>> gotrows;
-	forward_list<unique_ptr<char[]>> gotbuffers;
 	vector<csvEntry> entriesVec;
 	i64 prevpos =0;
 	int equoteCount =0;
