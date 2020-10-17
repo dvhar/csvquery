@@ -46,13 +46,16 @@ void servews(){
 		connections.erase(sesid);
 		seslock.unlock();
 		clientCount--;
+		if (clientCount < 0)
+			clientCount = 0;
 		cerr << "closed websocket connection " << connection.get() << endl;
 	};
 
-	wsocket.on_error = [](shared_ptr<WsServer::Connection> connection, const SimpleWeb::error_code &ec) {
+	wsocket.on_error = [&](shared_ptr<WsServer::Connection> connection, const SimpleWeb::error_code &ec) {
 		rejectNonlocals();
 		cerr << "Error in connection " << (i64)connection.get() << ": "
 			<< ec << ", error message: " << ec.message() << endl;
+		wsocket.on_close(connection, 0, {});
 	};
 
 	auto a = async(pingbrowsers);

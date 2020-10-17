@@ -8,9 +8,8 @@
 #include <string>
 #include <vector>
 
-#include <openssl/buffer.h>
-#include <openssl/evp.h>
-#include <openssl/sha.h>
+#include "../crypto/base64.h"
+#include "../crypto/sha1.h"
 
 namespace SimpleWeb {
 
@@ -22,64 +21,19 @@ namespace SimpleWeb {
     public:
       /// Returns Base64 encoded string from input string.
       static std::string encode(const std::string &input) noexcept {
-        std::string base64;
-
-        BIO *bio, *b64;
-        BUF_MEM *bptr = BUF_MEM_new();
-
-        b64 = BIO_new(BIO_f_base64());
-        BIO_set_flags(b64, BIO_FLAGS_BASE64_NO_NL);
-        bio = BIO_new(BIO_s_mem());
-        BIO_push(b64, bio);
-        BIO_set_mem_buf(b64, bptr, BIO_CLOSE);
-
-        // Write directly to base64-buffer to avoid copy
-        auto base64_length = static_cast<std::size_t>(round(4 * ceil(static_cast<double>(input.size()) / 3.0)));
-        base64.resize(base64_length);
-        bptr->length = 0;
-        bptr->max = base64_length + 1;
-        bptr->data = &base64[0];
-
-        if(BIO_write(b64, &input[0], static_cast<int>(input.size())) <= 0 || BIO_flush(b64) <= 0)
-          base64.clear();
-
-        // To keep &base64[0] through BIO_free_all(b64)
-        bptr->length = 0;
-        bptr->max = 0;
-        bptr->data = nullptr;
-
-        BIO_free_all(b64);
-
-        return base64;
+		int newsize = encsize(input.size());
+		auto btemp = (BYTE*) alloca(encsize(newsize+1));
+		base64_encode((BYTE*)input.data(), btemp, input.size(), 0);
+		btemp[newsize] = 0;
+        return std::string((char*)btemp);
       }
 
       /// Returns Base64 decoded string from base64 input.
       static std::string decode(const std::string &base64) noexcept {
-        std::string ascii;
-
-        // Resize ascii, however, the size is a up to two bytes too large.
-        ascii.resize((6 * base64.size()) / 8);
-        BIO *b64, *bio;
-
-        b64 = BIO_new(BIO_f_base64());
-        BIO_set_flags(b64, BIO_FLAGS_BASE64_NO_NL);
-// TODO: Remove in 2022 or later
-#if(defined(OPENSSL_VERSION_NUMBER) && OPENSSL_VERSION_NUMBER < 0x1000214fL) || (defined(LIBRESSL_VERSION_NUMBER) && LIBRESSL_VERSION_NUMBER < 0x2080000fL)
-        bio = BIO_new_mem_buf(const_cast<char *>(&base64[0]), static_cast<int>(base64.size()));
-#else
-        bio = BIO_new_mem_buf(&base64[0], static_cast<int>(base64.size()));
-#endif
-        bio = BIO_push(b64, bio);
-
-        auto decoded_length = BIO_read(bio, &ascii[0], static_cast<int>(ascii.size()));
-        if(decoded_length > 0)
-          ascii.resize(static_cast<std::size_t>(decoded_length));
-        else
-          ascii.clear();
-
-        BIO_free_all(b64);
-
-        return ascii;
+		auto btemp = (BYTE*) alloca(base64.size());
+		auto sz = base64_decode((BYTE*)base64.data(), btemp, base64.size());
+		btemp[sz] = 0;
+        return std::string((char*)btemp);;
       }
     };
 
@@ -94,33 +48,13 @@ namespace SimpleWeb {
 
     /// Returns sha1 hash value from input string.
     static std::string sha1(const std::string &input, std::size_t iterations = 1) noexcept {
-      std::string hash;
-
-      hash.resize(160 / 8);
-      SHA1(reinterpret_cast<const unsigned char *>(&input[0]), input.size(), reinterpret_cast<unsigned char *>(&hash[0]));
-
-      for(std::size_t c = 1; c < iterations; ++c)
-        SHA1(reinterpret_cast<const unsigned char *>(&hash[0]), hash.size(), reinterpret_cast<unsigned char *>(&hash[0]));
-
-      return hash;
-    }
-
-    /// Returns sha1 hash value from input stream.
-    static std::string sha1(std::istream &stream, std::size_t iterations = 1) noexcept {
-      SHA_CTX context;
-      SHA1_Init(&context);
-      std::streamsize read_length;
-      std::vector<char> buffer(buffer_size);
-      while((read_length = stream.read(&buffer[0], buffer_size).gcount()) > 0)
-        SHA1_Update(&context, buffer.data(), static_cast<std::size_t>(read_length));
-      std::string hash;
-      hash.resize(160 / 8);
-      SHA1_Final(reinterpret_cast<unsigned char *>(&hash[0]), &context);
-
-      for(std::size_t c = 1; c < iterations; ++c)
-        SHA1(reinterpret_cast<const unsigned char *>(&hash[0]), hash.size(), reinterpret_cast<unsigned char *>(&hash[0]));
-
-      return hash;
+		std::string hash;
+		hash.resize(20);
+		SHA1_CTX ctx;
+		sha1_init(&ctx);
+		sha1_update(&ctx, (BYTE*)input.data(), input.size());
+		sha1_final(&ctx, (BYTE*)hash.data());
+		return hash;
     }
 
 
@@ -137,14 +71,6 @@ namespace SimpleWeb {
      *
      * @return The PBKDF2 derived key.
      */
-    static std::string pbkdf2(const std::string &password, const std::string &salt, int iterations, int key_size) noexcept {
-      std::string key;
-      key.resize(static_cast<std::size_t>(key_size));
-      PKCS5_PBKDF2_HMAC_SHA1(password.c_str(), password.size(),
-                             reinterpret_cast<const unsigned char *>(salt.c_str()), salt.size(), iterations,
-                             key_size, reinterpret_cast<unsigned char *>(&key[0]));
-      return key;
-    }
   };
 } // namespace SimpleWeb
 #endif /* SIMPLE_WEB_CRYPTO_HPP */
