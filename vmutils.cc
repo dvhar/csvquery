@@ -318,41 +318,44 @@ int crypter::newChacha(string pass){
 	memset(&ch.nonce, 0, sizeof(ch.nonce));
 	return ctxs.size()-1;
 }
+//TODO: use good encryption: XChaCha20-Poly1305 and AES-SIV-GCM and use set or bloom filter to ensure no repeat nonce
+//checkout libsodium
 //each row has own nonce so need to reinitialize chacha cipher each time
 void crypter::chachaEncrypt(dat& d, int i){
+	static const int noncesize = sizeof(int);
 	auto len = d.z+1;
 	auto ch = ctxs.data()+i;
-	auto rawResult = (uint8_t*) alloca(len+3);
-	memcpy(rawResult+3, d.u.s, len);
-	int nonce = rng();
-	rawResult[0] = ch->nonce[0] = nonce;
-	rawResult[1] = ch->nonce[1] = nonce >> 8;
-	rawResult[2] = ch->nonce[2] = nonce >> 16;
+	auto rawResult = (uint8_t*) alloca(len+noncesize);
+	memcpy(rawResult+noncesize, d.u.s, len);
+	auto nonce = (int*)ch->nonce;
+	auto rnonce = (int*)rawResult;
+	*rnonce = *nonce = rng();
 	memcpy(&ch->ctx.key, ch->key, sizeof(ch->ctx.key));
 	chacha20_init_context(&ch->ctx, ch->key, ch->nonce, 1); //find out what counter param does
-	chacha20_xor(&ch->ctx, rawResult+3, len);
-	u32 finalSize = encsize(len+3);
+	chacha20_xor(&ch->ctx, rawResult+noncesize, len);
+	u32 finalSize = encsize(len+noncesize);
 	auto finalResult = (char*) malloc(finalSize+1);
-	base64_encode((BYTE*)rawResult, (BYTE*)finalResult, len+3, 0);
+	base64_encode((BYTE*)rawResult, (BYTE*)finalResult, len+noncesize, 0);
 	finalResult[finalSize]=0;
 	d.freedat();
 	d = dat{ {s: finalResult}, T_STRING|MAL, finalSize };
 }
 void crypter::chachaDecrypt(dat& d, int i){
+	static const int noncesize = sizeof(int);
 	auto len = d.z+1;
 	auto ch = ctxs.data()+i;
 	auto rawResult = (char*) alloca(len);
 	u32 finalSize;
 	finalSize = base64_decode((BYTE*)d.u.s, (BYTE*)rawResult, len);
-	finalSize -= 4;
-	ch->nonce[0] = rawResult[0];
-	ch->nonce[1] = rawResult[1];
-	ch->nonce[2] = rawResult[2];
+	finalSize -= noncesize;
+	auto nonce = (int*)ch->nonce;
+	auto rnonce = (int*)rawResult;
+	*nonce = *rnonce;
 	memcpy(&ch->ctx.key, ch->key, sizeof(ch->ctx.key));
 	chacha20_init_context(&ch->ctx, ch->key, ch->nonce, 1); //find out what counter param does
-	chacha20_xor(&ch->ctx, (uint8_t*) rawResult+3, finalSize);
+	chacha20_xor(&ch->ctx, (uint8_t*) rawResult+noncesize, finalSize);
 	auto finalResult = (char*) malloc(finalSize+1);
-	memcpy(finalResult, rawResult+3, finalSize);
+	memcpy(finalResult, rawResult+noncesize, finalSize);
 	finalResult[finalSize]=0;
 	d.freedat();
 	d = dat{ {s: finalResult}, T_STRING|MAL, finalSize };
