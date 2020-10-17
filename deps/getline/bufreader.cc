@@ -1,9 +1,11 @@
 #include<string.h>
 #include "bufreader.h"
 
+int bufreader::buffsize = BUFSIZE;
+
 inline void bufreader::refresh(){
 	int offset = end - line;
-	auto readb = fread(buf+offset, 1, (single ? biggestline-offset : BS-offset), f);
+	auto readb = fread(buf+offset, 1, (single ? biggestline-offset : buffsize-offset), f);
 	line = buf;
 	end = line + offset + readb;
 	nl = (char*) strchr(line, '\n');

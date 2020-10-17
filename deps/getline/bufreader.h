@@ -1,5 +1,5 @@
 #include <stdio.h>
-#define BS  (1024*1024*3)
+#define BUFSIZE  (1024*1024*3)
 
 class bufreader {
 	FILE* f = NULL;
@@ -8,10 +8,11 @@ class bufreader {
 	char* line = NULL;
 	int biggestline = 0;
 	bool single = false;
-	char buf[BS+1];
+	char buf[BUFSIZE+1];
 	void refresh();
 	bufreader& operator=(bufreader);
 	public:
+	static int buffsize;
 	int linesize = 0;
 	char* getline();
 	bufreader(){}

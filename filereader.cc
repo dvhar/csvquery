@@ -17,7 +17,7 @@ fileReader::fileReader(string& fname) : filename(fname) {
 		}
 	}
 	//filesize optimizations more beneficial for joined files
-	small = filesystem::file_size(fname) < (fileno>0? 100:1)*1024*1024;
+	small = filesystem::file_size(fname) < (fileno>0 ? 100*1024*1024 : bufreader::buffsize);
 	fs.open(fname.c_str());	
 }
 char fileReader::blank = 0;
@@ -61,11 +61,8 @@ bool fileReader::readline(){
 			pos = memidx;
 			entries = gotrows[memidx++].data();
 			return 0;
-		} else { //haven't loaded into memory yet (infertypes)
-			auto line = fs.getline();
-			gotbuffers.emplace_front(new char[fs.linesize]);
-			buf = gotbuffers.front().get();
-			strcpy(buf, line);
+		} else { //file is in buffer but entries not saved yet (infertypes)
+			buf = fs.getline();
 		}
 	} else {
 		pos = prevpos;
@@ -180,20 +177,19 @@ void fileReader::inferTypes() {
 		startData = pos;
 	}
 	if (small){
-		for (int j=0;;) {
-			if (j<10000){
+		int samples = 0;
+		do {
+			if (samples<10000){
 				for (u32 i=0; i<entriesVec.size(); ++i)
 					types[i] = getNarrowestType(entriesVec[i].val, types[i]);
-				++j;
+				++samples;
 			}
 			gotrows.push_back(move(entriesVec));
 			++numrows;
-			if (readline())
-				break;
-		}
+		} while (!readline());
 		inmemory = true;
 	} else {
-		for (int j=0; j<10000; ++j) {
+		for (int samples=0; samples<10000; ++samples) {
 			for (u32 i=0; i<entriesVec.size(); ++i)
 				types[i] = getNarrowestType(entriesVec[i].val, types[i]);
 			if (readline())
