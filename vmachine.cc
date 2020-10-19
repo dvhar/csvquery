@@ -457,45 +457,9 @@ SORTVALPOS_:
 
 //normal sorter
 SORT_:
-	{
-		sortIdxs.resize(files[0]->positions.size());
-		iota(begin(sortIdxs), end(sortIdxs), 0);
-		int sortVal = 0, start = 0, end = 0, last = sortIdxs.size()-1, prevVal = -1;
-		function<bool (const int,const int)> normalComparers[] = {
-			[&](const int a, const int b) { return normalSortVals[sortVal][a].i > normalSortVals[sortVal][b].i; },
-			[&](const int a, const int b) { return normalSortVals[sortVal][a].f > normalSortVals[sortVal][b].f; },
-			[&](const int a, const int b) { return strcmp(normalSortVals[sortVal][a].s, normalSortVals[sortVal][b].s) > 0; },
-			[&](const int a, const int b) { return normalSortVals[sortVal][a].i < normalSortVals[sortVal][b].i; },
-			[&](const int a, const int b) { return normalSortVals[sortVal][a].f < normalSortVals[sortVal][b].f; },
-			[&](const int a, const int b) { return strcmp(normalSortVals[sortVal][a].s, normalSortVals[sortVal][b].s) < 0; },
-		};
-		auto backcheck = [&](int i) -> bool {
-			int backidx = 0;
-			while (i > 0){
-				if (q->sortInfo[i-1].second == T_STRING){
-					if (strcmp(normalSortVals[prevVal-backidx][sortIdxs[start]].s, normalSortVals[prevVal-backidx][sortIdxs[end+1]].s))
-						return false;
-				} else if (normalSortVals[prevVal-backidx][sortIdxs[start]].i != normalSortVals[prevVal-backidx][sortIdxs[end+1]].i)
-					return false;
-				--i; ++backidx;
-			}
-			return true;
-		};
-		auto comp = normalComparers[getSortComparer(q, 0)];
-		sort(parallel() sortIdxs.begin(), sortIdxs.end(), comp);
-		for (int i=1; i<q->sortcount; i++) {
-			++sortVal; ++prevVal;
-			start = end = 0;
-			auto comp = normalComparers[getSortComparer(q, i)];
-			while (start < last){
-				while (end < last && backcheck(i))
-					++end;
-				if (end > start)
-					sort(parallel() sortIdxs.begin()+start, sortIdxs.begin()+end+1, comp);
-				start = end + 1;
-			}
-		}
-	}
+	sortIdxs.resize(files[0]->positions.size());
+	iota(sortIdxs.begin(), sortIdxs.end(), 0);
+	sort(parallel() sortIdxs.begin(), sortIdxs.end(), sortcomp(this));
 	nexti();
 //group sorter - p1 is sort index
 GSORT_:
