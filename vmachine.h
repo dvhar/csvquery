@@ -200,7 +200,6 @@ class vmachine {
 	array<dat,50> stack;
 	vector<unique_ptr<dat[], freeC>> groupSorter;
 	vector<int> sortIdxs;
-	vector<vector<datunion>> normalSortVals;
 	forward_list<bset<i64>> joinSetStack;
 	forward_list<unique_ptr<char[], freeC>> groupSortVars;
 	unique_ptr<rowgroup> groupTree;
@@ -225,6 +224,7 @@ class vmachine {
 	static const function<bool (const datunion, const datunion&)> uRxpFuncs[3];
 	static const function<bool (const datunion, const datunion&)>* uComparers[7];
 	public:
+	vector<vector<datunion>> normalSortVals;
 	i64 sessionId =0;
 	int id =0;
 	static flatmap<int,int> relopIdx;
@@ -346,4 +346,34 @@ class queryQueue {
 	future<void> runquery(querySpecs&);
 	future<shared_ptr<singleQueryResult>> runqueryJson(querySpecs&);
 	void endall();
+};
+
+class sortcomp {
+	vector<datunion>* vals;
+	int sortcount;
+	function<i64 (const datunion,const datunion)> allcomps[6] = {
+		[](const auto a, const auto b) { return a.i - b.i; },
+		[](const auto a, const auto b) { return a.f - b.f; },
+		[](const auto a, const auto b) { return strcmp(a.s, b.s); },
+		[](const auto a, const auto b) { return b.i - a.i; },
+		[](const auto a, const auto b) { return b.f - a.f; },
+		[](const auto a, const auto b) { return strcmp(b.s, a.s); },
+	};
+	vector<function<i64 (const datunion,const datunion)>> comps;
+	public:
+		sortcomp(vmachine* vm){
+			vals = vm->normalSortVals.data();
+			sortcount = vm->q->sortcount;
+			for (int i=0; i< vm->q->sortcount; i++){
+				comps.push_back(allcomps[getSortComparer(vm->q, i)]);
+			}
+		}
+		bool operator()(const int a, const int b){
+			i64 res;
+			for (int sortval=0; sortval< sortcount; sortval++){
+				res = comps[sortval](vals[sortval][a], vals[sortval][b]);
+				if (res) return res>0;
+			}
+			return res>0;
+		};
 };
