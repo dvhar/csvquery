@@ -348,30 +348,42 @@ class queryQueue {
 	void endall();
 };
 
+extern function<i64 (const datunion,const datunion)> datunionDiffs[6];
 class sortcomp {
 	vector<datunion>* vals;
 	int sortcount;
-	function<i64 (const datunion,const datunion)> allcomps[6] = {
-		[](const auto a, const auto b) { return a.i - b.i; },
-		[](const auto a, const auto b) { return a.f - b.f; },
-		[](const auto a, const auto b) { return strcmp(a.s, b.s); },
-		[](const auto a, const auto b) { return b.i - a.i; },
-		[](const auto a, const auto b) { return b.f - a.f; },
-		[](const auto a, const auto b) { return strcmp(b.s, a.s); },
-	};
 	vector<function<i64 (const datunion,const datunion)>> comps;
 	public:
 		sortcomp(vmachine* vm){
 			vals = vm->normalSortVals.data();
 			sortcount = vm->q->sortcount;
-			for (int i=0; i< vm->q->sortcount; i++){
-				comps.push_back(allcomps[getSortComparer(vm->q, i)]);
-			}
+			for (int i=0; i< vm->q->sortcount; i++)
+				comps.push_back(datunionDiffs[getSortComparer(vm->q, i)]);
 		}
 		bool operator()(const int a, const int b){
 			i64 res;
 			for (int sortval=0; sortval< sortcount; sortval++){
 				res = comps[sortval](vals[sortval][a], vals[sortval][b]);
+				if (res) return res>0;
+			}
+			return res>0;
+		};
+};
+class gsortcomp {
+	int sortcount;
+	int sortidx;
+	vector<function<i64 (const datunion,const datunion)>> comps;
+	public:
+		gsortcomp(vmachine* vm, int idx){
+			sortcount = vm->q->sortcount;
+			sortidx = idx;
+			for (int i=0; i< vm->q->sortcount; i++)
+				comps.push_back(datunionDiffs[getSortComparer(vm->q, i)]);
+		}
+		bool operator()(const unique_ptr<dat[], freeC>& a,const unique_ptr<dat[], freeC>& b){
+			i64 res;
+			for (int sortval=sortidx; sortval< sortcount+sortidx; sortval++){
+				res = comps[sortval-sortidx](a[sortval].u, b[sortval].u);
 				if (res) return res>0;
 			}
 			return res>0;

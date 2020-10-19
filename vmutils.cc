@@ -491,6 +491,15 @@ const function<bool (const datunion, const datunion&)>* vmachine::uComparers[7] 
 flatmap<int,int> vmachine::relopIdx = {
 	{SP_LESS,0},{SP_GREAT,1},{SP_LESSEQ,2},{SP_GREATEQ,3},{SP_EQ,4},{SP_NOEQ,5},{KW_LIKE,6}
 };
+//return difference for sort comparers
+function<i64 (const datunion,const datunion)> datunionDiffs[6] = {
+	[](const auto a, const auto b) { return a.i - b.i; },
+	[](const auto a, const auto b) { return a.f - b.f; },
+	[](const auto a, const auto b) { return strcmp(a.s, b.s); },
+	[](const auto a, const auto b) { return b.i - a.i; },
+	[](const auto a, const auto b) { return b.f - a.f; },
+	[](const auto a, const auto b) { return strcmp(b.s, a.s); },
+};
 
 void messager::send(){
 	fprintf(stderr, "\r\33[2K%s", buf);

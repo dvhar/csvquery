@@ -463,45 +463,8 @@ SORT_:
 	nexti();
 //group sorter - p1 is sort index
 GSORT_:
-	{
-		int sortVal = op->p1;
-		int prevVal = sortVal - 1;
-		int start = 0, end = 0, last = groupSorter.size()-1;
-		function<bool (const unique_ptr<dat[], freeC>& ,const unique_ptr<dat[], freeC>& )> groupComparers[] = {
-			[&](const auto& a, const auto& b) { return a[sortVal].u.i > b[sortVal].u.i; },
-			[&](const auto& a, const auto& b) { return a[sortVal].u.f > b[sortVal].u.f; },
-			[&](const auto& a, const auto& b) { return strcmp(a[sortVal].u.s, b[sortVal].u.s) > 0; },
-			[&](const auto& a, const auto& b) { return a[sortVal].u.i < b[sortVal].u.i; },
-			[&](const auto& a, const auto& b) { return a[sortVal].u.f < b[sortVal].u.f; },
-			[&](const auto& a, const auto& b) { return strcmp(a[sortVal].u.s, b[sortVal].u.s) < 0; },
-		};
-		auto backcheck = [&](int i) -> bool {
-			int backidx = 0;
-			while (i > 0){
-				if (q->sortInfo[i-1].second == T_STRING){
-					if (strcmp(groupSorter[start][prevVal-backidx].u.s, groupSorter[end+1][prevVal-backidx].u.s))
-						return false;
-				} else if (groupSorter[start][prevVal-backidx].u.i != groupSorter[end+1][prevVal-backidx].u.i)
-					return false;
-				--i; ++backidx;
-			}
-			return true;
-		};
-		auto comp = groupComparers[getSortComparer(q, 0)];
-		sort(parallel() groupSorter.begin(), groupSorter.end(), comp);
-		for (int i=1; i<q->sortcount; i++) {
-			++sortVal; ++prevVal;
-			start = end = 0;
-			auto comp = groupComparers[getSortComparer(q, i)];
-			while (start < last){
-				while (end < last && backcheck(i))
-					++end;
-				if (end > start)
-					sort(parallel() groupSorter.begin()+start, groupSorter.begin()+end+1, comp);
-				start = end + 1;
-			}
-		}
-	} nexti();
+	sort(parallel() groupSorter.begin(), groupSorter.end(), gsortcomp(this, op->p1));
+	nexti();
 
 //math operations
 IADD_:
