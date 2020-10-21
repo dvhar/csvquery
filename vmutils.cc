@@ -309,7 +309,6 @@ void strplus(dat &s1, dat &s2){
 	s1.b |= MAL;
 	s1.z = newlen;
 }
-
 int crypter::newChacha(string pass){
 	ctxs.emplace_back();
 	chactx& ch = ctxs.back();
@@ -318,18 +317,27 @@ int crypter::newChacha(string pass){
 	memset(&ch.nonce, 0, sizeof(ch.nonce));
 	return ctxs.size()-1;
 }
-//TODO: use good encryption: XChaCha20-Poly1305 and AES-SIV-GCM and use set or bloom filter to ensure no repeat nonce
-//checkout libsodium
-//each row has own nonce so need to reinitialize chacha cipher each time
+u32 uniqueNonce32(){
+	static bset<u32> nonces;
+	u32 n = rng(), i = 0;
+	while (!nonces.insert(n).second){
+		if (++i > 1000000)
+			error("Not enough unique nonces to use small encryter. Use big one instead.");
+		++n;
+	}
+	return n;
+}
+//TODO: check out ChaCha20-Poly1305 and AES-SIV-GCM
+//each value is independant so need to reinitialize chacha cipher each time
 void crypter::chachaEncrypt(dat& d, int i){
 	static const int noncesize = sizeof(int);
 	auto len = d.z+1;
 	auto ch = ctxs.data()+i;
 	auto rawResult = (uint8_t*) alloca(len+noncesize);
 	memcpy(rawResult+noncesize, d.u.s, len);
-	auto nonce = (int*)ch->nonce;
-	auto rnonce = (int*)rawResult;
-	*rnonce = *nonce = rng();
+	auto nonce = (u32*)ch->nonce;
+	auto rnonce = (u32*)rawResult;
+	*rnonce = *nonce = uniqueNonce32();
 	memcpy(&ch->ctx.key, ch->key, sizeof(ch->ctx.key));
 	chacha20_init_context(&ch->ctx, ch->key, ch->nonce, 1); //find out what counter param does
 	chacha20_xor(&ch->ctx, rawResult+noncesize, len);

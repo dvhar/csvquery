@@ -962,11 +962,10 @@ void cgen::genFunction(unique_ptr<node> &n){
 			auto n2 = parseIntDat(n->tok3.val.c_str());
 			addop3(FUNC_SUBSTR, n1.u.i, n2.u.i, 0);
 		} else {
-			dat reg{{r: new regex_t}, RMAL};
-			if (regcomp(reg.u.r, n->tok2.val.c_str(), REG_EXTENDED))
+			q->dataholder.push_back(dat{{r: new regex_t}, RMAL});
+			if (regcomp(q->dataholder.back().u.r, n->tok2.val.c_str(), REG_EXTENDED))
 				error("Could not parse 'substr' pattern");
 			addop3(FUNC_SUBSTR, q->dataholder.size(), 0, 1);
-			q->dataholder.push_back(reg);
 		}
 		break;
 	case FN_STRING:
