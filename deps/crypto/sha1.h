@@ -19,14 +19,14 @@ extern "C" {
 #endif
 /**************************** DATA TYPES ****************************/
 typedef unsigned char BYTE;             // 8-bit byte
-typedef unsigned int  WORD;             // 32-bit word, change to "long" for 16-bit machines
+typedef unsigned int  SHAWORD;             // 32-bit word, change to "long" for 16-bit machines
 
 typedef struct {
 	BYTE data[64];
-	WORD datalen;
+	SHAWORD datalen;
 	unsigned long long bitlen;
-	WORD state[5];
-	WORD k[4];
+	SHAWORD state[5];
+	SHAWORD k[4];
 } SHA1_CTX;
 
 /*********************** FUNCTION DECLARATIONS **********************/
