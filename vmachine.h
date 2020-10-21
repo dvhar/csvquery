@@ -183,9 +183,14 @@ class messager {
 class rowgroup;
 class singleQueryResult;
 class vmachine {
-	vector<shared_ptr<fileReader>> files;
-	opcode* ops;
-	dat* torow;
+	static atomic_int idCounter;
+	rowgroup *groupTemp = nullptr;
+	opcode* ops = nullptr;
+	opcode *op = nullptr;
+	dat* torow = nullptr;
+	dat* midrow = nullptr;
+	dat* stacktop = nullptr;
+	dat* stackbot = nullptr;
 	dat distinctVal = {0};
 	int torowSize =0;
 	int sortgroupsize =0;
@@ -198,6 +203,7 @@ class vmachine {
 	vector<dat> destrow;
 	vector<dat> onegroup;
 	array<dat,50> stack;
+	vector<shared_ptr<fileReader>> files;
 	vector<unique_ptr<dat[], freeC>> groupSorter;
 	vector<int> sortIdxs;
 	forward_list<bset<i64>> joinSetStack;
@@ -208,12 +214,6 @@ class vmachine {
 	ostream csvOutput;
 	ofstream outfile;
 	messager updates;
-	static atomic_int idCounter;
-	opcode *op;
-	rowgroup *groupTemp;
-	dat* midrow;
-	dat* stacktop;
-	dat* stackbot;
 	//datunion comparers
 	static const function<bool (const datunion, const datunion&)> uLessFuncs[3];
 	static const function<bool (const datunion, const datunion&)> uGrtFuncs[3];
@@ -224,10 +224,10 @@ class vmachine {
 	static const function<bool (const datunion, const datunion&)> uRxpFuncs[3];
 	static const function<bool (const datunion, const datunion&)>* uComparers[7];
 	public:
-	vector<vector<datunion>> normalSortVals;
+	static flatmap<int,int> relopIdx;
 	i64 sessionId =0;
 	int id =0;
-	static flatmap<int,int> relopIdx;
+	vector<vector<datunion>> normalSortVals;
 	vector<bset<i64>> bt_nums;
 	vector<bset<treeCString>> bt_strings;
 	querySpecs* q;
@@ -361,18 +361,17 @@ class sortcomp {
 				comps.push_back(datunionDiffs[getSortComparer(vm->q, i)]);
 		}
 		bool operator()(const int a, const int b){
-			i64 res;
-			for (int sortval=0; sortval< sortcount; sortval++){
-				res = comps[sortval](vals[sortval][a], vals[sortval][b]);
-				if (res) return res>0;
-			}
-			return res>0;
+			i64 dif;
+			int sortval = 0;
+			do dif = comps[sortval](vals[sortval][a], vals[sortval][b]);
+			while (dif == 0 && ++sortval < sortcount);
+			return dif>0;
 		};
 };
 class gsortcomp {
 	int sortcount;
 	int sortidx;
-	vector<function<i64 (const datunion,const datunion)>> comps;
+	vector<function<i64 (const datunion, const datunion)>> comps;
 	public:
 		gsortcomp(vmachine* vm, int idx){
 			sortcount = vm->q->sortcount;
@@ -381,11 +380,10 @@ class gsortcomp {
 				comps.push_back(datunionDiffs[getSortComparer(vm->q, i)]);
 		}
 		bool operator()(const unique_ptr<dat[], freeC>& a,const unique_ptr<dat[], freeC>& b){
-			i64 res;
-			for (int sortval=sortidx; sortval< sortcount+sortidx; sortval++){
-				res = comps[sortval-sortidx](a[sortval].u, b[sortval].u);
-				if (res) return res>0;
-			}
-			return res>0;
+			i64 dif;
+			int sortval = sortidx;
+			do dif = comps[sortval-sortidx](a[sortval].u, b[sortval].u);
+			while (dif == 0 && ++sortval < sortcount+sortidx);
+			return dif>0;
 		};
 };
