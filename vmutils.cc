@@ -4,6 +4,7 @@
 #include "deps/crypto/sha1.h"
 #include "deps/crypto/sha256.h"
 #include "deps/crypto/md5.h"
+#include "deps/crypto/siphash.h"
 //#include "deps/crypto/aes.h"
 #include "deps/json/escape.h"
 #include <chrono>
@@ -331,39 +332,44 @@ u32 uniqueNonce32(){
 //each value is independant so need to reinitialize chacha cipher each time
 void crypter::chachaEncrypt(dat& d, int i){
 	static const int noncesize = sizeof(int);
-	auto len = d.z+1;
+	static const int macsize = sizeof(int);
+	auto ciphlen = d.z+1+macsize;
 	auto ch = ctxs.data()+i;
-	auto rawResult = (uint8_t*) alloca(len+noncesize);
-	memcpy(rawResult+noncesize, d.u.s, len);
+	auto rawResult = (uint8_t*) alloca(ciphlen+noncesize);
+	memcpy(rawResult+noncesize+macsize, d.u.s, d.z+1);
 	auto nonce = (u32*)ch->nonce;
 	auto rnonce = (u32*)rawResult;
 	*rnonce = *nonce = uniqueNonce32();
 	memcpy(&ch->ctx.key, ch->key, sizeof(ch->ctx.key));
 	chacha20_init_context(&ch->ctx, ch->key, ch->nonce, 1); //find out what counter param does
-	chacha20_xor(&ch->ctx, rawResult+noncesize, len);
-	u32 finalSize = encsize(len+noncesize);
+	getmac(d.u.s, d.z, (char*)ch->nonce, (char*)ch->key, sizeof(ch->key), rawResult+noncesize);
+	chacha20_xor(&ch->ctx, rawResult+noncesize, ciphlen);
+	u32 finalSize = encsize(ciphlen+noncesize);
 	auto finalResult = (char*) malloc(finalSize+1);
-	base64_encode((BYTE*)rawResult, (BYTE*)finalResult, len+noncesize, 0);
+	base64_encode((BYTE*)rawResult, (BYTE*)finalResult, ciphlen+noncesize, 0);
 	finalResult[finalSize]=0;
 	d.freedat();
 	d = dat{ {s: finalResult}, T_STRING|MAL, finalSize };
 }
 void crypter::chachaDecrypt(dat& d, int i){
 	static const int noncesize = sizeof(int);
+	static const int macsize = sizeof(int);
 	auto len = d.z+1;
 	auto ch = ctxs.data()+i;
 	auto rawResult = (char*) alloca(len);
-	u32 finalSize;
-	finalSize = base64_decode((BYTE*)d.u.s, (BYTE*)rawResult, len);
-	finalSize -= noncesize;
+	u32 decodesize = base64_decode((BYTE*)d.u.s, (BYTE*)rawResult, len);
+	u32 finalSize = decodesize - noncesize - macsize;
 	auto nonce = (int*)ch->nonce;
 	auto rnonce = (int*)rawResult;
 	*nonce = *rnonce;
 	memcpy(&ch->ctx.key, ch->key, sizeof(ch->ctx.key));
 	chacha20_init_context(&ch->ctx, ch->key, ch->nonce, 1); //find out what counter param does
-	chacha20_xor(&ch->ctx, (uint8_t*) rawResult+noncesize, finalSize);
+	chacha20_xor(&ch->ctx, (uint8_t*) rawResult+noncesize, decodesize - noncesize);
+	uint8_t mac[4];
+	getmac(rawResult+noncesize+macsize, finalSize, rawResult, (char*)ch->key, sizeof(ch->key), mac);
+	cerr << "MAC DIFF: " << memcmp(mac, rawResult+noncesize, macsize) << endl;
 	auto finalResult = (char*) malloc(finalSize+1);
-	memcpy(finalResult, rawResult+noncesize, finalSize);
+	memcpy(finalResult, rawResult+noncesize+macsize, finalSize);
 	finalResult[finalSize]=0;
 	d.freedat();
 	d = dat{ {s: finalResult}, T_STRING|MAL, finalSize };
