@@ -328,11 +328,9 @@ u32 uniqueNonce32(){
 	}
 	return n;
 }
-//TODO: check out ChaCha20-Poly1305 and AES-SIV-GCM
-//each value is independant so need to reinitialize chacha cipher each time
+static const u32 noncesize = sizeof(u32);
+static const u32 macsize = sizeof(u32);
 void crypter::chachaEncrypt(dat& d, int i){
-	static const u32 noncesize = sizeof(u32);
-	static const u32 macsize = sizeof(u32);
 	auto ciphlen = d.z+1+macsize;
 	auto ch = ctxs.data()+i;
 	auto rawResult = (uint8_t*) alloca(ciphlen+noncesize);
@@ -352,8 +350,6 @@ void crypter::chachaEncrypt(dat& d, int i){
 	d = dat{ {s: finalResult}, T_STRING|MAL, finalSize };
 }
 void crypter::chachaDecrypt(dat& d, int i){
-	static const u32 noncesize = sizeof(u32);
-	static const u32 macsize = sizeof(u32);
 	auto len = d.z+1;
 	auto ch = ctxs.data()+i;
 	auto rawResult = (char*) alloca(len);

@@ -9,6 +9,7 @@ class analyzer {
 		analyzer(querySpecs& qs): q{&qs} {}
 		void varUsedInFilter(unique_ptr<node> &n);
 		void setSubtreeVarFilter(unique_ptr<node> &n, int filter);
+		void propogateVarFilter(string var, int filter);
 		void selectAll();
 		void recordResultColumns(unique_ptr<node> &n);
 		bool findAgrregates(unique_ptr<node> &n);
@@ -21,6 +22,14 @@ class analyzer {
 		bool ischain(unique_ptr<node> &n, int &predno);
 };
 
+void analyzer::propogateVarFilter(string var, int filter){
+	if (auto& firstvar = findFirstNode(q->tree->node1, N_VARS); firstvar)
+		for (auto n = firstvar.get(); n; n = n->node2.get())
+			if (n->tok1.val == var){
+				setSubtreeVarFilter(n->node1,  filter);
+				return;
+			}
+}
 void analyzer::setSubtreeVarFilter(unique_ptr<node> &n, int filter){
 	if (n == nullptr) return;
 	switch (n->label){
@@ -28,6 +37,7 @@ void analyzer::setSubtreeVarFilter(unique_ptr<node> &n, int filter){
 		if (n->tok2.id == VARIABLE){
 			auto& var = q->var(n->tok1.val);
 			var.filter |= filter;
+			propogateVarFilter(n->tok1.val, filter);
 		} else {
 			setSubtreeVarFilter(n->node1, filter);
 		}
