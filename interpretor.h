@@ -562,7 +562,7 @@ static void __st(stringstream& ss, T& first, Args&... args) {
 	__st(ss, args...);
 }
 template<typename... Args>
-static string st(Args... args) {
+static string st(Args&&... args) {
 	stringstream ss;
 	__st(ss, args...);
 	return ss.str();
