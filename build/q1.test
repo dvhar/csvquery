@@ -1,1 +1,1 @@
-select from 'test/country.csv' o join 'test/lang.csv' l on o.c1=l.c1 join 'test/cities.csv' t on l.c1=t.c3 limit 10000
+with encrypt(c2) as e, decrypt(upper(e)) as d select e,d c2 from ptest where d = null
