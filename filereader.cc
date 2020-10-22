@@ -17,7 +17,10 @@ fileReader::fileReader(string& fname) : filename(fname) {
 		}
 	}
 	//filesize optimizations more beneficial for joined files
-	small = filesystem::file_size(fname) < (fileno>0 ? 100*1024*1024 : bufreader::buffsize);
+	fsize = filesystem::file_size(fname);
+	small = fsize < (fileno>0 ? 100*1024*1024 : bufreader::buffsize);
+	if (small && bufreader::buffsize < fsize)
+		needStretchyBuf = true;
 	fs.open(fname.c_str());	
 }
 char fileReader::blank = 0;
@@ -62,7 +65,14 @@ bool fileReader::readline(){
 			entries = gotrows[memidx++].data();
 			return 0;
 		} else { //file is in buffer but entries not saved yet (infertypes)
-			buf = fs.getline();
+			if (needStretchyBuf){
+			   auto line = fs.getline();
+			   gotbuffers.emplace_front(new char[fs.linesize]);
+			   buf = gotbuffers.front().get();
+			   strcpy(buf, line);
+			} else {
+				buf = fs.getline();
+			}
 		}
 	} else {
 		pos = prevpos;

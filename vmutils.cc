@@ -370,7 +370,6 @@ void crypter::chachaDecrypt(dat& d, int i){
 		auto finalResult = (char*) malloc(finalsize+1);
 		memcpy(finalResult, rawResult+noncesize+macsize, finalsize);
 		finalResult[finalsize]=0;
-		d.freedat();
 		d = dat{ {s: finalResult}, T_STRING|MAL, finalsize };
 	}
 }
