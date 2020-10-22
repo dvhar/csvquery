@@ -331,8 +331,8 @@ u32 uniqueNonce32(){
 //TODO: check out ChaCha20-Poly1305 and AES-SIV-GCM
 //each value is independant so need to reinitialize chacha cipher each time
 void crypter::chachaEncrypt(dat& d, int i){
-	static const int noncesize = sizeof(int);
-	static const int macsize = sizeof(int);
+	static const u32 noncesize = sizeof(u32);
+	static const u32 macsize = sizeof(u32);
 	auto ciphlen = d.z+1+macsize;
 	auto ch = ctxs.data()+i;
 	auto rawResult = (uint8_t*) alloca(ciphlen+noncesize);
@@ -352,27 +352,31 @@ void crypter::chachaEncrypt(dat& d, int i){
 	d = dat{ {s: finalResult}, T_STRING|MAL, finalSize };
 }
 void crypter::chachaDecrypt(dat& d, int i){
-	static const int noncesize = sizeof(int);
-	static const int macsize = sizeof(int);
+	static const u32 noncesize = sizeof(u32);
+	static const u32 macsize = sizeof(u32);
 	auto len = d.z+1;
 	auto ch = ctxs.data()+i;
 	auto rawResult = (char*) alloca(len);
+	//TODO: get exact unpadded decode size
 	u32 decodesize = base64_decode((BYTE*)d.u.s, (BYTE*)rawResult, len);
-	u32 finalSize = decodesize - noncesize - macsize;
-	auto nonce = (int*)ch->nonce;
-	auto rnonce = (int*)rawResult;
+	u32 capsize = decodesize - noncesize - macsize;
+	auto nonce = (u32*)ch->nonce;
+	auto rnonce = (u32*)rawResult;
 	*nonce = *rnonce;
 	memcpy(&ch->ctx.key, ch->key, sizeof(ch->ctx.key));
 	chacha20_init_context(&ch->ctx, ch->key, ch->nonce, 1); //find out what counter param does
 	chacha20_xor(&ch->ctx, (uint8_t*) rawResult+noncesize, decodesize - noncesize);
-	uint8_t mac[4];
-	getmac(rawResult+noncesize+macsize, finalSize, rawResult, (char*)ch->key, sizeof(ch->key), mac);
-	cerr << "MAC DIFF: " << memcmp(mac, rawResult+noncesize, macsize) << endl;
-	auto finalResult = (char*) malloc(finalSize+1);
-	memcpy(finalResult, rawResult+noncesize+macsize, finalSize);
-	finalResult[finalSize]=0;
+	uint8_t mac[macsize];
+	u32 finalsize = strnlen(rawResult+macsize+noncesize, capsize);
+	getmac(rawResult+noncesize+macsize, finalsize, rawResult, (char*)ch->key, sizeof(ch->key), mac);
 	d.freedat();
-	d = dat{ {s: finalResult}, T_STRING|MAL, finalSize };
+	if (!memcmp(mac, rawResult+noncesize, macsize)){
+		auto finalResult = (char*) malloc(finalsize+1);
+		memcpy(finalResult, rawResult+noncesize+macsize, finalsize);
+		finalResult[finalsize]=0;
+		d.freedat();
+		d = dat{ {s: finalResult}, T_STRING|MAL, finalsize };
+	}
 }
 void sha1(dat& d){
 	SHA1_CTX ctx;
