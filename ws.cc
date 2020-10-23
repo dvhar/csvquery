@@ -9,10 +9,7 @@ static map<i64,shared_ptr<WsServer::Connection>> connections;
 static mutex seslock;
 static void pingbrowsers();
 static atomic_int clientCount{0};
-static auto localhost = boost::asio::ip::address::from_string("::1");
-static auto localhost2 = boost::asio::ip::address::from_string("127.0.0.1");
-static auto localhost3 = boost::asio::ip::address::from_string("::ffff:127.0.0.1");
-#define rejectNonlocals() if (auto ip = connection->remote_endpoint().address(); ip != localhost && ip != localhost2 && ip != localhost3) return;
+#define rejectNonlocals() if (!connection->remote_endpoint().address().is_loopback()) return;
 
 void servews(){
 	server.config.port = 8061;

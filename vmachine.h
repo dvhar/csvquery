@@ -7,7 +7,8 @@
 #include <mutex>
 #include <future>
 
-#define bset btree::btree_set
+template<typename T>
+using bset = btree::btree_set<T>;
 
 enum codes : int {
 	CVER, CVNO,
