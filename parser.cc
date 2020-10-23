@@ -661,7 +661,7 @@ unique_ptr<node> parser::parseOrder() {
 
 //tok1 is function id
 //tok2 is * for count(*), preconv paramtype for len(), rounding dec places
-//tok3 is cipher or distinct, - for rounding param
+//tok3 is distinct, minus sign for rounding param
 //tok4 is password or (determined later) count of distinct N or S functions
 //[PARAMTYPE] is paramtype for type conversion
 //[RETTYPE] is inflexible return type
@@ -684,8 +684,6 @@ unique_ptr<node> parser::parseFunction() {
 			n->tok3 = t;
 			t = q->nextTok();
 		}
-		bool needPrompt = true;
-		string cipherTok = "chacha";
 		string password;
 		switch (n->tok1.id) {
 		case FN_COALESCE:
@@ -696,24 +694,15 @@ unique_ptr<node> parser::parseFunction() {
 			//first param is expression to en/decrypt
 			n->node1 = parseExprAdd();
 			if (q->tok().id == SP_COMMA) {
-				//second param is cipher
+				//second param is password
 				t = q->nextTok();
-				cipherTok = t.lower();
-				auto commaOrParen = q->nextTok();
-				if (commaOrParen.id == SP_COMMA) {
-					//password is 3rd param
-					password = q->nextTok().val;
-					needPrompt = false;
-					q->nextTok();
-				} else if (commaOrParen.id != SP_RPAREN) {
-					error("Expected comma or closing parenthesis after cipher in crypto function. Found: "+commaOrParen.val);
-				}
+				password = t.val;
+				q->nextTok();
 			} else if (q->tok().id != SP_RPAREN) {
 				error("Expect closing parenthesis or comma after expression in crypto function. Found: "+q->tok().val);
 			}
-			if (q->password == "" && needPrompt) q->password = promptPassword();
+			if (q->password == "" && password == "") q->password = promptPassword();
 			if (password == "") { password = q->password; }
-			n->tok3.val = cipherTok;
 			n->tok4.val = password;
 			break;
 
