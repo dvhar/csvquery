@@ -234,14 +234,18 @@ void querySpecs::promptPassword(){
 	if (needPass && password.empty()){
 		if (runmode == RUN_SERVER){
 			sendPassPrompt(sessionId);
-			//password = passReturn.get_future().get();
+			password = passReturn.get_future().get();
+			//TODO: validate and timeout
 		} else {
 			cerr << "Enter encryption password:\n";
+			password =  "dog"; //TODO
+			cerr << "using dummy pass\n";
 		}
 	}
-	password =  "dog"; //TODO
-	cerr << "using dummy pass\n";
 }
+void querySpecs::setPassword(string s){
+	passReturn.set_value(s);
+};
 
 
 void printTree(unique_ptr<node> &n, int ident){

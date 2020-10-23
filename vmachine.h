@@ -360,6 +360,7 @@ class queryQueue {
 	future<void> runquery(querySpecs&);
 	future<shared_ptr<singleQueryResult>> runqueryJson(querySpecs&);
 	void endall();
+	void setPassword(i64 sesid, string& pass);
 };
 
 extern function<i64 (const datunion,const datunion)> datunionDiffs[6];

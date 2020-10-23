@@ -479,6 +479,7 @@ class querySpecs {
 	int getVarIdx(string);
 	int getVarType(string);
 	int getFileNo(string s);
+	void setPassword(string s);
 	shared_ptr<fileReader>& getFileReader(int);
 	void promptPassword();
 	variable& var(string);
@@ -542,8 +543,8 @@ void openfiles(querySpecs &q, unique_ptr<node> &n);
 void applyTypes(querySpecs &q);
 void analyzeTree(querySpecs &q);
 void codeGen(querySpecs &q);
-void runquery(querySpecs &q);
-shared_ptr<singleQueryResult> runqueryJson(querySpecs &q);
+void runPlainQuery(querySpecs &q);
+shared_ptr<singleQueryResult> runJsonQuery(querySpecs &q);
 char* durstring(dur_t dur, char* str);
 void runServer();
 string handle_err(exception_ptr eptr);
