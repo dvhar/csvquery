@@ -592,30 +592,28 @@ shared_ptr<singleQueryResult> vmachine::getJsonResult(){
 
 
 future<void> queryQueue::runquery(querySpecs& q){
-	prepareQuery(q);
-	mtx.lock();
-	queries.emplace_back(q);
-	auto& thisq = queries.back();
-	mtx.unlock();
 	return async([&](){
+		mtx.lock();
+		queries.emplace_back(q);
+		auto& thisq = queries.back();
+		mtx.unlock();
 		thisq.run();
 		mtx.lock();
-		queries.remove_if([&](vmachine& v){ return v.id == thisq.id; });
+		queries.remove_if([&](qinstance& qi){ return qi.vm->id == thisq.vm->id; });
 		mtx.unlock();
 	});
 }
 future<shared_ptr<singleQueryResult>> queryQueue::runqueryJson(querySpecs& q){
-	q.setoutputJson();
-	prepareQuery(q);
-	mtx.lock();
-	queries.emplace_back(q);
-	auto& thisq = queries.back();
-	mtx.unlock();
 	return async([&](){
-		thisq.run();
-		auto ret = thisq.getJsonResult();
+		q.setoutputJson();
 		mtx.lock();
-		queries.remove_if([&](vmachine& v){ return v.id == thisq.id; });
+		queries.emplace_back(q);
+		auto& thisq = queries.back();
+		mtx.unlock();
+		thisq.run();
+		auto ret = thisq.vm->getJsonResult();
+		mtx.lock();
+		queries.remove_if([&](qinstance& qi){ return qi.vm->id == thisq.vm->id; });
 		mtx.unlock();
 		return ret;
 	});
@@ -623,7 +621,7 @@ future<shared_ptr<singleQueryResult>> queryQueue::runqueryJson(querySpecs& q){
 
 void queryQueue::endall(){
 	mtx.lock();
-	for (auto& vm : queries)
-		vm.endQuery();
+	for (auto& qi : queries)
+		qi.vm->endQuery();
 	mtx.unlock();
 }

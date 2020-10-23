@@ -340,9 +340,22 @@ double round(double input, int decimals);
 double ceil(double input, int decimals);
 double floor(double input, int decimals);
 
+class qinstance {
+	public:
+	unique_ptr<vmachine> vm;
+	querySpecs* q;
+	qinstance(querySpecs& qs) {
+		q = &qs;
+	}
+	void run(){
+		prepareQuery(*q);
+		vm.reset(new vmachine(*q));
+		vm->run();
+	}
+};
 class queryQueue {
 	mutex mtx;
-	list<vmachine> queries;
+	list<qinstance> queries;
 	public:
 	future<void> runquery(querySpecs&);
 	future<shared_ptr<singleQueryResult>> runqueryJson(querySpecs&);
