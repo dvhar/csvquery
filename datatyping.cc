@@ -887,16 +887,6 @@ void dataTyper::checkFuncSemantics(unique_ptr<node> &n){
 		if (n1 == T_STRING || n1 == T_DATE)
 			error(st("Cannot use ",n->tok1.val," function with type ",typestr));
 		break;
-	case FN_ENCRYPT:
-	case FN_DECRYPT:
-		if (n->tok3.val == "chacha" || n->tok3.val == "small")
-			n->tok3.id = 1;
-		else if (n->tok3.val == "aes" || n->tok3.val == "big")
-			n->tok3.id = 2;
-		else
-			error("Expected second parameter to crypt function to be cipher type. Found: "+n->tok3.val+". "
-				"Use 'aes' or 'big' for strong but bulky encryption. Use 'chacha' or 'small' to save space but not obscure the size of values.");
-		break;
 	case FN_SUBSTR:
 		if (n->tok2.quoted){
 			if (n->tok3.id)

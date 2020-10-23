@@ -323,7 +323,7 @@ u32 uniqueNonce32(){
 	u32 n = rng(), i = 0;
 	while (!nonces.insert(n).second){
 		if (++i > 1000000)
-			error("Not enough unique nonces to use small encryter. Use big one instead.");
+			error("Not enough unique nonces. Use a different security solution.");
 		++n;
 	}
 	return n;

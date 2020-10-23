@@ -941,19 +941,15 @@ void cgen::genFunction(unique_ptr<node> &n){
 		break;
 	case FN_ENCRYPT:
 		genExprAll(n->node1);
-		if (n->tok3.val == "chacha"sv){
-			idx = q->crypt.newChacha(n->tok4.val);
-			addop1(ENCCHA, idx);
-		} else /* aes */ {
-		}
+		//TODO: if add block cipher, check here
+		idx = q->crypt.newChacha(n->tok4.val);
+		addop1(ENCCHA, idx);
 		break;
 	case FN_DECRYPT:
 		genExprAll(n->node1);
-		if (n->tok3.val == "chacha"sv){
-			idx = q->crypt.newChacha(n->tok4.val);
-			addop1(DECCHA, idx);
-		} else /* aes */ {
-		}
+		//TODO: if add block cipher, check here
+		idx = q->crypt.newChacha(n->tok4.val);
+		addop1(DECCHA, idx);
 		break;
 	case FN_SUBSTR:
 		genExprAll(n->node1);
