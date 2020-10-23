@@ -893,6 +893,7 @@ void dataTyper::checkFuncSemantics(unique_ptr<node> &n){
 				error("SUBSTR function requires 2 numbers or 1 pattern");
 		} else if (!isInt(n->tok2.val.c_str()) || !isInt(n->tok3.val.c_str()))
 				error("SUBSTR function requires 2 numbers or 1 pattern");
+		break;
 	case FN_ROUND:
 	case FN_CEIL:
 	case FN_FLOOR:
@@ -902,6 +903,12 @@ void dataTyper::checkFuncSemantics(unique_ptr<node> &n){
 			error(st(n->tok1.val," function 2nd value must be integer from -9 to 9"));
 		if (n->tok3.id == SP_MINUS)
 			n->tok2.id *= -1;
+		break;
+	case FN_ENCRYPT:
+	case FN_DECRYPT:
+		if (n->tok4.val.empty())
+				n->tok4.val = q->password;
+		break;
 	}
 }
 

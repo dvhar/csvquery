@@ -684,7 +684,6 @@ unique_ptr<node> parser::parseFunction() {
 			n->tok3 = t;
 			t = q->nextTok();
 		}
-		string password;
 		switch (n->tok1.id) {
 		case FN_COALESCE:
 			n->node1 = parseExpressionList(true, false);
@@ -693,17 +692,15 @@ unique_ptr<node> parser::parseFunction() {
 		case FN_DECRYPT:
 			//first param is expression to en/decrypt
 			n->node1 = parseExprAdd();
+			q->needPass = true;
 			if (q->tok().id == SP_COMMA) {
 				//second param is password
 				t = q->nextTok();
-				password = t.val;
+				q->password = n->tok4.val = t.val;
 				q->nextTok();
 			} else if (q->tok().id != SP_RPAREN) {
 				error("Expect closing parenthesis or comma after expression in crypto function. Found: "+q->tok().val);
 			}
-			if (q->password == "" && password == "") q->password = promptPassword();
-			if (password == "") { password = q->password; }
-			n->tok4.val = password;
 			break;
 
 		case FN_INC:
