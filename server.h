@@ -22,6 +22,7 @@ enum legacy_server {
 };
 
 void servews();
+void returnPassword(i64 sesid, string pass);
 
 class webquery {
 	public:

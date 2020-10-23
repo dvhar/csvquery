@@ -618,10 +618,18 @@ future<shared_ptr<singleQueryResult>> queryQueue::runqueryJson(querySpecs& q){
 		return ret;
 	});
 }
-
 void queryQueue::endall(){
 	mtx.lock();
 	for (auto& qi : queries)
 		qi.vm->endQuery();
+	mtx.unlock();
+}
+void queryQueue::setPassword(i64 sesid, string& pass){
+	mtx.lock();
+	for (auto& qi : queries)
+		if (qi.q->sessionId == sesid){ //TODO: use id not sessionId
+			qi.q->setPassword(pass);
+			break;
+		}
 	mtx.unlock();
 }

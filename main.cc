@@ -39,7 +39,7 @@ int main(int argc, char** argv){
 	try {
 		querySpecs q(querystring);
 		q.setoutputCsv();
-		runquery(q);
+		runPlainQuery(q);
 	} catch (...) {
 		cerr << "Error: "<< handle_err(current_exception()) << endl;
 		return 1;

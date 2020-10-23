@@ -22,6 +22,10 @@ void servews(){
 		case SK_STOP:
 			stopAllQueries();
 			cerr << "stopped queries\n";
+			break;
+		case SK_PASS:
+			returnPassword((i64)connection.get(), fromjson<string>(j,"Text"));
+			break;
 		}
 	};
 

@@ -907,7 +907,7 @@ void dataTyper::checkFuncSemantics(unique_ptr<node> &n){
 	case FN_ENCRYPT:
 	case FN_DECRYPT:
 		if (n->tok4.val.empty())
-				n->tok4.val = q->password;
+			n->tok4.val = q->password;
 		break;
 	}
 }

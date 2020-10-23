@@ -158,7 +158,7 @@ static shared_ptr<singleQueryResult> runWebQuery(webquery &wq){
 			q.savepath = wq.savepath += ".csv";
 		}
 	}
-	return runqueryJson(q);
+	return runJsonQuery(q);
 }
 
 void directory::setDir(json& j){
