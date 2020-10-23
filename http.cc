@@ -23,9 +23,6 @@ static shared_ptr<returnData> runqueries(webquery &wq);
 static shared_ptr<singleQueryResult> runWebQuery(webquery &wq);
 static void serve();
 static SimpleWeb::CaseInsensitiveMultimap header;
-static auto localhost = boost::asio::ip::address::from_string("::1");
-static auto localhost2 = boost::asio::ip::address::from_string("127.0.0.1");
-static auto localhost3 = boost::asio::ip::address::from_string("::ffff:127.0.0.1");
 void embedsite(HttpServer&);
 
 void runServer(){
@@ -34,7 +31,7 @@ void runServer(){
 
 static bool rejectNonLocals(shared_ptr<HttpServer::Request>& request){
 	auto addr = request->remote_endpoint().address();
-	if (addr != localhost && addr != localhost2 && addr != localhost3){
+	if (!addr.is_loopback()){
 		cerr << "attempted connection from non-localhost: " << addr << endl;
 		return true;
 	}
