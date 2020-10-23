@@ -230,6 +230,18 @@ int querySpecs::getFileNo(string s){
 		error("file number not founde");
 	return f->fileno;
 }
+void querySpecs::promptPassword(){
+	if (needPass && password.empty()){
+		if (runmode == RUN_SERVER){
+			sendPassPrompt(sessionId);
+			//password = passReturn.get_future().get();
+		} else {
+			cerr << "Enter encryption password:\n";
+		}
+	}
+	password =  "dog"; //TODO
+	cerr << "using dummy pass\n";
+}
 
 
 void printTree(unique_ptr<node> &n, int ident){
@@ -388,9 +400,6 @@ string handle_err(exception_ptr eptr) {
         return  e.what();
     }
 }
-string promptPassword(){
-	return "dog"; //TODO
-}
 
 bool isTrivial(unique_ptr<node> &n){
 	if (n == nullptr) return false;
@@ -467,6 +476,7 @@ void prepareQuery(querySpecs &q){
 	scanTokens(q);
 	parseQuery(q);
 	openfiles(q, q.tree);
+	q.promptPassword();
 	applyTypes(q);
 	printTree(q.tree, 0);
 	analyzeTree(q);

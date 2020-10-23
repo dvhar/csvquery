@@ -84,3 +84,10 @@ void sendMessage(i64 sesid, const char* message){
 		c->send(json{{"Type",SK_MSG},{"Text",message}}.dump());
 	seslock.unlock();
 }
+void sendPassPrompt(i64 sesid){
+	seslock.lock();
+	if (auto& c = connections[sesid]; c)
+		c->send(json{{"Type",SK_PASS}}.dump());
+	seslock.unlock();
+	cerr << "sent pass prompt\n";
+}

@@ -1,5 +1,6 @@
 #pragma once
 
+#include <future>
 #include <string>
 #include <map>
 #include <set>
@@ -442,6 +443,7 @@ class querySpecs {
 	unique_ptr<node> tree;
 	map<string, shared_ptr<fileReader>> filemap;
 	vector<shared_ptr<fileReader>> filevec;
+	promise<string> passReturn;
 	resultSpecs colspec = {0};
 	crypter crypt = {};
 	i64 sessionId = 0;
@@ -464,6 +466,7 @@ class querySpecs {
 	bool whereFiltering =0;
 	bool havingFiltering =0;
 	bool distinctFiltering =0;
+	bool needPass =0;
 	token tok();
 	token nextTok();
 	token peekTok();
@@ -477,6 +480,7 @@ class querySpecs {
 	int getVarType(string);
 	int getFileNo(string s);
 	shared_ptr<fileReader>& getFileReader(int);
+	void promptPassword();
 	variable& var(string);
 	~querySpecs();
 	querySpecs(string &s) : queryString(s) {};
@@ -547,9 +551,11 @@ unique_ptr<node>& findFirstNode(unique_ptr<node> &n, int label);
 void prepareQuery(querySpecs &q);
 void stopAllQueries();
 shared_ptr<directory> filebrowse(string);
-string promptPassword();
 bool isTrivial(unique_ptr<node> &n);
 string nodeName(unique_ptr<node> &n, querySpecs* q);
+void sendMessage(i64,const char*);
+void sendMessage(i64 sesid, string);
+void sendPassPrompt(i64 sesid);
 
 struct freeC {
 	void operator()(void*x){ free(x); }
