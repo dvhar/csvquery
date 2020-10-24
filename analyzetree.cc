@@ -35,8 +35,7 @@ void analyzer::setSubtreeVarFilter(unique_ptr<node> &n, int filter){
 	switch (n->label){
 	case N_VALUE:
 		if (n->tok2.id == VARIABLE){
-			auto& var = q->var(n->tok1.val);
-			var.filter |= filter;
+			q->var(n->tok1.val).filter |= filter;
 			propogateVarFilter(n->tok1.val, filter);
 		} else {
 			setSubtreeVarFilter(n->node1, filter);
