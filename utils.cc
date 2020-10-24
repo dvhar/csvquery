@@ -242,7 +242,7 @@ void querySpecs::promptPassword(){
 				error("Encryption password is empty");
 		} else {
 			cerr << "Enter encryption password:\n";
-			password =  "dog"; //TODO
+			cin >> password;
 		}
 	}
 }
