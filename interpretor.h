@@ -33,6 +33,7 @@
 
 typedef struct chacha20_context chacha;
 typedef long long i64;
+typedef unsigned long long u64;
 typedef unsigned int u32;
 typedef i64 dur_t;
 template<typename A, typename B>
@@ -285,7 +286,7 @@ class fileReader {
 	vector<csvEntry> entriesVec;
 	forward_list<unique_ptr<char[]>> gotbuffers;
 	i64 prevpos = 0;
-	i64 fsize = 0;
+	u64 fsize = 0;
 	int equoteCount = 0;
 	int memidx = 0;
 	int numrows = 0;
@@ -563,11 +564,11 @@ struct freeC {
 };
 
 template<typename T>
-static void __st(stringstream& ss, T& v) {
+static void __st(stringstream& ss, T&& v) {
 	ss << v;
 }
 template<typename T, typename... Args>
-static void __st(stringstream& ss, T& first, Args&... args) {
+static void __st(stringstream& ss, T&& first, Args&&... args) {
 	ss << first;
 	__st(ss, args...);
 }

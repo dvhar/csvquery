@@ -234,12 +234,15 @@ void querySpecs::promptPassword(){
 	if (needPass && password.empty()){
 		if (runmode == RUN_SERVER){
 			sendPassPrompt(sessionId);
-			password = passReturn.get_future().get();
-			//TODO: validate and timeout
+			auto passFuture = passReturn.get_future();
+			if (passFuture.wait_for(chrono::minutes(1)) == future_status::timeout)
+				error("Timed out while waiting for encryption password");
+			password = passFuture.get();
+			if (password.empty())
+				error("Encryption password is empty");
 		} else {
 			cerr << "Enter encryption password:\n";
 			password =  "dog"; //TODO
-			cerr << "using dummy pass\n";
 		}
 	}
 }
