@@ -2,6 +2,7 @@
 #include <chrono>
 #include <stdlib.h>
 #include <ctype.h>
+#include <termios.h>
 #include "deps/json/escape.h"
 #define max(a,b) (a) > (b) ? (a) : (b)
 
@@ -242,7 +243,13 @@ void querySpecs::promptPassword(){
 				error("Encryption password is empty");
 		} else {
 			cerr << "Enter encryption password:\n";
+			termios oldt;
+			tcgetattr(STDIN_FILENO, &oldt);
+			termios newt = oldt;
+			newt.c_lflag &= ~ECHO;
+			tcsetattr(STDIN_FILENO, TCSANOW, &newt);
 			cin >> password;
+			tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
 		}
 	}
 }
