@@ -13,6 +13,7 @@ class bufreader {
 	bufreader& operator=(bufreader);
 	public:
 	static int buffsize;
+	bool done = false;
 	int linesize = 0;
 	char* getline();
 	bufreader(){}

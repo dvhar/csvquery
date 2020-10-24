@@ -12,7 +12,10 @@ inline void bufreader::refresh(){
 	if (nl){
 		*nl = 0;
 		linesize = nl - line + 1;
-	} else line[0] = 0;
+	} else {
+		line[0] = 0;
+		done = true;
+	}
 }
 
 char* bufreader::getline(){

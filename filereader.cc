@@ -73,10 +73,12 @@ bool fileReader::readline(){
 			} else {
 				buf = fs.getline();
 			}
+			if (fs.done) return 1;
 		}
 	} else {
 		pos = prevpos;
 		buf = fs.getline();
+		if (fs.done) return 1;
 	}
 	entriesVec.clear();
 	fieldsFound = 0;
