@@ -9,6 +9,7 @@ void hideInput(){
 
 #else
 #include <termios.h>
+#include <unistd.h>
 void hideInput(){
     termios oldt;
     tcgetattr(STDIN_FILENO, &oldt);
