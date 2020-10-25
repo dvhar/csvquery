@@ -286,7 +286,6 @@ class fileReader {
 	vector<csvEntry> entriesVec;
 	forward_list<unique_ptr<char[]>> gotbuffers;
 	i64 prevpos = 0;
-	u64 fsize = 0;
 	int equoteCount = 0;
 	int memidx = 0;
 	int numrows = 0;

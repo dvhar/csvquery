@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include<filesystem>
 #define BUFSIZE  (1024*1024*3)
 
 class bufreader {
@@ -7,19 +8,22 @@ class bufreader {
 	char* nl = NULL;
 	char* line = NULL;
 	int biggestline = 0;
+	unsigned long long readsofar = 0;
 	bool single = false;
 	char buf[BUFSIZE+1];
 	void refresh();
 	bufreader& operator=(bufreader);
 	public:
-	static int buffsize;
+	unsigned long long fsize = 0;
+	int buffsize = BUFSIZE;
 	bool done = false;
 	int linesize = 0;
 	char* getline();
 	bufreader(){}
 	~bufreader(){if (f) fclose(f);}
 	void open(const char* fname){
-		f = fopen(fname,"r");
+		fsize = std::filesystem::file_size(fname);
+		f = fopen(fname,"rb");
 	};
 	//fill entire buffer when reread
 	void seekfull(long long pos){

@@ -17,11 +17,10 @@ fileReader::fileReader(string& fname) : filename(fname) {
 		}
 	}
 	//filesize optimizations more beneficial for joined files
-	fsize = filesystem::file_size(fname);
-	small = fsize < (fileno>0 ? 100*1024*1024 : bufreader::buffsize);
-	if (small && bufreader::buffsize < fsize)
-		needStretchyBuf = true;
 	fs.open(fname.c_str());	
+	small = fs.fsize < (fileno>0 ? 100*1024*1024 : fs.buffsize);
+	if (small && fs.buffsize < fs.fsize)
+		needStretchyBuf = true;
 }
 char fileReader::blank = 0;
 fileReader::~fileReader(){
