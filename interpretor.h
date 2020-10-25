@@ -558,6 +558,7 @@ string nodeName(unique_ptr<node> &n, querySpecs* q);
 void sendMessage(i64,const char*);
 void sendMessage(i64 sesid, string);
 void sendPassPrompt(i64 sesid);
+void hideInput();
 
 struct freeC {
 	void operator()(void*x){ free(x); }
