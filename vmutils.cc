@@ -366,7 +366,7 @@ void crypter::chachaDecrypt(dat& d, int i){
 	u32 finalsize = strnlen(rawResult+macsize+noncesize, capsize);
 	getmac(rawResult+noncesize+macsize, finalsize, rawResult, (char*)ch->key, sizeof(ch->key), mac);
 	d.freedat();
-	if (!memcmp(mac, rawResult+noncesize, macsize)){
+	if (*(u32*) mac == *(u32*)(rawResult+noncesize)){
 		auto finalResult = (char*) malloc(finalsize+1);
 		memcpy(finalResult, rawResult+noncesize+macsize, finalsize);
 		finalResult[finalsize]=0;
