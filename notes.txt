@@ -1,28 +1,11 @@
 building on windows using msys2:
 
-	pacman -S mingw-w64-x86_64-cmake mingw-w64-x86_64-fmt mingw-w64-x86_64-boost mingw-w64-x86_64-toolchain git vim
+	pacman -S mingw-w64-x86_64-cmake mingw-w64-x86_64-nlohmann-json mingw-w64-x86_64-boost mingw-w64-x86_64-toolchain
 
 	git clone https://github.com/dvhar/csvquery
 	cd csvquery/build
 	cmake .. -G "MinGW Makefiles" -DCMAKE_SH="CMAKE_SH-NOTFOUND"
 	mingw32-make.exe -j4
 
-cmake on linux when using vcpkg packages:
-
-	cmake .. -DCMAKE_TOOLCHAIN_FILE=/home/dave/gits/vcpkg/scripts/buildsystems/vcpkg.cmake
-
-
-how to add uninstalled libraries on specific systems:
-
-	if  (LINUX)
-		add_library(tre STATIC IMPORTED)
-		set_target_properties(tre PROPERTIES IMPORTED_LOCATION /home/dave/gits/vcpkg/installed/x64-linux/lib/libtre.a)
-		set_target_properties(tre PROPERTIES INTERFACE_INCLUDE_DIRECTORIES /home/dave/gits/vcpkg/installed/x64-linux/include/tre)
-	endif  (LINUX)
-
-
 embed website:
-	create source file:
-		find webgui/build -regextype posix-egrep -regex ".*(js|css|map|json|png|txt)" -type f -exec mbin {} \; >> embed.c
-	list byte array names:
-		find webgui/build -regextype posix-egrep -regex ".*(js|css|map|json|png|txt)" -type f -exec mbin -n {} \;
+	./deps/embed.sh
