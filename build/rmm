@@ -1,3 +1,3 @@
 #!/bin/sh
 
-ls | egrep -v "(rmm|test|Test|build)" | xargs rm -rf
+ls | egrep -v "(rmm|test|Test|build|dll)" | xargs rm -rf
