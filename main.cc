@@ -25,7 +25,7 @@ int main(int argc, char** argv){
 		if (!strcmp(argv[1], "help"))
 			help(argv[0]);
 		//get query from file
-		if (filesystem::is_regular_file(argv[1]))
+		if (strlen(argv[1]) < 30 && filesystem::is_regular_file(argv[1]))
 			querystring = st(ifstream(argv[1]).rdbuf());
 		//get query from arg text
 		else
