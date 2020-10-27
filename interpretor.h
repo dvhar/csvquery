@@ -280,7 +280,7 @@ class fileReader {
 	char* terminator = 0;
 	char* buf = 0;
 	char* escapedQuote = 0;
-	bufreader fs;
+	bufreader br;
 	string filename;
 	vector<vector<csvEntry>> gotrows;
 	vector<csvEntry> entriesVec;

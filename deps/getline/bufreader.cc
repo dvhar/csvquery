@@ -3,7 +3,6 @@
 
 inline void bufreader::refresh(){
 	if (readsofar >= fsize){
-		line[0] = 0;
 		done = true;
 		return;
 	}
@@ -17,7 +16,6 @@ inline void bufreader::refresh(){
 		*nl = 0;
 		linesize = nl - line + 1;
 	} else {
-		line[0] = 0;
 		done = true;
 	}
 }

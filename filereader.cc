@@ -17,9 +17,9 @@ fileReader::fileReader(string& fname) : filename(fname) {
 		}
 	}
 	//filesize optimizations more beneficial for joined files
-	fs.open(fname.c_str());	
-	small = fs.fsize < (fileno>0 ? 100*1024*1024 : fs.buffsize);
-	if (small && fs.buffsize < fs.fsize)
+	br.open(fname.c_str());	
+	small = br.fsize < (fileno>0 ? 100*1024*1024 : br.buffsize);
+	if (small && br.buffsize < br.fsize)
 		needStretchyBuf = true;
 }
 char fileReader::blank = 0;
@@ -51,7 +51,7 @@ bool fileReader::readlineat(i64 position){
 			fill(entriesVec.begin(), entriesVec.end(), csvEntry{&blank,&blank});
 			return 0;
 		}
-		fs.seekline(position);
+		br.seekline(position);
 		return readline();
 	}
 }
@@ -65,19 +65,18 @@ bool fileReader::readline(){
 			return 0;
 		} else { //file is in buffer but entries not saved yet (infertypes)
 			if (needStretchyBuf){
-			   auto line = fs.getline();
-			   gotbuffers.emplace_front(new char[fs.linesize]);
-			   buf = gotbuffers.front().get();
+			   auto line = br.getline();
+			   gotbuffers.emplace_front(buf = new char[br.linesize]);
 			   strcpy(buf, line);
 			} else {
-				buf = fs.getline();
+				buf = br.getline();
 			}
-			if (fs.done) return 1;
+			if (br.done) return 1;
 		}
 	} else {
 		pos = prevpos;
-		buf = fs.getline();
-		if (fs.done) return 1;
+		buf = br.getline();
+		if (br.done) return 1;
 	}
 	entriesVec.clear();
 	fieldsFound = 0;
@@ -214,7 +213,7 @@ void fileReader::inferTypes() {
 	if (small)
 		fill(entriesVec.begin(), entriesVec.end(), csvEntry{&blank,&blank});
 	else
-		fs.seekfull(startData);
+		br.seekfull(startData);
 }
 
 int fileReader::getColIdx(string& colname){

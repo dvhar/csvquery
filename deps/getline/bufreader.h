@@ -23,7 +23,7 @@ class bufreader {
 	~bufreader(){if (f) fclose(f);}
 	void open(const char* fname){
 		fsize = std::filesystem::file_size(fname);
-		f = fopen(fname,"r");
+		f = fopen(fname,"rb");
 	};
 	//fill entire buffer when reread
 	void seekfull(long long pos){

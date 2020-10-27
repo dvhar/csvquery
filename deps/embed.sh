@@ -1,6 +1,6 @@
 #!/bin/bash
 
-
+[ -f embed_site.hpp ] && rm embed_site.hpp
 render(){
 	echo $@ >> embed_site.hpp
 }
