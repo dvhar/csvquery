@@ -1,40 +1,53 @@
-set(CMAKE_CXX_STANDARD 17)
-cmake_minimum_required(VERSION 3.1)
-project(cql)
+cmake_minimum_required(VERSION 3.18)
 
-set(optimize "-O3 -pipe")
-set(applegcc /usr/local)
-set(staticlib "-static-libgcc -static-libstdc++")
+project(cql LANGUAGES C CXX)
 
+find_package(TBB REQUIRED)
+find_package(nlohmann_json REQUIRED)
 
-
-if (APPLE)
-	set(CMAKE_CXX_COMPILER ${applegcc}/bin/g++-10)
-	set(CMAKE_C_COMPILER ${applegcc}/bin/gcc-10)
-	set(CMAKE_CXX_FLAGS "${optimize} -ltbb -I${applegcc}/include")
-else()
-	set(CMAKE_CXX_FLAGS "${optimize} -ltbb")
+if(UNIX)
+  set(THREADS_PREFER_PTHREAD_FLAG YES)
+  find_package(Threads REQUIRED)
+  find_package(Boost REQUIRED COMPONENTS system)
 endif()
 
-find_package (Boost)
-find_package (nlohmann_json)
+set(sources
+	deps/dateparse/dateparse.c
+	deps/crypto/chacha20.c
+	deps/crypto/base64.c
+	deps/crypto/sha1.c
+	deps/crypto/sha256.c
+	deps/crypto/md5.c
+	deps/crypto/halfsiphash.c
+	deps/getline/bufreader.cc
+	deps/json/escape.cc
+	analyzetree.cc
+	codegen.cc
+	datatyping.cc
+	embed_site.cc
+	filereader.cc
+	http.cc
+	main.cc
+	parser.cc
+	scanner.cc
+	termos.cc
+	utils.cc
+	vmachine.cc
+	vmutils.cc
+	ws.cc
+)
 
-file(GLOB CQL_SOURCE "*.cc")
-set(CQL_SOURCE ${CQL_SOURCE} deps/dateparse/dateparse.c)
-set(CQL_SOURCE ${CQL_SOURCE} deps/chacha/chacha20.c)
-set(CQL_SOURCE ${CQL_SOURCE} deps/crypto/base64.c)
-set(CQL_SOURCE ${CQL_SOURCE} deps/crypto/sha1.c)
-set(CQL_SOURCE ${CQL_SOURCE} deps/crypto/sha256.c)
-set(CQL_SOURCE ${CQL_SOURCE} deps/crypto/md5.c)
-set(CQL_SOURCE ${CQL_SOURCE} deps/crypto/halfsiphash.c)
-set(CQL_SOURCE ${CQL_SOURCE} deps/getline/bufreader.cc)
-set(CQL_SOURCE ${CQL_SOURCE} deps/json/escape.cc)
-add_executable(cql ${CQL_SOURCE})
+add_executable(cql ${sources})
+target_compile_features(cql PRIVATE cxx_std_17)
 
-if (WIN32)
-	target_link_libraries(cql PRIVATE libtre.a tbb ${staticlib} wsock32 ws2_32 nlohmann_json::nlohmann_json)
-elseif (APPLE)
-	target_link_libraries(cql PRIVATE tbb ${staticlib} -L${applegcc}/lib)
-elseif(UNIX)
-	target_link_libraries(cql PRIVATE tbb ${staticlib} pthread libboost_system.a nlohmann_json::nlohmann_json)
-endif()
+set(is_win "$<BOOL:${WIN32}>")
+set(is_unix "$<BOOL:${UNIX}>")
+target_link_libraries(cql PRIVATE
+        TBB::tbb
+        "$<$<NOT:$<BOOL:${APPLE}>>:nlohmann_json::nlohmann_json>"
+        "$<${is_unix}:Boost::system>"
+        "$<${is_unix}:Threads::Threads>"
+        # Non target dependencies
+        "$<${is_win}:tre>"
+        "$<${is_win}:wsock32>"
+        "$<${is_win}:ws2_32>")
