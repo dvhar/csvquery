@@ -633,3 +633,20 @@ void queryQueue::setPassword(i64 sesid, string& pass){
 		}
 	mtx.unlock();
 }
+static queryQueue qrunner;
+void stopAllQueries(){
+	qrunner.endall();
+}
+void returnPassword(i64 sesid, string pass){
+	qrunner.setPassword(sesid, pass);
+}
+
+atomic_int vmachine::idCounter = 0;
+void runPlainQuery(querySpecs &q){
+	auto r = qrunner.runquery(q);
+	r.get();
+}
+shared_ptr<singleQueryResult> runJsonQuery(querySpecs &q){
+	auto r = qrunner.runqueryJson(q);
+	return r.get();
+}

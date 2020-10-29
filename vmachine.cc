@@ -1237,21 +1237,3 @@ CVER_:
 CVNO_:
 	error("Invalid opcode");
 }
-
-static queryQueue runner;
-void stopAllQueries(){
-	runner.endall();
-}
-void returnPassword(i64 sesid, string pass){
-	runner.setPassword(sesid, pass);
-}
-
-atomic_int vmachine::idCounter = 0;
-void runPlainQuery(querySpecs &q){
-	auto r = runner.runquery(q);
-	r.get();
-}
-shared_ptr<singleQueryResult> runJsonQuery(querySpecs &q){
-	auto r = runner.runqueryJson(q);
-	return r.get();
-}
