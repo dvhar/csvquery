@@ -28,12 +28,14 @@ class bufreader {
 	//fill entire buffer when reread
 	void seekfull(long long pos){
 		fseek(f, pos, SEEK_SET);
+		done = false;
 		end = line = NULL;
 		single = false;
 	}
 	//fill buffer to size of biggest line when reread
 	void seekline(long long pos){
 		fseek(f, pos, SEEK_SET);
+		done = false;
 		end = line = NULL;
 		single = true;
 	}

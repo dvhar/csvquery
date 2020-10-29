@@ -18,7 +18,7 @@
 #include <boost/container/flat_map.hpp>
 #include <boost/format.hpp>
 #include "deps/dateparse/dateparse.h"
-#include "deps/chacha/chacha20.h"
+#include "deps/crypto/chacha20.h"
 #include "deps/getline/bufreader.h"
 #include <forward_list>
 #include <nlohmann/json.hpp>
