@@ -1,9 +1,11 @@
-cmake_minimum_required(VERSION 3.18)
+cmake_minimum_required(VERSION 3.12)
 
 project(cql LANGUAGES C CXX)
 
 find_package(TBB REQUIRED)
 find_package(nlohmann_json REQUIRED)
+
+set(CMAKE_CXX_FLAGS "-O3 -pipe")
 
 if(UNIX)
   set(THREADS_PREFER_PTHREAD_FLAG YES)
@@ -47,7 +49,6 @@ target_link_libraries(cql PRIVATE
         "$<$<NOT:$<BOOL:${APPLE}>>:nlohmann_json::nlohmann_json>"
         "$<${is_unix}:Boost::system>"
         "$<${is_unix}:Threads::Threads>"
-        # Non target dependencies
         "$<${is_win}:tre>"
         "$<${is_win}:wsock32>"
         "$<${is_win}:ws2_32>")
