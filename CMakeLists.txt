@@ -13,7 +13,8 @@ if(UNIX)
   find_package(Boost REQUIRED COMPONENTS system)
 endif()
 
-set(sources
+file(GLOB sources "*.cc")
+set(sources ${sources}
 	deps/dateparse/dateparse.c
 	deps/crypto/chacha20.c
 	deps/crypto/base64.c
@@ -23,20 +24,6 @@ set(sources
 	deps/crypto/halfsiphash.c
 	deps/getline/bufreader.cc
 	deps/json/escape.cc
-	analyzetree.cc
-	codegen.cc
-	datatyping.cc
-	embed_site.cc
-	filereader.cc
-	http.cc
-	main.cc
-	parser.cc
-	scanner.cc
-	termos.cc
-	utils.cc
-	vmachine.cc
-	vmutils.cc
-	ws.cc
 )
 
 add_executable(cql ${sources})
@@ -46,7 +33,6 @@ set(is_win "$<BOOL:${WIN32}>")
 set(is_unix "$<BOOL:${UNIX}>")
 target_link_libraries(cql PRIVATE
         TBB::tbb
-        "$<$<NOT:$<BOOL:${APPLE}>>:nlohmann_json::nlohmann_json>"
         "$<${is_unix}:Boost::system>"
         "$<${is_unix}:Threads::Threads>"
         "$<${is_win}:tre>"
