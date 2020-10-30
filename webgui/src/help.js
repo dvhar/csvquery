@@ -82,7 +82,7 @@ class FuncTable extends React.Component {
 	constructor(){
 		super();
 		this.table =  (
-			<table>
+			<table className='helpTable'>
 				<th>Function</th><th>parameters</th><th>description</th>
 				{funclist.map((f)=>{return(<Func fun={f[0]} usage={f[1]} params={f[2]}/>);})}
 			</table>
