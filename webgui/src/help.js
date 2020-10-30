@@ -74,7 +74,7 @@ const funclist = [
 const Func = ({fun,usage,params}) => {
 	return (
 		<>
-		<tr><td>{fun}</td><td>{paramlist[params]}</td><td>{usage}</td> </tr>
+		<tr><td className='helpTable'>{fun}</td><td className='helpTable'>{paramlist[params]}</td><td className='helpTable'>{usage}</td> </tr>
 		</>
 	);
 }
@@ -83,7 +83,7 @@ class FuncTable extends React.Component {
 		super();
 		this.table =  (
 			<table className='helpTable'>
-				<th>Function</th><th>parameters</th><th>description</th>
+				<th className='helpTable'>Function</th><th className='helpTable'>parameters</th><th className='helpTable'>description</th>
 				{funclist.map((f)=>{return(<Func fun={f[0]} usage={f[1]} params={f[2]}/>);})}
 			</table>
 		);
