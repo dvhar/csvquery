@@ -13,7 +13,7 @@ if(UNIX)
   find_package(Boost REQUIRED COMPONENTS system)
 endif()
 
-file(GLOB sources "*.cc")
+file(GLOB sources CONFIGURE_DEPENDS "*.cc")
 set(sources ${sources}
 	deps/dateparse/dateparse.c
 	deps/crypto/chacha20.c
