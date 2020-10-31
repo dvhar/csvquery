@@ -2,9 +2,10 @@
 
 import subprocess
 import json
+import os
 
 picky = False
-picks= [3,4] #which tests to run when picky
+picks = [3,4] #which tests to run when picky
 
 def runtest(test):
     q = test['query']
@@ -20,14 +21,17 @@ def runtest(test):
         quit()
     if test['code'] == 0:
         print("---------------------------------------")
-        print(out.decode('UTF-8'))
+        #print(out.decode('UTF-8'))
         with open('test/results/' + test['output'], 'rb') as res:
             expected = res.read()
+            if os.name == 'nt':
+                expected = expected.replace(b'\n',b'\r\n')
+            #print(expected.decode('utf-8'))
             if out != expected:
                 print(f"Failed. Expected from {test['output']}:")
-                print('==>'+expected.decode('UTF-8')+'<==')
+                print(expected)
                 print('Got instead:')
-                print('==>'+out.decode('UTF-8')+'<==')
+                print(out)
                 quit()
     print("---------------------------------------")
     print(f"Success! return code: {ret.returncode}")
