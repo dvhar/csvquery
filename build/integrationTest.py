@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 import subprocess
-import json
+import yaml
 import os
 
 picky = False
@@ -29,15 +29,15 @@ def runtest(test):
             #print(expected.decode('utf-8'))
             if out != expected:
                 print(f"Failed. Expected from {test['output']}:")
-                print(expected)
+                print(expected.decode('utf-8'))
                 print('Got instead:')
-                print(out)
+                print(out.decode('utf-8'))
                 quit()
     print("---------------------------------------")
     print(f"Success! return code: {ret.returncode}")
 
-with open('test/testdata.json') as testfile:
-    tests = json.load(testfile)
+with open('test/testdata.yml') as testfile:
+    tests = yaml.load(testfile, Loader=yaml.FullLoader)
     for test in tests:
         if picky:
             if i in picks:
