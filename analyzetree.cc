@@ -97,11 +97,11 @@ void analyzer::varUsedInFilter(unique_ptr<node> &n){
 
 void analyzer::selectAll(){
 	for (auto& f: q->filevec){
-		for (auto &c : f->types){
+		for (auto t : f->types){
 			++q->colspec.count;
 			if (f->noheader)
 				q->colspec.colnames.push_back(st("col",q->colspec.count));
-			q->colspec.types.push_back(T_STRING);
+			q->colspec.types.push_back(t);
 		}
 		if (!f->noheader)
 			q->colspec.colnames.insert(q->colspec.colnames.end(), f->colnames.begin(), f->colnames.end());
@@ -113,8 +113,8 @@ void analyzer::recordResultColumns(unique_ptr<node> &n){
 	string t1 = n->tok1.lower();
 	switch (n->label){
 	case N_SELECTIONS:
-		if (t1 == "hidden"sv) {
-		} else if (t1 == "*"sv){
+		if (t1 == "hidden") {
+		} else if (t1 == "*"){
 			selectAll();
 		} else {
 			n->tok4.id = q->colspec.count++;
@@ -154,7 +154,7 @@ bool analyzer::findAgrregates(unique_ptr<node> &n){
 	switch (n->label){
 	case N_FUNCTION:
 		if ((n->tok1.id & AGG_BIT) != 0){
-			if (n->tok3.lower() == "distinct"sv){
+			if (n->tok3.lower() == "distinct"){
 				if (n->node1->datatype == T_STRING){
 					n->tok4.id = q->distinctSFuncs++;
 				} else {
