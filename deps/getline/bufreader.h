@@ -10,7 +10,8 @@ class bufreader {
 	int biggestline = 0;
 	unsigned long long readsofar = 0;
 	bool single = false;
-	char buf[BUFSIZE+1];
+	char* buf;
+	char realbuf[BUFSIZE+4];
 	void refresh();
 	bufreader& operator=(bufreader);
 	public:
@@ -24,6 +25,10 @@ class bufreader {
 	void open(const char* fname){
 		fsize = std::filesystem::file_size(fname);
 		f = fopen(fname,"rb");
+		//padding for safe parsing
+		realbuf[0] = realbuf[buffsize+2] =
+		realbuf[1] = realbuf[buffsize+3] = 0;
+		buf = realbuf+2;
 	};
 	//fill entire buffer when reread
 	void seekfull(long long pos){
