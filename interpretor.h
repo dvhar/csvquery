@@ -560,6 +560,7 @@ void sendMessage(i64,const char*);
 void sendMessage(i64 sesid, string);
 void sendPassPrompt(i64 sesid);
 void hideInput();
+void initregex();
 
 struct freeC {
 	void operator()(void*x){ free(x); }
