@@ -157,6 +157,8 @@ enum {
 	FN_ROUND =         KEYWORD|96,
 	FN_POW =           KEYWORD|97,
 	FN_CBRT =          KEYWORD|98,
+	FN_NOW =           KEYWORD|99,
+	FN_NOWGM =         KEYWORD|100,
 	SPECIALBIT =  1<<21,
 	SPECIAL =      FINAL|SPECIALBIT,
 	SP_EQ =        RELOP|SPECIAL|50,

@@ -174,6 +174,8 @@ static bool canBeString(unique_ptr<node> &n){
 		case FN_FLOAT:
 		case FN_ROUND:
 		case FN_POW:
+		case FN_NOW:
+		case FN_NOWGM:
 			return false;
 		}
 	}
@@ -484,6 +486,11 @@ typer dataTyper::typeFunctionInnerNodes(unique_ptr<node> &n){
 		innerType = {T_FLOAT, false};
 		n->info[RETTYPE] = T_FLOAT;
 		break;
+	case FN_NOW:
+	case FN_NOWGM:
+		innerType = {T_DATE, false};
+		n->info[RETTYPE] = T_DATE;
+		break;
 	case FN_LEN:
 		innerType = {T_FLOAT, false};
 		n->info[RETTYPE] = T_FLOAT;
@@ -651,6 +658,7 @@ void dataTyper::typeFunctionFinalNodes(unique_ptr<node> &n, int finaltype){
 	node *convNode, *tempNode;
 	bool needRetConvert = false;
 	int oldret = finaltype;
+	//TODO: find out why now() return is not using dynamic typing
 	if (auto rt = n->info[RETTYPE]; rt > 0 && finaltype > rt){
 		//need conversion from RETTYPE (can do) to original finaltype (need)
 		n->datatype = finaltype = rt;
@@ -698,6 +706,8 @@ void dataTyper::typeFunctionFinalNodes(unique_ptr<node> &n, int finaltype){
 	case FN_STRING:
 	case FN_ROUND:
 	case FN_POW:
+	case FN_NOW:
+	case FN_NOWGM:
 		//add type conversion node for parameter if needed
 		if (auto pt = n->info[PARAMTYPE]; pt){
 			typeFinalValues(n->node1, pt);
