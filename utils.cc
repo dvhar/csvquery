@@ -5,6 +5,7 @@
 #include "deps/json/escape.h"
 #define max(a,b) (a) > (b) ? (a) : (b)
 
+int runmode;
 regex_t leadingZeroString;
 regex_t durationPattern;
 regex_t intType;
@@ -18,6 +19,12 @@ int isDuration(const char* s){ return !regexec(&durationPattern, s, 0, NULL, 0);
 int isInt(const char* s){ return !regexec(&intType, s, 0, NULL, 0); }
 int isFloat(const char* s){ return !regexec(&floatType, s, 0, NULL, 0); }
 
+void initregex(){
+	regcomp(&leadingZeroString, "^0[0-9]+$", REG_EXTENDED);
+	regcomp(&durationPattern, "^([0-9]+|[0-9]+\\.[0-9]+) ?(seconds|second|minutes|minute|hours|hour|days|day|weeks|week|years|year|s|m|h|d|w|y)$", REG_EXTENDED);
+	regcomp(&intType, "^-?[0-9]+$", REG_EXTENDED);
+	regcomp(&floatType, "^-?[0-9]*\\.[0-9]+$", REG_EXTENDED);
+}
 mt19937 rng(chrono::high_resolution_clock::now().time_since_epoch().count());
 
 const flatmap<int, string_view> typeNames = {
