@@ -39,6 +39,8 @@ extern char* daynames[];
 extern char* monthnames[];
 extern unsigned int daylens[];
 extern unsigned int monthlens[];
+date_t nowlocal();
+date_t nowgm();
 
 #ifdef __cplusplus
 }

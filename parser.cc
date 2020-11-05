@@ -447,6 +447,7 @@ unique_ptr<node> parser::parsePredCompare() {
 		}
 	}
 	//comparison
+	auto nullInList = q->tok().lower() == "null";
 	n->node1 = parseExprAdd();
 	t = q->tok();
 	if (t.id == SP_NEGATE) {
@@ -464,7 +465,7 @@ unique_ptr<node> parser::parsePredCompare() {
 	} else if (n->tok1.id == KW_IN) {
 		if (t.id != SP_LPAREN) error("Expected opening parenthesis for expression list. Found: "+t.val);
 		q->nextTok();
-		n->node2 = parseExpressionList(true,false);
+		n->node2 = parseExpressionList(!nullInList, false);
 		t = q->tok();
 		if (t.id != SP_RPAREN) error("Expected closing parenthesis after expression list. Found: "+t.val);
 		q->nextTok();
@@ -703,9 +704,6 @@ unique_ptr<node> parser::parseFunction() {
 			}
 			break;
 
-		case FN_INC:
-		case FN_RAND:
-			break;
 		case FN_ROUND:
 		case FN_FLOOR:
 		case FN_CEIL:
@@ -736,6 +734,11 @@ unique_ptr<node> parser::parseFunction() {
 				n->tok3 = q->nextTok();
 				q->nextTok();
 			}
+			break;
+		case FN_INC:
+		case FN_RAND:
+		case FN_NOW:
+		case FN_NOWGM:
 			break;
 		default:
 			n->node1 = parseExprAdd();

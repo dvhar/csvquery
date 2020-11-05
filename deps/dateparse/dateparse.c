@@ -2212,3 +2212,13 @@ char* datestringfmt(date_t t, const char* format){
 	strftime(dateprintbuf, 30, format, tminfo);
 	return dateprintbuf;
 }
+
+date_t nowlocal(){
+	time_t sec = time(0);
+	struct tm t;
+	localtime_r(&sec, &t);
+	return mktimegm(&t);
+}
+date_t nowgm(){
+	return (date_t)time(0)*1000000;
+}

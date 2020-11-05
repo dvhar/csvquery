@@ -1010,6 +1010,8 @@ void cgen::genFunction(unique_ptr<node> &n){
 	case FN_SHA1:
 	case FN_SHA256:
 	case FN_ROUND:
+	case FN_NOW:
+	case FN_NOWGM:
 		genExprAll(n->node1);
 		addop(functionCode[n->tok1.id], n->tok2.id);
 		break;

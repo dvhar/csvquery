@@ -146,6 +146,9 @@ const flatmap<string_view, int> functionMap = {
 	{"round",        FN_ROUND},
 	{"pow",          FN_POW},
 	{"cbrt",         FN_CBRT},
+	{"now",          FN_NOW},
+	{"nowlocal",     FN_NOW},
+	{"nowgm",        FN_NOWGM},
 
 };
 //use WORD for these?
