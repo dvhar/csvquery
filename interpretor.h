@@ -17,12 +17,12 @@
 #include <boost/algorithm/string.hpp>
 #include <boost/container/flat_map.hpp>
 #include <boost/format.hpp>
+#include <forward_list>
+#include <random>
 #include "deps/dateparse/dateparse.h"
 #include "deps/crypto/chacha20.h"
 #include "deps/getline/bufreader.h"
-#include <forward_list>
-#include <nlohmann/json.hpp>
-#include <random>
+#include "deps/json/json.hpp"
 
 #ifdef __MINGW32__
 #include <getopt.h>
