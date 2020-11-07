@@ -301,6 +301,8 @@ namespace SimpleWeb {
       }
 
       void set_timeout(long seconds) noexcept {
+		  /*
+		   * TODO: make this work on mac
         if(seconds == 0) {
           timer = nullptr;
           return;
@@ -314,6 +316,8 @@ namespace SimpleWeb {
               self->close();
           }
         });
+		*/
+          timer = nullptr;
       }
 
       void cancel_timeout() noexcept {
