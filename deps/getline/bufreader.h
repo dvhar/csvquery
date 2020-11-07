@@ -36,6 +36,7 @@ class bufreader {
 		done = false;
 		end = line = NULL;
 		single = false;
+		readsofar = 0;
 	}
 	//fill buffer to size of biggest line when reread
 	void seekline(long long pos){
@@ -43,5 +44,6 @@ class bufreader {
 		done = false;
 		end = line = NULL;
 		single = true;
+		readsofar = 0;
 	}
 };
