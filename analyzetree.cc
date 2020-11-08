@@ -20,6 +20,7 @@ class analyzer {
 		set<int> whichFilesReferenced(unique_ptr<node> &n);
 		void findJoinAndChains(unique_ptr<node> &n, int fileno);
 		bool ischain(unique_ptr<node> &n, int &predno);
+		void shouldPrintHeader();
 };
 
 void analyzer::propogateVarFilter(string var, int filter){
@@ -103,8 +104,10 @@ void analyzer::selectAll(){
 				q->colspec.colnames.push_back(st("col",q->colspec.count));
 			q->colspec.types.push_back(t);
 		}
-		if (!f->noheader)
+		if (!f->noheader){
 			q->colspec.colnames.insert(q->colspec.colnames.end(), f->colnames.begin(), f->colnames.end());
+			shouldPrintHeader();
+		}
 	}
 }
 
@@ -119,8 +122,10 @@ void analyzer::recordResultColumns(unique_ptr<node> &n){
 		} else {
 			n->tok4.id = q->colspec.count++;
 			auto name = n->tok2.val;
-			if (name.empty())
+			if (name.empty() && (isTrivialAlias(n) || isTrivialColumn(n)))
 				name = nodeName(n->node1, q);
+			if (!name.empty())
+				shouldPrintHeader();
 			if (name.empty())
 				name = st("col",q->colspec.count);
 			q->colspec.colnames.push_back(name); //TODO: names for non-aliased columns
@@ -493,6 +498,16 @@ void analyzer::findIndexableJoinValues(unique_ptr<node> &n, int fileno){
 		findIndexableJoinValues(n->node3, fileno);
 		findIndexableJoinValues(n->node4, fileno);
 	}
+}
+void analyzer::shouldPrintHeader(){
+	if (q->options & O_OH){
+		q->outputcsvheader = true;
+		return;
+	} else if (q->options & O_NOH){
+		q->outputcsvheader = false;
+		return;
+	}
+	q->outputcsvheader = true;
 }
 
 //typing done, still need semantics etc
