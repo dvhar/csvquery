@@ -805,6 +805,7 @@ void cgen::genPredicates(unique_ptr<node> &n){
 	e("gen preds");
 	genPredCompare(n->node1);
 	int doneAndOr = jumps.newPlaceholder();
+	int xor1true;
 	switch (n->tok1.id){
 	case KW_AND:
 		addop2(JMPFALSE, doneAndOr, 0);
@@ -817,6 +818,14 @@ void cgen::genPredicates(unique_ptr<node> &n){
 		genPredicates(n->node2);
 		break;
 	case KW_XOR:
+		xor1true = jumps.newPlaceholder();
+		genPredicates(n->node2);
+		addop2(JMPTRUE, xor1true, 0);
+		addop0(POP);
+		addop1(JMP, doneAndOr);
+		jumps.setPlace(xor1true, v.size());
+		addop0(POP);
+		addop0(PNEG);
 		break;
 	}
 	jumps.setPlace(doneAndOr, v.size());
