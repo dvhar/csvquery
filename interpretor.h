@@ -189,7 +189,9 @@ enum {
 	O_H = 4,
 	O_S = 8,
 	O_P = 16,
-	O_T = 32
+	O_T = 32,
+	O_OH = 64,
+	O_NOH = 128
 };
 
 extern const flatmap<int, string_view> treeMap;
@@ -464,6 +466,8 @@ class querySpecs {
 	int grouping =0; //1 = one group, 2 = groups
 	bool outputjson =0;
 	bool outputcsv =0;
+	bool outputcsvheader =0;
+	bool outheaderOpt =0;
 	bool joining =0;
 	bool whereFiltering =0;
 	bool havingFiltering =0;
@@ -554,7 +558,8 @@ unique_ptr<node>& findFirstNode(unique_ptr<node> &n, int label);
 void prepareQuery(querySpecs &q);
 void stopAllQueries();
 shared_ptr<directory> filebrowse(string);
-bool isTrivial(unique_ptr<node> &n);
+bool isTrivialColumn(unique_ptr<node> &n);
+bool isTrivialAlias(unique_ptr<node> &n);
 string nodeName(unique_ptr<node> &n, querySpecs* q);
 void sendMessage(i64,const char*);
 void sendMessage(i64 sesid, string);

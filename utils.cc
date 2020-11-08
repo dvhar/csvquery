@@ -419,11 +419,17 @@ string handle_err(exception_ptr eptr) {
     }
 }
 
-bool isTrivial(unique_ptr<node> &n){
+bool isTrivialColumn(unique_ptr<node> &n){
 	if (n == nullptr) return false;
 	if (n->label == N_VALUE && n->tok3.id)
 		return true;
-	return isTrivial(n->node1);
+	return isTrivialColumn(n->node1);
+}
+bool isTrivialAlias(unique_ptr<node> &n){
+	if (n == nullptr) return false;
+	if (n->label == N_VALUE && n->tok4.id)
+		return true;
+	return isTrivialAlias(n->node1);
 }
 string nodeName(unique_ptr<node> &n, querySpecs* q){
 	if (n == nullptr) return "";
