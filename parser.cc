@@ -111,6 +111,8 @@ void parser::parseOptions() {
 		q->options |= O_P;
 	} else if (s == "t") {
 		q->options |= O_T;
+	} else if (s == "nan") {
+		q->options |= O_NAN;
 	} else {
 		return;
 	}

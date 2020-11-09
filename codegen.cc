@@ -1035,7 +1035,8 @@ void cgen::genFunction(unique_ptr<node> &n){
 	case FN_NOW:
 	case FN_NOWGM:
 		genExprAll(n->node1);
-		addop(functionCode[n->tok1.id], n->tok2.id);
+		//p1 is rounding places, p2 is use nan vs null
+		addop(functionCode[n->tok1.id], n->tok2.id, ((q->options & O_NAN) == 0));
 		break;
 	case FN_LEN:
 		genExprAll(n->node1);
