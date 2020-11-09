@@ -243,7 +243,7 @@ void dataTyper::typeInitialValue(unique_ptr<node> &n, bool trivial){
 					goto donetyping;
 				} else if (!n->tok1.quoted && regex_match(column, cInt)){
 					i = stoi(column.substr(1))-1;
-					if (i <= f->numFields){
+					if (i < f->numFields){
 						//found column idx with file alias
 						n->tok1.id = i;
 						n->tok2.id = COLUMN;
@@ -253,7 +253,7 @@ void dataTyper::typeInitialValue(unique_ptr<node> &n, bool trivial){
 					}
 				} else if (!n->tok1.quoted && q->numIsCol() && regex_match(column, posInt)){
 					i = stoi(column)-1;
-					if (i <= f->numFields){
+					if (i < f->numFields){
 						//found column idx with file alias
 						n->tok1.id = i;
 						n->tok2.id = COLUMN;
@@ -279,7 +279,7 @@ void dataTyper::typeInitialValue(unique_ptr<node> &n, bool trivial){
 		if (!n->tok1.quoted && regex_match(val, cInt)){
 			i = stoi(val.substr(1))-1;
 			auto& f = q->filevec.front();
-			if (i <= f->numFields){
+			if (i < f->numFields){
 				//found column idx without file alias
 				n->tok1.id = i;
 				n->tok2.id = COLUMN;
@@ -290,7 +290,7 @@ void dataTyper::typeInitialValue(unique_ptr<node> &n, bool trivial){
 		} else if (!n->tok1.quoted && q->numIsCol() && regex_match(val, posInt)){
 			i = stoi(val)-1;
 			auto& f = q->filevec.front();
-			if (i <= f->numFields){
+			if (i < f->numFields){
 				//found column idx without file alias
 				n->tok1.id = i;
 				n->tok2.id = COLUMN;

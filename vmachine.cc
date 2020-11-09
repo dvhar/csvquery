@@ -912,15 +912,15 @@ FUNC_YEAR_:
 	nexti();
 FUNC_MONTH_:
 	get_tm();
-	stk0 = { { i: tmTemp.tm_mon }, T_INT };
+	stk0 = { { i: tmTemp.tm_mon+1 }, T_INT };
 	nexti();
 FUNC_WEEK_:
 	get_tm();
-	stk0 = { { i: tmTemp.tm_yday / 7 + 1 }, T_INT };
+	stk0 = { { i: ((tmTemp.tm_yday+1) / 7) + 1 }, T_INT };
 	nexti();
 FUNC_YDAY_:
 	get_tm();
-	stk0 = { { i: tmTemp.tm_yday }, T_INT };
+	stk0 = { { i: tmTemp.tm_yday+1 }, T_INT };
 	nexti();
 FUNC_MDAY_:
 	get_tm();
@@ -928,7 +928,7 @@ FUNC_MDAY_:
 	nexti();
 FUNC_WDAY_:
 	get_tm();
-	stk0 = { { i: tmTemp.tm_wday }, T_INT };
+	stk0 = { { i: tmTemp.tm_wday+1 }, T_INT };
 	nexti();
 FUNC_HOUR_:
 	get_tm();
@@ -940,7 +940,7 @@ FUNC_MINUTE_:
 	nexti();
 FUNC_SECOND_:
 	get_tm();
-	stk0 = { { i: tmTemp.tm_sec }, T_INT };
+	stk0 = { { i: tmTemp.tm_sec+1 }, T_INT };
 	nexti();
 FUNC_WDAYNAME_:
 	get_tm();
