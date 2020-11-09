@@ -584,11 +584,16 @@ bool opDoesJump(int opcode){
 }
 
 shared_ptr<singleQueryResult> vmachine::getJsonResult(){
-	jsonresult->types = q->colspec.types; //TODO: use originial pre-trivial types
+	static auto cm = regex(".*--.*(\n.*|$)");
+	static auto commented = regex("--.*(\n|$)");
+	jsonresult->types = q->colspec.types;
 	jsonresult->colnames = q->colspec.colnames;
 	jsonresult->pos.resize(q->colspec.count);
-	jsonresult->query = q->queryString;
 	iota(jsonresult->pos.begin(), jsonresult->pos.end(),1); //TODO: update gui to not need this
+	jsonresult->query = q->queryString;
+	do {
+		jsonresult->query = regex_replace(jsonresult->query, commented, "");
+	} while (regex_match(jsonresult->query, cm));
 	return jsonresult;
 }
 

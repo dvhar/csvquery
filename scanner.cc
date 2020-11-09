@@ -73,21 +73,39 @@ void initable(){
 }
 
 class stringLookahead {
-	public:
+	int lastskipped = -2;
+	int *l, *c;
 	string text;
+	public:
 	u32 idx =0;
-	int getc();
-	int peek();
+	int filderedGetc();
+	int filderedPeek();
 	char* nextCstr();
+	stringLookahead(string s, int* ll, int* cc){
+		text = s;
+		l = ll;
+		c = cc;
+	};
 };
-int stringLookahead::getc() {
+int stringLookahead::filderedGetc() {
+	if (idx >= text.length()) { return EOS; }
+	if (idx+1 < text.length() && string_view(text.data()+idx, 2) == "--"){
+		while (text[idx] != '\n' && idx < text.length()) {
+			lastskipped = idx;
+			idx++;
+			*c++;
+		}
+	}
 	if (idx >= text.length()) { return EOS; }
 	idx++;
 	return (int) text[idx-1];
 }
-int stringLookahead::peek() {
+int stringLookahead::filderedPeek() {
 	if (idx >= text.length()) { return EOS; }
-	return (int) text[idx];
+	int next = this->filderedGetc();
+	if (lastskipped != idx-1)
+		idx--;
+	return next;
 }
 char* stringLookahead::nextCstr() {
 	if (idx >= text.length()) { return nullptr; }
@@ -102,9 +120,8 @@ class scanner {
 	public:
 		token scanToken();
 		token scanQuotedToken(int);
-		scanner(querySpecs &q){
+		scanner(querySpecs &q) : input(q.queryString, &lineNo, &colNo) {
 			initable();
-			input = {q.queryString, 0};
 		}
 };
 
@@ -114,11 +131,11 @@ token scanner::scanToken() {
 	string S;
 
 	while ( (state & FINAL) == 0 && state < NUM_STATES ) {
-		nextState = table[state][input.peek()];
+		nextState = table[state][input.filderedPeek()];
 		if ((nextState & ERROR_STATE) != 0) {
 		//end of string
 			if (state == 255) return { 255, "END", lineNo, colNo, false };
-			auto err = st("line: ",lineNo," col: ",colNo," char: ",(char)input.peek());
+			auto err = st("line: ",lineNo," col: ",colNo," char: ",(char)input.filderedPeek());
 			return { ERROR_STATE, err, lineNo, colNo, false };
 		}
 		if ((nextState & FINAL) != 0) {
@@ -145,7 +162,7 @@ token scanner::scanToken() {
 					//return special token
 					return { sp, S, lineNo, colNo, false };
 				} else {
-					auto err = st("line: ",lineNo," col: ",colNo," char: ",(char)input.peek());
+					auto err = st("line: ",lineNo," col: ",colNo," char: ",(char)input.filderedPeek());
 					return { ERROR_STATE, err, lineNo, colNo, false };
 				}
 			} else {
@@ -154,7 +171,7 @@ token scanner::scanToken() {
 
 		} else {
 			state = nextState;
-			nextchar = input.getc();
+			nextchar = input.filderedGetc();
 			colNo++;
 			//include whitespace in the token when waiting for a closing quote
 			if (waitForQuote != 0) {
