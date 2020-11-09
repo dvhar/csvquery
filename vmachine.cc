@@ -1091,16 +1091,14 @@ LDSTDVF_:
 	nexti();
 LDAVGI_:
 	push();
-	datpTemp = &midrow[op->p1];
-	if (!datpTemp->isnull() && datpTemp->z){
-		stk0.u.i = datpTemp->u.i / datpTemp->z;
+	if (auto& d = midrow[op->p1]; !d.isnull() && d.z){
+		stk0.u.i = d.u.i / d.z;
 		stk0.b = T_INT;
 	} nexti();
 LDAVGF_:
 	push();
-	datpTemp = &midrow[op->p1];
-	if (!datpTemp->isnull() && datpTemp->z){
-		stk0.u.f = datpTemp->u.f / datpTemp->z;
+	if (auto& d = midrow[op->p1]; !d.isnull() && d.z){
+		stk0.u.f = d.u.f / d.z;
 		stk0.b = T_FLOAT;
 	} nexti();
 AVGI_:
