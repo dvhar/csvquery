@@ -5,6 +5,7 @@ project(cql LANGUAGES C CXX)
 find_package(TBB REQUIRED)
 
 set(CMAKE_CXX_FLAGS "-O3 -pipe")
+add_compile_options(-headerpad_max_install_names)
 
 if(UNIX)
   set(THREADS_PREFER_PTHREAD_FLAG YES)
