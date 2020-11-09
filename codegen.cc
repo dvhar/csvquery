@@ -3,12 +3,13 @@
 
 class cgen {
 
-	int normal_read =0;
-	int agg_phase =0; //0 is not grouping, 1 is first read, 2 is aggregate retrieval
-	int select_count =0;
-	int joinFileIdx =0;
-	int prevJoinRead =0;
-	int wherenot =0;
+	int normal_read = 0;
+	int agg_phase = 0; //0 is not grouping, 1 is first read, 2 is aggregate retrieval
+	int select_count = 0;
+	int joinFileIdx = 0;
+	int prevJoinRead = 0;
+	int wherenot = 0;
+	bool headerdone = false;
 	vector<int> valposTypes;
 	vector<opcode> v;
 	jumpPositions jumps;
@@ -55,6 +56,7 @@ class cgen {
 	void genValue(unique_ptr<node> &n);
 	void genFunction(unique_ptr<node> &n);
 	void genPrint();
+	void genHeader();
 	void genSelectAll();
 	void genSelections(unique_ptr<node> &n);
 	void genTypeConv(unique_ptr<node> &n);
@@ -150,6 +152,7 @@ void cgen::genJoiningQuery(unique_ptr<node> &n){
 	if (q->grouping)
 		agg_phase = 1;
 	genScanJoinFiles(n->node3->node1);
+	genHeader();
 	joinFileIdx = 0;
 	genTraverseJoins(n->node3);
 	if (q->grouping){ // includes group sorting
@@ -231,6 +234,13 @@ void cgen::genJoinSets(unique_ptr<node> &n){
 	wherenot = prevJoinRead;
 	addop(JOINSET_TRAV, goWhenDone, (joinFileIdx-1)*2, joinFileIdx);
 	genJoinSets(n->node2);
+}
+void cgen::genHeader(){
+	if (headerdone)
+		return;
+	headerdone = true;
+	if (q->outputcsv && q->outputcsvheader)
+		addop(PRINTCSV_HEADER);
 }
 void cgen::genPrint(){
 	if (q->outputjson)
@@ -434,6 +444,7 @@ void cgen::genNormalQuery(unique_ptr<node> &n){
 		messager::readingfiltered : messager::reading;
 	int endfile = jumps.newPlaceholder(); //where to jump when done reading file
 	pushvars();
+	genHeader();
 	addop(START_MESSAGE, message);
 	normal_read = v.size();
 	wherenot = normal_read;
@@ -470,6 +481,7 @@ void cgen::genNormalOrderedQuery(unique_ptr<node> &n){
 	addop(SORT);
 	addop(PREP_REREAD);
 	addop(START_MESSAGE, messager::retrieving);
+	genHeader();
 	jumps.setPlace(reread, v.size());
 	addop(RDLINE_ORDERED, endreread);
 	vs.setscope(DISTINCT_FILTER, V_READ2_SCOPE);
@@ -506,6 +518,7 @@ void cgen::genGroupingQuery(unique_ptr<node> &n){
 	int getgroups = jumps.newPlaceholder();
 	pushvars();
 	addop(START_MESSAGE, messager::scanning);
+	genHeader();
 	normal_read = v.size();
 	wherenot = normal_read;
 	addop(RDLINE, getgroups, 0);
@@ -756,7 +769,7 @@ void cgen::genSelections(unique_ptr<node> &n){
 		} else if (t1 == "*"sv) {
 			genSelectAll();
 
-		} else if (isTrivial(n)) {
+		} else if (isTrivialColumn(n)) {
 			switch (agg_phase){
 			case 0:
 				for (auto nn = n.get(); nn; nn = nn->node1.get()) if (nn->label == N_VALUE){
@@ -792,6 +805,7 @@ void cgen::genPredicates(unique_ptr<node> &n){
 	e("gen preds");
 	genPredCompare(n->node1);
 	int doneAndOr = jumps.newPlaceholder();
+	int xor1true;
 	switch (n->tok1.id){
 	case KW_AND:
 		addop2(JMPFALSE, doneAndOr, 0);
@@ -804,6 +818,14 @@ void cgen::genPredicates(unique_ptr<node> &n){
 		genPredicates(n->node2);
 		break;
 	case KW_XOR:
+		xor1true = jumps.newPlaceholder();
+		genPredicates(n->node2);
+		addop2(JMPTRUE, xor1true, 0);
+		addop0(POP);
+		addop1(JMP, doneAndOr);
+		jumps.setPlace(xor1true, v.size());
+		addop0(POP);
+		addop0(PNEG);
 		break;
 	}
 	jumps.setPlace(doneAndOr, v.size());

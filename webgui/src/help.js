@@ -5,7 +5,7 @@ const paramlist = [
 	'(<expression>)',
 	'(<expression>, <expression>)',
 	'(<expression>, <2 numbers> or <regex>)',
-	"(<expression>, <password>)",
+	"(<expression>, <optional password>)",
 	'(<any number of expressions>)',
 	'(<expression>, <optional decimal places>)',
 	'(<expression> or *)',
@@ -65,8 +65,8 @@ const funclist = [
 	["string","convert datatype to text",1],
 	["int","convert datatype to integer",1],
 	["float","convert datatype to floating point number",1],
-	["encrypt" ,"encrypt with chacha20 cipher",4],
-	["decrypt" ,"decrypt with chacha20 cipher",4],
+	["encrypt" ,"encrypt",4],
+	["decrypt" ,"decrypt",4],
 	["base64_encode","encode to bas64",1],
 	["base64_decode","decode from base64",1],
 
@@ -108,7 +108,7 @@ export class Help extends React.Component {
 			{"It will show you the first several hundred results in the browser, with 2 options for viewing certain rows or columns. You can click on a column header to sort the displayed results by that column."}
 			<h3>How to save files</h3>
 			<hr/>
-			{"After running a query, hit the save button. Navigate to where you want to save, type in the file name, and hit the save button to the right. All the queries on the page will run again, but this time they will be saved to csv files. If there are multiple queries on the page, you still only need to specify one file and a number will be added to the filename for each one."}
+			{"After running a query, hit the save button. Navigate to where you want to save, type in the file name, and hit the save button to the right. All the queries on the page will run again, but this time they will be saved to csv files. If there are multiple queries on the page, you still only need to specify one file and a number will be added to the filename for each one. The program will infer whether or not to output a header unless you override it with an option. To always output header, add 'oh' to the beginning of the query. To never output header, add 'noh'."}
 			<h3>How to use the query language</h3>
 			<hr/>
 			{"This program uses a custom version of SQL loosely based on TSQL. Some features like Unions, Subqueries, and @variables are not implemented yet."}
@@ -163,6 +163,9 @@ export class Help extends React.Component {
 						<FuncTable/>
 						<br/>
 					{"Aggregate functions can be used with a 'group by' clause and group by as many values as you want. Without a 'group by' clause, they will return a single row with the aggregate calculations of the whole file."}
+						<br/>
+						<br/>
+					{"Encryption function only guarantees a unique nonce for every value encrypted while the program is running. Uniqueness cannot be guaranteed between restarts, so avoid using the same password in different sessions. Encryption function uses the chacha20 stream cipher and a 32 bit MtE authenticator. It returns an empty value if ciphertext has been tampered with. It does not hide the length of a value, so it may be best to use other security solutions when possible. If no password is supplied, the program will prompt you for one."}
 					</blockquote>
 				<h4>Selecting rows or aggregates with a distinct value</h4>
 					{"To only return rows with a distinct value, put the 'distinct' keyword in front of the expression that you want to be distinct. Put 'hidden' after 'distinct' if you don't want that value to show up as a result column."}
@@ -235,8 +238,10 @@ export class Help extends React.Component {
 			<hr/>
 			{"Browsers can take a while to load big results, even when limiting the number of rows. If the results of a query look similar to the results of the previous query, you can confirm that they are new by checkng the query number in the top-right corner, or by reading the query text in the yellow area above the table."}
 			<br/><br/>
+			{"Another thing that can take a while is files that have tons of columns. The program samples the first 10000 rows to figure out datatypes and this can take a while with very wide files. That process is not yet interuptable by the 'end query early' button."}
+			<br/><br/>
 			<hr/>
-			version 1.0.0 - 10/8/2020
+			version 1.0.4
 			<hr/>
 			<br/><br/>
 			</div>

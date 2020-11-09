@@ -6,6 +6,7 @@ void initregex();
 void help(char* prog){
 	cout << '\n'
 		<< prog << " <file>\n\tRun query from file\n\n"sv
+		<< prog << " version\n\tshow version\n\n"sv
 		<< prog << " \"select from 'data.csv'\"\n\tRun query from command line argument\n\n"sv
 		<< prog << "\n\tRun server to use graphic interface in web browser\n\n"sv;
 	exit(0);
@@ -19,6 +20,11 @@ int main(int argc, char** argv){
 
 	switch (runmode){
 	case RUN_SINGLE:
+		//show version and exit
+		if (!strcmp(argv[1], "version")){
+			cout << "1.0.4\n";
+			return 0;
+		}
 		//show help and exit
 		if (!strcmp(argv[1], "help"))
 			help(argv[0]);
