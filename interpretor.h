@@ -192,7 +192,8 @@ enum {
 	O_T = 32,
 	O_OH = 64,
 	O_NOH = 128,
-	O_NAN = 256
+	O_NAN = 256,
+	O_AH = 512
 };
 
 extern const flatmap<int, string_view> treeMap;
@@ -299,6 +300,8 @@ class fileReader {
 		static char blank;
 		bool small =0;
 		bool inmemory =0;
+		bool noheader = false;
+		bool autoheader = false;
 		char delim;
 		i64 pos =0;
 		vector<string> colnames;
@@ -309,7 +312,6 @@ class fileReader {
 		vector<int> vpTypes;
 		csvEntry* entries;
 		csvEntry* eend;
-		bool noheader =0;
 		string id;
 		int fileno =0;
 		int numFields =0;
@@ -543,6 +545,7 @@ bool is_number(const std::string& s);
 void printTree(unique_ptr<node> &n, int ident);
 int isInt(const char*);
 int isFloat(const char*);
+int isDuration(const char*);
 int dateParse(const char*, struct timeval*);
 int parseDuration(char*, date_t*);
 int getNarrowestType(char* value, int startType);

@@ -172,6 +172,12 @@ inline void fileReader::getField(){
 //initial scan also loads file into mem if small file
 void fileReader::inferTypes() {
 	readline();
+	if (autoheader)
+		for (auto &e : entriesVec)
+			if (isInt(e.val) || isFloat(e.val)){
+				noheader = true;
+				break;
+			}
 	auto startData = pos;
 	//get col names and initialize blank types
 	for (u32 i=0; i<entriesVec.size(); ++i) {
@@ -255,14 +261,20 @@ void openfiles(querySpecs &q, unique_ptr<node> &n){
 		//header options
 		if ((q.options & O_NH) != 0)
 			fr->noheader = true;
-		else
-			fr->noheader = false;
+		if ((q.options & O_AH) != 0)
+			fr->autoheader = true;
+		//file opts override global opts
 		if (n->tok5.id){
 			string s = n->tok5.lower();
-			if (s == "nh"sv || s == "noheader"sv)
+			if (s == "nh"){
 				fr->noheader = true;
-			if (s == "h"sv || s == "header"sv)
+				fr->autoheader = false;
+			} if (s == "h") {
 				fr->noheader = false;
+				fr->autoheader = false;
+			} if (s == "ah") {
+				fr->autoheader = true;
+			}
 		}
 		++q.numFiles;
 		fr->inferTypes();

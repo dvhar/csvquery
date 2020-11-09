@@ -97,19 +97,29 @@ void parser::parseOptions() {
 	string s = t.lower();
 	if (s == "c") {
 		q->options |= O_C;
-	} else if (s == "oh" || s == "outheader") {
+	} else if (s == "oh") {
+		if (q->options & O_NOH) error("Cannot mix output header options");
 		q->options |= O_OH;
-	} else if (s == "noh" || s == "nooutheader") {
+	} else if (s == "noh") {
+		if (q->options & O_NOH) error("Cannot mix output header options");
 		q->options |= O_NOH;
-	} else if (s == "nh" || s == "noheader") {
+	} else if (s == "nh") {
+		if (q->options & (O_H|O_AH)) error("Cannot mix input header options");
 		q->options |= O_NH;
-	} else if (s == "h" || s == "header") {
+	} else if (s == "h") {
+		if (q->options & (O_NH|O_AH)) error("Cannot mix input header options");
 		q->options |= O_H;
+	} else if (s == "ah") {
+		if (q->options & (O_NH|O_H)) error("Cannot mix input header options");
+		q->options |= O_AH;
 	} else if (s == "s") {
+		if (q->options & (O_P|O_T)) error("Cannot mix delimiter options");
 		q->options |= O_S;
 	} else if (s == "p") {
+		if (q->options & (O_S|O_T)) error("Cannot mix delimiter options");
 		q->options |= O_P;
 	} else if (s == "t") {
+		if (q->options & (O_P|O_S)) error("Cannot mix delimiter options");
 		q->options |= O_T;
 	} else if (s == "nan") {
 		q->options |= O_NAN;
@@ -545,7 +555,7 @@ unique_ptr<node> parser::parseFrom() {
 	n->tok1.val = boost::replace_first_copy(t.val, "~/", string(getenv("HOME"))+"/");
 	t = q->nextTok();
 	string s = t.lower();
-	if (s == "noheader" || s == "nh" || s == "header" || s == "h") {
+	if (s == "nh" || s == "h" || s == "ah") {
 		n->tok5 = t;
 		t = q->nextTok();
 	}
@@ -560,7 +570,7 @@ unique_ptr<node> parser::parseFrom() {
 	}
 	t = q->tok();
 	s = t.lower();
-	if (s == "noheader" || s == "nh" || s == "header" || s == "h") {
+	if (s == "nh" || s == "h" || s == "ah") {
 		n->tok5 = t;
 		q->nextTok();
 	}
