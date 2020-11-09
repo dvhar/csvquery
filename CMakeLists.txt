@@ -5,12 +5,15 @@ project(cql LANGUAGES C CXX)
 find_package(TBB REQUIRED)
 
 set(CMAKE_CXX_FLAGS "-O3 -pipe")
-add_compile_options(-headerpad_max_install_names)
+
+if (APPLE)
+	add_compile_options(-headerpad_max_install_names)
+endif()
 
 if(UNIX)
-  set(THREADS_PREFER_PTHREAD_FLAG YES)
-  find_package(Threads REQUIRED)
-  find_package(Boost REQUIRED COMPONENTS system)
+	set(THREADS_PREFER_PTHREAD_FLAG YES)
+	find_package(Threads REQUIRED)
+	find_package(Boost REQUIRED COMPONENTS system)
 endif()
 
 file(GLOB sources CONFIGURE_DEPENDS "*.cc")
@@ -32,9 +35,9 @@ target_compile_features(cql PRIVATE cxx_std_17)
 set(is_win "$<BOOL:${WIN32}>")
 set(is_unix "$<BOOL:${UNIX}>")
 target_link_libraries(cql PRIVATE
-        TBB::tbb
-        "$<${is_unix}:Boost::system>"
-        "$<${is_unix}:Threads::Threads>"
-        "$<${is_win}:tre>"
-        "$<${is_win}:wsock32>"
-        "$<${is_win}:ws2_32>")
+	TBB::tbb
+	"$<${is_unix}:Boost::system>"
+	"$<${is_unix}:Threads::Threads>"
+	"$<${is_win}:tre>"
+	"$<${is_win}:wsock32>"
+	"$<${is_win}:ws2_32>")
