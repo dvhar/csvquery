@@ -64,7 +64,6 @@ static void serve(){
 
 			auto ret = runqueries(wq);
 			ret->status = DAT_GOOD;
-			ret->originalQuery = move(wq.querystring);
 			if (wq.isSaving())
 				sendMessage(wq.sessionId, "Saved to " + wq.savepath);
 			else if (ret->maxclipped)
@@ -77,7 +76,6 @@ static void serve(){
 			returnData ret;
 			ret.status = DAT_ERROR;
 			ret.message = move(e);
-			ret.originalQuery = move(wq.querystring);
 			response->write(ret.tojson().str());
 		}
 	};
