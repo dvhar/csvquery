@@ -6,7 +6,10 @@ class analyzer {
 	int andChainSize;
 	public:
 		querySpecs* q;
-		analyzer(querySpecs& qs): q{&qs} {}
+		analyzer(querySpecs& qs): q{&qs} {
+			if (int o = q->options; (o & O_OH) || (o & O_NOH))
+				shouldPrintHeader();
+		}
 		void varUsedInFilter(unique_ptr<node> &n);
 		void setSubtreeVarFilter(unique_ptr<node> &n, int filter);
 		void propogateVarFilter(string var, int filter);

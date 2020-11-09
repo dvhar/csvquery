@@ -1,5 +1,1 @@
-select
-o.c1 l.c1
-from 'test/country.csv' o nh join 'test/lang.csv' l nh
-on o.c1>=l.c1 and l.c1 like 'i%'
-where o.c1 < l.c1
+select year(c16) month(c16) monthname(c16) week(c16) day(c16) dayname(c16) dayofyear(c16) dayofmonth(c16) hour(c16) minute(c16) second(c16) c16 from 'test/country' where len(c16) > 10

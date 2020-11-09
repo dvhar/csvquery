@@ -160,3 +160,8 @@
 - title: function type error
   code: 1
   query: select avg(c1) from 'test/country.csv'
+- title: datetime functions used normally
+  code: 0
+  query: with c16-'44y' as d select year(d) month(d) monthname(d) week(d) day(d) dayname(d) dayofyear(d) dayofmonth(d)
+    hour(d) minute(d) second(d) d from 'test/country' nh where len(c16) > 10
+  output: 33.csv
