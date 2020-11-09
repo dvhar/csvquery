@@ -165,3 +165,8 @@
   query: with c16-'44y' as d select year(d) month(d) monthname(d) week(d) day(d) dayname(d) dayofyear(d) dayofmonth(d)
     hour(d) minute(d) second(d) d from 'test/country' nh where len(c16) > 10
   output: 33.csv
+- title: math functions used normally
+  code: 0
+  query: with float(c5)/1000 as n select c5 n ceil(n) floor(n) round(n) acos(n) asin(n) atan(n) cos(n) sin(n) tan(n)
+    exp(n) log(n) log2(n) log10(n) sqrt(n) cbrt(n) log(0) pow(n,4) from 'test/country' nh limit 10
+  output: 34.csv
