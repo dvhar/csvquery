@@ -166,6 +166,9 @@ export class Help extends React.Component {
 						<br/>
 						<br/>
 					{"Encryption function only guarantees a unique nonce for every value encrypted while the program is running. Uniqueness cannot be guaranteed between restarts, so avoid using the same password in different sessions. Encryption function uses the chacha20 stream cipher and a 32 bit MtE authenticator. It returns an empty value if ciphertext has been tampered with. It does not hide the length of a value, so it may be best to use other security solutions when possible. If no password is supplied, the program will prompt you for one."}
+						<br/>
+						<br/>
+					{"Math functions like asin and log return an empty value when not a real number, such as log(0) or asin(100). To return nan, inf, or -inf instead, add the option 'nan' to the beginning of the query. Return value will still be empty if function is called on a null value."}
 					</blockquote>
 				<h4>Selecting rows or aggregates with a distinct value</h4>
 					{"To only return rows with a distinct value, put the 'distinct' keyword in front of the expression that you want to be distinct. Put 'hidden' after 'distinct' if you don't want that value to show up as a result column."}

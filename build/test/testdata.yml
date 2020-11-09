@@ -170,3 +170,7 @@
   query: with float(c5)/1000 as n select c5 n ceil(n) floor(n) round(n) acos(n) asin(n) atan(n) cos(n) sin(n) tan(n)
     exp(n) log(n) log2(n) log10(n) sqrt(n) cbrt(n) log(0) pow(n,4) from 'test/country' nh limit 10
   output: 34.csv
+- title: math functions used normally with nan instead of null
+  code: 0
+  query: nan with float(c5)/1000 as n select n acos(n) asin(n) atan(n) log(n) log2(n) log10(n) log(0) pow(n,log(0)) from 'test/country' nh limit 10
+  output: 35.csv

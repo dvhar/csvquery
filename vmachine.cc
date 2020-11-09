@@ -962,19 +962,19 @@ FUNC_FLOOR_:
 FUNC_ACOS_:
 	ifnotnull {
 		stk0.u.f = acos(stk0.u.f);
-		if (isnan(stk0.u.f)) stk0.setnull();
+		if (op->p2 && isnan(stk0.u.f)) stk0.setnull();
 	}
 	nexti();
 FUNC_ASIN_:
 	ifnotnull {
 		stk0.u.f = asin(stk0.u.f);
-		if (isnan(stk0.u.f)) stk0.setnull();
+		if (op->p2 && isnan(stk0.u.f)) stk0.setnull();
 	}
 	nexti();
 FUNC_ATAN_:
 	ifnotnull {
 		stk0.u.f = atan(stk0.u.f);
-		if (isnan(stk0.u.f)) stk0.setnull();
+		if (op->p2 && isnan(stk0.u.f)) stk0.setnull();
 	}
 	nexti();
 FUNC_COS_:
@@ -992,19 +992,19 @@ FUNC_EXP_:
 FUNC_LOG_:
 	ifnotnull {
 		stk0.u.f = log(stk0.u.f);
-		if (isinf(stk0.u.f)) stk0.setnull();
+		if (op->p2 && isinf(stk0.u.f)) stk0.setnull();
 	}
 	nexti();
 FUNC_LOG2_:
 	ifnotnull {
 		stk0.u.f = log2(stk0.u.f);
-		if (isinf(stk0.u.f)) stk0.setnull();
+		if (op->p2 && isinf(stk0.u.f)) stk0.setnull();
 	}
 	nexti();
 FUNC_LOG10_:
 	ifnotnull {
 		stk0.u.f = log10(stk0.u.f);
-		if (isinf(stk0.u.f)) stk0.setnull();
+		if (op->p2 && isinf(stk0.u.f)) stk0.setnull();
 	}
 	nexti();
 FUNC_SQRT_:
