@@ -309,9 +309,12 @@ void dataTyper::typeInitialValue(unique_ptr<node> &n, bool trivial){
 	//see if selecting trivial value (just column or literal)
 	if (n->label == N_SELECTIONS)       trivial = true;
 	if (trivial && !stillTrivial(n))    trivial = false;
-	if (trivial && n->label == N_VALUE && n->tok2.id == COLUMN) {
-		n->datatype = T_STRING;
-		n->tok3.id = 1;
+	if (trivial && n->label == N_VALUE) {
+		if (n->tok2.id == COLUMN) {
+			n->datatype = T_STRING;
+			n->tok3.id = 1;
+		} else if (n->tok2.id == VARIABLE)
+			n->tok4.id = 1;
 	}
 
 	typeInitialValue(n->node1, trivial);

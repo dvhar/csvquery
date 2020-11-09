@@ -97,6 +97,10 @@ void parser::parseOptions() {
 	string s = t.lower();
 	if (s == "c") {
 		q->options |= O_C;
+	} else if (s == "oh" || s == "outheader") {
+		q->options |= O_OH;
+	} else if (s == "noh" || s == "nooutheader") {
+		q->options |= O_NOH;
 	} else if (s == "nh" || s == "noheader") {
 		q->options |= O_NH;
 	} else if (s == "h" || s == "header") {
@@ -345,6 +349,7 @@ unique_ptr<node> parser::parseExprCase() {
 //  tok2.id is type [literal, column, variable, function] enum
 //  tok3.val is source file alias
 //  tok3.id is trivial indicator
+//  tok4.id is trivial alias indicator
 unique_ptr<node> parser::parseValue() {
 	token t = q->tok();
 	unique_ptr<node> n = newNode(N_VALUE);

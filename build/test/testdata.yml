@@ -151,7 +151,7 @@
   output: 31.csv
 - title: simple join and chain
   code: 0
-  query: select distinct o.c1 l.c1 from 'test/country.csv' o join 'test/lang.csv'
+  query: nh select distinct o.c1 l.c1 from 'test/country.csv' o join 'test/lang.csv'
     l on o.c1=l.c1 and l.c1 <> GUM and l.c1 like 'g%'
   output: 32.csv
 - title: negation type error
