@@ -2215,9 +2215,14 @@ char* datestringfmt(date_t t, const char* format){
 
 date_t nowlocal(){
 	time_t sec = time(0);
-	struct tm t;
-	localtime_r(&sec, &t);
-	return mktimegm(&t);
+	#ifdef __MINGW32__
+		struct tm* t = localtime(&sec); //TODO: find reentrant solution for windows
+		return mktimegm(t);
+	#else
+		struct tm t;
+		localtime_r(&sec, &t);
+		return mktimegm(&t);
+	#endif
 }
 date_t nowgm(){
 	return (date_t)time(0)*1000000;
