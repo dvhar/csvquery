@@ -115,7 +115,7 @@ export class Help extends React.Component {
 			<br/>
 			<blockquote>
 				<h4>Specifying a file</h4>
-					{"Click 'Browse Files' to find files, and double click one to add it to the query. If a file has no header, add 'nh' or 'noheader' after the file path or alias, or at the very beginning of a query."}
+					{"Click 'Browse Files' to find files, and double click one to add it to the query. If a file has no header, add 'nh' after the file path or alias, or at the very beginning of a query. Us 'ah' (for auto-header) instead to guess if the file has a header based on if the first row contains any numbers."}
 				<h4>Using non-comma delimiters</h4>
 					{"If the delimiter is not a comma, add the letter for that delimiter to the very beginning of the query. Use 's' for spaces, 't' for tabs, or 'p' for pipes, which are this character: |. Future versions will be able to specify different delimiters for each file in a joining query."}
 				<h4>Selecting some columns</h4>
