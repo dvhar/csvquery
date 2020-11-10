@@ -22,7 +22,7 @@ int main(int argc, char** argv){
 	case RUN_SINGLE:
 		//show version and exit
 		if (!strcmp(argv[1], "version")){
-			cout << "1.0.4\n";
+			cout << "1.0.5\n";
 			return 0;
 		}
 		//show help and exit

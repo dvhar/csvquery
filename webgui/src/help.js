@@ -244,7 +244,7 @@ export class Help extends React.Component {
 			{"Another thing that can take a while is files that have tons of columns. The program samples the first 10000 rows to figure out datatypes and this can take a while with very wide files. That process is not yet interuptable by the 'end query early' button."}
 			<br/><br/>
 			<hr/>
-			version 1.0.4
+			version 1.0.5
 			<hr/>
 			<br/><br/>
 			</div>
