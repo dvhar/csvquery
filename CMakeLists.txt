@@ -1,10 +1,12 @@
 cmake_minimum_required(VERSION 3.12)
 
 project(cql LANGUAGES C CXX)
-
-find_package(TBB REQUIRED)
-
 set(CMAKE_CXX_FLAGS "-O3 -pipe")
+
+if(CMAKE_COMPILER_IS_GNUCXX)
+	find_package(TBB REQUIRED)
+endif()
+
 
 if (APPLE)
 	add_compile_options(-headerpad_max_install_names)
@@ -35,7 +37,7 @@ target_compile_features(cql PRIVATE cxx_std_17)
 set(is_win "$<BOOL:${WIN32}>")
 set(is_unix "$<BOOL:${UNIX}>")
 target_link_libraries(cql PRIVATE
-	TBB::tbb
+	"$<${CMAKE_COMPILER_IS_GNUCXX}:TBB::tbb>"
 	"$<${is_unix}:Boost::system>"
 	"$<${is_unix}:Threads::Threads>"
 	"$<${is_win}:tre>"

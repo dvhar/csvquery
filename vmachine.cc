@@ -3,8 +3,12 @@
 #include <cmath>
 #include <numeric>
 
+#ifndef __clang__
 #include <execution>
 #define parallel() execution::par_unseq,
+#else
+#define parallel()
+#endif
 
 //work with stack data
 #define stk0 (*stacktop)
