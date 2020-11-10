@@ -10,6 +10,9 @@
 #define parallel()
 #endif
 
+#include "deps/parasort/boost/sort/parallel/sort.hpp"
+namespace bs_sort = boost::sort::parallel;
+
 //work with stack data
 #define stk0 (*stacktop)
 #define stk1 (*(stacktop-1))
@@ -462,13 +465,16 @@ SORTVALPOS_:
 
 //normal sorter
 SORT_:
-	sortIdxs.resize(files[0]->positions.size());
-	iota(sortIdxs.begin(), sortIdxs.end(), 0);
-	sort(parallel() sortIdxs.begin(), sortIdxs.end(), sortcomp(this));
+	{
+		sortIdxs.resize(files[0]->positions.size());
+		iota(sortIdxs.begin(), sortIdxs.end(), 0);
+		sortcomp cmp(this);
+		bs_sort::parallel_sort(sortIdxs.begin(), sortIdxs.end(), [&](int a, int b){ return cmp(a,b); });
+	}
 	nexti();
 //group sorter - p1 is sort index
 GSORT_:
-	sort(parallel() groupSorter.begin(), groupSorter.end(), gsortcomp(this, op->p1));
+	sort(groupSorter.begin(), groupSorter.end(), gsortcomp(this, op->p1));
 	nexti();
 
 //math operations

@@ -9,6 +9,7 @@
 
 template<typename T>
 using bset = btree::btree_set<T>;
+using grprow = const unique_ptr<dat[], freeC>;
 
 enum codes : int {
 	CVER, CVNO,
@@ -394,7 +395,7 @@ class gsortcomp {
 			for (int i=0; i< vm->q->sortcount; i++)
 				comps.push_back(datunionDiffs[getSortComparer(vm->q, i)]);
 		}
-		bool operator()(const unique_ptr<dat[], freeC>& a,const unique_ptr<dat[], freeC>& b){
+		bool operator()(grprow& a, grprow& b){
 			i64 dif;
 			int sortval = sortidx;
 			do dif = comps[sortval-sortidx](a[sortval].u, b[sortval].u);
