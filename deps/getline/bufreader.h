@@ -1,5 +1,5 @@
 #include <stdio.h>
-#include<filesystem>
+#include<boost/filesystem.hpp>
 #define BUFSIZE  (1024*1024*3)
 
 class bufreader {
@@ -23,7 +23,7 @@ class bufreader {
 	bufreader(){}
 	~bufreader(){if (f) fclose(f);}
 	void open(const char* fname){
-		fsize = std::filesystem::file_size(fname);
+		fsize = boost::filesystem::file_size(fname);
 		f = fopen(fname,"rb");
 		//padding for safe parsing
 		realbuf[0] = realbuf[buffsize+2] =

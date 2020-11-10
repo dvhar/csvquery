@@ -3,6 +3,9 @@ cmake_minimum_required(VERSION 3.12)
 project(cql LANGUAGES C CXX)
 set(CMAKE_CXX_FLAGS "-O3 -pipe")
 
+set(is_win "$<BOOL:${WIN32}>")
+set(is_unix "$<BOOL:${UNIX}>")
+
 if (APPLE)
 	add_compile_options(-headerpad_max_install_names)
 endif()
@@ -10,7 +13,7 @@ endif()
 if(UNIX)
 	set(THREADS_PREFER_PTHREAD_FLAG YES)
 	find_package(Threads REQUIRED)
-	find_package(Boost REQUIRED COMPONENTS system)
+	find_package(Boost REQUIRED COMPONENTS system filesystem)
 endif()
 
 file(GLOB sources CONFIGURE_DEPENDS "*.cc")
@@ -29,9 +32,8 @@ set(sources ${sources}
 add_executable(cql ${sources})
 target_compile_features(cql PRIVATE cxx_std_17)
 
-set(is_win "$<BOOL:${WIN32}>")
-set(is_unix "$<BOOL:${UNIX}>")
 target_link_libraries(cql PRIVATE
+	"$<${is_unix}:Boost::filesystem>"
 	"$<${is_unix}:Boost::system>"
 	"$<${is_unix}:Threads::Threads>"
 	"$<${is_win}:tre>"

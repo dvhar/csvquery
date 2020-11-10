@@ -4,7 +4,7 @@
 #include <boost/algorithm/string/replace.hpp>
 #include <boost/algorithm/string/split.hpp>
 #include "deps/http/server_http.hpp"
-#include <filesystem>
+#include <boost/filesystem.hpp>
 using HttpServer = SimpleWeb::Server<SimpleWeb::HTTP>;
 
 #if defined _WIN32
@@ -40,7 +40,7 @@ static bool rejectNonLocals(shared_ptr<HttpServer::Request>& request){
 
 static void serve(){
 
-	auto startdir = filebrowse(filesystem::current_path().u8string());
+	auto startdir = filebrowse(boost::filesystem::current_path().string());
 	state["openDirList"] = startdir->tojson();
 	state["saveDirList"] = startdir->tojson();
 	auto endSemicolon = regex(";\\s*$");
