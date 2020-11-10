@@ -138,12 +138,12 @@
 - title: sorting group join
   code: 0
   query: with count(*) as k select c1 l.c2 k from 'test/country.csv' o nh join 'test/lang.csv'
-    l nh on o.c1=l.c1 group by l.c1 order by k limit 10
+    l nh on o.c1=l.c1 group by l.c1 order by k l.c2 c1 limit 10
   output: 29.csv
 - title: sorting group join with having var
   code: 0
   query: with count(*) as k select c1 l.c2 k from 'test/country.csv' o nh join 'test/lang.csv'
-    l nh on o.c1=l.c1 group by l.c1 order by k having k between 10 and 5
+    l nh on o.c1=l.c1 group by l.c1 order by k having k l.c2 c1 between 10 and 5
   output: 30.csv
 - title: distinct aggregate
   code: 0

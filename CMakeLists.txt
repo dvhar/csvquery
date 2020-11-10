@@ -36,8 +36,9 @@ target_compile_features(cql PRIVATE cxx_std_17)
 
 set(is_win "$<BOOL:${WIN32}>")
 set(is_unix "$<BOOL:${UNIX}>")
+set(is_gcc "$<BOOL:${CMAKE_COMPILER_IS_GNUCXX}>")
 target_link_libraries(cql PRIVATE
-	"$<${CMAKE_COMPILER_IS_GNUCXX}:TBB::tbb>"
+	"$<${is_gcc}:TBB::tbb>"
 	"$<${is_unix}:Boost::system>"
 	"$<${is_unix}:Threads::Threads>"
 	"$<${is_win}:tre>"
