@@ -326,7 +326,7 @@ extern flatmap<int, int> functionCode;
 #define addop3(A,B,C,D) if has(n->phase, agg_phase) addop(A, B, C, D)
 #define debugAddop
 #ifndef debugAddop
-#define debugAddop perr(st("addop: " , opMap[code], '\n'));
+#define debugAddop perr(st("addop: " , opMap[code], "  ip:", v.size(), '\n'));
 #endif
 
 void strplus(dat &s1, dat &s2);

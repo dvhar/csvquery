@@ -1,1 +1,1 @@
-select year(c16) month(c16) monthname(c16) week(c16) day(c16) dayname(c16) dayofyear(c16) dayofmonth(c16) hour(c16) minute(c16) second(c16) c16 from 'test/country' where len(c16) > 10
+with count(*) as k select c1 l.c2 k from 'test/country.csv' o nh join 'test/lang.csv' l nh on o.c1=l.c1 group by l.c1 order by k l.c2 c1 limit 10

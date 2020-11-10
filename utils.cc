@@ -502,7 +502,7 @@ void prepareQuery(querySpecs &q){
 	openfiles(q, q.tree);
 	q.promptPassword();
 	applyTypes(q);
-	printTree(q.tree, 0);
 	analyzeTree(q);
+	printTree(q.tree, 0);
 	codeGen(q);
 };
