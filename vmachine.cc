@@ -3,13 +3,6 @@
 #include <cmath>
 #include <numeric>
 
-#ifndef __clang__
-#include <execution>
-#define parallel() execution::par_unseq,
-#else
-#define parallel()
-#endif
-
 #include "deps/parasort/boost/sort/parallel/sort.hpp"
 namespace bs_sort = boost::sort::parallel;
 
@@ -447,7 +440,7 @@ SORT_ANDCHAIN_:
 			[&](const int a, const int b) { return chain.values[0][a].f < chain.values[0][b].f; },
 			[&](const int a, const int b) { return strcmp(chain.values[0][a].s, chain.values[0][b].s) < 0; },
 		};
-		sort(parallel() chain.indexes.begin(), chain.indexes.end(), uComparers[chain.functionTypes[0]]);
+		bs_sort::parallel_sort(chain.indexes.begin(), chain.indexes.end(), uComparers[chain.functionTypes[0]]);
 	} nexti();
 SORTVALPOS_:
 	{
@@ -457,10 +450,10 @@ SORTVALPOS_:
 			[&](const valpos &a, const valpos &b) { return a.val.f < b.val.f; },
 			[&](const valpos &a, const valpos &b) {
 				return a.val.s && b.val.s && strcmp(a.val.s, b.val.s)<0;
-				//find out how a null is getting in here
+				//TODO: find out how a null is getting in here
 			},
 		};
-		sort(parallel() vpvector.begin(), vpvector.end(), valposComparers[op->p3]);
+		bs_sort::parallel_sort(vpvector.begin(), vpvector.end(), valposComparers[op->p3]);
 	} nexti();
 
 //normal sorter
