@@ -154,7 +154,8 @@ class Browser extends React.Component {
 			header.push( <><span>Save queries on page to their own csv file. A number will be added to file name if more than 1.</span>
 				<button className="saveButton topButton popButton dropContent" onClick={()=>{
 					var path = document.getElementById(this.state.currentDirId).value;
-					this.props.submitQuery({query : this.props.currentQuery.query, fileIO : bit.F_SAVE|bit.F_CSV, savePath : path});
+					var qtext = document.getElementById("textBoxId").value;
+					this.props.submitQuery({query : qtext, fileIO : bit.F_SAVE|bit.F_CSV, savePath : path});
 				}}>save</button><br/></> );
 
 		return (
