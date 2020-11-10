@@ -1,15 +1,15 @@
 #include <ctype.h>
-#include <filesystem>
+#include <boost/filesystem.hpp>
 #include <sstream>
 #include <string>
 #include "interpretor.h"
 
 
 fileReader::fileReader(string& fname) : filename(fname) {
-	if (!filesystem::exists(fname)){
+	if (!boost::filesystem::exists(fname)){
 		if (!regex_match(fname,extPat)){
 			fname += ".csv";
-			if (!filesystem::exists(fname)){
+			if (!boost::filesystem::exists(fname)){
 				error("Could not open file "+fname);
 			}
 		} else {
@@ -286,18 +286,18 @@ void openfiles(querySpecs &q, unique_ptr<node> &n){
 
 shared_ptr<directory> filebrowse(string dir){
 
-	filesystem::path thisdir(dir);
-	if (!filesystem::exists(thisdir) || !filesystem::is_directory(thisdir)){
+	boost::filesystem::path thisdir(dir);
+	if (!boost::filesystem::exists(thisdir) || !boost::filesystem::is_directory(thisdir)){
 		error(st(dir," is not a directory"));
 	}
 	auto resp = make_shared<directory>();
 	vector<string> others;
-	for (auto& f : filesystem::directory_iterator(thisdir)){
-		auto&& S = f.path().u8string();
+	for (auto& f : boost::filesystem::directory_iterator(thisdir)){
+		auto&& S = f.path().string();
 		if (regex_match(S,hidPat)){
-		} else if (filesystem::is_directory(f.status())){
+		} else if (boost::filesystem::is_directory(f.status())){
 			resp->dirs.push_back(S);
-		} else if (filesystem::is_regular_file(f.status())){
+		} else if (boost::filesystem::is_regular_file(f.status())){
 			if (regex_match(S,extPat))
 				resp->files.push_back(S);
 			else
@@ -308,7 +308,7 @@ shared_ptr<directory> filebrowse(string dir){
 	sort(resp->files.begin(), resp->files.end());
 	sort(others.begin(), others.end());
 	resp->files.insert(resp->files.end(), others.begin(), others.end());
-	resp->parent = thisdir.parent_path().u8string();
-	resp->fpath = thisdir.u8string();
+	resp->parent = thisdir.parent_path().string();
+	resp->fpath = thisdir.string();
 	return resp;
 }

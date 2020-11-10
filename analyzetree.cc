@@ -382,11 +382,14 @@ set<int> analyzer::whichFilesReferenced(unique_ptr<node> &n){
 				return whichFilesReferenced(n->node1);
 		default: 
 			{
-				auto fileSet = whichFilesReferenced(n->node1);
-				fileSet.merge(whichFilesReferenced(n->node2));
-				fileSet.merge(whichFilesReferenced(n->node3));
-				fileSet.merge(whichFilesReferenced(n->node4));
-				return fileSet;
+				auto f1 = whichFilesReferenced(n->node1);
+				auto f2 = whichFilesReferenced(n->node2);
+				auto f3 = whichFilesReferenced(n->node3);
+				auto f4 = whichFilesReferenced(n->node4);
+				f1.insert(f2.begin(), f2.end());
+				f1.insert(f3.begin(), f3.end());
+				f1.insert(f4.begin(), f4.end());
+				return f1;
 			}
 	}
 }
