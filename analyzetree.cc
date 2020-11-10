@@ -16,6 +16,7 @@ class analyzer {
 		void selectAll();
 		void recordResultColumns(unique_ptr<node> &n);
 		bool findAgrregates(unique_ptr<node> &n);
+		bool allAgrregates(unique_ptr<node> &n);
 		void findMidrowTargets(unique_ptr<node> &n);
 		void setVarPhase(unique_ptr<node> &n, int phase, int section);
 		void setNodePhase(unique_ptr<node> &n, int phase);
@@ -157,6 +158,12 @@ void analyzer::recordResultColumns(unique_ptr<node> &n){
 	}
 };
 
+bool analyzer::allAgrregates(unique_ptr<node> &n){
+	for (auto nn = n.get(); nn; nn = nn->node2.get())
+		if (!findAgrregates(nn->node1))
+			return false;
+	return true;
+}
 bool analyzer::findAgrregates(unique_ptr<node> &n){
 	if (n == nullptr) return false;
 	switch (n->label){
@@ -253,7 +260,7 @@ void analyzer::setVarPhase(unique_ptr<node> &n, int phase, int section){
 		setVarPhase(n->node1, 1, 5);
 		break;
 	case N_ORDER:
-		if (!findAgrregates(n->node1))
+		if (!allAgrregates(n->node1))
 			error("cannot sort aggregate query by non-aggregate value");
 		setVarPhase(n->node1, 2, 6);
 		break;

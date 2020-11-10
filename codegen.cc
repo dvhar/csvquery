@@ -500,6 +500,7 @@ void cgen::genNormalOrderedQuery(unique_ptr<node> &n){
 	addop(ENDRUN);
 };
 void cgen::genNormalSortList(unique_ptr<node> &n){
+	e("normal sort list");
 	vs.setscope(ORDER_FILTER, V_READ1_SCOPE);
 	genVars(q->tree->node1);
 	auto& ordnode = findFirstNode(q->tree->node4, N_ORDER);
@@ -540,8 +541,10 @@ void cgen::genGroupingQuery(unique_ptr<node> &n){
 
 void cgen::genAggSortList(unique_ptr<node> &n){
 	if (n == nullptr) return;
+	e("agg sort list");
 	switch (n->label){
-	case N_QUERY:     genAggSortList(n->node4->node4); break;
+	case N_QUERY:     genAggSortList(n->node4); break;
+	case N_AFTERFROM: genAggSortList(n->node4); break;
 	case N_ORDER:     genAggSortList(n->node1); break;
 	case N_EXPRESSIONS:
 		genExprAdd(n->node1);
