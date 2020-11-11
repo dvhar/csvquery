@@ -810,6 +810,8 @@ PRINTJSON_:
 		jbuf += ']';
 		++numJsonPrinted;
 		jsonresult->Vals.push_back(move(jbuf));
+	} else {
+		jsonresult->clipped = jsonresult->showLimit;
 	}
 	jsonresult->numrows++;
 	totalPrinted += op->p1; //in case not csv printing

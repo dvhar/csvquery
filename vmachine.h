@@ -350,8 +350,11 @@ class qinstance {
 	}
 	void run(){
 		prepareQuery(*q);
+		perr("Constructing vm\n");
 		vm.reset(new vmachine(*q));
+		perr("Starting query\n");
 		vm->run();
+		perr("Finished query\n");
 	}
 };
 class queryQueue {
