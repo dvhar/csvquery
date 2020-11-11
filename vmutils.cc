@@ -225,7 +225,7 @@ vmachine::vmachine(querySpecs &qs) :
 		else
 			normalSortVals.resize(q->sortcount);
 	}
-	fill(stack.begin(), stack.end(), dat{0});
+	stack.fill(dat{0});
 	bt_nums.resize(q->btn);
 	bt_strings.resize(q->bts);
 	if (q->outputjson){
