@@ -24,10 +24,10 @@ class Main extends React.Component {
 			historyPosition : 0,
 			showQuery : <></>,
 			showHelp : 0,
+			version : "",
 			sessionId : "",
 		}
 		this.topDropReset = this.topDropReset.bind(this);
-		var that = this;
 
 		//restore previous session or initialize paths
 		getRequest({info:"getState"})
@@ -35,6 +35,7 @@ class Main extends React.Component {
 				if (dat.history) this.setState({ queryHistory : dat.history, historyPosition : dat.history.length-1 });
 				if (dat.openDirList) this.setState({ openDirList : dat.openDirList });
 				if (dat.saveDirList) this.setState({ saveDirList : dat.saveDirList });
+				if (dat.version) this.setState({ version : dat.version });
 				var textbox = document.getElementById("textBoxId");
 				if (textbox != null)
 					textbox.value = this.state.queryHistory[this.state.historyPosition].query || "";
@@ -87,11 +88,9 @@ class Main extends React.Component {
 	}
 
 	viewHistory(position){
-		var q = this.state.queryHistory[position];
 		this.setState({ historyPosition : position });
 		var textbox = document.getElementById("textBoxId");
 		if (textbox != null) { textbox.value = this.state.queryHistory[position].query; }
-		//this.submitQuery({ query : q.query, backtrack : true});
 	}
 	topDropReset(e){ 
 		setTimeout(()=>{
@@ -147,6 +146,7 @@ class Main extends React.Component {
 			fileClick = {(request)=>this.fileClick(request)}
 		/>
 		<help.Help
+			version = {this.state.version}
 			show = {this.state.showHelp}
 			toggleHelp = {()=>{this.setState({showHelp:this.state.showHelp^1})}}
 		/>

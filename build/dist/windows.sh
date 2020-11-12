@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-dir=csvwin
+dir=csvquery
 
 mkdir -p $dir
 
@@ -9,6 +9,6 @@ while read LINE; do
 	[ -f $f ] && cp $f $dir
 done < <(ldd ./cql.exe)
 
-cp ./cql.exe $dir
+cp ./cql.exe $dir/csvquery.exe
 
 zip -r ${dir}.zip $dir
