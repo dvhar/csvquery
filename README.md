@@ -32,7 +32,7 @@ Run queries from command line:
 ```
 ./cql "select from stuff.csv"
 ```
-Start http server to run queries from web browser gui:
+Start http server to run queries from web browser gui or to view query language documentation:
 ```
 ./cql
 ```

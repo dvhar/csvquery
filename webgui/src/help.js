@@ -9,6 +9,7 @@ const paramlist = [
 	'(<any number of expressions>)',
 	'(<expression>, <optional decimal places>)',
 	'(<expression> or *)',
+	'(<expression>, <format string> or "iso")',
 ];
 
 const funclist = [
@@ -39,6 +40,7 @@ const funclist = [
 	["hour" ,"hour (0-23)",1],
 	["minute" ,"minute (0-59)",1],
 	["second" ,"second (0-59)",1],
+	["format" ,"format datetime text",8],
 	["ceil","round up",6],
 	["floor","round down",6],
 	["round","round up or down to nearest",6],
@@ -188,6 +190,9 @@ export class Help extends React.Component {
 						<br/>
 						<br/>
 					{"Math functions like asin and log return an empty value when not a real number, such as log(0) or asin(100). To return nan, inf, or -inf instead, add the option 'nan' to the beginning of the query. Return value will still be empty if function is called on a null value."}
+						<br/>
+						<br/>
+					{"Format function uses the type of date format string described by the "}<a href='https://linux.die.net/man/3/strftime' target='_blank'>Linux Manual</a>{". It can also take 'iso' as a parameter to format dates like '2020-11-12T03:01:53Z'."}
 					</blockquote>
 				<h4>Selecting rows or aggregates with a distinct value</h4>
 					{"To only return rows with a distinct value, put the 'distinct' keyword in front of the expression that you want to be distinct. Put 'hidden' after 'distinct' if you don't want that value to show up as a result column."}

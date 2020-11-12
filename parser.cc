@@ -678,7 +678,7 @@ unique_ptr<node> parser::parseOrder() {
 }
 
 //tok1 is function id
-//tok2 is * for count(*), preconv paramtype for len(), rounding dec places
+//tok2 is * for count(*), preconv paramtype for len(), rounding dec places, date format
 //tok3 is distinct, minus sign for rounding param
 //tok4 is password or (determined later) count of distinct N or S functions
 //[PARAMTYPE] is paramtype for type conversion
@@ -741,6 +741,13 @@ unique_ptr<node> parser::parseFunction() {
 				error("POW function expected comma before second expression. Found: " +t.val);
 			q->nextTok();
 			n->node2 = parseExprAdd();
+			break;
+		case FN_FORMAT:
+			n->node1 = parseExprAdd();
+			if (t = q->tok(); t.id != SP_COMMA)
+				error("FORMAT function expected comma before date format parameter. Found: " +t.val);
+			n->tok2 = q->nextTok();
+			q->nextTok();
 			break;
 		case FN_SUBSTR:
 			n->node1 = parseExprAdd();
