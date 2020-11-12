@@ -125,6 +125,7 @@ static bool canBeString(unique_ptr<node> &n){
 			return canBeString(n->node1);
 		case FN_ENCRYPT:
 		case FN_DECRYPT:
+		case FN_FORMAT:
 		case FN_MONTHNAME:
 		case FN_WDAYNAME:
 		case FN_UPPER:
@@ -416,6 +417,7 @@ typer dataTyper::typeFunctionInnerNodes(unique_ptr<node> &n){
 		typeInnerNodes(n->node1);
 		innerType = {T_FLOAT, false};
 		break;
+	case FN_FORMAT:
 	case FN_MONTHNAME:
 	case FN_WDAYNAME:
 		n->keep = true;
@@ -727,6 +729,7 @@ void dataTyper::typeFunctionFinalNodes(unique_ptr<node> &n, int finaltype){
 			typeFinalValues(n->node2, finaltype);
 		}
 		break;
+	case FN_FORMAT:
 	case FN_MONTHNAME:
 	case FN_WDAYNAME:
 	case FN_YEAR:

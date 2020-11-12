@@ -106,7 +106,7 @@ const flatmap<string_view, int> functionMap = {
 	{"stdevp" ,   FN_STDEVP},
 	{"stddevp" ,  FN_STDEVP},
 	{"abs" ,      FN_ABS},
-	//{"format" ,   FN_FORMAT},
+	{"format" ,   FN_FORMAT},
 	{"coalesce" , FN_COALESCE},
 	{"year" ,     FN_YEAR},
 	{"month" ,    FN_MONTH},
