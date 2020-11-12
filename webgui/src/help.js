@@ -92,11 +92,30 @@ class FuncTable extends React.Component {
 		this.show = false;
 	}
 	render(){
-		return this.show == true ? this.table : this.showbut;
+		return this.show === true ? this.table : this.showbut;
 	}
 };
 
 export class Help extends React.Component {
+	constructor(props) {
+		super(props);
+		this.state = {
+			updateMsg : "",
+		};
+		let url = new URL("https://davosaur.com/csv/index.php?d=version");
+		let resp = fetch(url);
+		console.log(resp);
+		resp.then(dat => { if (dat.ok){
+			dat.json().then(v => {
+				if (v.version !== this.props.version){
+					let update = [<a href='https://davosaur.com/csv' target='_blank'>New version available</a> ,'\t', v.version];
+					if (v.notes)
+						update = update.concate([<br/>,<br/>,v.notes]);
+					this.setState({ updateMsg : update });
+				}
+			});
+		}})
+	}
 	render(){
 		if (!this.props.show) return <></>
 		return ( 
@@ -246,8 +265,9 @@ export class Help extends React.Component {
 			{"Another thing that can take a while is files that have tons of columns. The program samples the first 10000 rows to figure out datatypes and this can take a while with very wide files. That process is not yet interuptable by the 'end query early' button."}
 			<br/><br/>
 			<hr/>
-			version 1.0.5
+			version {this.props.version}
 			<hr/>
+			{this.state.updateMsg}
 			<br/><br/>
 			</div>
 		)

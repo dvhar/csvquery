@@ -5,6 +5,7 @@
 #include "deps/json/escape.h"
 #define max(a,b) (a) > (b) ? (a) : (b)
 
+string version = "1.10";
 int runmode;
 regex_t leadingZeroString;
 regex_t durationPattern;
@@ -494,6 +495,17 @@ stringstream& returnData::tojson(){
 		<< "\",\"Clipped\":" << (clipped ? "true":"false")
 		<< ",\"Message\":\"" << escapeJSON(message) << "\"}";
 	return j;
+}
+
+string gethome(){
+	auto h = getenv("HOME");
+	if (h) return string(h);
+	h = getenv("USERPROFILE");
+	if (h) return string(h);
+	h = getenv("HOMEDRIVE");
+	auto p = getenv("HOMEPATH");
+	if (h && p) return st(h,p);
+	return "";
 }
 
 void prepareQuery(querySpecs &q){

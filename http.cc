@@ -93,6 +93,7 @@ static void serve(){
 			state = json::parse(request->content.string());
 			response->write("{}");
 		} else if (info == "getState"){
+			state["version"] = version;
 			response->write(state.dump(), header);
 		} else if (info == "fileClick"){
 			auto j = json::parse(request->content.string());
@@ -119,10 +120,10 @@ static void serve(){
 		}
 	};
 
-	openbrowser();
 	perr("starting http server\n");
 	auto ws = async(servews);
 	auto hs = async([](){server.start();});
+	openbrowser();
 	ws.get();
 	server.stop();
 	hs.get();

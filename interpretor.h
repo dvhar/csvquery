@@ -43,6 +43,7 @@ using json = nlohmann::json;
 using namespace std;
 
 extern mt19937 rng;
+extern string version;
 static void error(string A){ throw invalid_argument(A);}
 static void perr(string s){
 	cerr << s;
@@ -570,6 +571,7 @@ void sendMessage(i64 sesid, string);
 void sendPassPrompt(i64 sesid);
 void hideInput();
 void initregex();
+string gethome();
 
 struct freeC {
 	void operator()(void*x){ free(x); }
