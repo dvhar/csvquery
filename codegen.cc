@@ -1004,7 +1004,7 @@ void cgen::genFunction(unique_ptr<node> &n){
 		addop(functionCode[n->tok1.id], q->dataholder.size());
 		if (n->tok2.lower() == "iso")
 			n->tok2.val = "%Y-%m-%dT%H:%M:%SZ";
-		q->dataholder.push_back(dat{ { s: strdup(n->tok2.val.c_str()) }, T_STRING|MAL, n->tok2.val.size() });
+		q->dataholder.push_back(dat{ { s: strdup(n->tok2.val.c_str()) }, T_STRING|MAL, (u32)n->tok2.val.size() });
 		break;
 	case FN_YEAR:
 	case FN_MONTH:
