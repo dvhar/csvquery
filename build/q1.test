@@ -1,1 +1,4 @@
-with encrypt(c2) as e, decrypt(upper(e)) as d select e,d c2 from ptest where d = null
+select count(*) as total, year(c5) as year, monthname(c5) as month, min(c5), max(c5+'100 weeks') as 'date math', avg(case when c36>0 then c36 end) as 'avg car year', sum(c1) as 'big sum'
+from  '/home/dave/gits/csvquery/build/ptest.csv'
+group by year(c5) month(c5)
+order by max(c5) asc

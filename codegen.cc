@@ -78,7 +78,7 @@ static const int funcTypes[]  = { 0,0,1,0,0,2 };
 
 //for debugging
 static int ident = 0;
-#define e //turn off debug printer
+//#define e //turn off debug printer
 #ifndef e
 #define e(A) for (int i=0; i< ident; i++) perr("    "); \
 	perr(st( A , "\n")); ident++; \
@@ -759,9 +759,9 @@ void cgen::genSelections(unique_ptr<node> &n){
 	string t1 = n->tok1.lower();
 	switch (n->label){
 	case N_SELECTIONS:
-		if (t1 == "hidden"sv) {
+		if (t1 == "hidden") {
 
-		} else if (t1 == "distinct"sv) {
+		} else if (t1 == "distinct") {
 			if (agg_phase == 1){
 				genExprAll(n->node1);
 			} else {
@@ -769,7 +769,7 @@ void cgen::genSelections(unique_ptr<node> &n){
 			}
 			incSelectCount();
 
-		} else if (t1 == "*"sv) {
+		} else if (t1 == "*") {
 			genSelectAll();
 
 		} else if (isTrivialColumn(n)) {
@@ -1001,7 +1001,7 @@ void cgen::genFunction(unique_ptr<node> &n){
 		break;
 	case FN_FORMAT:
 		genExprAll(n->node1);
-		addop(functionCode[n->tok1.id], q->dataholder.size());
+		addop1(functionCode[n->tok1.id], q->dataholder.size());
 		if (n->tok2.lower() == "iso")
 			n->tok2.val = "%Y-%m-%dT%H:%M:%SZ";
 		q->dataholder.push_back(dat{ { s: strdup(n->tok2.val.c_str()) }, T_STRING|MAL, (u32)n->tok2.val.size() });
@@ -1046,13 +1046,13 @@ void cgen::genFunction(unique_ptr<node> &n){
 	case FN_NOWGM:
 		genExprAll(n->node1);
 		//p1 is rounding places, p2 is use nan vs null
-		addop(functionCode[n->tok1.id], n->tok2.id, ((q->options & O_NAN) == 0));
+		addop2(functionCode[n->tok1.id], n->tok2.id, ((q->options & O_NAN) == 0));
 		break;
 	case FN_LEN:
 		genExprAll(n->node1);
 		if (n->node1->datatype != T_STRING)
 			addop0(typeConv[n->node1->datatype][T_STRING]);
-		addop(functionCode[n->tok1.id]);
+		addop0(functionCode[n->tok1.id]);
 		break;
 	}
 

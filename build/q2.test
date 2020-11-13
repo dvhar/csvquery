@@ -1,1 +1,1 @@
-with count(*) as k select c1 l.c2 k from 'test/country.csv' o nh join 'test/lang.csv' l nh on o.c1=l.c1 group by l.c1 order by k l.c2 c1 limit 10
+select monthname(c16) from 'test/country' group by month(c16)

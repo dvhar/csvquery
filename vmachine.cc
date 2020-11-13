@@ -14,9 +14,9 @@ namespace bs_sort = boost::sort::parallel;
 #define push() (++stacktop)->freedat();
 #define pop() --stacktop
 
-#define debugOpcode
+//#define debugOpcode
 #ifndef debugOpcode
-#define debugOpcode  perr(st("\nip ",ip," opcode ",opMap[op->code]," stack ",stacktop-stack.data()));
+#define debugOpcode  if (deb) perr(st("\nip ",ip," opcode ",opMap[op->code]," stack ",stacktop-stack.data()));
 #endif
 //jump to next operation
 #define next() \
@@ -52,6 +52,7 @@ void vmachine::run(){
 	decltype(groupTree->getMap().begin()) groupItstk[20];
 	typedef decltype(joinSetStack.front().begin()) jnit ;
 	vector<jnit> setItstk((q->numFiles-1)*2);
+	bool deb = false;
 
 	next();
 
@@ -1225,6 +1226,7 @@ ONEGROUP_:
 	midrow = onegroup.data();
 	nexti();
 ROOTMAP_:
+	deb = true;
 	groupItstk[op->p1]   = groupTree->getMap().begin();
 	groupItstk[op->p1+1] = groupTree->getMap().end();
 	torow = destrow.data();
