@@ -790,6 +790,9 @@ void cgen::genSelections(unique_ptr<node> &n){
 			}
 			incSelectCount();
 
+		} else if (agg_phase == 2 && n->info[LPMID]) {
+			addop2(LDPUTMID, n->tok4.id, n->tok3.id);
+
 		} else {
 			genExprAll(n->node1);
 			addop2(PUT, n->tok4.id, agg_phase==1?1:0);

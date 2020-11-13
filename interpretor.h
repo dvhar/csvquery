@@ -234,7 +234,8 @@ enum: int {
 	FILENO,
 	TOSCAN,
 	PARAMTYPE,
-	RETTYPE
+	RETTYPE,
+	LPMID
 };
 class node {
 	public:
