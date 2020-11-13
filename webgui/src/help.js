@@ -112,7 +112,7 @@ export class Help extends React.Component {
 				if (v.version !== this.props.version){
 					let update = [<a href='https://davosaur.com/csv' target='_blank'>New version available</a> ,'\t', v.version];
 					if (v.notes)
-						update = update.concate([<br/>,<br/>,v.notes]);
+						update = update.concat([<br/>,<br/>,v.notes]);
 					this.setState({ updateMsg : update });
 				}
 			});
