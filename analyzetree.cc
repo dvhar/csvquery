@@ -25,6 +25,7 @@ class analyzer {
 		void findJoinAndChains(unique_ptr<node> &n, int fileno);
 		bool ischain(unique_ptr<node> &n, int &predno);
 		void shouldPrintHeader();
+		int phaser(unique_ptr<node> &n);
 };
 
 void analyzer::propogateVarFilter(string var, int filter){
@@ -286,6 +287,7 @@ void analyzer::setNodePhase(unique_ptr<node> &n, int phase){
 			setNodePhase(n->node1, 1);
 		}
 		setNodePhase(n->node2, 2);
+		phaser(n);
 		break;
 	case N_FUNCTION:
 		n->phase = phase;
@@ -326,6 +328,18 @@ void analyzer::setNodePhase(unique_ptr<node> &n, int phase){
 	}
 }
 
+int analyzer::phaser(unique_ptr<node> &n){
+	if (n == nullptr || !q->grouping) return 0;
+	switch (n->label){
+		case N_SELECTIONS:
+			if (n->phase > 1){
+				if (phaser(n->node1) < n->phase) {
+					n->info[LPMID] = 1;
+				}
+			}
+	}
+	return n->phase;
+}
 void analyzer::findMidrowTargets(unique_ptr<node> &n){
 	if (n == nullptr || !q->grouping) return;
 	switch (n->label){
