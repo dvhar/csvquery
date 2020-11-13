@@ -620,9 +620,11 @@ future<shared_ptr<singleQueryResult>> queryQueue::runqueryJson(querySpecs& q){
 		mtx.unlock();
 		thisq.run();
 		auto ret = thisq.vm->getJsonResult();
+		perr("Got json result\n");
 		mtx.lock();
 		queries.remove_if([&](qinstance& qi){ return qi.vm->id == thisq.vm->id; });
 		mtx.unlock();
+		perr("Remove query from queue\n");
 		return ret;
 	});
 }

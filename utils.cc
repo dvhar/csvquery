@@ -151,6 +151,7 @@ const flatmap<string_view, int> functionMap = {
 	{"text",         FN_STRING},
 	{"int",          FN_INT},
 	{"float",        FN_FLOAT},
+	{"date",         FN_DATE},
 	{"round",        FN_ROUND},
 	{"pow",          FN_POW},
 	{"cbrt",         FN_CBRT},

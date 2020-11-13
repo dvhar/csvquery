@@ -69,6 +69,7 @@ static void serve(){
 				sendMessage(wq.sessionId, "Saved to " + wq.savepath);
 			else if (ret->maxclipped)
 				sendMessage(wq.sessionId, st("Only showing first ",ret->maxclipped," results"));
+			perr("Writing http respons\n");
 			response->write(ret->tojson().str(), header);
 
 		} catch (...){
@@ -134,11 +135,13 @@ static shared_ptr<returnData> runqueries(webquery &wq){
 	auto ret = make_shared<returnData>();
 	for (auto &q: wq.queries){
 		auto&& singleResult = runWebQuery(wq);
+		perr("Got result of single query\n");
 		ret->entries.push_back(singleResult);
 		if (singleResult->clipped)
 			ret->maxclipped = max(ret->maxclipped, singleResult->showLimit);
 		wq.whichone++;
 	}
+	perr("Got result of all queries\n");
 	return ret;
 }
 

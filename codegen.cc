@@ -995,6 +995,7 @@ void cgen::genFunction(unique_ptr<node> &n){
 	case FN_STRING:
 	case FN_INT:
 	case FN_FLOAT:
+	case FN_DATE:
 		genExprAll(n->node1); //has conv node from datatyper
 		break;
 	case FN_POW:
