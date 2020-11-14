@@ -106,7 +106,7 @@ bool fileReader::readline(){
 			//go to next quote
 			while(*pos2 && *pos2 != '"') ++pos2;
 			//escape character
-			if (*(pos2-1) == '\\' && (q->options & O_NBS) == 0){
+			if (*(pos2-1) == '\\' && !nextIsDelim()){
 				compactQuote();
 				++pos2;
 				goto inquote;
@@ -115,8 +115,6 @@ bool fileReader::readline(){
 			switch (*pos2){
 			// "" escaped quote
 			case '"':
-				if (q->options & O_NDQ)
-					continue;
 				compactQuote();
 				++pos2;
 				goto inquote;
@@ -124,20 +122,32 @@ bool fileReader::readline(){
 			case '\0':
 				getQuotedField();
 				return checkWidth();
-			case ' ':
-				getQuotedField();
-				while (*pos2 && *pos2 != delim) ++pos2;
-				pos1 = ++pos2;
-			}
-			//end of field
-			if (*pos2 == delim){
-				getQuotedField();
-				pos1 = ++pos2;
+			default:
+				//end of field
+				if (*pos2 == delim){
+					getQuotedField();
+					pos1 = ++pos2;
+				} else if (auto d = nextIsDelim()){
+					getQuotedField();
+					pos1 = pos2 = d+1;
+				} else {
+					//unescaped quote in middle of the damn field
+					++pos2;
+					goto inquote;
+				}
 			}
 		}
 
 	}
 	return 0;
+}
+inline char* fileReader::nextIsDelim(){
+	auto nextc = pos2+1;
+	while (*nextc == ' ')
+		++nextc;
+	if (*nextc == delim || *nextc == '\n' || *nextc == 0)
+		return nextc;
+	return nullptr;
 }
 inline void fileReader::getQuotedField(){
 	if (equoteCount){

@@ -322,6 +322,7 @@ class fileReader {
 		string id;
 		int fileno =0;
 		int numFields =0;
+	inline char* nextIsDelim();
 	inline void getField();
 	inline void getQuotedField();
 	inline void compactQuote();
