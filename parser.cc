@@ -121,6 +121,10 @@ void parser::parseOptions() {
 	} else if (s == "t") {
 		if (q->options & (O_P|O_S)) error("Cannot mix delimiter options");
 		q->options |= O_T;
+	} else if (s == "nbs") {
+		q->options |= O_NBS;
+	} else if (s == "ndq") {
+		q->options |= O_NDQ;
 	} else if (s == "nan") {
 		q->options |= O_NAN;
 	} else {

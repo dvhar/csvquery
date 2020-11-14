@@ -938,7 +938,7 @@ void cgen::genFunction(unique_ptr<node> &n){
 	//stuff common to all aggregate functions
 	if ((n->tok1.id & AGG_BIT) != 0 ) {
 		genExprAll(n->node1);
-		if (n->tok3.val == "distinct"sv && agg_phase == 1){
+		if (n->tok3.val == "distinct" && agg_phase == 1){
 			int setIndex = n->tok4.id;
 			int separateSets = 1;
 			if (q->grouping == 1){ //when onegroup, btree not indexed by rowgroup

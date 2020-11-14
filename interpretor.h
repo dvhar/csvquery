@@ -195,7 +195,9 @@ enum {
 	O_OH = 64,
 	O_NOH = 128,
 	O_NAN = 256,
-	O_AH = 512
+	O_AH = 512,
+	O_NBS = 1024,
+	O_NDQ = 2048
 };
 
 extern const flatmap<int, string_view> treeMap;
@@ -282,6 +284,7 @@ class csvEntry {
 
 class valpos;
 class andchain;
+class querySpecs;
 class fileReader {
 	int fieldsFound;
 	char* pos1 = 0;
@@ -299,6 +302,7 @@ class fileReader {
 	int memidx = 0;
 	int numrows = 0;
 	bool needStretchyBuf = false;
+	querySpecs *q;
 	public:
 		static char blank;
 		bool small =0;
@@ -326,7 +330,7 @@ class fileReader {
 	int getColIdx(string&);
 	bool readline();
 	bool readlineat(i64);
-	fileReader(string&);
+	fileReader(string&, querySpecs &q);
 	~fileReader();
 };
 

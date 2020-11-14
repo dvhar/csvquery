@@ -5,7 +5,7 @@
 #include "interpretor.h"
 
 
-fileReader::fileReader(string& fname) : filename(fname) {
+fileReader::fileReader(string& fname, querySpecs &qs) : filename(fname), q(&qs) {
 	if (!boost::filesystem::exists(fname)){
 		if (!regex_match(fname,extPat)){
 			fname += ".csv";
@@ -106,7 +106,7 @@ bool fileReader::readline(){
 			//go to next quote
 			while(*pos2 && *pos2 != '"') ++pos2;
 			//escape character
-			if (*(pos2-1) == '\\'){
+			if (*(pos2-1) == '\\' && (q->options & O_NBS) == 0){
 				compactQuote();
 				++pos2;
 				goto inquote;
@@ -115,6 +115,8 @@ bool fileReader::readline(){
 			switch (*pos2){
 			// "" escaped quote
 			case '"':
+				if (q->options & O_NDQ)
+					continue;
 				compactQuote();
 				++pos2;
 				goto inquote;
@@ -237,7 +239,7 @@ void openfiles(querySpecs &q, unique_ptr<node> &n){
 		//initialize and put in map
 		string& fpath = n->tok1.val;
 		string id = st("_f",q.numFiles);
-		q.filevec.push_back(make_shared<fileReader>(fpath));
+		q.filevec.push_back(make_shared<fileReader>(fpath, q));
 		auto& fr = q.filevec.back();
 		fr->id = id;
 		fr->fileno = q.numFiles;
