@@ -196,8 +196,6 @@ enum {
 	O_NOH = 128,
 	O_NAN = 256,
 	O_AH = 512,
-	O_NBS = 1024,
-	O_NDQ = 2048
 };
 
 extern const flatmap<int, string_view> treeMap;
