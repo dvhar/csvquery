@@ -174,6 +174,7 @@ static bool canBeString(unique_ptr<node> &n){
 		case FN_INT:
 		case FN_FLOAT:
 		case FN_DATE:
+		case FN_DUR:
 		case FN_ROUND:
 		case FN_POW:
 		case FN_NOW:
@@ -519,6 +520,11 @@ typer dataTyper::typeFunctionInnerNodes(unique_ptr<node> &n){
 		n->info[PARAMTYPE] = typeInnerNodes(n->node1).type;
 		n->info[RETTYPE] = T_DATE;
 		break;
+	case FN_DUR:
+		innerType = {T_DURATION, false};
+		n->info[PARAMTYPE] = typeInnerNodes(n->node1).type;
+		n->info[RETTYPE] = T_DURATION;
+		break;
 
 	default:
 		innerType = typeInnerNodes(n->node1);
@@ -715,6 +721,7 @@ void dataTyper::typeFunctionFinalNodes(unique_ptr<node> &n, int finaltype){
 	case FN_INT:
 	case FN_FLOAT:
 	case FN_DATE:
+	case FN_DUR:
 	case FN_STRING:
 	case FN_ROUND:
 	case FN_POW:
