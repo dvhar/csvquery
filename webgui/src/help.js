@@ -68,6 +68,7 @@ const funclist = [
 	["int","convert datatype to integer",1],
 	["float","convert datatype to floating point number",1],
 	["date","convert datatype to datetime",1],
+	["duration","convert datatype to duration",1],
 	["encrypt" ,"encrypt",4],
 	["decrypt" ,"decrypt",4],
 	["base64_encode","encode to bas64",1],
