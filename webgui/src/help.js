@@ -105,15 +105,22 @@ export class Help extends React.Component {
 		this.state = {
 			updateMsg : "",
 		};
-		let url = new URL("https://davosaur.com/csv/index.php?d=version");
+		let url = new URL(`https://davosaur.com/csv/index.php?d=version2&c=${this.props.version}`);
 		let resp = fetch(url);
 		console.log(resp);
 		resp.then(dat => { if (dat.ok){
 			dat.json().then(v => {
-				if (v.version !== this.props.version){
-					let update = [<a href='https://davosaur.com/csv' target='_blank'>New version available</a> ,'\t', v.version];
-					if (v.notes)
-						update = update.concat([<br/>,<br/>,v.notes]);
+				if (v.version > this.props.version){
+					let update = [<a href='https://davosaur.com/csv' target='_blank'>New version available</a> ,':\t', v.version];
+					if (v.notes){
+						if (Array.isArray(v.notes)){
+							update.push(<br/>);
+							update.push(<br/>);
+							v.notes.forEach(note => { update.push(<li>{note}</li>); });
+						} else {
+							update = update.concat([<br/>,<br/>,v.notes]);
+						}
+					}
 					this.setState({ updateMsg : update });
 				}
 			});
