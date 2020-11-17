@@ -105,13 +105,17 @@ export class Help extends React.Component {
 		super(props);
 		this.state = {
 			updateMsg : "",
+			updated : false,
 		};
+	}
+	checkupdate(){
+		if (this.state.updated) return;
 		let url = new URL(`https://davosaur.com/csv/index.php?d=version2&c=${this.props.version}`);
 		let resp = fetch(url);
 		console.log(resp);
 		resp.then(dat => { if (dat.ok){
 			dat.json().then(v => {
-				if (v.version > this.props.version){
+				if (this.props.version !== '' && v.version > this.props.version){
 					let update = [<a href='https://davosaur.com/csv' target='_blank'>New version available</a> ,':\t', v.version];
 					if (v.notes){
 						if (Array.isArray(v.notes)){
@@ -126,9 +130,11 @@ export class Help extends React.Component {
 				}
 			});
 		}})
+		this.setState({ updated : true });	
 	}
 	render(){
 		if (!this.props.show) return <></>
+		this.checkupdate();
 		return ( 
 			<div className="helpBox">
 			<h3>What this software does</h3>
