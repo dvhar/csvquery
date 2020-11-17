@@ -145,7 +145,7 @@ inline char* fileReader::nextIsDelim(){
 	auto nextc = pos2+1;
 	while (*nextc == ' ')
 		++nextc;
-	if (*nextc == delim || *nextc == '\n' || *nextc == 0)
+	if (*nextc == delim || *nextc == '\n' || *nextc == '\r' || *nextc == 0)
 		return nextc;
 	return nullptr;
 }
@@ -183,7 +183,8 @@ inline void fileReader::getField(){
 
 //initial scan also loads file into mem if small file
 void fileReader::inferTypes() {
-	readline();
+	if (readline())
+		error("Error reading first line from "+filename);
 	if (autoheader)
 		for (auto &e : entriesVec)
 			if (isInt(e.val) || isFloat(e.val)){
@@ -201,7 +202,8 @@ void fileReader::inferTypes() {
 	}
 	//get samples and infer types from them
 	if (!noheader){
-		readline();
+		if (readline())
+			error("Error reading first line of data from "+filename);
 		startData = pos;
 	}
 	if (small){

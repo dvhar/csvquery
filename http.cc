@@ -4,6 +4,7 @@
 #include <boost/algorithm/string/replace.hpp>
 #include <boost/algorithm/string/split.hpp>
 #include "deps/http/server_http.hpp"
+#include <boost/asio/ip/address.hpp>
 #include <boost/filesystem.hpp>
 using HttpServer = SimpleWeb::Server<SimpleWeb::HTTP>;
 
@@ -30,8 +31,9 @@ void runServer(){
 }
 
 static bool rejectNonLocals(shared_ptr<HttpServer::Request>& request){
+	static auto lh = boost::asio::ip::address::from_string("::ffff:127.0.0.1");
 	auto addr = request->remote_endpoint().address();
-	if (!addr.is_loopback()){
+	if (!addr.is_loopback() && addr != lh){
 		cerr << "attempted connection from non-localhost: " << addr << endl;
 		return true;
 	}
