@@ -44,3 +44,41 @@ char* bufreader::getline(){
 	return line;
 }
 
+//return true if success
+bool bufreader::addrefresh(int rem){
+	if (readsofar >= fsize){
+		done = true;
+		return false;
+	}
+	auto readb = fread(buf+rem, 1, (single ? biggestline-rem : buffsize-rem), f);
+	readsofar += readb;
+	line = buf;
+	end = line + rem + readb;
+	nl = (char*) strchr(line+rem, '\n');
+	if (nl){
+		*nl = 0;
+		linesize = nl - line + 1;
+	} else {
+		done = true;
+		return false;
+	}
+	return true;
+}
+//return amount needed to add to field pointers to revalidated them
+int bufreader::addline(){
+	*nl = '\n';
+	nl = (char*) strchr(nl+1, '\n');
+	if (nl){
+		*nl = 0;
+		linesize = nl - line + 1;
+		if (linesize > biggestline)
+			biggestline = linesize;
+		return 0;
+	} else {
+		int offset = buf - line;
+		int rem = end - line;
+		memmove(buf, line, rem);
+		addrefresh(rem);
+		return offset;
+	}
+}
