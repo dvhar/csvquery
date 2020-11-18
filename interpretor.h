@@ -602,9 +602,9 @@ extern int runmode;
 enum runmodes { RUN_SINGLE, RUN_SERVER };
 
 static string_view gettypename(int i){
-	try { return typeNames.at(i); } catch (...){ return ""sv; }}
+	try { return typeNames.at(i); } catch (...){ return ""; }}
 static string_view getnodename(int i){
-	try { return treeMap.at(i); } catch (...){ return ""sv; }}
+	try { return treeMap.at(i); } catch (...){ return ""; }}
 static int getkeyword(basic_string_view<char> s){
 	try { return keywordMap.at(s); } catch (...){ return 0; }}
 static int getfunc(basic_string_view<char> s){
