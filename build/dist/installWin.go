@@ -5,7 +5,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"time"
 	"io"
 	"io/ioutil"
 	"log"
@@ -14,6 +13,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
+	"time"
 )
 
 var baseurl string = `https://davosaur.com/csv/`
@@ -21,7 +21,7 @@ var zipurlfmt string = baseurl + `w/csvquery-win-%s.zip`
 var infoUrl string = baseurl + `?d=install`
 var installPath string = `C:\Program Files\Csvquery`
 var programPath string = installPath + `\csvquery\csvquery.exe`
-var desktopPath string = os.Getenv(`USERPROFILE`)+`\Desktop\csvquery`
+var desktopPath string = os.Getenv(`USERPROFILE`) + `\Desktop\csvquery`
 var versionInfo info
 
 type info struct {
@@ -31,31 +31,55 @@ type info struct {
 
 func main() {
 	fmt.Println(title)
-	getVersionInfo()
-	if needInstall() {
-		fmt.Println(`Press Enter to install or update csvquery`)
+	getNewestInfo()
+	installed, current := getStatus()
+	var operation string
+	if !installed {
+		fmt.Println(`Press Enter to install csvquery`)
 		prompt()
+		operation = "Installation"
+		fmt.Println(installing)
 		install()
+	} else if !current {
+		fmt.Println(`Press Enter to update csvquery, or enter 'u' to uninstall`)
+		if prompt() == `u` {
+			operation = "Uninstall"
+			uninstall()
+		} else {
+			operation = "Update"
+			fmt.Println(updating)
+			install()
+		}
+	} else {
+		fmt.Println(`Enter 'u' if you want to uninstall csvquery`)
+		if prompt() == `u` {
+			operation = "Uninstall"
+			fmt.Println(uninstalling)
+			uninstall()
+		} else {
+			fmt.Println(`Not doing anything. You can close this window.`)
+			time.Sleep(time.Minute)
+			return
+		}
 	}
-	makeShortcut()
-	fmt.Printf("\n%s\n",versionInfo.InstallNotes)
-	fmt.Println(`Installation/update Complete. You may close this window.`)
+	fmt.Printf("\n%s\n", versionInfo.InstallNotes)
+	fmt.Printf(`%s Complete. You may close this window.`, operation)
 	time.Sleep(time.Minute)
 }
 
-func prompt() bool {
+func prompt() string {
 	var input string
 	fmt.Scanln(&input)
-	return strings.TrimSpace(strings.ToLower(input)) == `y`
+	return strings.TrimSpace(strings.ToLower(input))
 }
 
-func makeShortcut(){
-	if _,err := os.Stat(desktopPath); err == nil {
+func makeShortcut() {
+	if _, err := os.Stat(desktopPath); err == nil {
 		fmt.Println("Desktop shortcut exists")
 		return
 	}
 	fmt.Printf("\nCreate desktop shortcut? Enter 'y' if yes\n")
-	if prompt() == false {
+	if prompt() != `y` {
 		return
 	}
 	cmd := exec.Command(`cmd`, `/c`, `mklink`, desktopPath, programPath)
@@ -80,7 +104,7 @@ func downloadBytes(url string) ([]byte, error) {
 	return ioutil.ReadAll(resp.Body)
 }
 
-func getVersionInfo() {
+func getNewestInfo() {
 	infobytes, err := downloadBytes(infoUrl)
 	if err != nil {
 		log.Fatalf("Failed to find out the newest version: %v", err)
@@ -89,27 +113,24 @@ func getVersionInfo() {
 	versionInfo.Version = strings.TrimSpace(versionInfo.Version)
 }
 
-func needInstall() bool {
-	//check local version
+//return installed, uptodate
+func getStatus() (bool, bool) {
 	cmd := exec.Command(programPath, `version`)
 	out, err := cmd.CombinedOutput()
 	if err != nil {
-		return true
+		return false, false
 	}
 	current := strings.TrimSpace(string(out))
 	fmt.Println("Current version:", current)
-
-	//check newest version
 	fmt.Println("Newest version:", versionInfo.Version)
 	if versionInfo.Version == current {
 		fmt.Println("Your version of csvquery is up to date.")
-		return false
+		return true, true
 	}
-	return true
+	return true, false
 }
 
 func install() {
-	fmt.Println(installing)
 	zipped, err := downloadBytes(fmt.Sprintf(zipurlfmt, versionInfo.Version))
 	if err != nil {
 		log.Fatalf("Failed to download program: %v", err)
@@ -120,14 +141,21 @@ func install() {
 	for _, f := range created {
 		fmt.Println(f)
 	}
+	makeShortcut()
 }
 
 func uninstall() {
-	os.RemoveAll(installPath)
-	os.RemoveAll(desktopPath)
-	fmt.Println(`Uninstalled`)
-	time.Sleep(time.Minute)
-	os.Exit(0)
+	err1 := os.RemoveAll(installPath)
+	if err1 != nil {
+		fmt.Println(`Error encountered while uninstalling csvquery:`, err1)
+	}
+	err2 := os.RemoveAll(desktopPath)
+	if err2 != nil {
+		fmt.Println(`Error encountered while removing desktop shortcut:`, err1)
+	}
+	if err1 == nil {
+		fmt.Println(`Uninstalled csvquery. You may close this window now or it will close after 1 minute`)
+	}
 }
 
 func chk(err error) {
@@ -186,4 +214,12 @@ var installing string = `_ _  _ ____ ___ ____ _    _    _ _  _ ____
 | |\ | [__   |  |__| |    |    | |\ | | __ 
 | | \| ___]  |  |  | |___ |___ | | \| |__] 
                                            
+`
+var updating string = `_  _ ___  ___  ____ ___ _ _  _ ____
+|  | |__] |  \ |__|  |  | |\ | | __
+|__| |    |__/ |  |  |  | | \| |__]
+`
+var uninstalling string = `_  _ _  _ _ _  _ ____ ___ ____ _    _    _ _  _ ____
+|  | |\ | | |\ | [__   |  |__| |    |    | |\ | | __
+|__| | \| | | \| ___]  |  |  | |___ |___ | | \| |__]
 `
