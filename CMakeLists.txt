@@ -19,6 +19,7 @@ find_package(Boost REQUIRED COMPONENTS filesystem)
 file(GLOB sources CONFIGURE_DEPENDS "*.cc")
 set(sources ${sources}
 	deps/dateparse/dateparse.c
+	deps/dateparse/musl.c
 	deps/crypto/chacha20.c
 	deps/crypto/base64.c
 	deps/crypto/sha1.c

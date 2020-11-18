@@ -20,6 +20,8 @@ class bufreader {
 	bool done = false;
 	int linesize = 0;
 	char* getline();
+	int addline();
+	bool addrefresh(int);
 	bufreader(){}
 	~bufreader(){if (f) fclose(f);}
 	void open(const char* fname){
