@@ -105,6 +105,11 @@ bool fileReader::readline(){
 			inquote:
 			//go to next quote
 			while(*pos2 && *pos2 != '"') ++pos2;
+			//end of line. TODO: turn this into multi-line field
+			if (!*pos2){
+				getQuotedField();
+				return checkWidth();
+			}
 			//escape character
 			if (*(pos2-1) == '\\' && !nextIsDelim()){
 				compactQuote();
@@ -118,10 +123,6 @@ bool fileReader::readline(){
 				compactQuote();
 				++pos2;
 				goto inquote;
-			//end of line
-			case '\0':
-				getQuotedField();
-				return checkWidth();
 			default:
 				//end of field
 				if (*pos2 == delim){
