@@ -510,6 +510,8 @@ string gethome(){
 	return "";
 }
 
+options_t globalOptions;
+
 void prepareQuery(querySpecs &q){
 	scanTokens(q);
 	parseQuery(q);

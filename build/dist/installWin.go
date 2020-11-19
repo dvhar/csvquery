@@ -43,6 +43,7 @@ func main() {
 		operation = "Installation"
 		fmt.Println(installing)
 		install()
+		fmt.Println(`When a new version comes out, simply run this installer again to update csvquery`)
 	} else if !current {
 		fmt.Println(`Press Enter to update csvquery, or enter 'u' to uninstall`)
 		if prompt() == `u` {
@@ -151,6 +152,9 @@ func uninstall() {
 	err1 := os.RemoveAll(installPath)
 	if err1 != nil {
 		fmt.Println(`Error encountered while uninstalling csvquery:`, err1)
+	}
+	if _, err := os.Stat(desktopPath); err == nil {
+		return
 	}
 	err2 := os.RemoveAll(desktopPath)
 	if err2 != nil {

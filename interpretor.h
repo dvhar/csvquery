@@ -546,6 +546,12 @@ class directory {
 	json& tojson();
 };
 
+class options_t {
+	public:
+	bool update = 1;
+	bool debug = 1;
+};
+
 void scanTokens(querySpecs &q);
 void parseQuery(querySpecs &q);
 bool is_number(const std::string& s);
