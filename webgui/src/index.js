@@ -24,6 +24,7 @@ class Main extends React.Component {
 			historyPosition : 0,
 			showQuery : <></>,
 			showHelp : 0,
+			notifyUpdate : true,
 			version : "",
 			sessionId : "",
 		}
@@ -36,6 +37,7 @@ class Main extends React.Component {
 				if (dat.openDirList) this.setState({ openDirList : dat.openDirList });
 				if (dat.saveDirList) this.setState({ saveDirList : dat.saveDirList });
 				if (dat.version) this.setState({ version : dat.version });
+				if ('notifyUpdate' in dat) this.setState({ notifyUpdate : dat.notifyUpdate });
 				var textbox = document.getElementById("textBoxId");
 				if (textbox != null)
 					textbox.value = this.state.queryHistory[this.state.historyPosition].query || "";
@@ -148,6 +150,7 @@ class Main extends React.Component {
 		<help.Help
 			version = {this.state.version}
 			show = {this.state.showHelp}
+			notifyUpdate = {this.state.notifyUpdate}
 			toggleHelp = {()=>{this.setState({showHelp:this.state.showHelp^1})}}
 		/>
 

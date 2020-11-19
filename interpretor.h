@@ -42,11 +42,19 @@ using ft = boost::format;
 using json = nlohmann::json;
 using namespace std;
 
+class options_t {
+	public:
+	bool update = 1;
+	bool debug = 1;
+};
+
 extern mt19937 rng;
 extern string version;
+extern options_t globalOptions;
 static void error(string A){ throw invalid_argument(A);}
 static void perr(string s){
-	cerr << s;
+	if (globalOptions.debug)
+		cerr << s;
 }
 
 enum nodetypes { N_QUERY, N_PRESELECT, N_WITH, N_VARS, N_SELECT, N_SELECTIONS, N_FROM, N_AFTERFROM, N_JOINCHAIN, N_JOIN, N_WHERE, N_HAVING, N_ORDER, N_EXPRADD, N_EXPRMULT, N_EXPRNEG, N_EXPRCASE, N_CPREDLIST, N_CPRED, N_CWEXPRLIST, N_CWEXPR, N_PREDICATES, N_PREDCOMP, N_VALUE, N_FUNCTION, N_GROUPBY, N_EXPRESSIONS, N_DEXPRESSIONS, N_TYPECONV };
@@ -544,12 +552,6 @@ class directory {
 	vector<string> dirs;
 	void setDir(json&);
 	json& tojson();
-};
-
-class options_t {
-	public:
-	bool update = 1;
-	bool debug = 1;
 };
 
 void scanTokens(querySpecs &q);
