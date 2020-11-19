@@ -10,11 +10,11 @@ static const int typeChart[12][12] = {
 	{5,1, 1,1, 2,2, 3,1, 4,4, 5,5},
 	{5,2, 2,2, 2,2, 3,2, 4,2, 5,2},
 	{5,2, 2,2, 2,2, 3,2, 4,4, 5,5},
-	{5,3, 3,3, 3,3, 3,3, 3,3, 3,3},
+	{5,3, 3,3, 3,3, 3,3, 3,3, 5,3},
 	{5,3, 1,1, 2,2, 3,3, 3,3, 5,5},
 	{5,4, 4,4, 4,4, 3,3, 4,4, 5,4},
 	{5,4, 4,4, 2,4, 3,3, 4,4, 5,5},
-	{5,5, 5,5, 5,5, 3,5, 5,5, 5,5},
+	{5,5, 5,5, 5,5, 5,5, 5,5, 5,5},
 	{5,5, 1,5, 2,5, 3,5, 4,5, 5,5}
 };
 
@@ -425,6 +425,7 @@ typer dataTyper::typeFunctionInnerNodes(unique_ptr<node> &n){
 		n->keep = true;
 		typeInnerNodes(n->node1);
 		innerType = {T_STRING, false};
+		n->info[RETTYPE] = innerType.type;
 		break;
 	case FN_ENCRYPT:
 	case FN_DECRYPT:
@@ -441,6 +442,7 @@ typer dataTyper::typeFunctionInnerNodes(unique_ptr<node> &n){
 	case FN_HEX_DECODE:
 		paramType = typeInnerNodes(n->node1);
 		innerType = {T_STRING, false};
+		n->info[RETTYPE] = innerType.type;
 		if (!canBeString(n->node1))
 			n->info[PARAMTYPE] = paramType.type;
 		break;
@@ -671,12 +673,12 @@ void dataTyper::typePredCompFinalNodes(unique_ptr<node> &n){
 
 void dataTyper::typeFunctionFinalNodes(unique_ptr<node> &n, int finaltype){
 	if (n == nullptr) return;
+	int oldret = finaltype;
 	if (n->keep) finaltype = -1;
 	node *convNode, *tempNode;
 	bool needRetConvert = false;
-	int oldret = finaltype;
 	//TODO: find out why now() return is not using dynamic typing
-	if (auto rt = n->info[RETTYPE]; rt > 0 && finaltype > rt){
+	if (auto rt = n->info[RETTYPE]; rt > 0 && finaltype != rt){
 		//need conversion from RETTYPE (can do) to original finaltype (need)
 		n->datatype = finaltype = rt;
 		needRetConvert = true;

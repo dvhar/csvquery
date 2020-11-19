@@ -272,14 +272,15 @@ void printTree(unique_ptr<node> &n, int ident){
 	for (int i=0;i<ident;i++) s += "  ";
 	perr(st( s , getnodename(n->label) , '\n',
 		s ,
-		ft("[%1% %2% %3% %4% %5%] t:%6% ph:%7%")
+		ft("[%1% %2% %3% %4% %5%] t:%6% p:%7% k:%8%")
 		% n->tok1.val
 		% n->tok2.val
 		% n->tok3.val
 		% n->tok4.val
 		% n->tok5.val
 		% n->datatype
-		% n->phase , '\n'));
+		% n->phase
+		% n->keep , '\n'));
 	printTree(n->node1,ident);
 	printTree(n->node2,ident);
 	printTree(n->node3,ident);
