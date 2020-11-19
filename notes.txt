@@ -10,3 +10,6 @@ building on windows using msys2:
 
 embed website:
 	./deps/embed.sh
+
+del tag:
+	git push --delete origin tagname

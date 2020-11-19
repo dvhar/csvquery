@@ -5,6 +5,9 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"github.com/go-ole/go-ole"
+	_ "github.com/mattn/getwild"
+	"github.com/zetamatta/go-windows-shortcut"
 	"io"
 	"io/ioutil"
 	"log"
@@ -21,7 +24,7 @@ var zipurlfmt string = baseurl + `w/csvquery-win-%s.zip`
 var infoUrl string = baseurl + `?d=install`
 var installPath string = `C:\Program Files\Csvquery`
 var programPath string = installPath + `\csvquery\csvquery.exe`
-var desktopPath string = os.Getenv(`USERPROFILE`) + `\Desktop\csvquery`
+var desktopPath string = os.Getenv(`USERPROFILE`) + `\Desktop\csvquery.lnk`
 var versionInfo info
 
 type info struct {
@@ -54,15 +57,13 @@ func main() {
 		fmt.Println(`Enter 'u' if you want to uninstall csvquery`)
 		if prompt() == `u` {
 			operation = "Uninstall"
-			fmt.Println(uninstalling)
 			uninstall()
 		} else {
 			fmt.Println(`Not doing anything. You can close this window.`)
 			time.Sleep(time.Minute)
-			return
+			os.Exit(0)
 		}
 	}
-	fmt.Printf("\n%s\n", versionInfo.InstallNotes)
 	fmt.Printf(`%s Complete. You may close this window.`, operation)
 	time.Sleep(time.Minute)
 }
@@ -82,10 +83,10 @@ func makeShortcut() {
 	if prompt() != `y` {
 		return
 	}
-	cmd := exec.Command(`cmd`, `/c`, `mklink`, desktopPath, programPath)
-	out, err := cmd.CombinedOutput()
-	fmt.Println(string(out))
-	if err != nil {
+	ole.CoInitialize(0)
+	defer ole.CoUninitialize()
+	wd, _ := os.Getwd()
+	if err := shortcut.Make(programPath, desktopPath, wd); err != nil {
 		fmt.Println(err)
 	}
 }
@@ -142,9 +143,11 @@ func install() {
 		fmt.Println(f)
 	}
 	makeShortcut()
+	fmt.Printf("\n%s\n", versionInfo.InstallNotes)
 }
 
 func uninstall() {
+	fmt.Println(uninstalling)
 	err1 := os.RemoveAll(installPath)
 	if err1 != nil {
 		fmt.Println(`Error encountered while uninstalling csvquery:`, err1)
@@ -152,9 +155,6 @@ func uninstall() {
 	err2 := os.RemoveAll(desktopPath)
 	if err2 != nil {
 		fmt.Println(`Error encountered while removing desktop shortcut:`, err1)
-	}
-	if err1 == nil {
-		fmt.Println(`Uninstalled csvquery. You may close this window now or it will close after 1 minute`)
 	}
 }
 
