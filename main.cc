@@ -21,7 +21,7 @@ void help(char* prog){
 		"Flags:\n\t-x Don't check for updates when using gui\n"
 		"\t-g Don't show debug info in console\n"
 		"\t-d Show debug info in console\n"
-		"\t-s Save options set by the flags before this one to the config file\n"
+		"\t-s Save options set by the flags before this one to the config and exit\n"
 		"\t-h Show this help message and exit\n"
 		"\t-v Show version and exit\n\n"
 		"Config file is " << configpath << "\n";
@@ -38,7 +38,7 @@ int main(int argc, char** argv){
 			help(argv[0]);
 		case 'v':
 			cout << version << endl;
-			return 0;
+			exit(0);
 		case 'x':
 			globalOptions.update = false;
 			shift++;
@@ -94,7 +94,7 @@ int main(int argc, char** argv){
 }
 
 void loadconfig(bool save){
-	vector<string> opts{ "version", "show_debug_info", "check_update" };
+	vector<string> opts{ "version", "show_debug_info", "check_update", "guess_file_header" };
 	if (!save && boost::filesystem::is_regular_file(configpath)){
 		ifstream cfile(configpath);
 		if (cfile.good()){
@@ -102,7 +102,8 @@ void loadconfig(bool save){
 			CFG::ReadFile(cfile, opts,
 					confversion,
 					globalOptions.debug,
-					globalOptions.update);
+					globalOptions.update,
+					globalOptions.autoheader);
 			if (confversion >= version){
 				return;
 			}
@@ -114,5 +115,6 @@ void loadconfig(bool save){
 	CFG::WriteFile(cfile, opts,
 			version,
 			globalOptions.debug,
-			globalOptions.update);
+			globalOptions.update,
+			globalOptions.autoheader);
 }
