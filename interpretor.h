@@ -46,6 +46,7 @@ class options_t {
 	public:
 	bool update = 1;
 	bool debug = 1;
+	bool autoheader = 0;
 };
 
 extern mt19937 rng;

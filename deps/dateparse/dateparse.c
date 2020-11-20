@@ -1742,6 +1742,7 @@ static int parseTime(const char* datestr, struct parser* p, int stringlen){
 
 	date_t dt = 0;
 	switch (p->stateDate) {
+		/*
 	case dateDigit:
 		// unixy timestamps ish
 		//  example              ct type
@@ -1806,6 +1807,7 @@ static int parseTime(const char* datestr, struct parser* p, int stringlen){
 			return 0;
 		}
 		break;
+		*/
 
 	case dateYearDash:
 		// 2006-01
