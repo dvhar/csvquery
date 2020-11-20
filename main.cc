@@ -4,9 +4,9 @@
 #include <boost/filesystem.hpp>
 void initregex();
 
-void loadconfig();
+void loadconfig(bool);
 #ifdef WIN32
-auto configpath = gethome() + "\_cqrc";
+auto configpath = gethome() + "\\_cqrc";
 #else
 auto configpath = gethome() + "/.cqrc";
 #endif 
@@ -20,23 +20,20 @@ void help(char* prog){
 		<< prog << "\n\tRun server to use graphic interface in web browser\n\n"
 		"Flags:\n\t-x Don't check for updates when using gui\n"
 		"\t-g Don't show debug info in console\n"
+		"\t-d Show debug info in console\n"
+		"\t-s Save options set by the flags before this one to the config file\n"
 		"\t-h Show this help message and exit\n"
-		"\t-v Show version and exit\n\n";
-		//"Config file is " << configpath << ". It will be created if one doesn't exist\n"
+		"\t-v Show version and exit\n\n"
+		"Config file is " << configpath << "\n";
 	exit(0);
 }
 
 int main(int argc, char** argv){
 
-	initregex();
-
-	char c;
 	int shift = 0;
-	bool makeconf = false;
-	//loadconfig();
-	while((c = getopt(argc, argv, "hxvg")) != -1)
+	loadconfig(0);
+	for(char c; (c = getopt(argc, argv, "hxvgds")) != -1;)
 		switch(c){
-		//help
 		case 'h':
 			help(argv[0]);
 		case 'v':
@@ -46,15 +43,23 @@ int main(int argc, char** argv){
 			globalOptions.update = false;
 			shift++;
 			break;
+		case 'd':
+			globalOptions.debug = true;
+			shift++;
+			break;
 		case 'g':
 			globalOptions.debug = false;
 			shift++;
 			break;
+		case 's':
+			loadconfig(1);
+			exit(0);
 		}
 
+	initregex();
 	string querystring;
-	runmode = argc > shift+1 ? RUN_SINGLE : RUN_SERVER;
 	int arg1 = shift+1;
+	runmode = argc > arg1 ? RUN_SINGLE : RUN_SERVER;
 	switch (runmode){
 	case RUN_SINGLE:
 		//show version and exit
@@ -88,21 +93,26 @@ int main(int argc, char** argv){
 	return 0;
 }
 
-void loadconfig(){
-#ifndef WIN32
-	vector<string> opts{ "show_debug_info", "check_update" };
-	if (boost::filesystem::is_regular_file(configpath)){
+void loadconfig(bool save){
+	vector<string> opts{ "version", "show_debug_info", "check_update" };
+	if (!save && boost::filesystem::is_regular_file(configpath)){
 		ifstream cfile(configpath);
 		if (cfile.good()){
+			string confversion;
 			CFG::ReadFile(cfile, opts,
+					confversion,
 					globalOptions.debug,
 					globalOptions.update);
+			if (confversion >= version){
+				return;
+			}
 		}
-	} else {
-		ofstream cfile(configpath);
-		CFG::WriteFile(cfile, opts,
-				globalOptions.debug,
-				globalOptions.update);
+		cfile.close();
 	}
-#endif
+	ofstream cfile(configpath);
+	cfile << "#csvquery config\n";
+	CFG::WriteFile(cfile, opts,
+			version,
+			globalOptions.debug,
+			globalOptions.update);
 }
