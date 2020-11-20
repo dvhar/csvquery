@@ -3,8 +3,13 @@
 #include <iostream>
 #include <boost/filesystem.hpp>
 void initregex();
-void loadconfig(bool);
+
+void loadconfig();
+#ifdef WIN32
+auto configpath = gethome() + "\_cqrc";
+#else
 auto configpath = gethome() + "/.cqrc";
+#endif 
 
 void help(char* prog){
 	cout << '\n'
@@ -15,9 +20,9 @@ void help(char* prog){
 		<< prog << "\n\tRun server to use graphic interface in web browser\n\n"
 		"Flags:\n\t-x Don't check for updates when using gui\n"
 		"\t-g Don't show debug info in console\n"
-		"\t-f Create default config file (" << configpath << ") if none exists and exit\n"
 		"\t-h Show this help message and exit\n"
-		"\t-v Show version and exit\n";
+		"\t-v Show version and exit\n\n";
+		//"Config file is " << configpath << ". It will be created if one doesn't exist\n"
 	exit(0);
 }
 
@@ -28,7 +33,8 @@ int main(int argc, char** argv){
 	char c;
 	int shift = 0;
 	bool makeconf = false;
-	while((c = getopt(argc, argv, "hxvgf")) != -1)
+	//loadconfig();
+	while((c = getopt(argc, argv, "hxvg")) != -1)
 		switch(c){
 		//help
 		case 'h':
@@ -44,11 +50,7 @@ int main(int argc, char** argv){
 			globalOptions.debug = false;
 			shift++;
 			break;
-		case 'f':
-			loadconfig(true);
-			exit(0);;
 		}
-	loadconfig(false);
 
 	string querystring;
 	runmode = argc > shift+1 ? RUN_SINGLE : RUN_SERVER;
@@ -86,9 +88,9 @@ int main(int argc, char** argv){
 	return 0;
 }
 
-void loadconfig(bool make){
+void loadconfig(){
 #ifndef WIN32
-	vector<string> opts{ "debug", "checkupdate" };
+	vector<string> opts{ "show_debug_info", "check_update" };
 	if (boost::filesystem::is_regular_file(configpath)){
 		ifstream cfile(configpath);
 		if (cfile.good()){
@@ -96,7 +98,7 @@ void loadconfig(bool make){
 					globalOptions.debug,
 					globalOptions.update);
 		}
-	} else if (make) {
+	} else {
 		ofstream cfile(configpath);
 		CFG::WriteFile(cfile, opts,
 				globalOptions.debug,
