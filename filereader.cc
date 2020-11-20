@@ -94,7 +94,7 @@ bool fileReader::readline(){
 				getField();
 				pos1 = ++pos2;
 			}
-			if (!(*pos2)){
+			if (!*pos2){
 				terminator = pos2;
 				getField();
 				return checkWidth();
@@ -118,6 +118,12 @@ bool fileReader::readline(){
 			}
 			++pos2;
 			switch (*pos2){
+			// line ends after quote
+			case '\0':
+			case '\n':
+			case '\r':
+				getQuotedField();
+				return checkWidth();
 			// "" escaped quote
 			case '"':
 				compactQuote();

@@ -1096,10 +1096,12 @@ void cgen::genFunction(unique_ptr<node> &n){
 		case FN_STDEVP:
 			addop(operations[OPLSTV][n->datatype], n->info[MIDIDX]);
 			break;
+		case FN_COUNT:
+			addop(LDCOUNT, n->info[MIDIDX]);
+			break;
 		case FN_MIN:
 		case FN_MAX:
 		case FN_SUM:
-		case FN_COUNT:
 			addop(LDMID, n->info[MIDIDX]);
 			break;
 		}

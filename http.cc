@@ -97,6 +97,7 @@ static void serve(){
 			response->write("{}");
 		} else if (info == "getState"){
 			state["version"] = version;
+			state["notifyUpdate"] = globalOptions.update;
 			response->write(state.dump(), header);
 		} else if (info == "fileClick"){
 			auto j = json::parse(request->content.string());

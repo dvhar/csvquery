@@ -109,28 +109,30 @@ export class Help extends React.Component {
 		};
 	}
 	checkupdate(){
-		if (this.state.updated) return;
-		let url = new URL(`https://davosaur.com/csv/index.php?d=version2&c=${this.props.version}`);
-		let resp = fetch(url);
-		console.log(resp);
-		resp.then(dat => { if (dat.ok){
-			dat.json().then(v => {
-				if (this.props.version !== '' && v.version > this.props.version){
-					let update = [<a href='https://davosaur.com/csv' target='_blank'>New version available</a> ,':\t', v.version];
-					if (v.notes){
-						if (Array.isArray(v.notes)){
-							update.push(<br/>);
-							update.push(<br/>);
-							v.notes.forEach(note => { update.push(<li>{note}</li>); });
-						} else {
-							update = update.concat([<br/>,<br/>,v.notes]);
+		setTimeout(()=>{
+			if (this.state.updated || !this.props.notifyUpdate) return;
+			let url = new URL(`https://davosaur.com/csv/index.php?d=version2&c=${this.props.version}`);
+			let resp = fetch(url);
+			console.log(resp);
+			resp.then(dat => { if (dat.ok){
+				dat.json().then(v => {
+					if (this.props.version !== '' && v.version > this.props.version){
+						let update = [<a href='https://davosaur.com/csv' target='_blank'>New version available</a> ,':\t', v.version];
+						if (v.notes){
+							if (Array.isArray(v.notes)){
+								update.push(<br/>);
+								update.push(<br/>);
+								v.notes.forEach(note => { update.push(<li>{note}</li>); });
+							} else {
+								update = update.concat([<br/>,<br/>,v.notes]);
+							}
 						}
+						this.setState({ updateMsg : update });
 					}
-					this.setState({ updateMsg : update });
-				}
-			});
-		}})
-		this.setState({ updated : true });	
+				});
+			}})
+			this.setState({ updated : true });	
+		},1000)
 	}
 	render(){
 		if (!this.props.show) return <></>
