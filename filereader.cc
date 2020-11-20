@@ -280,6 +280,9 @@ void openfiles(querySpecs &q, unique_ptr<node> &n){
 			fr->delim = ',';
 
 		//header options
+		fr->autoheader = globalOptions.autoheader;
+		if ((q.options & O_H) != 0)
+			fr->noheader = fr->autoheader = false;
 		if ((q.options & O_NH) != 0)
 			fr->noheader = true;
 		if ((q.options & O_AH) != 0)
@@ -289,10 +292,8 @@ void openfiles(querySpecs &q, unique_ptr<node> &n){
 			string s = n->tok5.lower();
 			if (s == "nh"){
 				fr->noheader = true;
-				fr->autoheader = false;
 			} if (s == "h") {
-				fr->noheader = false;
-				fr->autoheader = false;
+				fr->noheader = fr->autoheader = false;
 			} if (s == "ah") {
 				fr->autoheader = true;
 			}
