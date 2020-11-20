@@ -349,7 +349,7 @@ class qinstance {
 	qinstance(querySpecs& qs) {
 		q = &qs;
 	}
-	~qinstance() { cerr << "Destructing query instance\n"; }
+	~qinstance() { perr("Destructing query instance\n"); }
 	void run(){
 		prepareQuery(*q);
 		perr("Constructing vm\n");
