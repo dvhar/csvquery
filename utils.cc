@@ -287,14 +287,17 @@ void printTree(unique_ptr<node> &n, int ident){
 	printTree(n->node4,ident);
 }
 
-int parseDuration(char* str, date_t* t) {
+int parseDuration(char* str, dat& d) {
+	d.setnull();
 	if (!isDuration(str)) {return -1;}
 	char* part2;
 	double quantity = strtod(str, &part2);
 	while (*part2 == ' ') ++part2;
 	switch (part2[0]){
 	case 'y':
+		d.z = quantity;
 		quantity *= 31536000;
+		//quantity += 86400 * (d.z/4);
 		break;
 	case 'w':
 		quantity *= 604800;
@@ -313,12 +316,14 @@ int parseDuration(char* str, date_t* t) {
 	default:
 		return -1;
 	}
-	*t = quantity * 1E6;
+	d.u.i = abs(quantity * 1E6);
+	d.b = T_DURATION;
 	return 0;
 }
 
 int getNarrowestType(char* value, int startType) {
-	date_t t;
+	static date_t t;
+	static dat d;
 	if (value[0] == '\0' || !strcasecmp(value,"null") || !strcmp(value,"NA")) {
 	  startType = max(T_NULL, startType);
 	} else if (!regexec(&leadingZeroString, value, 0, NULL, 0)){ startType = T_STRING;
@@ -326,8 +331,8 @@ int getNarrowestType(char* value, int startType) {
 	} else if (isFloat(value))                     { startType = max(T_FLOAT, startType);
 	} else if (!dateparse_2(value, &t))            { startType = max(T_DATE, startType);
 	  //in case duration gets mistaken for a date
-	   if (!parseDuration(value, &t))              { startType = max(T_DURATION, startType); }
-	} else if (!parseDuration(value, &t))          { startType = max(T_DURATION, startType);
+	   if (!parseDuration(value, d))               { startType = max(T_DURATION, startType); }
+	} else if (!parseDuration(value, d))           { startType = max(T_DURATION, startType);
 	} else                                         { startType = T_STRING; }
 	return startType;
 }
@@ -335,18 +340,8 @@ int getNarrowestType(char* value, int startType) {
 //use static buf if null arg, otherwise make sure size 24
 char* durstring(dur_t dur, char* str){
 	static char durbuf[24];
-	static char* formats[2][2] = {
-		{ (char*)"%02lld:%02lld:%02lld", (char*)"%02lld:%02lld:%02lld.%02lld" },
-		{ (char*)"_%02lld:%02lld:%02lld", (char*)"_%02lld:%02lld:%02lld.%02lld"}
-	};
 	if (dur < 0)
 		dur *= -1;
-	dur_t mics = dur % 1000000;
-	dur_t secs = (dur % 60000000) / 1000000;
-	dur_t mins = (dur % 3600000000) / 60000000;
-	dur_t hours = (dur % 86400000000) / 3600000000;
-	dur_t days = dur / 86400000000;
-	int f1=0, f2=0;
 	char *dest;
 	char *s;
 	if (str == nullptr)
@@ -359,17 +354,27 @@ char* durstring(dur_t dur, char* str){
 	}
 	s = dest;
 	memset(s, 0, 24);
+	dur_t mics = dur % 1000000;
+	dur_t secs = (dur % 60000000) / 1000000;
+	dur_t mins = (dur % 3600000000) / 60000000;
+	dur_t hours = (dur % 86400000000) / 3600000000;
+	dur_t days = dur / 86400000000;
 	if (days){
 		sprintf(s, "%lldd", days);
-		f1 = 1;
 	}
-	if (mics){
-		f2 = 1;
-	}
-	if (hours || mins || secs){
+	if (hours){
 		while(*s) ++s;
-		sprintf(s, formats[f1][f2], hours, mins, secs, mics);
-	} else if (mics) {
+		sprintf(s, "%lldh", hours);
+	}
+	if (mins){
+		while(*s) ++s;
+		sprintf(s, "%lldm", mins);
+	}
+	if (secs){
+		while(*s) ++s;
+		sprintf(s, "%llds", secs);
+	}
+	if (mics) {
 		while(*s) ++s;
 		if (mics < 1000){
 			sprintf(s, "%lldms", mics/1000);

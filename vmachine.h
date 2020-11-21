@@ -408,3 +408,9 @@ class gsortcomp {
 			return dif>0;
 		};
 };
+static pair<dat*,dat*> getfirst(dat* stacktop, int firsttype){
+	int toptype = stacktop->b & 7;
+	if (firsttype == toptype)
+		return {stacktop,stacktop-1};
+	return {stacktop-1,stacktop};
+}
