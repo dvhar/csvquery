@@ -214,7 +214,7 @@ void scanTokens(querySpecs &q) {
 			sc.scanToken(); //end quote
 		}
 		q.tokArray.push_back(t);
-		if (t.id == ERROR_STATE) error("scanner error: "+t.val);
+		if (t.id == ERROR_STATE) error("scanner error: ",t.val);
 		if (t.id == EOS) break;
 	}
 }
