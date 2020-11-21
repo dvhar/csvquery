@@ -33,7 +33,8 @@ date_t mktimegm(const struct tm *tm);
 
 //get seconds and microseconds and correct for negative microsecond rollover
 #define mcs(A) (A>=0 ? A%1000000 : (A%1000000 ? 1000000+A%1000000 : 0))
-#define sec(A) (A<0 && A%1000000 ? A/1000000 : A/1000000-1)
+//#define sec(A) (A<0 && A%1000000 ? A/1000000 : A/1000000-1)
+#define sec(A) (A/1000000)
 
 extern char* daynames[];
 extern char* monthnames[];

@@ -86,7 +86,7 @@ void dat::appendToJsonBuffer(string &outbuf){
 		outbuf += datestring(u.i);
 		 break;
 	case T_DURATION:
-		 outbuf += durstring(u.i, nullptr);
+		 outbuf += durstring(*this, nullptr);
 		 break;
 	case T_STRING:
 		for (auto c = (unsigned char*)u.s; *c; c++) a |= abnormal[*c];
@@ -116,7 +116,7 @@ void dat::appendToCsvBuffer(string &outbuf){
 		outbuf += datestring(u.i);
 		return;
 	case T_DURATION:
-		outbuf += durstring(u.i, nullptr);
+		outbuf += durstring(*this, nullptr);
 		return;
 	case T_STRING:
 		for (auto c = (unsigned char*)u.s; *c; c++) a |= abnormal[*c];

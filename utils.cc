@@ -338,8 +338,9 @@ int getNarrowestType(char* value, int startType) {
 }
 
 //use static buf if null arg, otherwise make sure size 24
-char* durstring(dur_t dur, char* str){
+char* durstring(dat& d, char* str){
 	static char durbuf[24];
+	auto dur = d.u.i;
 	if (dur < 0)
 		dur *= -1;
 	char *dest;
@@ -359,6 +360,10 @@ char* durstring(dur_t dur, char* str){
 	dur_t mins = (dur % 3600000000) / 60000000;
 	dur_t hours = (dur % 86400000000) / 3600000000;
 	dur_t days = dur / 86400000000;
+	if (d.z && dur % 31536000000000 == 0){
+		sprintf(s, "%dy", d.z);
+		return dest;
+	}
 	if (days){
 		sprintf(s, "%lldd", days);
 	}
