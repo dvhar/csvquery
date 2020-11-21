@@ -119,9 +119,7 @@ LDVAR_:
 //load data from filereader to the stack
 LDDUR_:
 	push();
-	iTemp1 = parseDuration(files[op->p1]->entries[op->p2].val, &i64Temp);
-	if (iTemp1) { stk0.setnull(); }
-	else stk0 = dat{ { .i = i64Temp}, T_DURATION};
+	parseDuration(files[op->p1]->entries[op->p2].val, stk0);
 	nexti();
 LDDATE_:
 	push();
@@ -484,11 +482,21 @@ TADD_:
 	pop();
 	nexti();
 DRADD_:
-	ifneithernull { stk1.u.i += stk0.u.i; stk1.b = T_DURATION; }
+	ifneithernull { stk1.u.i += stk0.u.i; stk1.z = 0; stk1.b = T_DURATION; }
 	pop();
 	nexti();
 DTADD_:
-	ifneithernull { stk1.u.i += stk0.u.i; stk1.b = T_DATE; }
+	ifneithernull {
+		auto p = getfirst(stacktop, T_DATE);
+		if (p.second->z == 0){
+			stk1.u.i += stk0.u.i;
+		} else {
+			secs_to_tm(sec(p.first->u.i), &tmTemp);
+			tmTemp.tm_year += p.second->z;
+			stk1.u.i = mktimegm(&tmTemp);
+		}
+		stk1.b = T_DATE;
+	}
 	pop();
 	nexti();
 ISUB_:
@@ -500,12 +508,24 @@ FSUB_:
 	pop();
 	nexti();
 DTSUB_:
-	//TODO: handle date-date
-	ifneithernull { stk1.u.i -= stk0.u.i; stk1.b = T_DATE; }
+	ifneithernull {
+		if (stk0.b == T_DURATION){
+			if (stk0.z){
+				secs_to_tm(sec(stk1.u.i), &tmTemp);
+				tmTemp.tm_year -= stk0.z;
+				stk1.u.i = mktimegm(&tmTemp);
+			} else {
+				stk1.u.i -= stk0.u.i;
+			}
+			stk1.b = T_DATE;
+		} else {
+			stk1 = dat{ { .i = abs(stk0.u.i - stk1.u.i) }, T_DURATION };
+		}
+	}
 	pop();
 	nexti();
 DRSUB_:
-	ifneithernull { stk1.u.i -= stk0.u.i; stk1.b = T_DURATION; }
+	ifneithernull { stk1.u.i -= stk0.u.i; stk1.z=0; stk1.b = T_DURATION; }
 	pop();
 	if (stk0.u.i < 0) stk0.u.i *= -1;
 	nexti();
@@ -750,11 +770,7 @@ CVSDT_:
 	} nexti();
 CVSDR_:
 	ifnotnull{
-		iTemp1 = parseDuration(stk0.u.s, &i64Temp);
-		stk0.freedat();
-		stk0.u.i = i64Temp;
-		stk0.b = T_DURATION;
-		if (iTemp1) { stk0.setnull(); }
+		parseDuration(stk0.u.s, stk0);
 	} nexti();
 CVDRS_:
 	ifnotnull{
