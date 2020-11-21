@@ -553,6 +553,7 @@ DRMULT_:
 				break;
 		}
 		stk1.b = T_DURATION;
+		stk1.z = 0;
 	}
 	pop();
 	nexti();
@@ -574,6 +575,7 @@ DRDIV_:
 		else
 			stk1.u.i /= stk0.u.f;
 	}
+	stk1.z = 0;
 	pop();
 	nexti();
 INEG_:
@@ -774,8 +776,9 @@ CVSDR_:
 	} nexti();
 CVDRS_:
 	ifnotnull{
-		stk0.u.s = (char*) malloc(24);
-		durstring(stk0.u.i, stk0.u.s);
+		cstrTemp = (char*) malloc(24);
+		durstring(stk0, cstrTemp);
+		stk0.u.s = cstrTemp;
 		stk0.b = T_STRING|MAL;
 		stk0.z = strlen(stk0.u.s);
 	} nexti();
@@ -961,7 +964,7 @@ FUNC_MINUTE_:
 	nexti();
 FUNC_SECOND_:
 	get_tm();
-	stk0 = { { .i = tmTemp.tm_sec+1 }, T_INT };
+	stk0 = { { .i = tmTemp.tm_sec }, T_INT };
 	nexti();
 FUNC_WDAYNAME_:
 	get_tm();

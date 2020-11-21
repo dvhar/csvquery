@@ -588,7 +588,7 @@ void analyzeTree(querySpecs &q);
 void codeGen(querySpecs &q);
 void runPlainQuery(querySpecs &q);
 shared_ptr<singleQueryResult> runJsonQuery(querySpecs &q);
-char* durstring(dur_t dur, char* str);
+char* durstring(dat& dur, char* str);
 void runServer();
 string handle_err(exception_ptr eptr);
 unique_ptr<node>& findFirstNode(unique_ptr<node> &n, int label);
