@@ -519,7 +519,7 @@ DTSUB_:
 			}
 			stk1.b = T_DATE;
 		} else {
-			stk1 = dat{ { .i = abs(stk0.u.i - stk1.u.i) }, T_DURATION };
+			stk1 = dat{ { .i = stk1.u.i - stk0.u.i }, T_DURATION };
 		}
 	}
 	pop();
@@ -527,7 +527,6 @@ DTSUB_:
 DRSUB_:
 	ifneithernull { stk1.u.i -= stk0.u.i; stk1.z=0; stk1.b = T_DURATION; }
 	pop();
-	if (stk0.u.i < 0) stk0.u.i *= -1;
 	nexti();
 IMULT_:
 	ifneithernull stk1.u.i *= stk0.u.i;
@@ -539,21 +538,15 @@ FMULT_:
 	nexti();
 DRMULT_:
 	ifneithernull {
-		iTemp1 = stk1.b; iTemp2 = stk0.b;
-		switch (iTemp1 | (iTemp2<<4)){
-			case T_INT | (T_DURATION<<4):
-			case T_DURATION | (T_INT<<4):
-				stk1.u.i = stk1.u.i * stk0.u.i;
-				break;
-			case T_FLOAT | (T_DURATION<<4):
-				stk1.u.i = stk1.u.f * stk0.u.i;
-				break;
-			case T_DURATION | (T_FLOAT<<4):
-				stk1.u.i = stk1.u.i * stk0.u.f;
-				break;
-		}
+		auto p = getfirst(stacktop, T_DURATION);
+		dur_t mult;
+		if (p.second->b == T_INT)
+			mult = p.second->u.i;
+		else
+			mult = p.second->u.f;
+		stk1.u.i = p.first->u.i * mult;
+		stk1.z = p.first->z * mult;
 		stk1.b = T_DURATION;
-		stk1.z = 0;
 	}
 	pop();
 	nexti();
@@ -580,7 +573,7 @@ DRDIV_:
 	nexti();
 INEG_:
 	ifnotnull
-	if (stk0.u.i != 0) stk0.u.i *= -1;
+	if (stk0.u.i != 0){ stk0.u.i *= -1; stk0.z *= -1; };
 	nexti();
 FNEG_:
 	ifnotnull
