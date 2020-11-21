@@ -297,7 +297,6 @@ int parseDuration(char* str, dat& d) {
 	case 'y':
 		d.z = quantity;
 		quantity *= 31536000;
-		//quantity += 86400 * (d.z/4);
 		break;
 	case 'w':
 		quantity *= 604800;
@@ -316,7 +315,7 @@ int parseDuration(char* str, dat& d) {
 	default:
 		return -1;
 	}
-	d.u.i = abs(quantity * 1E6);
+	d.u.i = quantity * 1E6;
 	d.b = T_DURATION;
 	return 0;
 }
@@ -364,7 +363,11 @@ char* durstring(dat& d, char* str){
 		sprintf(s, "%dy", d.z);
 		return dest;
 	}
+	if (d.u.i < 0){
+		s[0] = '-';
+	}
 	if (days){
+		while(*s) ++s;
 		sprintf(s, "%lldd", days);
 	}
 	if (hours){
