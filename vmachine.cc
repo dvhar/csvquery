@@ -46,8 +46,8 @@ void vmachine::run(){
 	u32 sizeTemp;
 	struct tm tmTemp;
 	//eval once so now() doesn't change during the query
-	dat nowgmdat = { { i: nowgm() }, T_DATE };
-	dat nowdat = { { i: nowlocal() }, T_DATE };
+	dat nowgmdat = { { .i = nowgm() }, T_DATE };
+	dat nowdat = { { .i = nowlocal() }, T_DATE };
 	//iterator stacks for groups and joins
 	decltype(groupTree->getMap().begin()) groupItstk[20];
 	typedef decltype(joinSetStack.front().begin()) jnit ;
@@ -64,20 +64,20 @@ PUT_:
 LDPUT_:
 	csvTemp = files[op->p3]->entries[op->p2];
 	torow[op->p1].freedat();
-	torow[op->p1] = dat{ { s: csvTemp.val }, T_STRING, csvTemp.size() };
+	torow[op->p1] = dat{ { .s = csvTemp.val }, T_STRING, csvTemp.size() };
 	nexti();
 LDPUTGRP_:
 	csvTemp = files[op->p3]->entries[op->p2];
 	sizeTemp = csvTemp.size();
 	if (sizeTemp && torow[op->p1].isnull())
-		torow[op->p1] = { { s:newStr(csvTemp.val, sizeTemp) }, T_STRING|MAL, sizeTemp };
+		torow[op->p1] = { { .s =newStr(csvTemp.val, sizeTemp) }, T_STRING|MAL, sizeTemp };
 	nexti();
 LDPUTALL_:
 	iTemp1 = op->p1;
 	for (auto &f : files)
 		for (auto e=f->entries, end=f->entries+f->numFields; e<end; ++e){
 			torow[iTemp1].freedat();
-			torow[iTemp1++] = dat{ { s: e->val }, T_STRING, e->size() };
+			torow[iTemp1++] = dat{ { .s = e->val }, T_STRING, e->size() };
 		}
 	nexti();
 //put data from midrow to torow
@@ -121,26 +121,26 @@ LDDUR_:
 	push();
 	iTemp1 = parseDuration(files[op->p1]->entries[op->p2].val, &i64Temp);
 	if (iTemp1) { stk0.setnull(); }
-	else stk0 = dat{ { i: i64Temp}, T_DURATION};
+	else stk0 = dat{ { .i = i64Temp}, T_DURATION};
 	nexti();
 LDDATE_:
 	push();
 	csvTemp = files[op->p1]->entries[op->p2];
 	iTemp1 = dateparse(csvTemp.val, &i64Temp, &iTemp2, csvTemp.size());
 	if (iTemp1) { stk0.setnull(); }
-	else stk0 = dat{ { i: i64Temp}, T_DATE, (u32) iTemp2 };
+	else stk0 = dat{ { .i = i64Temp}, T_DATE, (u32) iTemp2 };
 	nexti();
 LDTEXT_:
 	push();
 	csvTemp = files[op->p1]->entries[op->p2];
 	sizeTemp = csvTemp.size();
 	if (!sizeTemp) { stk0.setnull(); }
-	else stk0 = dat{ { s: csvTemp.val }, T_STRING, sizeTemp };
+	else stk0 = dat{ { .s = csvTemp.val }, T_STRING, sizeTemp };
 	nexti();
 LDFLOAT_:
 	push();
 	csvTemp = files[op->p1]->entries[op->p2];
-	stk0.u.f = strtof(csvTemp.val, &cstrTemp);
+	stk0.u.f = strtod(csvTemp.val, &cstrTemp);
 	stk0.b = T_FLOAT;
 	if (!csvTemp.size() || *cstrTemp){ stk0.setnull(); }
 	nexti();
@@ -733,7 +733,7 @@ CVSI_:
 	} nexti();
 CVSF_:
 	ifnotnull{
-		fTemp = strtof(stk0.u.s, &cstrTemp);
+		fTemp = strtod(stk0.u.s, &cstrTemp);
 		stk0.freedat();
 		stk0.u.f = fTemp;
 		stk0.b = T_FLOAT;
@@ -913,47 +913,47 @@ FUNC_NOWGM_:
 	secs_to_tm(sec(stk0.u.i), &tmTemp);
 FUNC_YEAR_:
 	get_tm();
-	stk0 = { { i: tmTemp.tm_year + 1900 }, T_INT };
+	stk0 = { { .i = tmTemp.tm_year + 1900 }, T_INT };
 	nexti();
 FUNC_MONTH_:
 	get_tm();
-	stk0 = { { i: tmTemp.tm_mon+1 }, T_INT };
+	stk0 = { { .i = tmTemp.tm_mon+1 }, T_INT };
 	nexti();
 FUNC_WEEK_:
 	get_tm();
-	stk0 = { { i: ((tmTemp.tm_yday+1) / 7) + 1 }, T_INT };
+	stk0 = { { .i = ((tmTemp.tm_yday+1) / 7) + 1 }, T_INT };
 	nexti();
 FUNC_YDAY_:
 	get_tm();
-	stk0 = { { i: tmTemp.tm_yday+1 }, T_INT };
+	stk0 = { { .i = tmTemp.tm_yday+1 }, T_INT };
 	nexti();
 FUNC_MDAY_:
 	get_tm();
-	stk0 = { { i: tmTemp.tm_mday }, T_INT };
+	stk0 = { { .i = tmTemp.tm_mday }, T_INT };
 	nexti();
 FUNC_WDAY_:
 	get_tm();
-	stk0 = { { i: tmTemp.tm_wday+1 }, T_INT };
+	stk0 = { { .i = tmTemp.tm_wday+1 }, T_INT };
 	nexti();
 FUNC_HOUR_:
 	get_tm();
-	stk0 = { { i: tmTemp.tm_hour }, T_INT };
+	stk0 = { { .i = tmTemp.tm_hour }, T_INT };
 	nexti();
 FUNC_MINUTE_:
 	get_tm();
-	stk0 = { { i: tmTemp.tm_min }, T_INT };
+	stk0 = { { .i = tmTemp.tm_min }, T_INT };
 	nexti();
 FUNC_SECOND_:
 	get_tm();
-	stk0 = { { i: tmTemp.tm_sec+1 }, T_INT };
+	stk0 = { { .i = tmTemp.tm_sec+1 }, T_INT };
 	nexti();
 FUNC_WDAYNAME_:
 	get_tm();
-	stk0 = { { s: daynames[tmTemp.tm_wday] }, T_STRING, daylens[tmTemp.tm_wday] };
+	stk0 = { { .s = daynames[tmTemp.tm_wday] }, T_STRING, daylens[tmTemp.tm_wday] };
 	nexti();
 FUNC_MONTHNAME_:
 	get_tm();
-	stk0 = { { s: monthnames[tmTemp.tm_mon] }, T_STRING, monthlens[tmTemp.tm_mon] };
+	stk0 = { { .s = monthnames[tmTemp.tm_mon] }, T_STRING, monthlens[tmTemp.tm_mon] };
 	nexti();
 FUNC_ROUND_:
 	ifnotnull stk0.u.f = round(stk0.u.f, op->p1);
@@ -1040,7 +1040,7 @@ FUNC_BASE64_ENCODE_:
 		base64_encode((BYTE*)stk0.u.s, (BYTE*) newstring, (int)stk0.z, 0);
 		newstring[newsize] = 0;
 		stk0.freedat();
-		stk0 = dat{ {s: newstring}, T_STRING|MAL, newsize};
+		stk0 = dat{ {.s = newstring}, T_STRING|MAL, newsize};
 	} nexti();
 FUNC_BASE64_DECODE_:
 	ifnotnull {
@@ -1049,7 +1049,7 @@ FUNC_BASE64_DECODE_:
 		newstring = (char*)realloc(newstring, stk0.z+1);
 		newstring[stk0.z] = 0;
 		stk0.freedat();
-		stk0 = dat{ {s: newstring}, T_STRING|MAL, stk0.z};
+		stk0 = dat{ {.s = newstring}, T_STRING|MAL, stk0.z};
 	} nexti();
 FUNC_HEX_ENCODE_:
 FUNC_HEX_DECODE_:
@@ -1057,9 +1057,9 @@ FUNC_LEN_:
 	ifnotnull {
 		auto sz = stk0.z;
 		stk0.freedat();
-		stk0 = dat{ {f: (double)sz}, T_FLOAT };
+		stk0 = dat{ {.f = (double)sz}, T_FLOAT };
 	} else {
-		stk0 = dat{ {f: 0}, T_FLOAT };
+		stk0 = dat{ {.f = 0}, T_FLOAT };
 	} nexti();
 FUNC_SUBSTR_:
 	ifnotnull {
@@ -1109,7 +1109,7 @@ FUNC_FORMAT_:
 		auto dstr = datestringfmt(stk0.u.i, fmt);
 		iTemp1 = strlen(dstr);
 		if (iTemp1)
-			stk0 = dat{ {s: strdup(dstr)}, T_STRING|MAL, (u32)iTemp1 };
+			stk0 = dat{ {.s = strdup(dstr)}, T_STRING|MAL, (u32)iTemp1 };
 	}
 	nexti();
 
@@ -1166,7 +1166,7 @@ STDVF_:
 	{
 		ifnotnull{
 			if (torow[op->p1].isnull()){
-				torow[op->p1] = {{i:static_cast<i64>(stdvs.size())},T_INT};
+				torow[op->p1] = {{.i =static_cast<i64>(stdvs.size())},T_INT};
 				stdvs.emplace_back(stk0.u.f);
 			} else
 				stdvs[torow[op->p1].u.i].numbers.push_front(stk0.u.f);

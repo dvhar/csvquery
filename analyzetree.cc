@@ -71,9 +71,9 @@ void analyzer::varUsedInFilter(unique_ptr<node> &n){
 		break;
 	case N_SELECTIONS:
 		t1 = n->tok1.lower();
-		if (t1 == "hidden"sv || t1 == "distinct"sv){
+		if (t1 == "hidden" || t1 == "distinct"){
 			setSubtreeVarFilter(n->node1, DISTINCT_FILTER);
-			if (t1 != "hidden"sv)
+			if (t1 != "hidden")
 				setSubtreeVarFilter(n->node1, SELECT_FILTER);
 		} else {
 			setSubtreeVarFilter(n->node1, SELECT_FILTER);
@@ -482,7 +482,7 @@ void analyzer::findIndexableJoinValues(unique_ptr<node> &n, int fileno){
 			set_intersection(e1.begin(), e1.end(), e2.begin(), e2.end(),
 					inserter(intersection, intersection.begin()));
 			if (intersection.size())
-				error("Join condition cannot reference same file on both sides of '"+n->tok1.val+"'");
+				error("Join condition cannot reference same file on both sides of '",n->tok1.val,"'");
 			if (e1.size() == 1 && *e1.begin() == fileno){
 				for (auto i : e2)
 					if (i > fileno)
@@ -516,7 +516,7 @@ void analyzer::findIndexableJoinValues(unique_ptr<node> &n, int fileno){
 		{
 			auto& f = q->filemap[n->tok4.val];
 			if (!f)
-				error("Could not find file matching join alias "+n->tok4.val);
+				error("Could not find file matching join alias ",n->tok4.val);
 			fileno = f->fileno;
 		}
 	default:

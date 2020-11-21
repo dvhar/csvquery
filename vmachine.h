@@ -154,7 +154,7 @@ class stddev {
 		for (auto n: numbers)
 			sum += (n-avg)*(n-avg);
 		numbers.clear();
-		return {{f:pow(sum/(count-sample),0.5)},T_FLOAT};
+		return {{.f =pow(sum/(count-sample),0.5)},T_FLOAT};
 	}
 };
 

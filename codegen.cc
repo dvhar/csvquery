@@ -11,7 +11,7 @@ class cgen {
 	int wherenot = 0;
 	bool headerdone = false;
 	vector<int> valposTypes;
-	vector<opcode> v;
+	vector<opcode>& v;
 	jumpPositions jumps;
 	varScoper vs;
 	querySpecs* q;
@@ -65,7 +65,7 @@ class cgen {
 	void genSortedGroupRow(unique_ptr<node> &n, int nextgroup);
 	void finish();
 
-	cgen(querySpecs &qs): q{&qs} {}
+	cgen(querySpecs &qs): q{&qs}, v{qs.bytecode} {}
 };
 void cgen::addop(int code){ addop(code,0,0,0); }
 void cgen::addop(int code, int p1){ addop(code,p1,0,0); }
@@ -119,7 +119,6 @@ void cgen::finish(){
 		perr(st("ip: ",left,setw(4),i++));
 		c.print();
 	}
-	q->bytecode = move(v);
 }
 
 void codeGen(querySpecs &q){
@@ -288,7 +287,7 @@ void cgen::genAndChainSet(unique_ptr<node> &n){
 			addop(JOINSET_GRT_AND, fi, ci);
 			break;
 		default:
-			error("joins with '"+n->tok1.val+"' operator in first of 'and' conditions not implemented");
+			error("joins with '",n->tok1.val,"' operator in first of 'and' conditions not implemented");
 	}
 }
 //given 'predicates' node
@@ -342,7 +341,7 @@ void cgen::genJoinCompare(unique_ptr<node> &n){
 			addop(JOINSET_GRT, joinFileIdx, vpidx, funcTypes[valposTypes[vpidx]]);
 			break;
 		default:
-			error("joins with '"+n->tok1.val+"' operator not implemented");
+			error("joins with '",n->tok1.val,"' operator not implemented");
 	}
 }
 void cgen::genScanJoinFiles(unique_ptr<node> &n){
@@ -663,7 +662,7 @@ void cgen::genValue(unique_ptr<node> &n){
 		vtype = q->getVarType(n->tok1.val);
 		op = typeConv[vtype][n->datatype];
 		if (op == CVER)
-			error(st("Cannot use alias '",n->tok1.val,"' of type ",gettypename(vtype)," with incompatible type ",gettypename(n->datatype)));
+			error("Cannot use alias '",n->tok1.val,"' of type ",gettypename(vtype)," with incompatible type ",gettypename(n->datatype));
 		if (op != CVNO)
 			addop0(op);
 		break;
@@ -1009,7 +1008,7 @@ void cgen::genFunction(unique_ptr<node> &n){
 		addop1(functionCode[n->tok1.id], q->dataholder.size());
 		if (n->tok2.lower() == "iso")
 			n->tok2.val = "%Y-%m-%dT%H:%M:%SZ";
-		q->dataholder.push_back(dat{ { s: strdup(n->tok2.val.c_str()) }, T_STRING|MAL, (u32)n->tok2.val.size() });
+		q->dataholder.push_back(dat{ { .s = strdup(n->tok2.val.c_str()) }, T_STRING|MAL, (u32)n->tok2.val.size() });
 		break;
 	case FN_YEAR:
 	case FN_MONTH:
@@ -1115,7 +1114,7 @@ void cgen::genTypeConv(unique_ptr<node> &n){
 	genExprAll(n->node1);
 	auto cnv = typeConv[n->tok1.id][n->datatype];
 	if (cnv == CVER)
-		error(st("Cannot use type ",gettypename(n->tok1.id)," with incompatible type ",gettypename(n->datatype)));
+		error("Cannot use type ",gettypename(n->tok1.id)," with incompatible type ",gettypename(n->datatype));
 	if (cnv != CVNO)
 		addop0(typeConv[n->tok1.id][n->datatype]);
 }

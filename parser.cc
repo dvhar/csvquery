@@ -149,9 +149,9 @@ unique_ptr<node> parser::parseVars() {
 	unique_ptr<node> n = newNode(N_VARS);
 	n->node1 = parseExprAdd();
 	t = q->tok();
-	if (t.lower() != "as") error("Expected 'as' after expression. Found "+t.val);
+	if (t.lower() != "as") error("Expected 'as' after expression. Found ",t.val);
 	t = q->nextTok();
-	if (t.id != WORD_TK) error("Expected variable name. Found "+t.val);
+	if (t.id != WORD_TK) error("Expected variable name. Found ",t.val);
 	n->tok1 = t;
 	t = q->nextTok();
 	if (t.lower() == "and" || t.id == SP_COMMA) {
@@ -208,7 +208,7 @@ unique_ptr<node> parser::parseSelections() {
 	case SP_LPAREN:
 		//alias = expression
 		if (q->peekTok().id == SP_EQ) {
-			if (t.id != WORD_TK) error("Alias must be a word. Found "+t.val);
+			if (t.id != WORD_TK) error("Alias must be a word. Found ",t.val);
 			n->tok2 = t;
 			q->nextTok();
 			q->nextTok();
@@ -224,12 +224,12 @@ unique_ptr<node> parser::parseSelections() {
 			}
 		}
 		if (q->tok().id == SP_LPAREN)
-			error(st("Cannot start expression after '", q->lastTok().val,
-						"' with parenthesis. Did you misspell a function or forget a comma between selections?"));
+			error("Cannot start expression after '", q->lastTok().val,
+						"' with parenthesis. Did you misspell a function or forget a comma between selections?");
 		n->node2 = parseSelections();
 		return n;
 	default:
-		error("Expected a new selection or 'from' clause. Found "+t.val);
+		error("Expected a new selection or 'from' clause. Found ",t.val);
 	}
 	return nullptr;
 }
@@ -314,10 +314,10 @@ unique_ptr<node> parser::parseExprCase() {
 			n->tok2 = t2;
 			n->node1 = parseExprAdd();
 			t = q->tok();
-			if (t.lower() != "when") error("Expected 'when' after case expression. Found "+t.val);
+			if (t.lower() != "when") error("Expected 'when' after case expression. Found ",t.val);
 			n->node2 = parseCaseWhenExprList();
 			break;
-		default: error("Expected expression or 'when'. Found "+q->tok().val);
+		default: error("Expected expression or 'when'. Found ",q->tok().val);
 		}
 
 		switch (q->tok().id) {
@@ -328,11 +328,11 @@ unique_ptr<node> parser::parseExprCase() {
 			t = q->nextTok();
 			n->node3 = parseExprAdd();
 			t = q->tok();
-			if (t.lower() != "end") error("Expected 'end' after 'else' expression. Found "+t.val);
+			if (t.lower() != "end") error("Expected 'end' after 'else' expression. Found ",t.val);
 			q->nextTok();
 			break;
 		default:
-			error("Expected 'end' or 'else' after case expression. Found "+q->tok().val);
+			error("Expected 'end' or 'else' after case expression. Found ",q->tok().val);
 		}
 		break;
 
@@ -345,10 +345,10 @@ unique_ptr<node> parser::parseExprCase() {
 		n->tok1 = t;
 		q->nextTok();
 		n->node1 = parseExprAdd();
-		if (q->tok().id != SP_RPAREN) error("Expected closing parenthesis. Found "+q->tok().val);
+		if (q->tok().id != SP_RPAREN) error("Expected closing parenthesis. Found ",q->tok().val);
 		q->nextTok();
 		break;
-	default: error("Expected case, value, or expression. Found "+q->tok().val);
+	default: error("Expected case, value, or expression. Found ",q->tok().val);
 	}
 	return n;
 }
@@ -398,7 +398,7 @@ unique_ptr<node> parser::parseCasePredicate() {
 	q->nextTok(); //eat when token
 	n->node1 = parsePredicates();
 	t = q->tok();
-	if (t.lower() != "then") error("Expected 'then' after predicate. Found: "+q->tok().val);
+	if (t.lower() != "then") error("Expected 'then' after predicate. Found: ",q->tok().val);
 	q->nextTok(); //eat then token
 	n->node2 = parseExprAdd();
 	return n;
@@ -451,7 +451,7 @@ unique_ptr<node> parser::parsePredCompare() {
 		try {
 			n->node1 = parsePredicates();
 			t = q->tok();
-			if (t.id != SP_RPAREN) error("Expected cosing parenthesis. Found: "+t.val);
+			if (t.id != SP_RPAREN) error("Expected cosing parenthesis. Found: ",t.val);
 		//if failed, reparse as expression
 		} catch (const std::invalid_argument& e) {
 			q->tokIdx = pos;
@@ -472,7 +472,7 @@ unique_ptr<node> parser::parsePredCompare() {
 		t = q->nextTok();
 	}
 	n->tok2.id = negate;
-	if ((t.id & RELOP) == 0) error("Expected relational operator. Found: "+t.val);
+	if ((t.id & RELOP) == 0) error("Expected relational operator. Found: ",t.val);
 	t = q->tok();
 	n->tok1 = t;
 	t = q->nextTok();
@@ -480,11 +480,11 @@ unique_ptr<node> parser::parsePredCompare() {
 		n->tok3 = t;
 		t = q->nextTok();
 	} else if (n->tok1.id == KW_IN) {
-		if (t.id != SP_LPAREN) error("Expected opening parenthesis for expression list. Found: "+t.val);
+		if (t.id != SP_LPAREN) error("Expected opening parenthesis for expression list. Found: ",t.val);
 		q->nextTok();
 		n->node2 = parseExpressionList(!nullInList, false);
 		t = q->tok();
-		if (t.id != SP_RPAREN) error("Expected closing parenthesis after expression list. Found: "+t.val);
+		if (t.id != SP_RPAREN) error("Expected closing parenthesis after expression list. Found: ",t.val);
 		q->nextTok();
 	} else {
 		n->node2 = parseExprAdd();
@@ -526,7 +526,7 @@ void parser::parseTop() {
 	token t = q->tok();
 	if (t.lower() == "top") {
 		t = q->nextTok();
-		if (!is_number(t.val)) error("Expected number after 'top'. Found "+t.val);
+		if (!is_number(t.val)) error("Expected number after 'top'. Found ",t.val);
 		q->quantityLimit = atoi(t.val.c_str());
 		q->nextTok();
 	}
@@ -537,7 +537,7 @@ void parser::parseLimit() {
 	token t = q->tok();
 	if (t.lower() == "limit") {
 		t = q->nextTok();
-		if (!is_number(t.val)) error("Expected number after 'limit'. Found "+t.val);
+		if (!is_number(t.val)) error("Expected number after 'limit'. Found ",t.val);
 		q->quantityLimit = atoi(t.val.c_str());
 		q->nextTok();
 	}
@@ -550,7 +550,7 @@ void parser::parseLimit() {
 unique_ptr<node> parser::parseFrom() {
 	token t = q->tok();
 	unique_ptr<node> n = newNode(N_FROM);
-	if (t.lower() != "from") error("Expected 'from'. Found: "+t.val);
+	if (t.lower() != "from") error("Expected 'from'. Found: ",t.val);
 	t = q->nextTok();
 	n->tok1.val = boost::replace_first_copy(t.val, "~/", gethome()+"/");
 	t = q->nextTok();
@@ -562,7 +562,7 @@ unique_ptr<node> parser::parseFrom() {
 	switch (t.id) {
 	case KW_AS:
 		t = q->nextTok();
-		if (t.id != WORD_TK) error("Expected alias after as. Found: "+t.val);
+		if (t.id != WORD_TK) error("Expected alias after as. Found: ",t.val);
 	case WORD_TK:
 		if (joinMap.count(t.lower())) break;
 		n->tok4 = t;
@@ -602,7 +602,7 @@ unique_ptr<node> parser::parseJoin() {
 		n->tok2 = t;
 		t = q->nextTok();
 	} else {
-		error("Expected 'join'. Found:"+q->tok().val);
+		error("Expected 'join'. Found:",q->tok().val);
 	}
 	//file path
 	boost::replace_first(t.val, "~/", st(getenv("HOME"),"/"));
@@ -618,7 +618,7 @@ unique_ptr<node> parser::parseJoin() {
 	switch (t.id) {
 	case KW_AS:
 		t = q->nextTok();
-		if (t.id != WORD_TK || t.lower() == "on") error("Expected alias after as. Found: "+t.val);
+		if (t.id != WORD_TK || t.lower() == "on") error("Expected alias after as. Found: ",t.val);
 	case WORD_TK:
 		if (t.lower() == "on") break;
 		n->tok4 = t;
@@ -632,7 +632,7 @@ unique_ptr<node> parser::parseJoin() {
 	}
 	if (n->tok4.id == 0)
 		error("Joined file requires an alias.");
-	if (t.lower() != "on") error("Expected 'on'. Found: "+t.val);
+	if (t.lower() != "on") error("Expected 'on'. Found: ",t.val);
 	q->nextTok();
 	n->node1 = parsePredicates();
 	n->node2 = parseJoin();
@@ -667,7 +667,7 @@ unique_ptr<node> parser::parseHaving() {
 unique_ptr<node> parser::parseOrder() {
 	token t = q->tok();
 	if (t.lower() == "order") {
-		if (q->nextTok().lower() != "by") error("Expected 'by' after 'order'. Found "+q->tok().val);
+		if (q->nextTok().lower() != "by") error("Expected 'by' after 'order'. Found ",q->tok().val);
 		q->sorting = 1;
 		q->nextTok();
 		unique_ptr<node> n = newNode(N_ORDER);
@@ -717,7 +717,7 @@ unique_ptr<node> parser::parseFunction() {
 				q->password = n->tok4.val = t.val;
 				q->nextTok();
 			} else if (q->tok().id != SP_RPAREN) {
-				error("Expect closing parenthesis or comma after expression in crypto function. Found: "+q->tok().val);
+				error("Expect closing parenthesis or comma after expression in crypto function. Found: ",q->tok().val);
 			}
 			break;
 
@@ -738,21 +738,21 @@ unique_ptr<node> parser::parseFunction() {
 		case FN_POW:
 			n->node1 = parseExprAdd();
 			if (t = q->tok(); t.id != SP_COMMA)
-				error("POW function expected comma before second expression. Found: " +t.val);
+				error("POW function expected comma before second expression. Found: ", t.val);
 			q->nextTok();
 			n->node2 = parseExprAdd();
 			break;
 		case FN_FORMAT:
 			n->node1 = parseExprAdd();
 			if (t = q->tok(); t.id != SP_COMMA)
-				error("FORMAT function expected comma before date format parameter. Found: " +t.val);
+				error("FORMAT function expected comma before date format parameter. Found: ", t.val);
 			n->tok2 = q->nextTok();
 			q->nextTok();
 			break;
 		case FN_SUBSTR:
 			n->node1 = parseExprAdd();
 			if (t = q->tok(); t.id != SP_COMMA)
-				error("SUBSTR function expected comma before second parameter. Found: " +t.val);
+				error("SUBSTR function expected comma before second parameter. Found: ", t.val);
 			n->tok2 = q->nextTok();
 			if (t = q->nextTok(); t.id == SP_COMMA){
 				n->tok3 = q->nextTok();
@@ -768,7 +768,7 @@ unique_ptr<node> parser::parseFunction() {
 			n->node1 = parseExprAdd();
 		}
 	}
-	if (q->tok().id != SP_RPAREN) error("Expected closing parenthesis after function. Found: "+q->tok().val);
+	if (q->tok().id != SP_RPAREN) error("Expected closing parenthesis after function. Found: ",q->tok().val);
 	q->nextTok();
 	//groupby if aggregate function
 	if ((n->tok1.id & AGG_BIT) != 0) {
