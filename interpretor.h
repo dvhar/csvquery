@@ -580,7 +580,7 @@ int isInt(const char*);
 int isFloat(const char*);
 int isDuration(const char*);
 int dateParse(const char*, struct timeval*);
-int parseDuration(char*, date_t*);
+int parseDuration(char*, dat&);
 int getNarrowestType(char* value, int startType);
 void openfiles(querySpecs &q, unique_ptr<node> &n);
 void applyTypes(querySpecs &q);

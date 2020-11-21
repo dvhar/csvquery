@@ -157,12 +157,10 @@ dat parseFloatDat(const char* s){
 	return fdat;
 }
 dat parseDurationDat(const char* s) {
-	date_t dur;
-	if (parseDuration((char*)s, &dur))
+	dat dur;
+	if (parseDuration((char*)s, dur))
 		error("Could not parse ", s, " as duration.");
-	if (dur < 0) dur *= -1;
-	dat ddat = { { .i = dur }, T_DURATION };
-	return ddat;
+	return dur;
 }
 dat parseDateDat(const char* s) {
 	date_t date;
