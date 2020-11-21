@@ -6,7 +6,7 @@ void initregex();
 
 void loadconfig(bool);
 #ifdef WIN32
-auto configpath = gethome() + "\\_cqrc";
+auto configpath = st(getenv("USERPROFILE"),"\AppData\csvquery.conf")
 #else
 auto configpath = gethome() + "/.cqrc";
 #endif 
