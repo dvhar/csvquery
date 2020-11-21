@@ -52,11 +52,28 @@ class options_t {
 extern mt19937 rng;
 extern string version;
 extern options_t globalOptions;
-static void error(string A){ throw invalid_argument(A);}
 static void perr(string s){
 	if (globalOptions.debug)
 		cerr << s;
 }
+
+template<typename T>
+static void __st(stringstream& ss, T&& v) {
+	ss << v;
+}
+template<typename T, typename... Args>
+static void __st(stringstream& ss, T&& v, Args&&... args) {
+	ss << v;
+	__st(ss, args...);
+}
+template<typename... Args>
+static string st(Args&&... args) {
+	stringstream ss;
+	__st(ss, args...);
+	return ss.str();
+}
+template<typename... Args>
+static void error(Args&&... A){ throw invalid_argument(st(A...));}
 
 enum nodetypes { N_QUERY, N_PRESELECT, N_WITH, N_VARS, N_SELECT, N_SELECTIONS, N_FROM, N_AFTERFROM, N_JOINCHAIN, N_JOIN, N_WHERE, N_HAVING, N_ORDER, N_EXPRADD, N_EXPRMULT, N_EXPRNEG, N_EXPRCASE, N_CPREDLIST, N_CPRED, N_CWEXPRLIST, N_CWEXPR, N_PREDICATES, N_PREDCOMP, N_VALUE, N_FUNCTION, N_GROUPBY, N_EXPRESSIONS, N_DEXPRESSIONS, N_TYPECONV };
 
@@ -592,21 +609,6 @@ struct freeC {
 	void operator()(void*x){ free(x); }
 };
 
-template<typename T>
-static void __st(stringstream& ss, T&& v) {
-	ss << v;
-}
-template<typename T, typename... Args>
-static void __st(stringstream& ss, T&& first, Args&&... args) {
-	ss << first;
-	__st(ss, args...);
-}
-template<typename... Args>
-static string st(Args&&... args) {
-	stringstream ss;
-	__st(ss, args...);
-	return ss.str();
-}
 extern int runmode;
 enum runmodes { RUN_SINGLE, RUN_SERVER };
 

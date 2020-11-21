@@ -3,15 +3,15 @@
 1,Africa,Southern Africa,
 8,Africa,Western Africa,7199273.654
 4,Antarctica,Antarctica,0
-2,Asia,Eastern Asia,898574338.3
+2,Asia,Eastern Asia,898574327
 6,Asia,Middle East,2716494.852
-2,Asia,Southeast Asia,149750372.7
-4,Asia,Southern and Central Asia,484373941.1
+2,Asia,Southeast Asia,149750367
+4,Asia,Southern and Central Asia,484373933.1
 1,Europe,British Islands,
 4,Europe,Eastern Europe,1002662.098
 3,Europe,Nordic Countries,3007685.034
 6,Europe,Southern Europe,3853165.39
-5,Europe,Western Europe,35037172.58
+5,Europe,Western Europe,35037171.19
 12,North America,Caribbean,4193180.708
 4,North America,Central America,4670387.957
 3,North America,North America,17947799.71
@@ -19,4 +19,4 @@
 1,Oceania,Melanesia,
 2,Oceania,Micronesia,34648.23228
 2,Oceania,Polynesia,33941.1255
-8,South America,South America,57339851.48
+8,South America,South America,57339848.77

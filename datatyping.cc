@@ -619,7 +619,7 @@ typer dataTyper::typeInnerNodes(unique_ptr<node> &n){
 		innerType = typeFunctionInnerNodes(n);
 		break;
 	default:
-		error(st("missed a node type: ",getnodename(n->label)));
+		error("missed a node type: ",getnodename(n->label));
 	}
 	n->datatype = innerType.type;
 	//cerr << "type node " << treeMap[n->label] << " as " << n->datatype << endl;
@@ -817,7 +817,7 @@ void dataTyper::typeFinalValues(unique_ptr<node> &n, int finaltype){
 	//may or may not preserve subtree types
 	case N_EXPRNEG:
 		if (n->tok1.id && (finaltype == T_STRING || finaltype == T_DATE))
-			error(st("Minus sign does not work with type ",gettypename(finaltype)));
+			error("Minus sign does not work with type ",gettypename(finaltype));
 	case N_EXPRADD:
 	case N_EXPRMULT:
 		if (n->keep) finaltype = -1;
@@ -880,21 +880,21 @@ void dataTyper::checkMathSemantics(unique_ptr<node> &n){
 		return;
 	case SP_STAR:
 		if (is(T_STRING) || is(T_DATE))
-			error(st("Cannot multiply type ",typestr));
+			error("Cannot multiply type ",typestr);
 		if (combo(T_DURATION, T_DURATION))
 			error("cannot multiply 2 durations");
 		return;
 	case SP_MOD:
 		if (!is(T_INT) && !is(T_FLOAT))
-			error(st("Cannot modulus type ",typestr));
+			error("Cannot modulus type ",typestr);
 		return;
 	case SP_CARROT:
 		if (!is(T_INT) && !is(T_FLOAT))
-			error(st("Cannot exponentiate type ",typestr));
+			error("Cannot exponentiate type ",typestr);
 		return;
 	case SP_DIV:
 		if (is(T_STRING) || is(T_DATE))
-			error(st("Cannot divide type ",typestr));
+			error("Cannot divide type ",typestr);
 		if (n1 != T_DURATION && n2 == T_DURATION)
 			error("Cannot divide number by duration");
 		return;
@@ -912,12 +912,12 @@ void dataTyper::checkFuncSemantics(unique_ptr<node> &n){
 	case FN_STDEV:
 	case FN_STDEVP:
 		if (n1 == T_STRING || n1 == T_DATE || n1 == T_DURATION)
-			error(st("Cannot use ",n->tok1.val," function with type ",typestr));
+			error("Cannot use ",n->tok1.val," function with type ",typestr);
 		//TODO: implement stdev and avg for date and duration
 		break;
 	case FN_ABS:
 		if (n1 == T_STRING || n1 == T_DATE)
-			error(st("Cannot use ",n->tok1.val," function with type ",typestr));
+			error("Cannot use ",n->tok1.val," function with type ",typestr);
 		break;
 	case FN_SUBSTR:
 		if (n->tok2.quoted){
@@ -932,7 +932,7 @@ void dataTyper::checkFuncSemantics(unique_ptr<node> &n){
 		if (!n->tok2.id) return;
 		n->tok2.id = strtol(n->tok2.val.c_str(), &e, 10);
 		if (*e != 0 || n->tok2.id < 0 || n->tok2.id > 9)
-			error(st(n->tok1.val," function 2nd value must be integer from -9 to 9"));
+			error(n->tok1.val," function 2nd value must be integer from -9 to 9");
 		if (n->tok3.id == SP_MINUS)
 			n->tok2.id *= -1;
 		break;

@@ -144,36 +144,36 @@ void dat::appendToCsvBuffer(string &outbuf){
 
 dat parseIntDat(const char* s){
 	char* end = NULL;
-	dat idat = { { i: strtol(s, &end, 10) }, T_INT };
+	dat idat = { { .i = strtol(s, &end, 10) }, T_INT };
 	if (*end != 0)
-		error(st("Could not parse ", s, " as a number."));
+		error("Could not parse ", s, " as a number.");
 	return idat;
 }
 dat parseFloatDat(const char* s){
 	char* end = NULL;
-	dat fdat = { { f: strtof(s, &end) }, T_FLOAT };
+	dat fdat = { { .f = strtod(s, &end) }, T_FLOAT };
 	if (*end != 0)
-		error(st("Could not parse ", s, " as a number."));
+		error("Could not parse ", s, " as a number.");
 	return fdat;
 }
 dat parseDurationDat(const char* s) {
 	date_t dur;
 	if (parseDuration((char*)s, &dur))
-		error(st("Could not parse ", s, " as duration."));
+		error("Could not parse ", s, " as duration.");
 	if (dur < 0) dur *= -1;
-	dat ddat = { { i: dur }, T_DURATION };
+	dat ddat = { { .i = dur }, T_DURATION };
 	return ddat;
 }
 dat parseDateDat(const char* s) {
 	date_t date;
 	if (dateparse_2(s, &date))
-		error(st("Could not parse ", s, " as date."));
-	dat ddat = { { i: date }, T_DATE };
+		error("Could not parse ", s, " as date.");
+	dat ddat = { { .i = date }, T_DATE };
 	return ddat;
 }
 dat parseStringDat(const char* s) {
 	//may want to malloc
-	dat ddat = { { s: (char*)s }, T_STRING, static_cast<u32>(strlen(s)) };
+	dat ddat = { { .s = (char*)s }, T_STRING, static_cast<u32>(strlen(s)) };
 	return ddat;
 }
 int addBtree(int type, querySpecs *q){
