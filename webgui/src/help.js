@@ -285,7 +285,10 @@ export class Help extends React.Component {
 			{"Browsers can take a while to load big results, even when limiting the number of rows. If the results of a query look similar to the results of the previous query, you can confirm that they are new by checkng the query number in the top-right corner, or by reading the query text in the yellow area above the table."}
 			<br/><br/>
 			{"Another thing that can take a while is files that have tons of columns. The program samples the first 10000 rows to figure out datatypes and this can take a while with very wide files. That process is not yet interuptable by the 'end query early' button."}
-			<br/><br/>
+			<h3>Configuration</h3>
+			<hr/>
+			{"Some settings can be configured by editing the config file "}{this.props.configpath}
+			<br/> <br/>
 			<hr/>
 			version {this.props.version}
 			<hr/>
