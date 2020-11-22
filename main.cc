@@ -5,11 +5,6 @@
 void initregex();
 
 void loadconfig(bool);
-#ifdef WIN32
-auto configpath = st(getenv("USERPROFILE"),"\AppData\csvquery.conf")
-#else
-auto configpath = gethome() + "/.cqrc";
-#endif 
 
 void help(char* prog){
 	cout << '\n'
@@ -24,7 +19,7 @@ void help(char* prog){
 		"\t-s Save options set by the flags before this one to the config and exit\n"
 		"\t-h Show this help message and exit\n"
 		"\t-v Show version and exit\n\n"
-		"Config file is " << configpath << "\n";
+		"Config file is " << globalSettings.configpath << "\n";
 	exit(0);
 }
 
@@ -40,15 +35,15 @@ int main(int argc, char** argv){
 			cout << version << endl;
 			exit(0);
 		case 'x':
-			globalOptions.update = false;
+			globalSettings.update = false;
 			shift++;
 			break;
 		case 'd':
-			globalOptions.debug = true;
+			globalSettings.debug = true;
 			shift++;
 			break;
 		case 'g':
-			globalOptions.debug = false;
+			globalSettings.debug = false;
 			shift++;
 			break;
 		case 's':
@@ -95,26 +90,26 @@ int main(int argc, char** argv){
 
 void loadconfig(bool save){
 	vector<string> opts{ "version", "show_debug_info", "check_update", "guess_file_header" };
-	if (!save && boost::filesystem::is_regular_file(configpath)){
-		ifstream cfile(configpath);
+	if (!save && boost::filesystem::is_regular_file(globalSettings.configpath)){
+		ifstream cfile(globalSettings.configpath);
 		if (cfile.good()){
 			string confversion;
 			CFG::ReadFile(cfile, opts,
 					confversion,
-					globalOptions.debug,
-					globalOptions.update,
-					globalOptions.autoheader);
+					globalSettings.debug,
+					globalSettings.update,
+					globalSettings.autoheader);
 			if (confversion >= version){
 				return;
 			}
 		}
 		cfile.close();
 	}
-	ofstream cfile(configpath);
+	ofstream cfile(globalSettings.configpath);
 	cfile << "#csvquery config\n";
 	CFG::WriteFile(cfile, opts,
 			version,
-			globalOptions.debug,
-			globalOptions.update,
-			globalOptions.autoheader);
+			globalSettings.debug,
+			globalSettings.update,
+			globalSettings.autoheader);
 }

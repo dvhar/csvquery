@@ -524,7 +524,7 @@ string gethome(){
 	return "";
 }
 
-options_t globalOptions;
+settings_t globalSettings;
 
 void prepareQuery(querySpecs &q){
 	scanTokens(q);
