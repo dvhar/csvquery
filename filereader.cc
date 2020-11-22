@@ -280,7 +280,7 @@ void openfiles(querySpecs &q, unique_ptr<node> &n){
 			fr->delim = ',';
 
 		//header options
-		fr->autoheader = globalOptions.autoheader;
+		fr->autoheader = globalSettings.autoheader;
 		if ((q.options & O_H) != 0)
 			fr->noheader = fr->autoheader = false;
 		if ((q.options & O_NH) != 0)

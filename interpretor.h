@@ -42,21 +42,6 @@ using ft = boost::format;
 using json = nlohmann::json;
 using namespace std;
 
-class options_t {
-	public:
-	bool update = 1;
-	bool debug = 1;
-	bool autoheader = 0;
-};
-
-extern mt19937 rng;
-extern string version;
-extern options_t globalOptions;
-static void perr(string s){
-	if (globalOptions.debug)
-		cerr << s;
-}
-
 template<typename T>
 static void __st(stringstream& ss, T&& v) {
 	ss << v;
@@ -72,6 +57,28 @@ static string st(Args&&... args) {
 	__st(ss, args...);
 	return ss.str();
 }
+string gethome();
+
+class settings_t {
+	public:
+	bool update = 1;
+	bool debug = 1;
+	bool autoheader = 0;
+#ifdef WIN32
+	string configpath = st(getenv("USERPROFILE"),R"(\AppData\csvqueryConf.txt)");
+#else
+	string configpath = st(gethome(),"/.config/csvquery.conf");
+#endif 
+};
+
+extern mt19937 rng;
+extern string version;
+extern settings_t globalSettings;
+static void perr(string s){
+	if (globalSettings.debug)
+		cerr << s;
+}
+
 template<typename... Args>
 static void error(Args&&... A){ throw invalid_argument(st(A...));}
 
@@ -603,7 +610,6 @@ void sendMessage(i64 sesid, string);
 void sendPassPrompt(i64 sesid);
 void hideInput();
 void initregex();
-string gethome();
 
 struct freeC {
 	void operator()(void*x){ free(x); }
