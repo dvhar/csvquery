@@ -292,17 +292,24 @@ int parseDuration(char* str, dat& d) {
 	if (!isDuration(str)) {return -1;}
 	char* part2;
 	double quantity = strtod(str, &part2);
+	const double day = 86400;
 	while (*part2 == ' ') ++part2;
 	switch (part2[0]){
-	case 'y':
-		d.z = quantity;
-		quantity *= 31536000;
+	case 'y':{
+			if (fmod(quantity,1)==0){
+				d.z = quantity;
+			}
+			i64 q = i64(quantity);
+			double leapdays = q/4 - q/100 + q/400;
+			quantity *= 31536000;
+			quantity += leapdays*day;
+		 }
 		break;
 	case 'w':
 		quantity *= 604800;
 		break;
 	case 'd':
-		quantity *= 86400;
+		quantity *= day;
 		break;
 	case 'h':
 		quantity *= 3600;
