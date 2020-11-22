@@ -153,12 +153,12 @@ func uninstall() {
 	if err1 != nil {
 		fmt.Println(`Error encountered while uninstalling csvquery:`, err1)
 	}
-	if _, err := os.Stat(desktopPath); err == nil {
+	if _, err := os.Stat(desktopPath); os.IsNotExist(err){
 		return
 	}
 	err2 := os.RemoveAll(desktopPath)
 	if err2 != nil {
-		fmt.Println(`Error encountered while removing desktop shortcut:`, err1)
+		fmt.Println(`Error encountered while removing desktop shortcut:`, err2)
 	}
 }
 
