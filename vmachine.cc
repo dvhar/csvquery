@@ -541,11 +541,10 @@ DRMULT_:
 		auto p = getfirst(stacktop, T_DURATION);
 		if (p.second->b == T_INT){
 			stk1.u.i = p.first->u.i * p.second->u.i;
-			stk1.z = p.first->z * p.second->u.i;
 		} else {
 			stk1.u.i = p.first->u.i * p.second->u.f;
-			stk1.z = p.first->z * p.second->u.f;
 		}
+		stk1.z = 0;
 		stk1.b = T_DURATION;
 	}
 	pop();
