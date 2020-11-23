@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <limits.h>
+#include "dateparse.h"
 #define date_t long long
 #define BUFSIZE 100
 #define MONTHBUF 14
@@ -2143,9 +2144,26 @@ char* datestring(date_t t){
 	return dateprintbuf;
 }
 char* datestringfmt(date_t t, const char* format){
-	static char dateprintbuf[30];
+	static char dateprintbuf[50];
 	struct tm* tminfo = gmtime64(t);
-	strftime(dateprintbuf, 30, format, tminfo);
+	strftime(dateprintbuf, 50, format, tminfo);
+	static char digits[] = "0123456789";
+	for (char* c = dateprintbuf+1; *c; ++c){
+		if (*c == 'm' && *(c-1) == 'm'){
+			char* start = c-1;
+			while (*c == 'm')
+				++c;
+			int z = c-start;
+			int mc = mcs(t);
+			int d1 = 100000;
+			for (int i=0; i<z && i<6; i++){
+				start[i] = digits[(mc/d1)%10];
+				d1 /= 10;
+			}
+			goto millisecDone;
+		}
+	}
+millisecDone:
 	return dateprintbuf;
 }
 
