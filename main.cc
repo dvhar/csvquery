@@ -8,14 +8,17 @@ void loadconfig(bool);
 
 void help(char* prog){
 	cout << '\n'
-		<< prog << " <file>\n\tRun query from file\n"sv
-		<< prog << " version\n\tshow version and exit\n"sv
-		<< prog << " help\n\tshow this help message and exit\n"sv
-		<< prog << " \"select from 'data.csv'\"\n\tRun query from command line argument\n"sv
+		<< prog << " <file>\n\tRun query from file\n"
+		<< prog << " version\n\tshow version and exit\n"
+		<< prog << " help\n\tshow this help message and exit\n"
+		<< prog << " \"select from 'data.csv'\"\n\tRun query from command line argument\n"
 		<< prog << "\n\tRun server to use graphic interface in web browser\n\n"
-		"Flags:\n\t-x Don't check for updates when using gui\n"
+		"Flags:\n"
+		"\t-x Don't check for updates when using gui\n"
 		"\t-g Don't show debug info in console\n"
-		"\t-d Show debug info in console\n"
+		"\t-d Show debug info in console (default)\n"
+		"\t-e Don't automatically exit 3 minutes after the web gui is closed\n"
+		"\t-f Guess if files have header based on whether or not there are numbers in the first row\n"
 		"\t-s Save options set by the flags before this one to the config and exit\n"
 		"\t-h Show this help message and exit\n"
 		"\t-v Show version and exit\n\n"
@@ -27,27 +30,35 @@ int main(int argc, char** argv){
 
 	int shift = 0;
 	loadconfig(0);
-	for(char c; (c = getopt(argc, argv, "hxvgds")) != -1;)
+	for(char c; (c = getopt(argc, argv, "hxvgdsef")) != -1;)
 		switch(c){
-		case 'h':
-			help(argv[0]);
-		case 'v':
-			cout << version << endl;
-			exit(0);
 		case 'x':
 			globalSettings.update = false;
-			shift++;
-			break;
-		case 'd':
-			globalSettings.debug = true;
 			shift++;
 			break;
 		case 'g':
 			globalSettings.debug = false;
 			shift++;
 			break;
+		case 'd':
+			globalSettings.debug = true;
+			shift++;
+			break;
+		case 'e':
+			globalSettings.autoexit = false;
+			shift++;
+			break;
+		case 'f':
+			globalSettings.autoheader = true;
+			shift++;
+			break;
 		case 's':
 			loadconfig(1);
+			exit(0);
+		case 'h':
+			help(argv[0]);
+		case 'v':
+			cout << version << endl;
 			exit(0);
 		}
 
@@ -89,7 +100,13 @@ int main(int argc, char** argv){
 }
 
 void loadconfig(bool save){
-	vector<string> opts{ "version", "show_debug_info", "check_update", "guess_file_header" };
+	vector<string> opts{
+		"version",
+		"show_debug_info",
+		"check_update",
+		"guess_file_header",
+		"exit_automatically"
+	};
 	if (!save && boost::filesystem::is_regular_file(globalSettings.configpath)){
 		ifstream cfile(globalSettings.configpath);
 		if (cfile.good()){
@@ -98,7 +115,8 @@ void loadconfig(bool save){
 					confversion,
 					globalSettings.debug,
 					globalSettings.update,
-					globalSettings.autoheader);
+					globalSettings.autoheader,
+					globalSettings.autoexit);
 			if (confversion >= version){
 				return;
 			}
@@ -106,10 +124,10 @@ void loadconfig(bool save){
 		cfile.close();
 	}
 	ofstream cfile(globalSettings.configpath);
-	cfile << "#csvquery config\n";
 	CFG::WriteFile(cfile, opts,
 			version,
 			globalSettings.debug,
 			globalSettings.update,
-			globalSettings.autoheader);
+			globalSettings.autoheader,
+			globalSettings.autoexit);
 }

@@ -449,6 +449,7 @@ int getSortComparer(querySpecs *q, int i){
 		return 5;
 	}
 	error("invalid sort function");
+	return 0;
 };
 
 dat prepareLike(unique_ptr<node> &n){
