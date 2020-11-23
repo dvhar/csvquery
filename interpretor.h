@@ -64,6 +64,7 @@ class settings_t {
 	bool update = 1;
 	bool debug = 1;
 	bool autoheader = 0;
+	bool autoexit = 1;
 #ifdef WIN32
 	string configpath = st(getenv("USERPROFILE"),R"(\AppData\csvqueryConf.txt)");
 #else
@@ -610,6 +611,7 @@ void sendMessage(i64 sesid, string);
 void sendPassPrompt(i64 sesid);
 void hideInput();
 void initregex();
+char* dateFormatCode(string& s);
 
 struct freeC {
 	void operator()(void*x){ free(x); }

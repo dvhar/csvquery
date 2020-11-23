@@ -465,7 +465,10 @@ SORT_:
 	nexti();
 //group sorter - p1 is sort index
 GSORT_:
-	sort(groupSorter.begin(), groupSorter.end(), gsortcomp(this, op->p1));
+	{
+		gsortcomp cmp(this, op->p1);
+		sort(groupSorter.begin(), groupSorter.end(), [&](grprow& a, grprow& b){ return cmp(a,b); });
+	}
 	nexti();
 
 //math operations

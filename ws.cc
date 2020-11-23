@@ -74,7 +74,7 @@ static void pingbrowsers(){
 			c->send(ping);
 		if (clientCount > 0)
 			deathcount = 0;
-		else if (++deathcount >= 180){
+		else if (++deathcount >= 180 && globalSettings.autoexit){
 			server.stop();
 			stopAllQueries();
 			return;

@@ -374,6 +374,8 @@ class sortcomp {
 	vector<datunion>* vals;
 	int sortcount;
 	vector<function<i64 (const datunion,const datunion)>> comps;
+	sortcomp();
+	sortcomp(sortcomp&);
 	public:
 		sortcomp(vmachine* vm){
 			vals = vm->normalSortVals.data();
@@ -393,6 +395,8 @@ class gsortcomp {
 	int sortcount;
 	int sortidx;
 	vector<function<i64 (const datunion, const datunion)>> comps;
+	gsortcomp();
+	gsortcomp(gsortcomp&);
 	public:
 		gsortcomp(vmachine* vm, int idx){
 			sortcount = vm->q->sortcount;
