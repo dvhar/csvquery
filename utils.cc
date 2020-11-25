@@ -520,53 +520,58 @@ stringstream& returnData::tojson(){
 	return j;
 }
 
+#define R (const char*)
 // https://www.tutorialgateway.org/sql-date-format/
-char* dateFormatCode(string& s){
+const char* dateFormatCode(string& s){
 	if (!isInt(s.c_str())){
-		if (s == "iso")
-			return "%Y-%m-%dT%H:%M:%SZ";
-		return (char*) s.c_str();
+		return s.c_str();
 	}
 	switch (atoi(s.c_str())){
-		case 1:   return "%D"; // mm/dd/yy
-		case 101: return "%m/%d/%Y"; // mm/dd/yyyy
-		case 2:   return "%y.%m.%d"; // yy.mm.dd
-		case 102: return "%Y.%m.%d"; // yyyy.mm.dd
-		case 3:   return "%d/%m/%y"; // dd/mm/yy
-		case 103: return "%d/%m/%Y"; // dd/mm/yyyy
-		case 4:   return "%d.%m.%y"; // dd.mm.yy
-		case 104: return "%d.%m.%Y"; // dd.mm.yyyy
-		case 5:   return "%d-%m-%y"; // dd-mm-yy
-		case 105: return "%d-%m-%Y"; // dd-mm-yyyy
-		case 6:   return "%d %b %y"; // dd mon yy
-		case 106: return "%d %b %Y"; // dd mon yyyy
-		case 7:   return "%a %b, %y"; // Mon dd, yy
-		case 107: return "%a %b, %Y"; // Mon dd, yyyy
+		case 1:   return R "%m/%d/%y"; // mm/dd/yy
+		case 101: return R "%m/%d/%Y"; // mm/dd/yyyy
+		case 2:   return R "%y.%m.%d"; // yy.mm.dd
+		case 102: return R "%Y.%m.%d"; // yyyy.mm.dd
+		case 3:   return R "%d/%m/%y"; // dd/mm/yy
+		case 103: return R "%d/%m/%Y"; // dd/mm/yyyy
+		case 4:   return R "%d.%m.%y"; // dd.mm.yy
+		case 104: return R "%d.%m.%Y"; // dd.mm.yyyy
+		case 5:   return R "%d-%m-%y"; // dd-mm-yy
+		case 105: return R "%d-%m-%Y"; // dd-mm-yyyy
+		case 6:   return R "%d %b %y"; // dd mon yy
+		case 106: return R "%d %b %Y"; // dd mon yyyy
+		case 7:   return R "%b %d, %y"; // Mon dd, yy
+		case 107: return R "%b %d, %Y"; // Mon dd, yyyy
 		case 8:
-		case 108: return "%I:%M:%S"; // hh:mi:ss
-		case 9:   return "%b %d %y %I:%M:%Smmmm%P"; // mon dd yy hh:mi:ss:mmmmAM (or PM)	Default + milliseconds
-		case 109: return "%b %d %Y %I:%M:%Smmmm%P"; // mon dd yyyy hh:mi:ss:mmmmAM (or PM)	Default + milliseconds
-		case 10:  return "%m-%d-%y"; // mm-dd-yy
-		case 110: return "%m-%d-%Y"; // mm-dd-yyyy
-		case 11:  return "%y/%m/%d"; // yy/mm/dd
-		case 111: return "%Y/%m/%d"; // yyyy/mm/dd
-		case 12:  return "%y%m%d"; // yymmdd
-		case 112: return "%Y%m%d"; // yyyymmdd
-		case 13:  return "%d %b %y %H:%M:%S:mmm"; // dd mon yy hh:mi:ss:mmm(24h)	Europe Default + millisecond
-		case 113: return "%d %b %Y %H:%M:%S:mmm"; // dd mon yyyy hh:mi:ss:mmm(24h)	Europe Default + millisecond
+		case 108: return R "%I:%M:%S"; // hh:mi:ss
+		case 9:   return R "%b %d %y %I:%M:%S:mmmm%p"; // mon dd yy hh:mi:ss:mmmmAM (or PM)
+		case 109: return R "%b %d %Y %I:%M:%S:mmmm%p"; // mon dd yyyy hh:mi:ss:mmmmAM (or PM)
+		case 10:  return R "%m-%d-%y"; // mm-dd-yy
+		case 110: return R "%m-%d-%Y"; // mm-dd-yyyy
+		case 11:  return R "%y/%m/%d"; // yy/mm/dd
+		case 111: return R "%Y/%m/%d"; // yyyy/mm/dd
+		case 12:  return R "%y%m%d"; // yymmdd
+		case 112: return R "%Y%m%d"; // yyyymmdd
+		case 13:  return R "%d %b %y %H:%M:%S:mmm"; // dd mon yy hh:mi:ss:mmm(24h)
+		case 113: return R "%d %b %Y %H:%M:%S:mmm"; // dd mon yyyy hh:mi:ss:mmm(24h)
 		case 14:
-		case 114: return "%H:%M:%S:mmm"; //  hh:mi:ss:mmm(24h)
-		case 20:  return "%y-%m-%d %H:%M:%S"; //  yy-mm-dd hh:mi:ss(24h)
-		case 120: return "%Y-%m-%d %H:%M:%S"; //  yyyy-mm-dd hh:mi:ss(24h)
-		case 21:  return "%y-%m-%d %H:%M:%S.mmm"; // yy-mm-dd hh:mi:ss.mmm(24h)
-		case 121: return "%Y-%m-%d %H:%M:%S.mmm"; // yyyy-mm-dd hh:mi:ss.mmm(24h)
-		case 126: return "%Y-%m-%dT%H:%M:%S.mmm"; // yyyy-mm-ddThh:mi:ss.mmm (no Spaces)	ISO8601
-		case 127: return "%Y-%m-%dT%H:%M:%S.mmmZ"; // yyyy-mm-ddThh:mi:ss.mmmZ (no Spaces)	ISO8601 with time zone Z
-		case 130: return "%d %b %Y %I:%M:%S:mmm%P"; // dd mon yyyy hh:mi:ss:mmmAM
-		case 131: return "%d/%b/%Y %I:%M:%S:mmm%P"; // dd/mm/yyyy hh:mi:ss:mmmAM
+		case 114: return R "%H:%M:%S:mmm"; //  hh:mi:ss:mmm(24h)
+		case 20:  return R "%y-%m-%d %H:%M:%S"; //  yy-mm-dd hh:mi:ss(24h)
+		case 120: return R "%Y-%m-%d %H:%M:%S"; //  yyyy-mm-dd hh:mi:ss(24h)
+		case 21:  return R "%y-%m-%d %H:%M:%S.mmm"; // yy-mm-dd hh:mi:ss.mmm(24h)
+		case 121: return R "%Y-%m-%d %H:%M:%S.mmm"; // yyyy-mm-dd hh:mi:ss.mmm(24h)
+		case 126: return R "%Y-%m-%dT%H:%M:%S.mmm"; // yyyy-mm-ddThh:mi:ss.mmm (no Spaces)
+		case 127: return R "%Y-%m-%dT%H:%M:%S.mmmZ"; // yyyy-mm-ddThh:mi:ss.mmmZ (no Spaces)
+		case 130: return R "%d %b %Y %I:%M:%S:mmm%p"; // dd mon yyyy hh:mi:ss:mmmAM
+		case 131: return R "%d/%b/%Y %I:%M:%S:mmm%p"; // dd/mm/yyyy hh:mi:ss:mmmAM
+		//non standardized  additions
+		case 119: return R "%b %d %Y %I:%M:%S%p"; // mon dd yyyy hh:mi:ssAM (or PM)
+		case 140: return R "%d %b %Y %I:%M:%S%p"; // dd mon yyyy hh:mi:ssAM
+		case 141: return R "%d/%b/%Y %I:%M:%S%p"; // dd/mm/yyyy hh:mi:ssAM
+		case 136: return R "%Y-%m-%dT%H:%M:%S"; // yyyy-mm-ddThh:mi:ss (no Spaces)
+		case 137: return R "%Y-%m-%dT%H:%M:%SZ"; // yyyy-mm-ddThh:mi:ssZ (no Spaces)
 		default:
 				  error(s," does not match any date formats");
-				  return "";
+				  return R "";
 	}
 }
 
