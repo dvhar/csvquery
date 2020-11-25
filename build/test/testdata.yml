@@ -175,3 +175,14 @@
   query: nan with float(c5)/1000 as n select n acos(n) asin(n) atan(n) log(n) log2(n) log10(n) log(0)
     pow(n,log(0)) from 'test/country' nh limit 10
   output: 35.csv
+- title: preset date formats
+  code: 0
+  query: nh with c16 as d select c16 as source format(d,1)as 1 format(d,101) as 101 format(d,2) as 2 format(d,102) as 102
+    format(d,3) as 3 format(d,103) as 103 format(d,4) as 4 format(d,104) as 104 format(d,5) as 5 format(d,105) as 105
+    format(d,6) as 6 format(d,106) as 106 format(d,7) as 7 format(d,107) as 107 format(d,8) as 8 format(d,108) as 108
+    format(d,9) as 9 format(d,109) as 109 format(d,10) as 10 format(d,110) as 110 format(d,11) as 11 format(d,111) as 111
+    format(d,12) as 12 format(d,112) as 112 format(d,13) as 13 format(d,113) as 113 format(d,14)as 14 format(d,114) as 114
+    format(d,20) as 20 format(d,120) as 120 format(d,21) as 21 format(d,121) as 121 format(d,126) as 126 format(d,130) as 130
+    format(d,131) as 131 format(d,119) as 119 format(d,140) as 140 format(d,141) as 141 format(d,136) as 136
+    format(d,137) as 137 from 'test/country' limit 5
+  output: 36.csv

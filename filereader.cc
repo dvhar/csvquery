@@ -110,7 +110,7 @@ bool fileReader::readline(){
 				getQuotedField();
 				return checkWidth();
 			}
-			//escape character
+			//nonstandard escape character
 			if (*(pos2-1) == '\\' && !nextIsDelim()){
 				compactQuote();
 				++pos2;

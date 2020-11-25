@@ -241,6 +241,7 @@ vmachine::vmachine(querySpecs &qs) :
 }
 
 vmachine::~vmachine(){
+	perr("Destructing vm\n");
 	if (runmode == RUN_SINGLE) //skip garbage collection if one-off query
 		return;
 	distinctVal.freedat();
@@ -254,8 +255,10 @@ vmachine::~vmachine(){
 		if (q->sortInfo[i++].second == T_STRING)
 			for (auto u : vec)
 				free(u.s); //c strings allways allocated with c style
+	perr("Destructed vm\n");
 }
 querySpecs::~querySpecs(){
+	perr("Destructing queryspecs\n");
 	for (auto &d : dataholder){
 		d.freedat();
 		if (d.b & RMAL){
@@ -263,6 +266,7 @@ querySpecs::~querySpecs(){
 			delete d.u.r; //regex always allocated with 'new'
 		}
 	}
+	perr("Destructed queryspecs\n");
 }
 
 varScoper* varScoper::setscope(int f, int s, int f2){
@@ -617,11 +621,11 @@ future<shared_ptr<singleQueryResult>> queryQueue::runqueryJson(querySpecs& q){
 		queries.emplace_back(q);
 		auto& thisq = queries.back();
 		mtx.unlock();
-		thisq.run();
+		auto id = thisq.run();
 		auto ret = thisq.vm->getJsonResult();
 		perr("Got json result\n");
 		mtx.lock();
-		queries.remove_if([&](qinstance& qi){ return qi.vm->id == thisq.vm->id; });
+		queries.remove_if([&](qinstance& qi){ return qi.id == id; });
 		mtx.unlock();
 		perr("Remove query from queue\n");
 		return ret;
