@@ -228,7 +228,7 @@ export class Help extends React.Component {
 						{"c nh select 1 2 3 dogs cats from 'C:\\users\\dave\\pets.csv'"}
 					</blockquote>
 				<h4>Selecting all columns</h4>
-					{"'select * ' works how you'd expect. If you don't specify any values at all, it will also select all. "}
+					{"'select * ' works how you'd expect. If you don't specify any values at all, it will also select all. It will also select all if you skip the 'select from' part altogether as long as there are quotes around the file path."}
 					<br/><br/>
 					Examples:
 					<br/>
@@ -236,6 +236,8 @@ export class Help extends React.Component {
 						{"select * from '/home/user/pets.csv'"}
 						<br/>
 						{"select from '/home/user/pets.csv'"}
+						<br/>
+						{"'/home/user/pets.csv'"}
 					</blockquote>
 				<h4>Selecting more complex expressions</h4>
 					{"Use + - * / % operators to add, subtract, multiply, divide, and modulus expressions. You can combine them with parentheses. You can also use case expressions."}
