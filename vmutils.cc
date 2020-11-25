@@ -588,16 +588,14 @@ bool opDoesJump(int opcode){
 }
 
 shared_ptr<singleQueryResult> vmachine::getJsonResult(){
-	static auto cm = regex(".*--.*(\n.*|$)");
-	static auto commented = regex("--.*(\n|$)");
+	static auto isCommented = regex(".*--.*(\n.*|$)");
+	static auto comment = regex("--.*(\n|$)");
 	jsonresult->types = q->colspec.types;
 	jsonresult->colnames = q->colspec.colnames;
-	jsonresult->pos.resize(q->colspec.count);
-	iota(jsonresult->pos.begin(), jsonresult->pos.end(),1); //TODO: update gui to not need this
 	jsonresult->query = q->queryString;
 	do {
-		jsonresult->query = regex_replace(jsonresult->query, commented, "");
-	} while (regex_match(jsonresult->query, cm));
+		jsonresult->query = regex_replace(jsonresult->query, comment, "");
+	} while (regex_match(jsonresult->query, isCommented));
 	return jsonresult;
 }
 
@@ -608,9 +606,9 @@ future<void> queryQueue::runquery(querySpecs& q){
 		queries.emplace_back(q);
 		auto& thisq = queries.back();
 		mtx.unlock();
-		thisq.run();
+		auto id = thisq.run();
 		mtx.lock();
-		queries.remove_if([&](qinstance& qi){ return qi.vm->id == thisq.vm->id; });
+		queries.remove_if([&](qinstance& qi){ return qi.id == id; });
 		mtx.unlock();
 	});
 }

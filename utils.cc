@@ -488,12 +488,6 @@ stringstream& singleQueryResult::tojson(){
 		j << *delim << '"' << escapeJSON(v) << '"';
 		delim = &com;
 	}
-	j << "],\"Pos\":[";
-	delim = &nocom;
-	for (auto v : pos){
-		j << *delim << v;
-		delim = &com;
-	}
 	j << "],\"Vals\":[";
 	delim = &nocom;
 	for (auto &v : Vals){

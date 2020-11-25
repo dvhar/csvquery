@@ -547,7 +547,6 @@ class singleQueryResult {
 	int clipped =0;
 	vector<int> types;
 	vector<string> colnames;
-	vector<int> pos;
 	list<string> Vals; //each string is whole row
 	string query;
 	stringstream& tojson();
