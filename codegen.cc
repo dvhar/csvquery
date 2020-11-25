@@ -206,7 +206,7 @@ void cgen::genJoinSets(unique_ptr<node> &n){
 			addop(JMP, prevJoinRead);
 		} else if (q->sorting){
 			genWhere(q->tree->node4);
-			genNormalSortList(q->tree);
+			genNormalSortList(q->tree->node4);
 			addop(SAVEPOS);
 			addop(JMP, prevJoinRead);
 		} else {
@@ -451,7 +451,7 @@ void cgen::genNormalQuery(unique_ptr<node> &n){
 	genWhere(n->node4);
 	vs.setscope(DISTINCT_FILTER, V_READ1_SCOPE);
 	genVars(n->node1);
-	genDistinct(n->node2->node1, normal_read);
+	genDistinct(n->node2, normal_read);
 	vs.setscope(SELECT_FILTER, V_READ1_SCOPE);
 	genVars(n->node1);
 	genSelect(n->node2);
@@ -472,7 +472,7 @@ void cgen::genNormalOrderedQuery(unique_ptr<node> &n){
 	wherenot = normal_read;
 	addop(RDLINE, sorter, 0);
 	genWhere(n->node4);
-	genNormalSortList(n);
+	genNormalSortList(n->node4);
 	addop(SAVEPOS);
 	addop(JMP, normal_read);
 	jumps.setPlace(sorter, v.size());
@@ -485,7 +485,7 @@ void cgen::genNormalOrderedQuery(unique_ptr<node> &n){
 	addop(RDLINE_ORDERED, endreread);
 	vs.setscope(DISTINCT_FILTER, V_READ2_SCOPE);
 	genVars(n->node1);
-	genDistinct(n->node2->node1, reread);
+	genDistinct(n->node2, reread);
 	vs.setscope(SELECT_FILTER, V_READ2_SCOPE);
 	genVars(n->node1);
 	genSelect(n->node2);
@@ -498,11 +498,14 @@ void cgen::genNormalOrderedQuery(unique_ptr<node> &n){
 	popvars();
 	addop(ENDRUN);
 };
+
+//given afterfrom node
 void cgen::genNormalSortList(unique_ptr<node> &n){
 	e("normal sort list");
+	if (n == nullptr) return;
 	vs.setscope(ORDER_FILTER, V_READ1_SCOPE);
 	genVars(q->tree->node1);
-	auto& ordnode = findFirstNode(q->tree->node4, N_ORDER);
+	auto& ordnode = findFirstNode(n, N_ORDER);
 	int i = 0;
 	for (auto x = ordnode->node1.get(); x; x = x->node2.get()){
 		genExprAll(x->node1);
@@ -744,10 +747,17 @@ void cgen::genCPred(unique_ptr<node> &n, int end){
 	jumps.setPlace(nextCase, v.size()); //jump here for next try
 }
 
+//given select node
 void cgen::genSelect(unique_ptr<node> &n){
+	if (n == nullptr) {
+		//no selection branch
+		genSelectAll();
+		return;
+	}
 	genSelections(n->node1);
 }
 
+//given selections node
 void cgen::genSelections(unique_ptr<node> &n){
 	if (n == nullptr) {
 		//reached end of selections section of query
@@ -905,20 +915,26 @@ void cgen::genSelectAll(){
 		select_count += f->numFields;
 }
 
+//given afterfrom node
 void cgen::genWhere(unique_ptr<node> &nn){
-	vs.setscope(WHERE_FILTER, V_READ1_SCOPE);
-	genVars(q->tree->node1);
 	auto& n = findFirstNode(nn, N_WHERE);
 	e("gen where");
 	if (n == nullptr) return;
+	vs.setscope(WHERE_FILTER, V_READ1_SCOPE);
+	genVars(q->tree->node1);
 	genPredicates(n->node1);
 	addop2(JMPFALSE, wherenot, 1);
 }
 
+//given select or selections node
 void cgen::genDistinct(unique_ptr<node> &n, int gotoIfNot){
 	if (n == nullptr) return;
 	e("gen distinct");
-	if (n->label != N_SELECTIONS) return;
+	if (n->label == N_SELECT){
+		genDistinct(n->node1, gotoIfNot);
+		return;
+	} else if (n->label != N_SELECTIONS)
+		return;
 	if (n->tok1.id == KW_DISTINCT){
 		genExprAll(n->node1);
 		addop2(operations[OPDIST][n->datatype], gotoIfNot, addBtree(n->datatype, q));

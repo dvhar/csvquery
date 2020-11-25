@@ -24,7 +24,7 @@ class parser {
 	unique_ptr<node> parseOrder();
 	unique_ptr<node> parseHaving();
 	unique_ptr<node> parseGroupby();
-	unique_ptr<node> parseFrom();
+	unique_ptr<node> parseFrom(bool); //true for requires selections beforehand
 	unique_ptr<node> parseWhere();
 	unique_ptr<node> parseValue();
 	unique_ptr<node> parseFunction();
@@ -34,13 +34,16 @@ class parser {
 	void parseLimit();
 
 	querySpecs* q;
+	bool justfile = false;
 	public:
 	parser(querySpecs &qs): q{&qs} {}
 	void parse(){
 		q->tree = newNode(N_QUERY);
 		q->tree->node1 = parsePreSelect();
+		q->tree->node3 = parseFrom(false);
 		q->tree->node2 = parseSelect();
-		q->tree->node3 = parseFrom();
+		if (!justfile)
+			q->tree->node3 = parseFrom(true);
 		q->tree->node4 = parseAfterFrom();
 	}
 };
@@ -163,6 +166,7 @@ unique_ptr<node> parser::parseVars() {
 
 //node1 is selections
 unique_ptr<node> parser::parseSelect() {
+	if (justfile) return nullptr;
 	token t = q->tok();
 	unique_ptr<node> n = newNode(N_SELECT);
 	if (t.lower() != "select") error("Expected 'select'. Found "+t.val);
@@ -547,11 +551,20 @@ void parser::parseLimit() {
 //tok4 is alias
 //tok5 is noheader
 //node1 is joins
-unique_ptr<node> parser::parseFrom() {
+unique_ptr<node> parser::parseFrom(bool withselections) {
 	token t = q->tok();
+
+	if (!withselections){
+		//will be unquoted 'select' if using selections, otherwise filepath
+		if (!t.quoted)
+			return nullptr;
+		justfile = true;
+	} else {
+		if (t.lower() != "from") error("Expected 'from'. Found: ",t.val);
+		t = q->nextTok();
+	}
+
 	unique_ptr<node> n = newNode(N_FROM);
-	if (t.lower() != "from") error("Expected 'from'. Found: ",t.val);
-	t = q->nextTok();
 	n->tok1.val = boost::replace_first_copy(t.val, "~/", gethome()+"/");
 	t = q->nextTok();
 	string s = t.lower();
