@@ -127,10 +127,11 @@ class TableGrid extends React.Component {
 				{this.props.table.Colnames[ii]}
 			</th>
 		)});
+		var positions = Array.from({length:this.props.table.Types.length},(x,i)=>i+1);
 		var info = this.props.table.Types.map((name,ii)=>{
 			if (this.props.hideColumns[ii]===0) return (
 			<td key={ii} className="tableCell typeCell" onClick={()=>this.sorter(ii)}>
-				{`${this.props.table.Pos[ii]} `}
+				{`${positions[ii]} `}
 				<span className="noselect">
 				- {t[this.props.table.Types[ii]]}
 				</span>
