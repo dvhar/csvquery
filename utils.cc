@@ -5,7 +5,7 @@
 #include "deps/json/escape.h"
 #define max(a,b) (a) > (b) ? (a) : (b)
 
-string version = "1.20";
+string version = "1.21";
 int runmode;
 regex_t leadingZeroString;
 regex_t durationPattern;
