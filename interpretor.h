@@ -611,7 +611,7 @@ void sendMessage(i64 sesid, string);
 void sendPassPrompt(i64 sesid);
 void hideInput();
 void initregex();
-char* dateFormatCode(string& s);
+const char* dateFormatCode(string& s);
 
 struct freeC {
 	void operator()(void*x){ free(x); }

@@ -1283,17 +1283,18 @@ READ_NEXT_GROUP_:
 		++ip;
 	} next();
 
+#define R (char*)
 START_MESSAGE_:
 	linesRead = 0;
 	switch(op->p1){
-	case 0: updates.start((char*) "Scanned %d lines", &linesRead, 0); break;
-	case 1: updates.start((char*) "Found %d results", &totalPrinted, 0); break;
-	case 2: updates.say((char*) "Sorting", 0, 0); break;
-	case 3: updates.start((char*) "Read %d lines", &linesRead,0); break;
-	case 4: updates.start((char*) "Read %d lines, Found %d results", &linesRead, &totalPrinted); break;
-	case 5: updates.start((char*) "Scanned %d lines from join file", &linesRead, 0); break;
-	case 6: updates.say((char*) "Processing indexes", 0, 0); break;
-	case 7: updates.start((char*) "Read %d lines from file1, found %d join results", &linesRead, &totalPrinted); break;
+	case 0: updates.start(R "Scanned %d lines", &linesRead, 0); break;
+	case 1: updates.start(R "Found %d results", &totalPrinted, 0); break;
+	case 2: updates.say  (R "Sorting", 0, 0); break;
+	case 3: updates.start(R "Read %d lines", &linesRead,0); break;
+	case 4: updates.start(R "Read %d lines, Found %d results", &linesRead, &totalPrinted); break;
+	case 5: updates.start(R "Scanned %d lines from join file", &linesRead, 0); break;
+	case 6: updates.say  (R "Processing indexes", 0, 0); break;
+	case 7: updates.start(R "Read %d lines from file1, found %d join results", &linesRead, &totalPrinted); break;
 	} nexti();
 STOP_MESSAGE_:
 	updates.stop();

@@ -346,17 +346,20 @@ class qinstance {
 	public:
 	unique_ptr<vmachine> vm;
 	querySpecs* q;
+	int id;
 	qinstance(querySpecs& qs) {
 		q = &qs;
 	}
 	~qinstance() { perr("Destructing query instance\n"); }
-	void run(){
+	int run(){
 		prepareQuery(*q);
 		perr("Constructing vm\n");
 		vm.reset(new vmachine(*q));
+		id = vm->id;
 		perr("Starting query\n");
 		vm->run();
 		perr("Finished query\n");
+		return id;
 	}
 };
 class queryQueue {

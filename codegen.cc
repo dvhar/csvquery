@@ -1006,8 +1006,8 @@ void cgen::genFunction(unique_ptr<node> &n){
 	case FN_FORMAT:
 		genExprAll(n->node1);
 		addop1(functionCode[n->tok1.id], q->dataholder.size());
-		q->dataholder.push_back(dat{ { .s = strdup(dateFormatCode(n->tok2.val)) },
-				T_STRING|MAL, (u32)n->tok2.val.size() });
+		{ auto fmt = dateFormatCode(n->tok2.val);
+		q->dataholder.push_back(dat{ { .s = strdup(fmt) }, T_STRING|MAL, (u32)strlen(fmt) }); }
 		break;
 	case FN_YEAR:
 	case FN_MONTH:

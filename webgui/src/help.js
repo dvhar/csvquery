@@ -9,7 +9,7 @@ const paramlist = [
 	'(<any number of expressions>)',
 	'(<expression>, <optional decimal places>)',
 	'(<expression> or *)',
-	'(<expression>, <format string> or "iso")',
+	'(<expression>, <format string> or <format code>)',
 ];
 
 const funclist = [
@@ -76,12 +76,72 @@ const funclist = [
 
 ]
 
+const fmtlist = [
+	[1,  "mm/dd/yy","%m/%d/%y"],
+	[101,"mm/dd/yyyy","%m/%d/%Y"],
+	[2,  "yy.mm.dd","%y.%m.%d"],
+	[102,"yyyy.mm.dd","%Y.%m.%d"],
+	[3,  "dd/mm/yy","%d/%m/%y"],
+	[103,"dd/mm/yyyy","%d/%m/%Y"],
+	[4,  "dd.mm.yy","%d.%m.%y"],
+	[104,"dd.mm.yyyy","%d.%m.%Y"],
+	[5,  "dd-mm-yy","%d-%m-%y"],
+	[105,"dd-mm-yyyy", "%d-%m-%Y"],
+	[6,  "dd Mon yy","%d %b %y"],
+	[106,"dd Mon yyyy","%d %b %Y"],
+	[7,  "Mon dd, yy","%b %d, %y"],
+	[107,"Mon dd, yyyy","%b %d, %Y"],
+	[8,  "hh:mi:ss","%I:%M:%S"],
+	[108,"hh:mi:ss","%I:%M:%S"],
+	[9,  "Mon dd yy hh:mi:ss:mmmmAM","%b %d %y %I:%M:%S:mmmm%p"],
+	[109,"Mon dd yyyy hh:mi:ss:mmmmAM","%b %d %Y %I:%M:%S:mmmm%p"],
+	[10, "mm-dd-yy","%m-%d-%y"],
+	[110,"mm-dd-yyyy","%m-%d-%Y"],
+	[11, "yy/mm/dd","%y/%m/%d"],
+	[111,"yyyy/mm/dd","%Y/%m/%d"],
+	[12, "yymmdd","%y%m%d"],
+	[112,"yyyymmdd","%Y%m%d"],
+	[13, "dd Mon yy hh:mi:ss:mmm(24h)","%d %b %y %H:%M:%S:mmm"],
+	[113,"dd Mon yyyy hh:mi:ss:mmm(24h)","%d %b %Y %H:%M:%S:mmm"],
+	[14, "hh:mi:ss:mmm(24h)","%H:%M:%S:mmm"],
+	[114,"hh:mi:ss:mmm(24h)","%H:%M:%S:mmm"],
+	[20, "yy-mm-dd hh:mi:ss(24h)","%y-%m-%d %H:%M:%S"],
+	[120,"yyyy-mm-dd hh:mi:ss(24h)","%Y-%m-%d %H:%M:%S"],
+	[21, "yy-mm-dd hh:mi:ss.mmm(24h)","%y-%m-%d %H:%M:%S.mmm"],
+	[121,"yyyy-mm-dd hh:mi:ss.mmm(24h)","%Y-%m-%d %H:%M:%S.mmm"],
+	[126,"yyyy-mm-ddThh:mi:ss.mmm (no Spaces)","%Y-%m-%dT%H:%M:%S.mmm"],
+	[127,"yyyy-mm-ddThh:mi:ss.mmmZ (no Spaces)","%Y-%m-%dT%H:%M:%S.mmmZ"],
+	[130,"dd Mon yyyy hh:mi:ss:mmmAM","%d %b %Y %I:%M:%S:mmm%p"],
+	[131,"dd/mm/yyyy hh:mi:ss:mmmAM","%d/%b/%Y %I:%M:%S:mmm%p"],
+		//non standardized additions
+	[119,"Mon dd yyyy hh:mi:ssAM","%b %d %Y %I:%M:%S%p"],
+	[140,"dd Mon yyyy hh:mi:ssAM","%d %b %Y %I:%M:%S%p"],
+	[141,"dd/mm/yyyy hh:mi:ssAM","%d/%b/%Y %I:%M:%S%p"],
+	[136,"yyyy-mm-ddThh:mi:ss (no Spaces)","%Y-%m-%dT%H:%M:%S"],
+	[137,"yyyy-mm-ddThh:mi:ssZ (no Spaces)","%Y-%m-%dT%H:%M:%SZ"],
+];
+
+class FmtTable extends React.Component {
+	constructor(){
+		super();
+		this.table = (
+			<table className='helpTable'>
+				<th className='helpTable'>Format code</th><th className='helpTable'>Resulting format</th><th className='helpTable'>Corresonding format string</th>
+				{fmtlist.map((tr)=>{ return(
+					<tr>{tr.map( td => <td className='helpTable'>{td}</td> )}</tr>
+					);})}
+			</table>
+		);
+		this.showbut = ( <button onClick={()=>{this.show=true;}} >Show list of preset date formats</button> );
+		this.show = false;
+	}
+	render(){
+		return this.show === true ? this.table : this.showbut;
+	}
+};
+
 const Func = ({fun,usage,params}) => {
-	return (
-		<>
-		<tr><td className='helpTable'>{fun}</td><td className='helpTable'>{paramlist[params]}</td><td className='helpTable'>{usage}</td> </tr>
-		</>
-	);
+	return (<><tr><td className='helpTable'>{fun}</td><td className='helpTable'>{paramlist[params]}</td><td className='helpTable'>{usage}</td></tr></>);
 }
 class FuncTable extends React.Component {
 	constructor(){
@@ -92,7 +152,7 @@ class FuncTable extends React.Component {
 				{funclist.map((f)=>{return(<Func fun={f[0]} usage={f[1]} params={f[2]}/>);})}
 			</table>
 		);
-		this.showbut = ( <button onClick={()=>{this.show=true;}} >show list of functions</button> );
+		this.showbut = ( <button onClick={()=>{this.show=true;}} >Show list of functions</button> );
 		this.show = false;
 	}
 	render(){
@@ -209,7 +269,10 @@ export class Help extends React.Component {
 					{"Math functions like asin and log return an empty value when not a real number, such as log(0) or asin(100). To return nan, inf, or -inf instead, add the option 'nan' to the beginning of the query. Return value will still be empty if function is called on a null value."}
 						<br/>
 						<br/>
-					{"Format function uses the type of date format string described by the "}<a href='https://linux.die.net/man/3/strftime' target='_blank'>Linux Manual</a>{". It can also take 'iso' as a parameter to format dates like '2020-11-12T03:01:53Z'."}
+					{"Format function uses the type of date format string described by the "}<a href='https://linux.die.net/man/3/strftime' target='_blank'>Linux Manual</a>{", with the addition of 'mmm' for milliseconds. It can also take the format code for a preset format from the following table:"}
+						<br/>
+						<FmtTable/>
+						<br/>
 					</blockquote>
 				<h4>Selecting rows or aggregates with a distinct value</h4>
 					{"To only return rows with a distinct value, put the 'distinct' keyword in front of the expression that you want to be distinct. Put 'hidden' after 'distinct' if you don't want that value to show up as a result column."}
