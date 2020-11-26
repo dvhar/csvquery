@@ -6,7 +6,7 @@ inline void bufreader::refresh(){
 		done = true;
 		return;
 	}
-	int offset = end - line;
+	long long offset = end - line;
 	auto readb = fread(buf+offset, 1, (single ? biggestline-offset : buffsize-offset), f);
 	readsofar += readb;
 	line = buf;
@@ -75,8 +75,8 @@ int bufreader::addline(){
 			biggestline = linesize;
 		return 0;
 	} else {
-		int offset = buf - line;
-		int rem = end - line;
+		long long offset = buf - line;
+		long long rem = end - line;
 		memmove(buf, line, rem);
 		addrefresh(rem);
 		return offset;
