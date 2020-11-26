@@ -29,7 +29,7 @@ export class QueryBox extends React.Component {
 						var query = this.textbox.value;
 						this.props.submitQuery({query : query});
 					}}>Submit Query</button>
-					<button className="queryRunButton" onClick={()=>{ this.props.sendSocket({Type : bit.SK_STOP}); }}>End Query Early</button>
+					<button className="queryRunButton" onClick={()=>{ this.props.sendSocket({type : bit.SK_STOP}); }}>End Query Early</button>
 					</div>
 				</div>
 			</div>

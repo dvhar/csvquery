@@ -46,20 +46,20 @@ class Main extends React.Component {
 			});
 	}
 	showLoadedQuery(results){
-		if (results.Status & bit.DAT_ERROR){
-			if (results.Message === undefined || results.Message === ""){
+		if (results.status & bit.DAT_ERROR){
+			if (results.message === undefined || results.message === ""){
 				alert("Could not make query or get error message from query engine");
 				console.log(results);
 			}else
-				alert(results.Message);
+				alert(results.message);
 		}
-		else if (results.Status & bit.DAT_GOOD){
+		else if (results.status & bit.DAT_GOOD){
 			this.setState({
 				topDropdown : "nothing",
-				showQuery : results.Entries.map(
+				showQuery : results.entries.map(
 					tab => <display.QueryRender 
 							   table = {tab} 
-							   hideColumns = {new Int8Array(tab.Numcols)}
+							   hideColumns = {new Int8Array(tab.numcols)}
 							   rows = {new Object({col:"",val:"*"})}
 						   />) });
 			postRequest({path:"/info?info=setState",body:{
@@ -74,15 +74,15 @@ class Main extends React.Component {
 
 	submitQuery(querySpecs){
 		var fullQuery = {
-			SessionId: this.state.sessionId || "",
-			Query: querySpecs.query || "", 
-			FileIO: querySpecs.fileIO || 0, 
-			SavePath: querySpecs.savePath || "", 
+			sessionId: this.state.sessionId || "",
+			query: querySpecs.query || "", 
+			fileIO: querySpecs.fileIO || 0, 
+			savePath: querySpecs.savePath || "", 
 			};
 		postRequest({path:"/query/",body:fullQuery}).then(dat=>{
-			if ((dat.Status & bit.DAT_GOOD) && (!querySpecs.backtrack)){
+			if ((dat.status & bit.DAT_GOOD) && (!querySpecs.backtrack)){
 				this.setState({ historyPosition : this.state.queryHistory.length,
-								queryHistory : this.state.queryHistory.concat({query : dat.OriginalQuery}) });
+								queryHistory : this.state.queryHistory.concat({query : dat.originalQuery}) });
 			}
 			this.showLoadedQuery(dat);
 		});
@@ -104,9 +104,9 @@ class Main extends React.Component {
 	}
 	changeFilePath(whichPath){
 		if (whichPath.type === "open")
-			this.state.openDirList.Path = whichPath.path;
+			this.state.openDirList.path = whichPath.path;
 		if (whichPath.type === "save")
-			this.state.saveDirList.Path = whichPath.path;
+			this.state.saveDirList.path = whichPath.path;
 		this.forceUpdate();
 	}
 
@@ -114,9 +114,9 @@ class Main extends React.Component {
 		postRequest({path:"/info?info=fileClick",body:{
 			path : request.path,
 			mode : request.mode,
-			SessionId: this.state.sessionId,
-		}}).then(dat=>{if (dat.Mode) {
-			switch (dat.Mode){
+			sessionId: this.state.sessionId,
+		}}).then(dat=>{if (dat.mode) {
+			switch (dat.mode){
 			case "open":
 				this.setState({openDirList: dat});
 				break;
@@ -181,18 +181,18 @@ class Main extends React.Component {
 		this.ws.onmessage = function(e) { 
 			console.log(e.data);
 			var dat = JSON.parse(e.data);
-			switch (dat.Type) {
+			switch (dat.type) {
 			case bit.SK_PING:
 				bugtimer = window.performance.now() + 20000
 				break;
 			case bit.SK_MSG:
-				that.setState({ topMessage : dat.Text }); 
+				that.setState({ topMessage : dat.text }); 
 				break;
 			case bit.SK_PASS:
 				that.setState({ topDropdown : "passShow" });
 				break;
 			case bit.SK_ID:
-				that.setState({ sessionId : dat.Id });
+				that.setState({ sessionId : dat.id });
 				console.log("WS session id: "+that.state.sessionId);
 				break;
 			}

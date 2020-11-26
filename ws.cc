@@ -19,13 +19,13 @@ void servews(){
 	wsocket.on_message = [](shared_ptr<WsServer::Connection> connection, shared_ptr<WsServer::InMessage> in_message) {
 		rejectNonlocals();
 		auto j = json::parse(in_message->string());
-		switch (fromjson<int>(j,"Type")){
+		switch (fromjson<int>(j,"type")){
 		case SK_STOP:
 			stopAllQueries();
 			cerr << "stopped queries\n";
 			break;
 		case SK_PASS:
-			returnPassword((i64)connection.get(), fromjson<string>(j,"Text"));
+			returnPassword((i64)connection.get(), fromjson<string>(j,"text"));
 			break;
 		}
 	};
@@ -33,7 +33,7 @@ void servews(){
 	wsocket.on_open = [](shared_ptr<WsServer::Connection> connection) {
 		rejectNonlocals();
 		i64 sesid = (i64) connection.get();
-		connection->send(json{{"Type",SK_ID},{"Id",sesid}}.dump());
+		connection->send(json{{"type",SK_ID},{"id",sesid}}.dump());
 		seslock.lock();
 		connections[sesid] = connection;
 		seslock.unlock();
@@ -66,7 +66,7 @@ void servews(){
 }
 
 static void pingbrowsers(){
-	string ping(json{{"Type",SK_PING}}.dump());
+	string ping(json{{"type",SK_PING}}.dump());
 	int deathcount = 0;
 	while(1){
 		this_thread::sleep_for(chrono::seconds(1));
@@ -86,13 +86,13 @@ void sendMessage(i64 sesid, string message){ sendMessage(sesid, message.c_str())
 void sendMessage(i64 sesid, const char* message){
 	seslock.lock();
 	if (auto& c = connections[sesid]; c)
-		c->send(json{{"Type",SK_MSG},{"Text",message}}.dump());
+		c->send(json{{"type",SK_MSG},{"text",message}}.dump());
 	seslock.unlock();
 }
 void sendPassPrompt(i64 sesid){
 	seslock.lock();
 	if (auto& c = connections[sesid]; c)
-		c->send(json{{"Type",SK_PASS}}.dump());
+		c->send(json{{"type",SK_PASS}}.dump());
 	seslock.unlock();
 	cerr << "sent pass prompt\n";
 }

@@ -20,6 +20,7 @@ void help(char* prog){
 		"\t-e Don't automatically exit 3 minutes after the web gui is closed\n"
 		"\t-f Guess if files have header based on whether or not there are numbers in the first row\n"
 		"\t-s Save options set by the flags before this one to the config and exit\n"
+		"\t-j Return json to stdout\n"
 		"\t-h Show this help message and exit\n"
 		"\t-v Show version and exit\n\n"
 		"Config file is " << globalSettings.configpath << "\n";
@@ -28,9 +29,10 @@ void help(char* prog){
 
 int main(int argc, char** argv){
 
+	bool jsonstdout = false;
 	int shift = 0;
 	loadconfig(0);
-	for(char c; (c = getopt(argc, argv, "hxvgdsef")) != -1;)
+	for(char c; (c = getopt(argc, argv, "hxvgdsefj")) != -1;)
 		switch(c){
 		case 'x':
 			globalSettings.update = false;
@@ -55,6 +57,10 @@ int main(int argc, char** argv){
 		case 's':
 			loadconfig(1);
 			exit(0);
+		case 'j':
+			jsonstdout = true;
+			shift++;
+			break;
 		case 'h':
 			help(argv[0]);
 		case 'v':
@@ -90,10 +96,15 @@ int main(int argc, char** argv){
 
 	try {
 		querySpecs q(querystring);
-		q.setoutputCsv();
-		runPlainQuery(q);
+		if (jsonstdout){
+			q.setoutputJson();
+			cout << runJsonQuery(q)->tojson().str();
+		} else {
+			q.setoutputCsv();
+			runPlainQuery(q);
+		}
 	} catch (...) {
-		cerr << "Error: "<< handle_err(current_exception()) << endl;
+		cerr << "Error: "<< EX_STRING << endl;
 		return 1;
 	}
 	return 0;
