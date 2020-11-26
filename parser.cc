@@ -5,31 +5,31 @@
 
 class parser {
 	void parseOptions();
-	unique_ptr<node> parsePreSelect();
-	unique_ptr<node> parseWith();
-	unique_ptr<node> parseVars();
-	unique_ptr<node> parseSelect();
-	unique_ptr<node> parseSelections();
-	unique_ptr<node> parseExprAdd();
-	unique_ptr<node> parseExprMult();
-	unique_ptr<node> parseExprNeg();
-	unique_ptr<node> parseExprCase();
-	unique_ptr<node> parseCaseWhenPredList();
-	unique_ptr<node> parseCaseWhenExprList();
-	unique_ptr<node> parseCaseWhenExpr();
-	unique_ptr<node> parseCasePredicate();
-	unique_ptr<node> parsePredicates();
-	unique_ptr<node> parsePredCompare();
-	unique_ptr<node> parseJoin();
-	unique_ptr<node> parseOrder();
-	unique_ptr<node> parseHaving();
-	unique_ptr<node> parseGroupby();
-	unique_ptr<node> parseFrom(bool); //true for requires selections beforehand
-	unique_ptr<node> parseWhere();
-	unique_ptr<node> parseValue();
-	unique_ptr<node> parseFunction();
-	unique_ptr<node> parseAfterFrom();
-	unique_ptr<node> parseExpressionList(bool i, bool s);
+	astnode parsePreSelect();
+	astnode parseWith();
+	astnode parseVars();
+	astnode parseSelect();
+	astnode parseSelections();
+	astnode parseExprAdd();
+	astnode parseExprMult();
+	astnode parseExprNeg();
+	astnode parseExprCase();
+	astnode parseCaseWhenPredList();
+	astnode parseCaseWhenExprList();
+	astnode parseCaseWhenExpr();
+	astnode parseCasePredicate();
+	astnode parsePredicates();
+	astnode parsePredCompare();
+	astnode parseJoin();
+	astnode parseOrder();
+	astnode parseHaving();
+	astnode parseGroupby();
+	astnode parseFrom(bool); //true for requires selections beforehand
+	astnode parseWhere();
+	astnode parseValue();
+	astnode parseFunction();
+	astnode parseAfterFrom();
+	astnode parseExpressionList(bool i, bool s);
 	void parseTop();
 	void parseLimit();
 
@@ -57,18 +57,18 @@ void parseQuery(querySpecs &q) {
 
 //could include other commands like describe
 //node1 is with
-unique_ptr<node> parser::parsePreSelect() {
+astnode parser::parsePreSelect() {
 	token t = q->tok();
 	parseOptions();
-	unique_ptr<node> n = newNode(N_PRESELECT);
+	astnode n = newNode(N_PRESELECT);
 	n->node1 = parseWith();
 	return n;
 }
 
 //anything that comes after 'from', in any order
-unique_ptr<node> parser::parseAfterFrom() {
+astnode parser::parseAfterFrom() {
 	token t = q->tok();
-	unique_ptr<node> n = newNode(N_AFTERFROM);
+	astnode n = newNode(N_AFTERFROM);
 	for (;;){
 		t = q->tok();
 		switch (t.id){
@@ -134,10 +134,10 @@ void parser::parseOptions() {
 }
 
 //node1 is vars
-unique_ptr<node> parser::parseWith() {
+astnode parser::parseWith() {
 	token t = q->tok();
 	if (t.lower() != "with") { return nullptr; }
-	unique_ptr<node> n = newNode(N_WITH);
+	astnode n = newNode(N_WITH);
 	q->nextTok();
 	n->node1 = parseVars();
 	return n;
@@ -147,9 +147,9 @@ unique_ptr<node> parser::parseWith() {
 //tok1 is alias
 //tok3 is midrow index-1 of phase2 non-aggs
 //node2 is vars
-unique_ptr<node> parser::parseVars() {
+astnode parser::parseVars() {
 	token t = q->tok();
-	unique_ptr<node> n = newNode(N_VARS);
+	astnode n = newNode(N_VARS);
 	n->node1 = parseExprAdd();
 	t = q->tok();
 	if (t.lower() != "as") error("Expected 'as' after expression. Found ",t.val);
@@ -165,10 +165,10 @@ unique_ptr<node> parser::parseVars() {
 }
 
 //node1 is selections
-unique_ptr<node> parser::parseSelect() {
+astnode parser::parseSelect() {
 	if (justfile) return nullptr;
 	token t = q->tok();
-	unique_ptr<node> n = newNode(N_SELECT);
+	astnode n = newNode(N_SELECT);
 	if (t.lower() != "select") error("Expected 'select'. Found "+t.val);
 	q->nextTok();
 	parseTop();
@@ -183,12 +183,12 @@ unique_ptr<node> parser::parseSelect() {
 //later stages:
 //  tok3.id will be midrow index
 //  tok4.id will be destrow index
-unique_ptr<node> parser::parseSelections() {
+astnode parser::parseSelections() {
 	token t = q->tok();
 	if (t.lower() == "from"){
 		return nullptr;
 	}
-	unique_ptr<node> n = newNode(N_SELECTIONS);
+	astnode n = newNode(N_SELECTIONS);
 	if (t.id == SP_COMMA) t = q->nextTok();
 	switch (t.id) {
 	case SP_STAR:
@@ -241,9 +241,9 @@ unique_ptr<node> parser::parseSelections() {
 //node1 is exprMult
 //node2 is exprAdd
 //tok1 is add/minus operator
-unique_ptr<node> parser::parseExprAdd() {
+astnode parser::parseExprAdd() {
 	token t = q->tok();
-	unique_ptr<node> n = newNode(N_EXPRADD);
+	astnode n = newNode(N_EXPRADD);
 	n->node1 = parseExprMult();
 	t = q->tok();
 	switch (t.id) {
@@ -259,9 +259,9 @@ unique_ptr<node> parser::parseExprAdd() {
 //node1 is exprNeg
 //node2 is exprMult
 //tok1 is mult/div operator
-unique_ptr<node> parser::parseExprMult() {
+astnode parser::parseExprMult() {
 	token t = q->tok();
-	unique_ptr<node> n = newNode(N_EXPRMULT);
+	astnode n = newNode(N_EXPRMULT);
 	n->node1 = parseExprNeg();
 	t = q->tok();
 	switch (t.id) {
@@ -279,9 +279,9 @@ unique_ptr<node> parser::parseExprMult() {
 
 //tok1 is minus operator
 //node1 is exprCase
-unique_ptr<node> parser::parseExprNeg() {
+astnode parser::parseExprNeg() {
 	token t = q->tok();
-	unique_ptr<node> n = newNode(N_EXPRNEG);
+	astnode n = newNode(N_EXPRNEG);
 	if (t.id == SP_MINUS) {
 		n->tok1 = t;
 		q->nextTok();
@@ -297,9 +297,9 @@ unique_ptr<node> parser::parseExprNeg() {
 //node3 is else expression
 //later stages:
 //  tok3.id is datatype of when comparison expressions
-unique_ptr<node> parser::parseExprCase() {
+astnode parser::parseExprCase() {
 	token t = q->tok();
-	unique_ptr<node> n = newNode(N_EXPRCASE);
+	astnode n = newNode(N_EXPRCASE);
 	token t2;
 	switch (t.id) {
 	case KW_CASE:
@@ -366,9 +366,9 @@ unique_ptr<node> parser::parseExprCase() {
 //  tok3.val is source file alias
 //  tok3.id is trivial indicator
 //  tok4.id is trivial alias indicator
-unique_ptr<node> parser::parseValue() {
+astnode parser::parseValue() {
 	token t = q->tok();
-	unique_ptr<node> n = newNode(N_VALUE);
+	astnode n = newNode(N_VALUE);
 	n->tok1 = t;
 	//see if it's a function
 	if (functionMap.count(t.lower()) && !t.quoted && q->peekTok().id==SP_LPAREN) {
@@ -383,9 +383,9 @@ unique_ptr<node> parser::parseValue() {
 
 //node1 is case predicate
 //node2 is next case predicate list node
-unique_ptr<node> parser::parseCaseWhenPredList() {
+astnode parser::parseCaseWhenPredList() {
 	token t = q->tok();
-	unique_ptr<node> n = newNode(N_CPREDLIST);
+	astnode n = newNode(N_CPREDLIST);
 	n->node1 = parseCasePredicate();
 	t = q->tok();
 	if (t.lower() == "when") {
@@ -396,9 +396,9 @@ unique_ptr<node> parser::parseCaseWhenPredList() {
 
 //node1 is predicates
 //node2 is expression if true
-unique_ptr<node> parser::parseCasePredicate() {
+astnode parser::parseCasePredicate() {
 	token t = q->tok();
-	unique_ptr<node> n = newNode(N_CPRED);
+	astnode n = newNode(N_CPRED);
 	q->nextTok(); //eat when token
 	n->node1 = parsePredicates();
 	t = q->tok();
@@ -417,9 +417,9 @@ unique_ptr<node> parser::parseCasePredicate() {
 //	[CHAINSIZE] is number of chained expressions to scan if first of join chain
 //	[CHAINIDX] is index of andchain
 //	[FILENO] is file number
-unique_ptr<node> parser::parsePredicates() {
+astnode parser::parsePredicates() {
 	token t = q->tok();
-	unique_ptr<node> n = newNode(N_PREDICATES);
+	astnode n = newNode(N_PREDICATES);
 	if (t.id == SP_NEGATE) { n->tok2 = t; t = q->nextTok(); }
 	n->node1 = parsePredCompare();
 	t = q->tok();
@@ -441,9 +441,9 @@ unique_ptr<node> parser::parsePredicates() {
 //  [TOSCAN] will be number of node (1,2) for indexable join value
 //  [VALPOSIDX] is index of valpos vector for joins
 //  [ANDCHAIN] is 1 or 2 if part of simple and chain, 2 if not first
-unique_ptr<node> parser::parsePredCompare() {
+astnode parser::parsePredCompare() {
 	token t = q->tok();
-	unique_ptr<node> n = newNode(N_PREDCOMP);
+	astnode n = newNode(N_PREDCOMP);
 	int negate = 0;
 	if (t.id == SP_NEGATE) { negate ^= 1; t = q->nextTok(); }
 	//more predicates in parentheses
@@ -502,9 +502,9 @@ unique_ptr<node> parser::parsePredCompare() {
 
 //node1 is case expression
 //node2 is next exprlist node
-unique_ptr<node> parser::parseCaseWhenExprList() {
+astnode parser::parseCaseWhenExprList() {
 	token t = q->tok();
-	unique_ptr<node> n = newNode(N_CWEXPRLIST);
+	astnode n = newNode(N_CWEXPRLIST);
 	n->node1 = parseCaseWhenExpr();
 	t = q->tok();
 	if (t.lower() == "when")
@@ -515,9 +515,9 @@ unique_ptr<node> parser::parseCaseWhenExprList() {
 //node1 is comparison expression
 //node2 is result expression
 //tok1.id will be comparision datatype
-unique_ptr<node> parser::parseCaseWhenExpr() {
+astnode parser::parseCaseWhenExpr() {
 	token t = q->tok();
-	unique_ptr<node> n = newNode(N_CWEXPR);
+	astnode n = newNode(N_CWEXPR);
 	q->nextTok(); //eat when token
 	n->node1 = parseExprAdd();
 	q->nextTok(); //eat then token
@@ -551,7 +551,7 @@ void parser::parseLimit() {
 //tok4 is alias
 //tok5 is noheader
 //node1 is joins
-unique_ptr<node> parser::parseFrom(bool withselections) {
+astnode parser::parseFrom(bool withselections) {
 	token t = q->tok();
 
 	if (!withselections){
@@ -564,7 +564,7 @@ unique_ptr<node> parser::parseFrom(bool withselections) {
 		t = q->nextTok();
 	}
 
-	unique_ptr<node> n = newNode(N_FROM);
+	astnode n = newNode(N_FROM);
 	n->tok1.val = boost::replace_first_copy(t.val, "~/", gethome()+"/");
 	t = q->nextTok();
 	string s = t.lower();
@@ -598,9 +598,9 @@ unique_ptr<node> parser::parseFrom(bool withselections) {
 //tok5 is noheader
 //node1 is join condition (predicates)
 //node2 is next join
-unique_ptr<node> parser::parseJoin() {
+astnode parser::parseJoin() {
 	token t = q->tok();
-	unique_ptr<node> n = newNode(N_JOIN);
+	astnode n = newNode(N_JOIN);
 	string s = t.lower();
 	if (joinMap.count(s) == 0)
 		return nullptr;
@@ -653,22 +653,22 @@ unique_ptr<node> parser::parseJoin() {
 }
 
 //node1 is conditions
-unique_ptr<node> parser::parseWhere() {
+astnode parser::parseWhere() {
 	token t = q->tok();
 	if (t.lower() != "where") { return nullptr; }
 	q->whereFiltering = true;
-	unique_ptr<node> n = newNode(N_WHERE);
+	astnode n = newNode(N_WHERE);
 	q->nextTok();
 	n->node1 = parsePredicates();
 	return n;
 }
 
 //node1 is conditions
-unique_ptr<node> parser::parseHaving() {
+astnode parser::parseHaving() {
 	token t = q->tok();
 	if (t.lower() != "having") { return nullptr; }
 	q->havingFiltering = true;
-	unique_ptr<node> n = newNode(N_HAVING);
+	astnode n = newNode(N_HAVING);
 	q->nextTok();
 	n->node1 = parsePredicates();
 	return n;
@@ -677,13 +677,13 @@ unique_ptr<node> parser::parseHaving() {
 //old: node1 is sort expr
 //new: node1 is sort expr list
 //tok1 is asc
-unique_ptr<node> parser::parseOrder() {
+astnode parser::parseOrder() {
 	token t = q->tok();
 	if (t.lower() == "order") {
 		if (q->nextTok().lower() != "by") error("Expected 'by' after 'order'. Found ",q->tok().val);
 		q->sorting = 1;
 		q->nextTok();
-		unique_ptr<node> n = newNode(N_ORDER);
+		astnode n = newNode(N_ORDER);
 		n->node1 = parseExpressionList(false, true);
 		return n;
 	}
@@ -698,9 +698,9 @@ unique_ptr<node> parser::parseOrder() {
 //[RETTYPE] is inflexible return type
 //[MIDIDX] is midrow index
 //node1 is expression in parens
-unique_ptr<node> parser::parseFunction() {
+astnode parser::parseFunction() {
 	token t = q->tok();
-	unique_ptr<node> n = newNode(N_FUNCTION);
+	astnode n = newNode(N_FUNCTION);
 	n->tok1 = t;
 	n->tok1.id = getfunc(t.lower());
 	q->nextTok(); // (
@@ -791,11 +791,11 @@ unique_ptr<node> parser::parseFunction() {
 }
 
 //node1 is groupExpressions
-unique_ptr<node> parser::parseGroupby() {
+astnode parser::parseGroupby() {
 	token t = q->tok();
 	if (!(t.lower() == "group" && q->peekTok().lower() == "by")) { return nullptr; }
 	q->grouping = max(q->grouping,2);
-	unique_ptr<node> n = newNode(N_GROUPBY);
+	astnode n = newNode(N_GROUPBY);
 	q->nextTok();
 	q->nextTok();
 	n->node1 = parseExpressionList(false,false);
@@ -808,11 +808,11 @@ unique_ptr<node> parser::parseGroupby() {
 //tok2.id will be sort list size, initially set to 1
 //tok3.id will be destrow index for aggregate sort values
 //	or sequence number for non-agg sort values
-unique_ptr<node> parser::parseExpressionList(bool interdependant, bool sortlist) { //bool arg if expression types are interdependant
+astnode parser::parseExpressionList(bool interdependant, bool sortlist) { //bool arg if expression types are interdependant
 	token t = q->tok();
 	int label = N_EXPRESSIONS;
 	if (interdependant) label = N_DEXPRESSIONS;
-	unique_ptr<node> n = newNode(label);
+	astnode n = newNode(label);
 	n->node1 = parseExprAdd();
 	t = q->tok();
 	if (sortlist && (t.lower() == "asc" || t.lower() == "desc")){
