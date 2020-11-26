@@ -545,7 +545,7 @@ class singleQueryResult {
 	stringstream j;
 	public:
 	int numrows =0;
-	int showLimit =0;
+	int rowlimit =0;
 	int numcols =0;
 	int status =0;
 	int clipped =0;
@@ -556,7 +556,7 @@ class singleQueryResult {
 	stringstream& tojson();
 	singleQueryResult(querySpecs &q){
 		numcols = q.colspec.count;
-		showLimit = 20000 / numcols;
+		rowlimit = 20000 / numcols;
 	}
 };
 class returnData {

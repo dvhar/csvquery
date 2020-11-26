@@ -20,7 +20,7 @@ void help(char* prog){
 		"\t-e Don't automatically exit 3 minutes after the web gui is closed\n"
 		"\t-f Guess if files have header based on whether or not there are numbers in the first row\n"
 		"\t-s Save options set by the flags before this one to the config and exit\n"
-		"\t-j Return json to stdout\n"
+		"\t-j Return json to stdout (rows limited to 20000 divided by number of columns)\n"
 		"\t-h Show this help message and exit\n"
 		"\t-v Show version and exit\n\n"
 		"Config file is " << globalSettings.configpath << "\n";
@@ -70,24 +70,24 @@ int main(int argc, char** argv){
 
 	initregex();
 	string querystring;
-	int arg1 = shift+1;
-	runmode = argc > arg1 ? RUN_SINGLE : RUN_SERVER;
+	auto arg1 = argv[shift+1];
+	runmode = argc > shift+1 ? RUN_SINGLE : RUN_SERVER;
 	switch (runmode){
 	case RUN_SINGLE:
 		//show version and exit
-		if (!strcmp(argv[arg1], "version")){
+		if (!strcmp(arg1, "version")){
 			cout << version << endl;
 			return 0;
 		}
 		//show help and exit
-		if (!strcmp(argv[arg1], "help"))
+		if (!strcmp(arg1, "help"))
 			help(argv[0]);
 		//get query from file
-		if (strlen(argv[arg1]) < 30 && boost::filesystem::is_regular_file(argv[arg1]))
-			querystring = st(ifstream(argv[arg1]).rdbuf());
+		if (strlen(arg1) < 30 && boost::filesystem::is_regular_file(arg1))
+			querystring = st(ifstream(arg1).rdbuf());
 		//get query from arg text
 		else
-			querystring = string(argv[arg1]);
+			querystring = string(arg1);
 		break;
 	case RUN_SERVER:
 		runServer();

@@ -5,7 +5,7 @@
 #include "deps/json/escape.h"
 #define max(a,b) (a) > (b) ? (a) : (b)
 
-string version = "1.21";
+string version = "1.22";
 int runmode;
 regex_t leadingZeroString;
 regex_t durationPattern;
@@ -486,7 +486,7 @@ stringstream& singleQueryResult::tojson(){
 	static string_view com = ",";
 	static string_view nocom = "";
 	j << "{\"numrows\":" << numrows
-		<< ",\"showLimit\":" << showLimit
+		<< ",\"rowlimit\":" << rowlimit
 		<< ",\"numcols\":" << numcols;
 	auto delim = &nocom;
 	j << ",\"types\":[";
