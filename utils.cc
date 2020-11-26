@@ -485,44 +485,44 @@ string nodeName(astnode &n, querySpecs* q){
 stringstream& singleQueryResult::tojson(){
 	static string_view com = ",";
 	static string_view nocom = "";
-	j << "{\"Numrows\":" << numrows
-		<< ",\"ShowLimit\":" << showLimit
-		<< ",\"Numcols\":" << numcols;
+	j << "{\"numrows\":" << numrows
+		<< ",\"showLimit\":" << showLimit
+		<< ",\"numcols\":" << numcols;
 	auto delim = &nocom;
-	j << ",\"Types\":[";
+	j << ",\"types\":[";
 	for (auto v : types){
 		j << *delim << v;
 		delim = &com;
 	}
-	j << "],\"Colnames\":[";
+	j << "],\"colnames\":[";
 	delim = &nocom;
 	for (auto &v : colnames){
 		j << *delim << '"' << escapeJSON(v) << '"';
 		delim = &com;
 	}
-	j << "],\"Vals\":[";
+	j << "],\"vals\":[";
 	delim = &nocom;
 	for (auto &v : Vals){
 		j << *delim << v;
 		delim = &com;
 	}
-	j << "],\"Status\":" << status
-		<< ",\"Query\":\"" << escapeJSON(query) << "\"}";
+	j << "],\"status\":" << status
+		<< ",\"query\":\"" << escapeJSON(query) << "\"}";
 	return j;
 }
 stringstream& returnData::tojson(){
 	static string_view com = ",";
 	static string_view nocom = "";
- 	j	<< "{\"Entries\":[";
+ 	j	<< "{\"entries\":[";
 	auto delim = &nocom;
 	for (auto &v : entries){
 		j << *delim << v->tojson().rdbuf();
 		delim = &com;
 	}
-	j << "],\"Status\":" << status
-		<< ",\"OriginalQuery\":\"" << escapeJSON(originalQuery)
-		<< "\",\"Clipped\":" << (clipped ? "true":"false")
-		<< ",\"Message\":\"" << escapeJSON(message) << "\"}";
+	j << "],\"status\":" << status
+		<< ",\"originalQuery\":\"" << escapeJSON(originalQuery)
+		<< "\",\"clipped\":" << (clipped ? "true":"false")
+		<< ",\"message\":\"" << escapeJSON(message) << "\"}";
 	return j;
 }
 

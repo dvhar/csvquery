@@ -16,7 +16,7 @@ export function getRequest(request){
     params = {info:request.info}
 	Object.keys(params).forEach(key => url.searchParams.append(key, params[key]))
 	return fetch(url)
-	.then(res=>{if (res.status >= 400) return {Status: res.status}; else return res.json()})
+	.then(res=>{if (res.status >= 400) return {status: res.status}; else return res.json()})
 }
 export function postRequest(request){
 	var req = new Request(request.path, {
@@ -30,24 +30,24 @@ export function postRequest(request){
 		body: JSON.stringify(request.body),
 	});
 	return fetch(req)
-	.then(res=>{if (res.status >= 400) return {Status: res.status}; else return res.json()})
+	.then(res=>{if (res.status >= 400) return {status: res.status}; else return res.json()})
 	//.then(res =>res);
 	//.then(res => {console.log(res); return res;});
 	//.then(res=>{if (validJson(res)) return res.json(); return {err:"not valid json",res:res}})
 }
 
 export function colIndex(queryResults,column){
-	for (var i in queryResults.Colnames)
-		if (queryResults.Colnames[i].toUpperCase() === column.toUpperCase())
+	for (var i in queryResults.colnames)
+		if (queryResults.colnames[i].toUpperCase() === column.toUpperCase())
 			return i;
 	return -1;
 }
 
 export function sortQuery(queryResults,column,way){
-	queryResults.Vals.sort(function(a,b){
+	queryResults.vals.sort(function(a,b){
 			var aa = a[column];
 			var bb = b[column];
-			if (queryResults.Types[column] === 1 || queryResults.Types[column] === 2)
+			if (queryResults.types[column] === 1 || queryResults.types[column] === 2)
 				return way*(Number(aa) > Number(bb) ? 1 : -1);
 			return way*(String(aa) > String(bb) ? 1 : -1);
 		});
@@ -57,9 +57,9 @@ export function getUnique(queryResults,column){
 	var uniqueList = [];
 	var idx = colIndex(queryResults,column);
 	if (idx > -1)
-		for (var i in queryResults.Vals)
-			if (uniqueList.indexOf(queryResults.Vals[i][idx]) < 0)
-				uniqueList.push(queryResults.Vals[i][idx]);
+		for (var i in queryResults.vals)
+			if (uniqueList.indexOf(queryResults.vals[i][idx]) < 0)
+				uniqueList.push(queryResults.vals[i][idx]);
 	return uniqueList;
 }
 
@@ -68,12 +68,12 @@ export function getWhere(queryResults,column,value){
 	var subset = JSON.parse(JSON.stringify(queryResults));
 	var idx = colIndex(queryResults,column);
 	if (idx > -1){
-		var ri = queryResults.Vals.length - 1;
-		for (var i in queryResults.Vals){
-			if (queryResults.Vals[ri-i][idx] == null ||
-				String(queryResults.Vals[ri-i][idx]).toUpperCase() !== String(value).toUpperCase()){
-				subset.Vals.splice(ri-i,1);
-				subset.Numrows--;
+		var ri = queryResults.vals.length - 1;
+		for (var i in queryResults.vals){
+			if (queryResults.vals[ri-i][idx] == null ||
+				String(queryResults.vals[ri-i][idx]).toUpperCase() !== String(value).toUpperCase()){
+				subset.vals.splice(ri-i,1);
+				subset.numrows--;
 			}
 		}
 		return subset;

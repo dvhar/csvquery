@@ -11,10 +11,10 @@ fileReader::fileReader(string& fname, querySpecs &qs) : filename(fname), q(&qs) 
 		if (!regex_match(fname,extPat)){
 			fname += ".csv";
 			if (!boost::filesystem::exists(fname)){
-				error("Could not open file "+fname);
+				error("Could not open file ",fname);
 			}
 		} else {
-			error("Could not open file "+fname);
+			error("Could not open file ",fname);
 		}
 	}
 	i64 optisize = br.buffsize;
@@ -188,7 +188,7 @@ inline void fileReader::getField(){
 //initial scan also loads file into mem if small file
 void fileReader::inferTypes() {
 	if (readline())
-		error("Error reading first line from "+filename);
+		error("Error reading first line from ",filename);
 	if (autoheader)
 		for (auto &e : entriesVec)
 			if (isInt(e.val) || isFloat(e.val)){
@@ -207,7 +207,7 @@ void fileReader::inferTypes() {
 	//get samples and infer types from them
 	if (!noheader){
 		if (readline())
-			error("Error reading first line of data from "+filename);
+			error("Error reading first line of data from ",filename);
 		startData = pos;
 	}
 	if (small){

@@ -40,8 +40,8 @@ class TableSelectColumns extends React.Component {
 					{this.props.title}
 				</div>
 				<div className="dropmenu-content absolute-pos tableModDrop">
-				<select size={String(Math.min(20,this.props.table.Colnames.length))} className="dropSelect">
-					{this.props.table.Colnames.map((name,i)=>this.itemInList(name,i))}
+				<select size={String(Math.min(20,this.props.table.colnames.length))} className="dropSelect">
+					{this.props.table.colnames.map((name,i)=>this.itemInList(name,i))}
 				</select>
 				</div>
 			</div>
@@ -121,19 +121,19 @@ class TableGrid extends React.Component {
 		sortQuery(this.props.table,ii,this.state.sortWay);this.setState({sortWay:this.state.sortWay*-1});
 	}
 	header(){
-		var names = this.props.table.Colnames.map((name,ii)=>{
+		var names = this.props.table.colnames.map((name,ii)=>{
 			if (this.props.hideColumns[ii]===0) return (
 			<th key={ii} className="tableCell" onClick={()=>this.sorter(ii)}>
-				{this.props.table.Colnames[ii]}
+				{this.props.table.colnames[ii]}
 			</th>
 		)});
-		var positions = Array.from({length:this.props.table.Types.length},(x,i)=>i+1);
-		var info = this.props.table.Types.map((name,ii)=>{
+		var positions = Array.from({length:this.props.table.types.length},(x,i)=>i+1);
+		var info = this.props.table.types.map((name,ii)=>{
 			if (this.props.hideColumns[ii]===0) return (
 			<td key={ii} className="tableCell typeCell" onClick={()=>this.sorter(ii)}>
 				{`${positions[ii]} `}
 				<span className="noselect">
-				- {t[this.props.table.Types[ii]]}
+				- {t[this.props.table.types[ii]]}
 				</span>
 			</td>
 		)});
@@ -149,8 +149,8 @@ class TableGrid extends React.Component {
 		)
 	}
 	render(){
-		if (this.props.table.Vals === null)
-			this.props.table.Vals = [];
+		if (this.props.table.vals === null)
+			this.props.table.vals = [];
 		return(
 		<>
 			<div className="tableDiv tableHeadDiv" id={this.state.tableHeadDivId}> 
@@ -163,7 +163,7 @@ class TableGrid extends React.Component {
 			<div className="tableDiv tableBodyDiv" id={this.state.tableBodyDivId}> 
 			<table className="tableBody" id={this.state.tableBodyId}>
 				<tbody>
-				{this.props.table.Vals.map((row,i)=>{return this.row(row,i)})}
+				{this.props.table.vals.map((row,i)=>{return this.row(row,i)})}
 				</tbody>
 			</table>
 			</div>
@@ -217,12 +217,12 @@ export class QueryRender extends React.Component {
 		return ( 
 		<div className="viewContainer">
 			<div className="tableModifiers">
-				<div className="tableQuery"><div> {this.props.table.Query} </div>
+				<div className="tableQuery"><div> {this.props.table.query} </div>
 				<TableSelectRows 
 					title = {"Show with column value\u25bc"}
 					dropAction = {(column,value)=>{this.props.rows.col=column;this.props.rows.val=value;this.forceUpdate();}}
 					table = {this.props.table}
-					firstDropItems = {this.props.table.Colnames}
+					firstDropItems = {this.props.table.colnames}
 				/>
 				<TableSelectColumns
 					title = {"Show/Hide columns\u25bc"}
@@ -232,7 +232,7 @@ export class QueryRender extends React.Component {
 				/>	
 				<div className="dropmenu tableModDiv">
 					<div className="dropButton tableModButton">
-						<span>Rows: {this.props.table.Numrows}</span>
+						<span>Rows: {this.props.table.numrows}</span>
 					</div>
 				</div>
 				</div>

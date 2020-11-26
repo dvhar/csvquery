@@ -128,13 +128,13 @@ class Browser extends React.Component {
 		this.props.fileClick({path : path, mode : this.props.type});
 	}
 	dirList(){
-		if (this.props.dirList.Dirs) return (
-		this.props.dirList.Dirs.map(path => <span className="dropContent browseDir browseEntry" onClick={()=>this.clickPath(path)}>{path}</span>)
+		if (this.props.dirList.dirs) return (
+		this.props.dirList.dirs.map(path => <span className="dropContent browseDir browseEntry" onClick={()=>this.clickPath(path)}>{path}</span>)
 		);
 	}
 	filelist(){
-		if (this.props.dirList.Files) return (
-		this.props.dirList.Files.map(path => <FileSelector 
+		if (this.props.dirList.files) return (
+		this.props.dirList.files.map(path => <FileSelector 
 			path={path}
 			changeTopDrop = {this.props.changeTopDrop}
 			type={this.props.type}
@@ -161,9 +161,9 @@ class Browser extends React.Component {
 		return (
 		<div id={this.state.outterBoxId} className="fileSelectShow fileBrowser dropContent">
 			{header}
-			<input className="dropContent browseDir browseCurrent" id={this.state.currentDirId} value={this.props.dirList.Path} onChange={this.handleChange}/>
+			<input className="dropContent browseDir browseCurrent" id={this.state.currentDirId} value={this.props.dirList.path} onChange={this.handleChange}/>
 			<div className="browseDirs dropContent" id={this.state.innerBoxId}>
-			<span className="dropContent browseDir browseEntry" onClick={()=>{ this.clickPath(this.props.dirList.Parent);
+			<span className="dropContent browseDir browseEntry" onClick={()=>{ this.clickPath(this.props.dirList.parent);
 			}}><b>←</b></span>
 			{this.dirList()}
 			{this.filelist()}
@@ -184,14 +184,14 @@ class Browser extends React.Component {
 		const dirText = document.getElementById(this.state.currentDirId);
 		dirText.addEventListener("keyup", function(event) {
 			if (event.key === "Enter") {
-				that.clickPath(that.props.dirList.Path)
+				that.clickPath(that.props.dirList.path)
 			}
 		});
 	}
 }
 class SaveButton extends React.Component {
 	toggleForm(){
-		this.props.fileClick({path : this.props.dirList.Path, mode : "save"});
+		this.props.fileClick({path : this.props.dirList.path, mode : "save"});
 		this.props.changeTopDrop("saveShow");
 	}
 	render(){
@@ -201,7 +201,7 @@ class SaveButton extends React.Component {
 
 class BrowseButton extends React.Component {
 	toggleForm(){
-		this.props.fileClick({path : this.props.dirList.Path, mode : "open"});
+		this.props.fileClick({path : this.props.dirList.path, mode : "open"});
 		this.props.changeTopDrop("browseShow");
 	}
 	render(){
@@ -225,7 +225,7 @@ class PassPrompt extends React.Component {
 		<h2 className="passPromtText dropContent">Enter encryption password</h2>
 		<input type="password" id="passInput" className="dropContent"></input>
 		<button className="topButton popButton dropContent" onClick={()=>{
-			this.props.send({Type : bit.SK_PASS, Text : document.getElementById("passInput").value});
+			this.props.send({type : bit.SK_PASS, text : document.getElementById("passInput").value});
 			}} >Submit</button>
 		</div>
 		);
@@ -234,7 +234,7 @@ class PassPrompt extends React.Component {
 		var passbox = document.getElementById("passInput");
 		passbox.onkeydown = (e)=>{
 			if (e.keyCode === 13) {
-				this.props.send({Type : bit.SK_PASS, Text : document.getElementById("passInput").value});
+				this.props.send({type : bit.SK_PASS, text : document.getElementById("passInput").value});
 			}
 		};
 	}

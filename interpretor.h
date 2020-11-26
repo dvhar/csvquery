@@ -31,6 +31,8 @@
 #include <regex.h>
 #endif
 
+#define EX_STRING handle_err(current_exception())
+
 typedef struct chacha20_context chacha;
 typedef long long i64;
 typedef unsigned long long u64;

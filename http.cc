@@ -45,6 +45,9 @@ static void serve(){
 	auto startdir = filebrowse(boost::filesystem::current_path().string());
 	state["openDirList"] = startdir->tojson();
 	state["saveDirList"] = startdir->tojson();
+	state["version"] = version;
+	state["notifyUpdate"] = globalSettings.update;
+	state["configpath"] = globalSettings.configpath;
 	auto endSemicolon = regex(";\\s*$");
 	server.config.port = 8060;
 	header.emplace("Cache-Control","no-store");
@@ -58,11 +61,11 @@ static void serve(){
 		try {
 			auto&& reqstr = request->content.string();
 			auto j = json::parse(reqstr);
-			wq.savepath = fromjson<string>(j, "SavePath");
-			wq.qamount = fromjson<int>(j, "Qamount");
-			wq.fileIO = fromjson<int>(j, "FileIO");
-			wq.querystring = regex_replace(fromjson<string>(j,"Query"), endSemicolon, "");
-			wq.sessionId = fromjson<i64>(j,"SessionId");
+			wq.savepath = fromjson<string>(j, "savePath");
+			wq.qamount = fromjson<int>(j, "qamount");
+			wq.fileIO = fromjson<int>(j, "fileIO");
+			wq.querystring = regex_replace(fromjson<string>(j,"query"), endSemicolon, "");
+			wq.sessionId = fromjson<i64>(j,"sessionId");
 
 			auto ret = runqueries(wq);
 			ret->status = DAT_GOOD;
@@ -75,7 +78,7 @@ static void serve(){
 			response->write(ret->tojson().str(), header);
 
 		} catch (...){
-			auto e = handle_err(current_exception());
+			auto e = EX_STRING;
 			cerr << "Error: " << e << endl;
 			returnData ret;
 			ret.status = DAT_ERROR;
@@ -96,9 +99,6 @@ static void serve(){
 			state = json::parse(request->content.string());
 			response->write("{}");
 		} else if (info == "getState"){
-			state["version"] = version;
-			state["notifyUpdate"] = globalSettings.update;
-			state["configpath"] = globalSettings.configpath;
 			response->write(state.dump(), header);
 		} else if (info == "fileClick"){
 			auto j = json::parse(request->content.string());
@@ -115,9 +115,9 @@ static void serve(){
 				}
 				response->write(j.dump(), header);
 			} catch (...) {
-				auto e = handle_err(current_exception());
+				auto e = EX_STRING;
 				cerr << e << endl;
-				sendMessage(fromjson<i64>(j,"SessionId"), e.c_str());
+				sendMessage(fromjson<i64>(j,"sessionId"), e.c_str());
 				response->write("{}");
 			}
 		} else {
@@ -172,20 +172,20 @@ static shared_ptr<singleQueryResult> runWebQuery(webquery &wq){
 }
 
 void directory::setDir(json& j){
-	fpath = fromjson<string>(j,"Path");
-	parent = fromjson<string>(j,"Parent");
-	mode = fromjson<int>(j,"Mode");
-	files = fromjson<vector<string>>(j,"Files");
-	dirs = fromjson<vector<string>>(j,"Dirs");
+	fpath = fromjson<string>(j,"path");
+	parent = fromjson<string>(j,"parent");
+	mode = fromjson<int>(j,"mode");
+	files = fromjson<vector<string>>(j,"files");
+	dirs = fromjson<vector<string>>(j,"dirs");
 }
 
 json& directory::tojson(){
 	j = {
-		{"Path",fpath},
-		{"Parent",parent},
-		{"Mode",mode},
-		{"Files",files},
-		{"Dirs",dirs},
+		{"path",fpath},
+		{"parent",parent},
+		{"mode",mode},
+		{"files",files},
+		{"dirs",dirs},
 	};
 	return j;
 }
