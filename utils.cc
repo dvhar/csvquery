@@ -22,7 +22,7 @@ int isFloat(const char* s){ return !regexec(&floatType, s, 0, NULL, 0); }
 
 void initregex(){
 	regcomp(&leadingZeroString, "^0[0-9]+$", REG_EXTENDED);
-	regcomp(&durationPattern, "^([0-9]+|[0-9]+\\.[0-9]+) ?(seconds|second|minutes|minute|hours|hour|days|day|weeks|week|years|year|s|m|h|d|w|y)$", REG_EXTENDED);
+	regcomp(&durationPattern, "^([0-9]+|[0-9]+\\.[0-9]+) ?(seconds|second|minutes|minute|hours|hour|days|day|weeks|week|years|year|ms|s|m|h|d|w|y)$", REG_EXTENDED);
 	regcomp(&intType, "^-?[0-9]+$", REG_EXTENDED);
 	regcomp(&floatType, "^-?[0-9]*\\.[0-9]+$", REG_EXTENDED);
 }
@@ -315,7 +315,11 @@ int parseDuration(char* str, dat& d) {
 		quantity *= 3600;
 		break;
 	case 'm':
-		quantity *= 60;
+		if (part2[1] == 's'){
+			quantity /= 1000;
+		} else {
+			quantity *= 60;
+		}
 		break;
 	case 's':
 		break;
@@ -443,6 +447,13 @@ string handle_err(exception_ptr eptr) {
     }
 }
 
+int querySpecs::trivialColumnType(unique_ptr<node> &n){
+	if (n == nullptr) return 0;
+	if (n->label == N_VALUE && n->tok3.id){
+		return filemap[n->tok3.val]->types[n->tok1.id];
+	}
+	return trivialColumnType(n->node1);
+}
 bool isTrivialColumn(unique_ptr<node> &n){
 	if (n == nullptr) return false;
 	if (n->label == N_VALUE && n->tok3.id)

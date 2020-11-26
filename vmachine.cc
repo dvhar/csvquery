@@ -495,10 +495,12 @@ DTADD_:
 			stk1.u.i += stk0.u.i;
 		} else {
 			secs_to_tm(sec(p.first->u.i), &tmTemp);
+			auto mcs = mcs(p.first->u.i);
 			tmTemp.tm_year += p.second->z;
-			stk1.u.i = mktimegm(&tmTemp);
+			stk1.u.i = mktimegm(&tmTemp) + mcs;
 		}
 		stk1.b = T_DATE;
+		stk1.z = 0;
 	}
 	pop();
 	nexti();
@@ -514,9 +516,10 @@ DTSUB_:
 	ifneithernull {
 		if (stk0.b == T_DURATION){
 			if (stk0.z){
+				auto mcs = mcs(stk1.u.i);
 				secs_to_tm(sec(stk1.u.i), &tmTemp);
 				tmTemp.tm_year -= stk0.z;
-				stk1.u.i = mktimegm(&tmTemp);
+				stk1.u.i = mktimegm(&tmTemp) + mcs;
 			} else {
 				stk1.u.i -= stk0.u.i;
 			}

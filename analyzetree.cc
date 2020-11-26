@@ -127,14 +127,18 @@ void analyzer::recordResultColumns(unique_ptr<node> &n){
 		} else {
 			n->tok4.id = q->colspec.count++;
 			auto name = n->tok2.val;
-			if (name.empty() && (isTrivialAlias(n) || isTrivialColumn(n)))
+			bool tcol = isTrivialColumn(n);
+			if (name.empty() && (tcol || isTrivialAlias(n)))
 				name = nodeName(n->node1, q);
 			if (!name.empty())
 				shouldPrintHeader();
 			if (name.empty())
 				name = st("col",q->colspec.count);
-			q->colspec.colnames.push_back(name); //TODO: names for non-aliased columns
-			q->colspec.types.push_back(n->datatype);
+			q->colspec.colnames.push_back(name);
+			if (tcol)
+				q->colspec.types.push_back(q->trivialColumnType(n));
+			else
+				q->colspec.types.push_back(n->datatype);
 		}
 		recordResultColumns(n->node2);
 		break;
