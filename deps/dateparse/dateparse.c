@@ -2160,10 +2160,9 @@ char* datestringfmt(date_t t, const char* format){
 				start[i] = digits[(mc/d1)%10];
 				d1 /= 10;
 			}
-			goto millisecDone;
+			return dateprintbuf;
 		}
 	}
-millisecDone:
 	return dateprintbuf;
 }
 

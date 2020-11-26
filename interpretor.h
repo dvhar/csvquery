@@ -529,6 +529,7 @@ class querySpecs {
 	int getVarIdx(string);
 	int getVarType(string);
 	int getFileNo(string s);
+	int trivialColumnType(unique_ptr<node>&);
 	void setPassword(string s);
 	shared_ptr<fileReader>& getFileReader(int);
 	void promptPassword();
@@ -611,6 +612,7 @@ void sendPassPrompt(i64 sesid);
 void hideInput();
 void initregex();
 const char* dateFormatCode(string& s);
+int totalram();
 
 struct freeC {
 	void operator()(void*x){ free(x); }
