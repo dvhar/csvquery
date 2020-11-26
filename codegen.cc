@@ -22,47 +22,47 @@ class cgen {
 	void addop(int code, int p1, int p2);
 	void addop(int code, int p1, int p2, int p3);
 	void generateCode();
-	void genScanAndChain(unique_ptr<node> &n, int fileno);
-	void genAndChainSet(unique_ptr<node> &n);
-	void genSortAnds(unique_ptr<node> &n);
-	void genJoinPredicates(unique_ptr<node> &n);
-	void genJoinCompare(unique_ptr<node> &n);
-	void genJoinSets(unique_ptr<node> &n);
-	void genTraverseJoins(unique_ptr<node> &n);
-	void genScanJoinFiles(unique_ptr<node> &n);
-	void genScannedJoinExprs(unique_ptr<node> &n, int fileno);
-	void genNormalOrderedQuery(unique_ptr<node> &n);
-	void genNormalQuery(unique_ptr<node> &n);
-	void genGroupingQuery(unique_ptr<node> &n);
-	void genJoiningQuery(unique_ptr<node> &n);
-	void genAggSortList(unique_ptr<node> &n);
-	void genVars(unique_ptr<node> &n);
-	void genWhere(unique_ptr<node> &n);
-	void genDistinct(unique_ptr<node> &n, int gotoIfNot);
-	void genGetGroup(unique_ptr<node> &n);
-	void genSelect(unique_ptr<node> &n);
-	void genExprAll(unique_ptr<node> &n);
-	void genExprAdd(unique_ptr<node> &n);
-	void genExprMult(unique_ptr<node> &n);
-	void genExprNeg(unique_ptr<node> &n);
-	void genExprCase(unique_ptr<node> &n);
-	void genCPredList(unique_ptr<node> &n, int end);
-	void genCWExprList(unique_ptr<node> &n, int end);
-	void genNormalSortList(unique_ptr<node> &n);
-	void genCPred(unique_ptr<node> &n, int end);
-	void genCWExpr(unique_ptr<node> &n, int end);
-	void genPredicates(unique_ptr<node> &n);
-	void genPredCompare(unique_ptr<node> &n);
-	void genValue(unique_ptr<node> &n);
-	void genFunction(unique_ptr<node> &n);
+	void genScanAndChain(astnode &n, int fileno);
+	void genAndChainSet(astnode &n);
+	void genSortAnds(astnode &n);
+	void genJoinPredicates(astnode &n);
+	void genJoinCompare(astnode &n);
+	void genJoinSets(astnode &n);
+	void genTraverseJoins(astnode &n);
+	void genScanJoinFiles(astnode &n);
+	void genScannedJoinExprs(astnode &n, int fileno);
+	void genNormalOrderedQuery(astnode &n);
+	void genNormalQuery(astnode &n);
+	void genGroupingQuery(astnode &n);
+	void genJoiningQuery(astnode &n);
+	void genAggSortList(astnode &n);
+	void genVars(astnode &n);
+	void genWhere(astnode &n);
+	void genDistinct(astnode &n, int gotoIfNot);
+	void genGetGroup(astnode &n);
+	void genSelect(astnode &n);
+	void genExprAll(astnode &n);
+	void genExprAdd(astnode &n);
+	void genExprMult(astnode &n);
+	void genExprNeg(astnode &n);
+	void genExprCase(astnode &n);
+	void genCPredList(astnode &n, int end);
+	void genCWExprList(astnode &n, int end);
+	void genNormalSortList(astnode &n);
+	void genCPred(astnode &n, int end);
+	void genCWExpr(astnode &n, int end);
+	void genPredicates(astnode &n);
+	void genPredCompare(astnode &n);
+	void genValue(astnode &n);
+	void genFunction(astnode &n);
 	void genPrint();
 	void genHeader();
 	void genSelectAll();
-	void genSelections(unique_ptr<node> &n);
-	void genTypeConv(unique_ptr<node> &n);
-	void genIterateGroups(unique_ptr<node> &n);
-	void genUnsortedGroupRow(unique_ptr<node> &n, int nextgroup, int doneGroups);
-	void genSortedGroupRow(unique_ptr<node> &n, int nextgroup);
+	void genSelections(astnode &n);
+	void genTypeConv(astnode &n);
+	void genIterateGroups(astnode &n);
+	void genUnsortedGroupRow(astnode &n, int nextgroup, int doneGroups);
+	void genSortedGroupRow(astnode &n, int nextgroup);
 	void finish();
 
 	cgen(querySpecs &qs): q{&qs}, v{qs.bytecode} {}
@@ -127,7 +127,7 @@ void codeGen(querySpecs &q){
 }
 
 //generate bytecode for expression nodes
-void cgen::genExprAll(unique_ptr<node> &n){
+void cgen::genExprAll(astnode &n){
 	if (n == nullptr) return;
 	switch (n->label){
 	case N_EXPRADD:         genExprAdd     (n); break;
@@ -144,7 +144,7 @@ void cgen::genExprAll(unique_ptr<node> &n){
 
 
 //given q.tree as node param
-void cgen::genJoiningQuery(unique_ptr<node> &n){
+void cgen::genJoiningQuery(astnode &n){
 	e("basic join");
 	pushvars();
 	joinFileIdx = 0;
@@ -180,7 +180,7 @@ void cgen::genJoiningQuery(unique_ptr<node> &n){
 	addop(ENDRUN);
 }
 //given 'from' node
-void cgen::genTraverseJoins(unique_ptr<node> &n){
+void cgen::genTraverseJoins(astnode &n){
 	if (n == nullptr) return;
 	//start with base file
 	addop(START_MESSAGE, messager::readingfirst);
@@ -193,7 +193,7 @@ void cgen::genTraverseJoins(unique_ptr<node> &n){
 	addop(STOP_MESSAGE);
 }
 //given 'join' node
-void cgen::genJoinSets(unique_ptr<node> &n){
+void cgen::genJoinSets(astnode &n){
 	if (n == nullptr) {
 		if (q->grouping){ // includes group sorting
 			genWhere(q->tree->node4);
@@ -247,7 +247,7 @@ void cgen::genPrint(){
 	if (q->outputcsv)
 		addop(PRINTCSV);
 }
-void cgen::genAndChainSet(unique_ptr<node> &n){
+void cgen::genAndChainSet(astnode &n){
 	int cz = n->info[CHAINSIZE];
 	int ci = n->info[CHAINIDX];
 	int fi = n->info[FILENO];
@@ -291,7 +291,7 @@ void cgen::genAndChainSet(unique_ptr<node> &n){
 	}
 }
 //given 'predicates' node
-void cgen::genJoinPredicates(unique_ptr<node> &n){
+void cgen::genJoinPredicates(astnode &n){
 	if (n == nullptr) return;
 	if (n->info[ANDCHAIN]){
 		genAndChainSet(n);
@@ -309,7 +309,7 @@ void cgen::genJoinPredicates(unique_ptr<node> &n){
 	}
 }
 //given predicate comparison node
-void cgen::genJoinCompare(unique_ptr<node> &n){
+void cgen::genJoinCompare(astnode &n){
 	if (n == nullptr) return;
 	if (n->tok1.id == SP_LPAREN){
 		genJoinPredicates(n->node1);
@@ -344,7 +344,7 @@ void cgen::genJoinCompare(unique_ptr<node> &n){
 			error("joins with '",n->tok1.val,"' operator not implemented");
 	}
 }
-void cgen::genScanJoinFiles(unique_ptr<node> &n){
+void cgen::genScanJoinFiles(astnode &n){
 	e("scan joins");
 	auto& joinNode = findFirstNode(n, N_JOIN);
 	for (auto jnode = joinNode.get(); jnode; jnode = jnode->node2.get()){
@@ -370,7 +370,7 @@ void cgen::genScanJoinFiles(unique_ptr<node> &n){
 	}
 
 }
-void cgen::genSortAnds(unique_ptr<node> &n){
+void cgen::genSortAnds(astnode &n){
 	if (n == nullptr) return;
 	e("sort ands");
 	if (n->info[ANDCHAIN] == 1){
@@ -382,7 +382,7 @@ void cgen::genSortAnds(unique_ptr<node> &n){
 			genSortAnds(n->node1->node1);
 	}
 }
-void cgen::genScanAndChain(unique_ptr<node> &n, int fileno){
+void cgen::genScanAndChain(astnode &n, int fileno){
 	if (n == nullptr || n->info[ANDCHAIN] == 0) return;
 	e("join ands");
 
@@ -399,7 +399,7 @@ void cgen::genScanAndChain(unique_ptr<node> &n, int fileno){
 	addop(SAVEANDCHAIN, n->info[CHAINIDX], fileno);
 }
 
-void cgen::genScannedJoinExprs(unique_ptr<node> &n, int fileno){
+void cgen::genScannedJoinExprs(astnode &n, int fileno){
 	if (n == nullptr) return;
 	e("join exprs");
 	bool gotExpr = false;
@@ -437,7 +437,7 @@ void cgen::genScannedJoinExprs(unique_ptr<node> &n, int fileno){
 	}
 }
 
-void cgen::genNormalQuery(unique_ptr<node> &n){
+void cgen::genNormalQuery(astnode &n){
 	e("normal");
 	int message = (q->whereFiltering || q->distinctFiltering) ?
 		messager::readingfiltered : messager::reading;
@@ -462,7 +462,7 @@ void cgen::genNormalQuery(unique_ptr<node> &n){
 	popvars();
 	addop(ENDRUN);
 }
-void cgen::genNormalOrderedQuery(unique_ptr<node> &n){
+void cgen::genNormalOrderedQuery(astnode &n){
 	int sorter = jumps.newPlaceholder(); //where to jump when done scanning file
 	int reread = jumps.newPlaceholder();
 	int endreread = jumps.newPlaceholder();
@@ -500,7 +500,7 @@ void cgen::genNormalOrderedQuery(unique_ptr<node> &n){
 };
 
 //given afterfrom node
-void cgen::genNormalSortList(unique_ptr<node> &n){
+void cgen::genNormalSortList(astnode &n){
 	e("normal sort list");
 	if (n == nullptr) return;
 	vs.setscope(ORDER_FILTER, V_READ1_SCOPE);
@@ -515,7 +515,7 @@ void cgen::genNormalSortList(unique_ptr<node> &n){
 		q->sortInfo.push_back({x->tok1.id, x->datatype});
 	}
 }
-void cgen::genGroupingQuery(unique_ptr<node> &n){
+void cgen::genGroupingQuery(astnode &n){
 	e("grouping");
 	agg_phase = 1;
 	int getgroups = jumps.newPlaceholder();
@@ -541,7 +541,7 @@ void cgen::genGroupingQuery(unique_ptr<node> &n){
 	addop(ENDRUN);
 }
 
-void cgen::genAggSortList(unique_ptr<node> &n){
+void cgen::genAggSortList(astnode &n){
 	if (n == nullptr) return;
 	e("agg sort list");
 	switch (n->label){
@@ -554,7 +554,7 @@ void cgen::genAggSortList(unique_ptr<node> &n){
 	}
 }
 
-void cgen::genVars(unique_ptr<node> &n){
+void cgen::genVars(astnode &n){
 	if (n == nullptr) return;
 	e("gen vars");
 	switch (n->label){
@@ -589,7 +589,7 @@ void cgen::genVars(unique_ptr<node> &n){
 	}
 }
 
-void cgen::genExprAdd(unique_ptr<node> &n){
+void cgen::genExprAdd(astnode &n){
 	if (n == nullptr) return;
 	e("gen add");
 	genExprAll(n->node1);
@@ -605,7 +605,7 @@ void cgen::genExprAdd(unique_ptr<node> &n){
 	}
 }
 
-void cgen::genExprMult(unique_ptr<node> &n){
+void cgen::genExprMult(astnode &n){
 	if (n == nullptr) return;
 	e("gen mult");
 	genExprAll(n->node1);
@@ -627,7 +627,7 @@ void cgen::genExprMult(unique_ptr<node> &n){
 	}
 }
 
-void cgen::genExprNeg(unique_ptr<node> &n){
+void cgen::genExprNeg(astnode &n){
 	if (n == nullptr) return;
 	e("gen neg");
 	genExprAll(n->node1);
@@ -635,7 +635,7 @@ void cgen::genExprNeg(unique_ptr<node> &n){
 	addop0(operations[OPNEG][n->datatype]);
 }
 
-void cgen::genValue(unique_ptr<node> &n){
+void cgen::genValue(astnode &n){
 	if (n == nullptr) return;
 	e("gen value: "+n->tok1.val);
 	dat lit;
@@ -675,7 +675,7 @@ void cgen::genValue(unique_ptr<node> &n){
 	}
 }
 
-void cgen::genExprCase(unique_ptr<node> &n){
+void cgen::genExprCase(astnode &n){
 	if (n == nullptr) return;
 	e("gen case");
 	int caseEnd = jumps.newPlaceholder();
@@ -709,14 +709,14 @@ void cgen::genExprCase(unique_ptr<node> &n){
 	}
 }
 
-void cgen::genCWExprList(unique_ptr<node> &n, int end){
+void cgen::genCWExprList(astnode &n, int end){
 	if (n == nullptr) return;
 	e("gen case w list");
 	genCWExpr(n->node1, end);
 	genCWExprList(n->node2, end);
 }
 
-void cgen::genCWExpr(unique_ptr<node> &n, int end){
+void cgen::genCWExpr(astnode &n, int end){
 	if (n == nullptr) return;
 	e("gen case w expr");
 	int nextCase = jumps.newPlaceholder(); //get jump pos for next try
@@ -729,14 +729,14 @@ void cgen::genCWExpr(unique_ptr<node> &n, int end){
 	jumps.setPlace(nextCase, v.size()); //jump here for next try
 }
 
-void cgen::genCPredList(unique_ptr<node> &n, int end){
+void cgen::genCPredList(astnode &n, int end){
 	if (n == nullptr) return;
 	e("gen case p list");
 	genCPred(n->node1, end);
 	genCPredList(n->node2, end);
 }
 
-void cgen::genCPred(unique_ptr<node> &n, int end){
+void cgen::genCPred(astnode &n, int end){
 	if (n == nullptr) return;
 	e("gen case p");
 	int nextCase = jumps.newPlaceholder(); //get jump pos for next try
@@ -748,7 +748,7 @@ void cgen::genCPred(unique_ptr<node> &n, int end){
 }
 
 //given select node
-void cgen::genSelect(unique_ptr<node> &n){
+void cgen::genSelect(astnode &n){
 	if (n == nullptr) {
 		//no selection branch
 		genSelectAll();
@@ -758,7 +758,7 @@ void cgen::genSelect(unique_ptr<node> &n){
 }
 
 //given selections node
-void cgen::genSelections(unique_ptr<node> &n){
+void cgen::genSelections(astnode &n){
 	if (n == nullptr) {
 		//reached end of selections section of query
 		if (!select_count) genSelectAll();
@@ -815,7 +815,7 @@ void cgen::genSelections(unique_ptr<node> &n){
 	genSelections(n->node2);
 }
 
-void cgen::genPredicates(unique_ptr<node> &n){
+void cgen::genPredicates(astnode &n){
 	if (n == nullptr) return;
 	e("gen preds");
 	genPredCompare(n->node1);
@@ -848,7 +848,7 @@ void cgen::genPredicates(unique_ptr<node> &n){
 		addop0(PNEG);
 }
 
-void cgen::genPredCompare(unique_ptr<node> &n){
+void cgen::genPredCompare(astnode &n){
 	if (n == nullptr) return;
 	e("gen pred compare");
 	int negation = n->tok2.id;
@@ -916,7 +916,7 @@ void cgen::genSelectAll(){
 }
 
 //given afterfrom node
-void cgen::genWhere(unique_ptr<node> &nn){
+void cgen::genWhere(astnode &nn){
 	auto& n = findFirstNode(nn, N_WHERE);
 	e("gen where");
 	if (n == nullptr) return;
@@ -927,7 +927,7 @@ void cgen::genWhere(unique_ptr<node> &nn){
 }
 
 //given select or selections node
-void cgen::genDistinct(unique_ptr<node> &n, int gotoIfNot){
+void cgen::genDistinct(astnode &n, int gotoIfNot){
 	if (n == nullptr) return;
 	e("gen distinct");
 	if (n->label == N_SELECT){
@@ -944,7 +944,7 @@ void cgen::genDistinct(unique_ptr<node> &n, int gotoIfNot){
 	}
 }
 
-void cgen::genFunction(unique_ptr<node> &n){
+void cgen::genFunction(astnode &n){
 	if (n == nullptr) return;
 	e("gen function");
 	int funcDone = jumps.newPlaceholder();
@@ -1123,7 +1123,7 @@ void cgen::genFunction(unique_ptr<node> &n){
 	jumps.setPlace(funcDone, v.size());
 }
 
-void cgen::genTypeConv(unique_ptr<node> &n){
+void cgen::genTypeConv(astnode &n){
 	if (n == nullptr) return;
 	e("type convert");
 	genExprAll(n->node1);
@@ -1134,7 +1134,7 @@ void cgen::genTypeConv(unique_ptr<node> &n){
 		addop0(typeConv[n->tok1.id][n->datatype]);
 }
 
-void cgen::genGetGroup(unique_ptr<node> &n){
+void cgen::genGetGroup(astnode &n){
 	vs.setscope(AGG_FILTER, V_READ1_SCOPE);
 	genVars(q->tree->node1);
 	if (n == nullptr) return;
@@ -1149,7 +1149,7 @@ void cgen::genGetGroup(unique_ptr<node> &n){
 	}
 }
 
-void cgen::genIterateGroups(unique_ptr<node> &n){
+void cgen::genIterateGroups(astnode &n){
 	e("iterate groups");
 	if (n == nullptr) {
 		addop(ONEGROUP);
@@ -1203,7 +1203,7 @@ void cgen::genIterateGroups(unique_ptr<node> &n){
 	}
 }
 
-void cgen::genUnsortedGroupRow(unique_ptr<node> &n, int nextgroup, int doneGroups){
+void cgen::genUnsortedGroupRow(astnode &n, int nextgroup, int doneGroups){
 	e("gen unsorted group row");
 	vs.setscope(HAVING_FILTER, V_GROUP_SCOPE);
 	genVars(q->tree->node1);
@@ -1220,7 +1220,7 @@ void cgen::genUnsortedGroupRow(unique_ptr<node> &n, int nextgroup, int doneGroup
 	addop((q->quantityLimit > 0 ? JMPCNT : JMP), nextgroup);
 	addop(JMP, doneGroups);
 }
-void cgen::genSortedGroupRow(unique_ptr<node> &n, int nextgroup){
+void cgen::genSortedGroupRow(astnode &n, int nextgroup){
 	e("gen sorted group row");
 	vs.setscope(HAVING_FILTER, V_GROUP_SCOPE);
 	genVars(q->tree->node1);

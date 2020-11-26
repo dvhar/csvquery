@@ -33,18 +33,18 @@ class dataTyper {
 	querySpecs* q;
 	public:
 
-	typer typeInnerNodes(unique_ptr<node> &n);
-	void typeFinalValues(unique_ptr<node> &n, int finaltype);
-	void typeInitialValue(unique_ptr<node> &n, bool trivial);
-	typer typeCaseInnerNodes(unique_ptr<node> &n);
-	void typeCaseFinalNodes(unique_ptr<node> &n, int finaltype);
-	typer typePredCompareInnerNodes(unique_ptr<node> &n);
-	void typePredCompFinalNodes(unique_ptr<node> &n);
-	typer typeValueInnerNodes(unique_ptr<node> &n);
-	typer typeFunctionInnerNodes(unique_ptr<node> &n);
-	void typeFunctionFinalNodes(unique_ptr<node> &n, int finaltype);
-	void checkMathSemantics(unique_ptr<node> &n);
-	void checkFuncSemantics(unique_ptr<node> &n);
+	typer typeInnerNodes(astnode &n);
+	void typeFinalValues(astnode &n, int finaltype);
+	void typeInitialValue(astnode &n, bool trivial);
+	typer typeCaseInnerNodes(astnode &n);
+	void typeCaseFinalNodes(astnode &n, int finaltype);
+	typer typePredCompareInnerNodes(astnode &n);
+	void typePredCompFinalNodes(astnode &n);
+	typer typeValueInnerNodes(astnode &n);
+	typer typeFunctionInnerNodes(astnode &n);
+	void typeFunctionFinalNodes(astnode &n, int finaltype);
+	void checkMathSemantics(astnode &n);
+	void checkFuncSemantics(astnode &n);
 
 	dataTyper(querySpecs& qs): q{&qs} {};
 };
@@ -83,7 +83,7 @@ static ktype keepSubtreeTypes(int t1, int t2, int op) {
 }
 
 //see if using string type would interfere with operations
-static bool canBeString(unique_ptr<node> &n){
+static bool canBeString(astnode &n){
 	if (n == nullptr) return true;
 
 	switch (n->label){
@@ -187,7 +187,7 @@ static bool canBeString(unique_ptr<node> &n){
 }
 
 //see if a node involves operation that requires specific type
-static bool stillTrivial(unique_ptr<node> &n){
+static bool stillTrivial(astnode &n){
 	switch (n->label){
 	case N_EXPRADD:
 	case N_EXPRMULT:
@@ -208,7 +208,7 @@ static bool stillTrivial(unique_ptr<node> &n){
 }
 
 //give value nodes their initial type and look out for variables
-void dataTyper::typeInitialValue(unique_ptr<node> &n, bool trivial){
+void dataTyper::typeInitialValue(astnode &n, bool trivial){
 	if (n == nullptr)
 		return;
 
@@ -331,7 +331,7 @@ void dataTyper::typeInitialValue(unique_ptr<node> &n, bool trivial){
 
 }
 
-typer dataTyper::typeCaseInnerNodes(unique_ptr<node> &n){
+typer dataTyper::typeCaseInnerNodes(astnode &n){
 	if (n == nullptr) return {0,0};
 	typer innerType, elseExpr, whenExpr, thenExpr, compExpr;
 	switch (n->tok1.id){
@@ -370,7 +370,7 @@ typer dataTyper::typeCaseInnerNodes(unique_ptr<node> &n){
 	return {0,0};
 }
 
-typer dataTyper::typePredCompareInnerNodes(unique_ptr<node> &n){
+typer dataTyper::typePredCompareInnerNodes(astnode &n){
 	if (n == nullptr) return {0,0};
 	typer n1, n2, n3, innerType;
 	if (n->tok1.id == SP_LPAREN){
@@ -387,7 +387,7 @@ typer dataTyper::typePredCompareInnerNodes(unique_ptr<node> &n){
 	return innerType;
 }
 
-typer dataTyper::typeValueInnerNodes(unique_ptr<node> &n){
+typer dataTyper::typeValueInnerNodes(astnode &n){
 	if (n == nullptr) return {0,0};
 	typer innerType = {0,0};
 	switch (n->tok2.id){
@@ -410,7 +410,7 @@ typer dataTyper::typeValueInnerNodes(unique_ptr<node> &n){
 	return innerType;
 }
 
-typer dataTyper::typeFunctionInnerNodes(unique_ptr<node> &n){
+typer dataTyper::typeFunctionInnerNodes(astnode &n){
 	if (n == nullptr) return {0,0};
 	typer innerType = {0}, paramType = {0};
 	switch (n->tok1.id){
@@ -535,7 +535,7 @@ typer dataTyper::typeFunctionInnerNodes(unique_ptr<node> &n){
 }
 
 //set datatype value of inner tree nodes where applicable
-typer dataTyper::typeInnerNodes(unique_ptr<node> &n){
+typer dataTyper::typeInnerNodes(astnode &n){
 	if (n == nullptr) return {0,0};
 	typer n1, n2, innerType = {0,0};
 	ktype k;
@@ -626,7 +626,7 @@ typer dataTyper::typeInnerNodes(unique_ptr<node> &n){
 	return innerType;
 }
 
-void dataTyper::typeCaseFinalNodes(unique_ptr<node> &n, int finaltype){
+void dataTyper::typeCaseFinalNodes(astnode &n, int finaltype){
 	if (n == nullptr) return;
 	int comptype;
 	switch (n->tok1.id){
@@ -660,7 +660,7 @@ void dataTyper::typeCaseFinalNodes(unique_ptr<node> &n, int finaltype){
 	}
 }
 
-void dataTyper::typePredCompFinalNodes(unique_ptr<node> &n){
+void dataTyper::typePredCompFinalNodes(astnode &n){
 	if (n == nullptr) return;
 	if (n->tok1.id == SP_LPAREN){
 		typeFinalValues(n->node1, -1);
@@ -671,7 +671,7 @@ void dataTyper::typePredCompFinalNodes(unique_ptr<node> &n){
 	}
 }
 
-void dataTyper::typeFunctionFinalNodes(unique_ptr<node> &n, int finaltype){
+void dataTyper::typeFunctionFinalNodes(astnode &n, int finaltype){
 	if (n == nullptr) return;
 	int oldret = finaltype;
 	if (n->keep) finaltype = -1;
@@ -775,7 +775,7 @@ void dataTyper::typeFunctionFinalNodes(unique_ptr<node> &n, int finaltype){
 }
 
 //use high-level nodes to give lower nodes their final types
-void dataTyper::typeFinalValues(unique_ptr<node> &n, int finaltype){
+void dataTyper::typeFinalValues(astnode &n, int finaltype){
 	if (n == nullptr) return;
 
 	//if using own datatype instead of parent node's
@@ -854,7 +854,7 @@ void dataTyper::typeFinalValues(unique_ptr<node> &n, int finaltype){
 	}
 }
 
-void dataTyper::checkMathSemantics(unique_ptr<node> &n){
+void dataTyper::checkMathSemantics(astnode &n){
 	if (n->label != N_EXPRADD && n->label != N_EXPRMULT)
 		return;
 	auto n1 = n->node1 == nullptr ? T_NULL : n->node1->datatype;
@@ -901,7 +901,7 @@ void dataTyper::checkMathSemantics(unique_ptr<node> &n){
 	}
 }
 
-void dataTyper::checkFuncSemantics(unique_ptr<node> &n){
+void dataTyper::checkFuncSemantics(astnode &n){
 	auto n1 = n->node1 == nullptr ? T_NULL : n->node1->datatype;
 	auto typestr = gettypename(n->datatype);
 	char* e = NULL;

@@ -41,6 +41,8 @@ using flatmap = boost::container::flat_map<A,B>;
 using ft = boost::format;
 using json = nlohmann::json;
 using namespace std;
+class node;
+using astnode = unique_ptr<node>;
 
 template<typename T>
 static void __st(stringstream& ss, T&& v) {
@@ -279,10 +281,10 @@ class node {
 	int datatype =0;
 	int phase =0;
 	bool keep =0; //preserve subtree types
-	unique_ptr<node> node1;
-	unique_ptr<node> node2;
-	unique_ptr<node> node3;
-	unique_ptr<node> node4;
+	astnode node1;
+	astnode node2;
+	astnode node3;
+	astnode node4;
 	token tok1;
 	token tok2;
 	token tok3;
@@ -488,7 +490,7 @@ class querySpecs {
 	vector<variable> vars;
 	vector<dat> dataholder;
 	vector<opcode> bytecode;
-	unique_ptr<node> tree;
+	astnode tree;
 	map<string, shared_ptr<fileReader>> filemap;
 	vector<shared_ptr<fileReader>> filevec;
 	promise<string> passReturn;
@@ -524,12 +526,11 @@ class querySpecs {
 	bool numIsCol();
 	void setoutputCsv(){ outputcsv = true; };
 	void setoutputJson(){ outputjson = true; };
-	void init(string);
 	void addVar(string);
 	int getVarIdx(string);
 	int getVarType(string);
 	int getFileNo(string s);
-	int trivialColumnType(unique_ptr<node>&);
+	int trivialColumnType(astnode&);
 	void setPassword(string s);
 	shared_ptr<fileReader>& getFileReader(int);
 	void promptPassword();
@@ -583,14 +584,14 @@ class directory {
 void scanTokens(querySpecs &q);
 void parseQuery(querySpecs &q);
 bool is_number(const std::string& s);
-void printTree(unique_ptr<node> &n, int ident);
+void printTree(astnode &n, int ident);
 int isInt(const char*);
 int isFloat(const char*);
 int isDuration(const char*);
 int dateParse(const char*, struct timeval*);
 int parseDuration(char*, dat&);
 int getNarrowestType(char* value, int startType);
-void openfiles(querySpecs &q, unique_ptr<node> &n);
+void openfiles(querySpecs &q, astnode &n);
 void applyTypes(querySpecs &q);
 void analyzeTree(querySpecs &q);
 void codeGen(querySpecs &q);
@@ -599,13 +600,13 @@ shared_ptr<singleQueryResult> runJsonQuery(querySpecs &q);
 char* durstring(dat& dur, char* str);
 void runServer();
 string handle_err(exception_ptr eptr);
-unique_ptr<node>& findFirstNode(unique_ptr<node> &n, int label);
+astnode& findFirstNode(astnode &n, int label);
 void prepareQuery(querySpecs &q);
 void stopAllQueries();
 shared_ptr<directory> filebrowse(string);
-bool isTrivialColumn(unique_ptr<node> &n);
-bool isTrivialAlias(unique_ptr<node> &n);
-string nodeName(unique_ptr<node> &n, querySpecs* q);
+bool isTrivialColumn(astnode &n);
+bool isTrivialAlias(astnode &n);
+string nodeName(astnode &n, querySpecs* q);
 void sendMessage(i64,const char*);
 void sendMessage(i64 sesid, string);
 void sendPassPrompt(i64 sesid);

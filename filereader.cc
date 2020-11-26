@@ -17,7 +17,6 @@ fileReader::fileReader(string& fname, querySpecs &qs) : filename(fname), q(&qs) 
 			error("Could not open file "+fname);
 		}
 	}
-	//filesize optimizations more beneficial for joined files
 	i64 optisize = br.buffsize;
 	if (fileno > 0){
 		int jmegs = max(100, totalram() / 20);
@@ -174,14 +173,12 @@ inline void fileReader::compactQuote(){
 }
 inline bool fileReader::checkWidth(){
 	prevpos += (pos2 - buf + 1);
-	//numfields is 0 until first line is done
 	if (numFields == 0)
 		numFields = entriesVec.size();
 	entries = entriesVec.data();
 	return fieldsFound != numFields;
 }
 inline void fileReader::getField(){
-	//trim trailing whitespace and push pointer
 	while (isspace(*(terminator-1))) --terminator;
 	*terminator = '\0';
 	entriesVec.emplace_back(pos1, terminator);
@@ -235,7 +232,7 @@ void fileReader::inferTypes() {
 	}
 	for (u32 i=0; i<entriesVec.size(); ++i)
 		if (!types[i])
-			types[i] = T_STRING; //maybe come up with better way of handling nulls
+			types[i] = T_STRING;
 	prevpos = startData;
 	if (small)
 		fill(entriesVec.begin(), entriesVec.end(), csvEntry{&blank,&blank});
@@ -251,11 +248,10 @@ int fileReader::getColIdx(string& colname){
 	return -1;
 }
 
-void openfiles(querySpecs &q, unique_ptr<node> &n){
+void openfiles(querySpecs &q, astnode &n){
 	if (n == nullptr)
 		return;
 	if (n->label == N_FROM || n->label == N_JOIN){
-		//initialize and put in map
 		string& fpath = n->tok1.val;
 		string id = st("_f",q.numFiles);
 		q.filevec.push_back(make_shared<fileReader>(fpath, q));

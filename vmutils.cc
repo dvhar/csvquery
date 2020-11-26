@@ -456,7 +456,7 @@ int getSortComparer(querySpecs *q, int i){
 	return 0;
 };
 
-dat prepareLike(unique_ptr<node> &n){
+dat prepareLike(astnode &n){
 	dat reg;
 	reg.u.r = new regex_t;
 	reg.b = RMAL;

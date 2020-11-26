@@ -214,6 +214,7 @@ variable& querySpecs::var(string name) {
 		if (name == v.name)
 			return v;
 	error("Variable not found");
+	return vars.front();
 }
 void querySpecs::addVar(string name) {
 	vars.push_back({name,0,0,0,0,{}});
@@ -265,7 +266,7 @@ void querySpecs::setPassword(string s){
 };
 
 
-void printTree(unique_ptr<node> &n, int ident){
+void printTree(astnode &n, int ident){
 	if (n == nullptr) return;
 	ident++;
 	string s = "";
@@ -430,7 +431,7 @@ node::node(int l){
 node::~node(){
 }
 
-unique_ptr<node>& findFirstNode(unique_ptr<node> &n, int label){
+astnode& findFirstNode(astnode &n, int label){
 	if (n == nullptr || n->label == label)
 		return n;
 	return findFirstNode(n->node1, label)
@@ -447,26 +448,26 @@ string handle_err(exception_ptr eptr) {
     }
 }
 
-int querySpecs::trivialColumnType(unique_ptr<node> &n){
+int querySpecs::trivialColumnType(astnode &n){
 	if (n == nullptr) return 0;
 	if (n->label == N_VALUE && n->tok3.id){
 		return filemap[n->tok3.val]->types[n->tok1.id];
 	}
 	return trivialColumnType(n->node1);
 }
-bool isTrivialColumn(unique_ptr<node> &n){
+bool isTrivialColumn(astnode &n){
 	if (n == nullptr) return false;
 	if (n->label == N_VALUE && n->tok3.id)
 		return true;
 	return isTrivialColumn(n->node1);
 }
-bool isTrivialAlias(unique_ptr<node> &n){
+bool isTrivialAlias(astnode &n){
 	if (n == nullptr) return false;
 	if (n->label == N_VALUE && n->tok4.id)
 		return true;
 	return isTrivialAlias(n->node1);
 }
-string nodeName(unique_ptr<node> &n, querySpecs* q){
+string nodeName(astnode &n, querySpecs* q){
 	if (n == nullptr) return "";
 	if (n->label == N_VALUE){
 		if (n->tok2.id == COLUMN && n->tok3.id){

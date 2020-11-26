@@ -334,7 +334,7 @@ extern flatmap<int, int> functionCode;
 void strplus(dat &s1, dat &s2);
 void trav(rowgroup &r);
 int getSortComparer(querySpecs *q, int i);
-dat prepareLike(unique_ptr<node> &n);
+dat prepareLike(astnode &n);
 void sha1(dat&);
 void sha256(dat&);
 void md5(dat&);

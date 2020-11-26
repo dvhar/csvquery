@@ -1,5 +1,4 @@
 #include <stdio.h>
-#include <math.h>
 #include<boost/filesystem.hpp>
 #define DEFAULT_BUFSIZE  (1024*1024*3)
 
@@ -27,7 +26,7 @@ class bufreader {
 	~bufreader(){if (f) fclose(f);}
 	void open(const char* fname, long long wantsize){
 		fsize = boost::filesystem::file_size(fname);
-		buffsize = std::min(wantsize, fsize);
+		buffsize = fsize < wantsize ? fsize : wantsize;
 		open(fname);
 	}
 	void open(const char* fname){
