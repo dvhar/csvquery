@@ -6,6 +6,7 @@
 
 
 fileReader::fileReader(string& fname, querySpecs &qs) : filename(fname), q(&qs) {
+	fileno = qs.numFiles;
 	if (!boost::filesystem::exists(fname)){
 		if (!regex_match(fname,extPat)){
 			fname += ".csv";
@@ -17,10 +18,15 @@ fileReader::fileReader(string& fname, querySpecs &qs) : filename(fname), q(&qs) 
 		}
 	}
 	//filesize optimizations more beneficial for joined files
-	br.open(fname.c_str());	
-	small = br.fsize < (fileno>0 ? 100*1024*1024 : br.buffsize);
-	if (small && br.buffsize < br.fsize)
-		needStretchyBuf = true;
+	i64 optisize = br.buffsize;
+	if (fileno > 0){
+		int jmegs = max(100, totalram() / 20);
+		if (qs.sorting)
+			jmegs = max(100, jmegs/2);
+		optisize = jmegs * 1024 * 2024;
+	}
+	br.open(fname.c_str(), optisize);	
+	small = br.fsize <= br.buffsize;
 }
 char fileReader::blank = 0;
 fileReader::~fileReader(){
@@ -64,13 +70,7 @@ bool fileReader::readline(){
 			entries = gotrows[memidx++].data();
 			return 0;
 		} else { //file is in buffer but entries not saved yet (infertypes)
-			if (needStretchyBuf){
-			   auto line = br.getline();
-			   gotbuffers.emplace_front(buf = new char[br.linesize]);
-			   strcpy(buf, line);
-			} else {
-				buf = br.getline();
-			}
+			buf = br.getline();
 			if (br.done) return 1;
 		}
 	} else {
@@ -261,7 +261,6 @@ void openfiles(querySpecs &q, unique_ptr<node> &n){
 		q.filevec.push_back(make_shared<fileReader>(fpath, q));
 		auto& fr = q.filevec.back();
 		fr->id = id;
-		fr->fileno = q.numFiles;
 		q.filemap[id] = fr;
 		if (n->tok4.id)
 			q.filemap[n->tok4.val] = fr;

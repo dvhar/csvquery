@@ -1,6 +1,7 @@
 #include <stdio.h>
+#include <math.h>
 #include<boost/filesystem.hpp>
-#define BUFSIZE  (1024*1024*3)
+#define DEFAULT_BUFSIZE  (1024*1024*3)
 
 class bufreader {
 	FILE* f = NULL;
@@ -8,15 +9,15 @@ class bufreader {
 	char* nl = NULL;
 	char* line = NULL;
 	int biggestline = 0;
-	unsigned long long readsofar = 0;
+	long long readsofar = 0;
 	bool single = false;
 	char* buf;
-	char realbuf[BUFSIZE+4];
+	std::unique_ptr<char[]> realbuf;
 	void refresh();
 	bufreader& operator=(bufreader);
 	public:
-	unsigned long long fsize = 0;
-	int buffsize = BUFSIZE;
+	long long fsize = 0;
+	long long buffsize = DEFAULT_BUFSIZE;
 	bool done = false;
 	int linesize = 0;
 	char* getline();
@@ -24,13 +25,20 @@ class bufreader {
 	bool addrefresh(int);
 	bufreader(){}
 	~bufreader(){if (f) fclose(f);}
-	void open(const char* fname){
+	void open(const char* fname, long long wantsize){
 		fsize = boost::filesystem::file_size(fname);
+		buffsize = std::min(wantsize, fsize);
+		open(fname);
+	}
+	void open(const char* fname){
+		if (fsize == 0)
+			fsize = boost::filesystem::file_size(fname);
 		f = fopen(fname,"rb");
+		realbuf.reset(new char[buffsize+4]);
 		//padding for safe parsing
 		realbuf[0] = realbuf[buffsize+2] =
 		realbuf[1] = realbuf[buffsize+3] = 0;
-		buf = realbuf+2;
+		buf = &realbuf[2];
 	};
 	//fill entire buffer when reread
 	void seekfull(long long pos){

@@ -164,6 +164,8 @@ static shared_ptr<singleQueryResult> runWebQuery(webquery &wq){
 			q.savepath = st(wq.savepath.substr(0, wq.savepath.size()-4), '-', wq.whichone+1, ".csv");
 		} else if (!hascsv){
 			q.savepath = wq.savepath += ".csv";
+		} else {
+			q.savepath = wq.savepath;
 		}
 	}
 	return runJsonQuery(q);
