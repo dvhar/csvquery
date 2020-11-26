@@ -815,7 +815,7 @@ JMPNOTNULL_ELSEPOP_:
 	} next();
 
 PRINTJSON_:
-	if (numJsonPrinted < jsonresult->showLimit){
+	if (numJsonPrinted < jsonresult->rowlimit){
 		iTemp1 = 0;	
 		string jbuf = "[";
 		printjsonfield:
@@ -828,7 +828,7 @@ PRINTJSON_:
 		++numJsonPrinted;
 		jsonresult->Vals.push_back(move(jbuf));
 	} else {
-		jsonresult->clipped = jsonresult->showLimit;
+		jsonresult->clipped = jsonresult->rowlimit;
 	}
 	jsonresult->numrows++;
 	totalPrinted += op->p1; //in case not csv printing

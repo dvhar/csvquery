@@ -142,7 +142,7 @@ static shared_ptr<returnData> runqueries(webquery &wq){
 		perr("Got result of single query\n");
 		ret->entries.push_back(singleResult);
 		if (singleResult->clipped)
-			ret->maxclipped = max(ret->maxclipped, singleResult->showLimit);
+			ret->maxclipped = max(ret->maxclipped, singleResult->rowlimit);
 		wq.whichone++;
 	}
 	perr("Got result of all queries\n");
