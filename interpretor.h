@@ -24,7 +24,7 @@
 #include "deps/getline/bufreader.h"
 #include "deps/json/json.hpp"
 
-#ifdef __MINGW32__
+#ifdef _WIN32
 #include <getopt.h>
 #include <tre/regex.h>
 #else
@@ -69,7 +69,7 @@ class settings_t {
 	bool debug = 1;
 	bool autoheader = 0;
 	bool autoexit = 1;
-#ifdef WIN32
+#ifdef _WIN32
 	string configpath = st(getenv("USERPROFILE"),R"(\AppData\csvqueryConf.txt)");
 #else
 	string configpath = st(gethome(),"/.config/csvquery.conf");

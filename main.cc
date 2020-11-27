@@ -17,7 +17,7 @@ void help(char* prog){
 		"\t-x Don't check for updates when using gui\n"
 		"\t-g Don't show debug info in console\n"
 		"\t-d Show debug info in console (default)\n"
-		"\t-e Don't automatically exit 3 minutes after the web gui is closed\n"
+		"\t-e Don't automatically exit 3 minutes after the browser page is closed\n"
 		"\t-f Guess if files have header based on whether or not there are numbers in the first row\n"
 		"\t-s Save options set by the flags before this one to the config and exit\n"
 		"\t-j Return json to stdout (rows limited to 20000 divided by number of columns)\n"

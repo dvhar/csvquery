@@ -1,4 +1,4 @@
-#ifdef __MINGW32__
+#ifdef _WIN32
 #include <windows.h>
 void hideInput(){
     HANDLE hStdin = GetStdHandle(STD_INPUT_HANDLE); 

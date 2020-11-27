@@ -61,17 +61,12 @@ bool fileReader::readlineat(i64 position){
 	}
 }
 bool fileReader::readline(){
-	if (small){
-		if (inmemory){
-			if (memidx >= numrows)
-				return 1;
-			pos = memidx;
-			entries = gotrows[memidx++].data();
-			return 0;
-		} else { //file is in buffer but entries not saved yet (infertypes)
-			buf = br.getline();
-			if (br.done) return 1;
-		}
+	if (inmemory){
+		if (memidx >= numrows)
+			return 1;
+		pos = memidx;
+		entries = gotrows[memidx++].data();
+		return 0;
 	} else {
 		pos = prevpos;
 		buf = br.getline();
