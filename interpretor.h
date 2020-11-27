@@ -319,6 +319,34 @@ class csvEntry {
 	u32 size(){ return (u32)(terminator-val); }
 };
 
+class fastvector {
+	u32 _size = 0;
+	u32 _cap = 0;
+	unique_ptr<csvEntry[]> row;
+	public:
+	csvEntry* release(){
+		auto ret = row.release();
+		row.reset(new csvEntry[_size]);
+		_cap = _size;
+		_size = 0;
+		return ret;
+	};
+	csvEntry* data(){ return row.get(); };
+	csvEntry* begin(){ return row.get(); };
+	csvEntry* end(){ return row.get()+_size; };
+	u32 size(){ return _size; };
+	void clear(){ _size = 0; };
+	void emplace_back(char* s, char* t){
+		if (_size >= _cap){
+			_cap = 1+_cap*2;
+			auto ptr = row.release();
+			row.reset((csvEntry*) realloc(ptr, _cap * sizeof(csvEntry)));
+		}
+		row[_size++] = csvEntry{s,t};
+	};
+	csvEntry& operator[](int i){ return row[i]; };
+};
+
 class valpos;
 class andchain;
 class querySpecs;
@@ -331,9 +359,8 @@ class fileReader {
 	char* escapedQuote = 0;
 	bufreader br;
 	string filename;
-	vector<vector<csvEntry>> gotrows;
-	vector<csvEntry> entriesVec;
-	forward_list<unique_ptr<char[]>> gotbuffers;
+	vector<unique_ptr<csvEntry[]>> gotrows;
+	fastvector entriesVec;
 	i64 prevpos = 0;
 	int equoteCount = 0;
 	int memidx = 0;

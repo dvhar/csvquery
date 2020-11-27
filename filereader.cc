@@ -49,7 +49,7 @@ bool fileReader::readlineat(i64 position){
 			entries = entriesVec.data();
 			return 0;
 		}
-		entries = gotrows[position].data();
+		entries = gotrows[position].get();
 		return 0;
 	} else {
 		if (position < 0){
@@ -65,7 +65,7 @@ bool fileReader::readline(){
 		if (memidx >= numrows)
 			return 1;
 		pos = memidx;
-		entries = gotrows[memidx++].data();
+		entries = gotrows[memidx++].get();
 		return 0;
 	} else {
 		pos = prevpos;
@@ -213,7 +213,7 @@ void fileReader::inferTypes() {
 					types[i] = getNarrowestType(entriesVec[i].val, types[i]);
 				++samples;
 			}
-			gotrows.push_back(move(entriesVec));
+			gotrows.emplace_back(entriesVec.release());
 			++numrows;
 		} while (!readline());
 		inmemory = true;
