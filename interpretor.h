@@ -254,6 +254,11 @@ extern regex colNum;
 extern regex extPat;
 extern regex hidPat;
 
+struct freeC {
+	void operator()(void*x){ free(x); }
+};
+
+
 class token {
 	public:
 	int id =0;
@@ -322,11 +327,11 @@ class csvEntry {
 class fastvector {
 	u32 _size = 0;
 	u32 _cap = 0;
-	unique_ptr<csvEntry[]> row;
+	unique_ptr<csvEntry[], freeC> row;
 	public:
 	csvEntry* release(){
 		auto ret = row.release();
-		row.reset(new csvEntry[_size]);
+		row.reset((csvEntry*) malloc(sizeof(csvEntry)*_size));
 		_cap = _size;
 		_size = 0;
 		return ret;
@@ -359,7 +364,7 @@ class fileReader {
 	char* escapedQuote = 0;
 	bufreader br;
 	string filename;
-	vector<unique_ptr<csvEntry[]>> gotrows;
+	vector<unique_ptr<csvEntry[], freeC>> gotrows;
 	fastvector entriesVec;
 	i64 prevpos = 0;
 	int equoteCount = 0;
@@ -643,10 +648,6 @@ void hideInput();
 void initregex();
 const char* dateFormatCode(string& s);
 int totalram();
-
-struct freeC {
-	void operator()(void*x){ free(x); }
-};
 
 extern int runmode;
 enum runmodes { RUN_SINGLE, RUN_SERVER };
