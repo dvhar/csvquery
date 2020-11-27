@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.12)
 
 project(cql LANGUAGES C CXX)
 
-set(CMAKE_CXX_FLAGS "-O3 -pipe")
+add_compile_options(-O3 -pipe)
 set(is_win "$<BOOL:${WIN32}>")
 set(is_unix "$<BOOL:${UNIX}>")
 
