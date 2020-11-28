@@ -22,7 +22,9 @@ export class QueryBox extends React.Component {
 						<h2 className="commandtitle">Enter CSV Query {arrow}</h2>
 					</div>
 					<div className={`dropmenu-content queryTextContainer ${this.state.clicked===1?"show":""}`}>
-					<textarea rows="10" className="queryTextEntry" id="textBoxId" placeholder={`If running multiple queries, separate them with a semicolon;`}>
+					<textarea rows="10" className="queryTextEntry" id="textBoxId" placeholder={
+`If running multiple queries, separate them with a semicolon;
+Submit queries by pressing the button or shift-enter`}>
 					</textarea>
 					<br/>
 					<button className="queryRunButton dropContent" onClick={()=>{
