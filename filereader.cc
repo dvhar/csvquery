@@ -73,9 +73,8 @@ bool fileReader::readline(){
 		if (br.done) return 1;
 	}
 	entriesVec.clear();
-	fieldsFound = 0;
+	fieldsFound = equoteCount = 0;
 	pos1 = pos2 = buf;
-	equoteCount = 0;
 	while (1){
 		//trim leading space
 		while (*pos2 && isspace(*pos2)) ++pos2;

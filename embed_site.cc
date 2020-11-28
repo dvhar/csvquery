@@ -12,6 +12,4 @@ static bool rejectNonLocals(shared_ptr<HttpServer::Request>& request){
 	}
 	return false;
 }
-void embedsite(HttpServer &server){
 #include "embed_site.hpp"
-}
