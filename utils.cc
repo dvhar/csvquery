@@ -597,7 +597,7 @@ settings_t globalSettings;
 void prepareQuery(querySpecs &q){
 	scanTokens(q);
 	parseQuery(q);
-	openfiles(q, q.tree);
+	openfiles(q);
 	q.promptPassword();
 	applyTypes(q);
 	analyzeTree(q);
