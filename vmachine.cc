@@ -485,7 +485,13 @@ TADD_:
 	pop();
 	nexti();
 DRADD_:
-	ifneithernull { stk1.u.i += stk0.u.i; stk1.z = 0; stk1.b = T_DURATION; }
+	ifneithernull {
+		stk1.u.i += stk0.u.i;
+		stk1.b = T_DURATION; }
+		if (stk1.z && stk0.z)
+			stk1.z += stk0.z;
+		else
+			stk1.z = 0;
 	pop();
 	nexti();
 DTADD_:
@@ -531,7 +537,14 @@ DTSUB_:
 	pop();
 	nexti();
 DRSUB_:
-	ifneithernull { stk1.u.i -= stk0.u.i; stk1.z=0; stk1.b = T_DURATION; }
+	ifneithernull {
+		stk1.u.i -= stk0.u.i;
+		stk1.b = T_DURATION;
+		if (stk0.z && stk1.z)
+			stk1.z -= stk0.z;
+		else
+			stk1.z = 0;
+	}
 	pop();
 	nexti();
 IMULT_:
