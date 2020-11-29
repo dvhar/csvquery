@@ -243,39 +243,46 @@ int fileReader::getColIdx(string& colname){
 	return -1;
 }
 
-void openfiles(querySpecs &q, astnode &n){
+class opener {
+	i64 totalsize = 0;
+	querySpecs *q;
+	public:
+	void openfiles(astnode &n);
+	opener(querySpecs &qs): q(&qs){};
+};
+void opener::openfiles(astnode &n){
 	if (n == nullptr)
 		return;
 	if (n->label == N_FROM || n->label == N_JOIN){
 		string& fpath = n->tok1.val;
-		string id = st("_f",q.numFiles);
-		q.filevec.push_back(make_shared<fileReader>(fpath, q));
-		auto& fr = q.filevec.back();
+		string id = st("_f",q->numFiles);
+		q->filevec.push_back(make_shared<fileReader>(fpath, *q));
+		auto& fr = q->filevec.back();
 		fr->id = id;
-		q.filemap[id] = fr;
+		q->filemap[id] = fr;
 		if (n->tok4.id)
-			q.filemap[n->tok4.val] = fr;
+			q->filemap[n->tok4.val] = fr;
 		int a = fpath.find_last_of("/\\") + 1;
 		int b = fpath.size()-4-a;
 		fpath = fpath.substr(a, b);
-		q.filemap[fpath] = fr;
+		q->filemap[fpath] = fr;
 
-		if (q.options & O_S)
+		if (q->options & O_S)
 			fr->delim = ' ';
-		else if (q.options & O_P)
+		else if (q->options & O_P)
 			fr->delim = '|';
-		else if (q.options & O_T)
+		else if (q->options & O_T)
 			fr->delim = '\t';
 		else
 			fr->delim = ',';
 
 		//header options
 		fr->autoheader = globalSettings.autoheader;
-		if ((q.options & O_H) != 0)
+		if ((q->options & O_H) != 0)
 			fr->noheader = fr->autoheader = false;
-		if ((q.options & O_NH) != 0)
+		if ((q->options & O_NH) != 0)
 			fr->noheader = true;
-		if ((q.options & O_AH) != 0)
+		if ((q->options & O_AH) != 0)
 			fr->autoheader = true;
 		//file opts override global opts
 		if (n->tok5.id){
@@ -288,12 +295,17 @@ void openfiles(querySpecs &q, astnode &n){
 				fr->autoheader = true;
 			}
 		}
-		++q.numFiles;
+		++q->numFiles;
 		fr->inferTypes();
+		totalsize += fr->size();
 	}
-	openfiles(q, n->node1);
-	openfiles(q, n->node2);
-	openfiles(q, n->node3);
+	openfiles(n->node1);
+	openfiles(n->node2);
+	openfiles(n->node3);
+}
+void openfiles(querySpecs &qs){
+	opener o(qs);
+	o.openfiles(qs.tree);
 }
 
 shared_ptr<directory> filebrowse(string dir){

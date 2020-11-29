@@ -396,6 +396,7 @@ class fileReader {
 	inline void getQuotedField();
 	inline void compactQuote();
 	inline bool checkWidth();
+	int size(){ return br.fsize; };
 	void inferTypes();
 	int getColIdx(string&);
 	bool readline();
@@ -625,7 +626,7 @@ int isDuration(const char*);
 int dateParse(const char*, struct timeval*);
 int parseDuration(char*, dat&);
 int getNarrowestType(char* value, int startType);
-void openfiles(querySpecs &q, astnode &n);
+void openfiles(querySpecs &q);
 void applyTypes(querySpecs &q);
 void analyzeTree(querySpecs &q);
 void codeGen(querySpecs &q);
