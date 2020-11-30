@@ -873,19 +873,12 @@ void cgen::genPredCompare(astnode &n){
 	case KW_BETWEEN:
 		endcomp = jumps.newPlaceholder();
 		greaterThanExpr3 = jumps.newPlaceholder();
-		addop1(NULFALSE1, endcomp);
+		addop2(NULFALSE, endcomp, 0);
 		genExprAll(n->node2);
-		addop1(NULFALSE2, endcomp);
-		addop2(operations[OPLT][n->datatype], 0, 1);
-		addop2(JMPFALSE, greaterThanExpr3, 1);
+		addop2(NULFALSE, endcomp, 1);
 		genExprAll(n->node3);
-		addop1(NULFALSE2, endcomp);
-		addop2(operations[OPLT][n->datatype], 1, negation);
-		addop1(JMP, endcomp);
-		jumps.setPlace(greaterThanExpr3, v.size());
-		genExprAll(n->node3);
-		addop1(NULFALSE2, endcomp);
-		addop2(operations[OPLT][n->datatype], 1, negation^1);
+		addop2(NULFALSE, endcomp, 2);
+		addop1(BETWEEN, funcTypes[n->datatype]);
 		jumps.setPlace(endcomp, v.size());
 		break;
 	case KW_IN:
