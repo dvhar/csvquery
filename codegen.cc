@@ -878,7 +878,7 @@ void cgen::genPredCompare(astnode &n){
 		addop2(NULFALSE, endcomp, 1);
 		genExprAll(n->node3);
 		addop2(NULFALSE, endcomp, 2);
-		addop1(BETWEEN, funcTypes[n->datatype]);
+		addop2(BETWEEN, funcTypes[n->datatype], negation);
 		jumps.setPlace(endcomp, v.size());
 		break;
 	case KW_IN:

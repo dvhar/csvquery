@@ -641,15 +641,15 @@ FEQ_:
 TEQ_:
 	iTemp1 = stk0.isnull();
 	iTemp2 = stk1.isnull();
-	if (!(iTemp1|iTemp2)){ //none null
+	if (iTemp1^iTemp2){ //one null
+		stkt(op->p1).freedat();
+		stkt(op->p1).u.p = false^op->p2;
+	} else if (iTemp1 & iTemp2) { //both null
+		stkt(op->p1).u.p = true^op->p2;
+	} else { //none null
 		boolTemp = (strcmp(stk1.u.s, stk0.u.s) == 0)^op->p2;
 		stkt(op->p1).freedat();
 		stkt(op->p1).u.p = boolTemp;
-	} else if (iTemp1 & iTemp2) { //both null
-		stkt(op->p1).u.p = true^op->p2;
-	} else { //one null
-		stkt(op->p1).freedat();
-		stkt(op->p1).u.p = false^op->p2;
 	}
 	stacktop -= op->p1;
 	nexti();
@@ -705,7 +705,7 @@ BETWEEN_:
 	}
 	stacktop -= 2;
 	stk0.freedat();
-	stk0.u.p = boolTemp;
+	stk0.u.p = boolTemp^op->p2;
 	nexti();
 LIKE_:
 	if (stk0.isnull()){
