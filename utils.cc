@@ -553,6 +553,8 @@ const char* dateFormatCode(string& s){
 		case 109: return R "%b %d %Y %I:%M:%S:mmmm%p"; // mon dd yyyy hh:mi:ss:mmmmAM (or PM)
 		case 10:  return R "%m-%d-%y"; // mm-dd-yy
 		case 110: return R "%m-%d-%Y"; // mm-dd-yyyy
+		case 15:  return R "%y-%m-%d"; // yy-mm-dd
+		case 115: return R "%Y-%m-%d"; // yyyy-mm-dd
 		case 11:  return R "%y/%m/%d"; // yy/mm/dd
 		case 111: return R "%Y/%m/%d"; // yyyy/mm/dd
 		case 12:  return R "%y%m%d"; // yymmdd
