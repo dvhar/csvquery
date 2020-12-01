@@ -69,6 +69,9 @@ class settings_t {
 	bool debug = 1;
 	bool autoheader = 0;
 	bool autoexit = 1;
+	bool termbox = 0;
+	bool tablecolor = 1;
+	bool tablelinebg = 0;
 #ifdef _WIN32
 	string configpath = st(getenv("USERPROFILE"),R"(\AppData\csvqueryConf.txt)");
 #else

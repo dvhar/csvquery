@@ -49,7 +49,7 @@ enum codes : int {
 	FUNC_LOG, FUNC_LOG2, FUNC_LOG10, FUNC_SQRT, FUNC_RAND, FUNC_UPPER, FUNC_LOWER, FUNC_BASE64_ENCODE,
 	FUNC_BASE64_DECODE, FUNC_HEX_ENCODE, FUNC_HEX_DECODE, FUNC_LEN, FUNC_SUBSTR, FUNC_MD5, FUNC_SHA1,
 	FUNC_SHA256, FUNC_ROUND, FUNC_CBRT, FUNC_NOW, FUNC_NOWGM, PRINTCSV_HEADER, FUNC_FORMAT,
-	LDCOUNT, BETWEEN
+	LDCOUNT, BETWEEN, PRINTBOX
 
 };
 
@@ -183,6 +183,28 @@ class messager {
 	~messager();
 };
 
+class boxprinter {
+	int rowlimit = 100;
+	int numcol = 0;
+	int numrow = 0;
+	vector<int> types;
+	vector<size_t> widths;
+	vector<string> names;
+	vector<vector<string>> datarows;
+	public:
+	void init(vector<int>& types_, vector<string>& names_){
+		types = types_;
+		names = names_;
+		numcol = names.size();
+		widths.resize(numcol);
+		for (int i=0; i<numcol; ++i)
+			widths[i] = names[i].size();
+	};
+	void addrow(dat* sourcerow);
+	void print();
+	~boxprinter(){ if (globalSettings.termbox) print(); };
+};
+
 class rowgroup;
 class singleQueryResult;
 class vmachine {
@@ -217,6 +239,7 @@ class vmachine {
 	ostream csvOutput;
 	ofstream outfile;
 	messager updates;
+	boxprinter termbox;
 	//datunion comparers
 	static const function<bool (const datunion, const datunion&)> uLessFuncs[3];
 	static const function<bool (const datunion, const datunion&)> uGrtFuncs[3];

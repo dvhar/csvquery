@@ -94,5 +94,5 @@ void sendPassPrompt(i64 sesid){
 	if (auto& c = connections[sesid]; c)
 		c->send(json{{"type",SK_PASS}}.dump());
 	seslock.unlock();
-	cerr << "sent pass prompt\n";
+	perr("sent pass prompt\n");
 }

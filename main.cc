@@ -14,12 +14,15 @@ void help(char* prog){
 		<< prog << " \"select from 'data.csv'\"\n\tRun query from command line argument\n"
 		<< prog << "\n\tRun server to use graphic interface in web browser\n\n"
 		"Flags:\n"
-		"\t-x Don't check for updates when using gui\n"
+		"\t-x Don't check for updates when clicking the gui's help button\n"
 		"\t-g Don't show debug info in console\n"
 		"\t-d Show debug info in console (default)\n"
 		"\t-e Don't automatically exit 3 minutes after the browser page is closed\n"
 		"\t-f Guess if files have header based on whether or not there are numbers in the first row\n"
 		"\t-s Save options set by the flags before this one to the config and exit\n"
+		"\t-t Print results in terminal as table instead of csv format\n"
+		"\t-y Same as -t but with background colors to help see lines\n"
+		"\t-w Don't print colors when printing table to terminal\n"
 		"\t-j Return json to stdout (rows limited to 20000 divided by number of columns)\n"
 		"\t-h Show this help message and exit\n"
 		"\t-v Show version and exit\n\n"
@@ -32,7 +35,7 @@ int main(int argc, char** argv){
 	bool jsonstdout = false;
 	int shift = 0;
 	loadconfig(0);
-	for(char c; (c = getopt(argc, argv, "hxvgdsefj")) != -1;)
+	for(char c; (c = getopt(argc, argv, "hxvgdsefjtyw")) != -1;)
 		switch(c){
 		case 'x':
 			globalSettings.update = false;
@@ -52,6 +55,19 @@ int main(int argc, char** argv){
 			break;
 		case 'f':
 			globalSettings.autoheader = true;
+			shift++;
+			break;
+		case 't':
+			globalSettings.termbox = true;
+			shift++;
+			break;
+		case 'y':
+			globalSettings.termbox = true;
+			globalSettings.tablelinebg = true;
+			shift++;
+			break;
+		case 'w':
+			globalSettings.tablecolor = false;
 			shift++;
 			break;
 		case 's':
