@@ -17,9 +17,11 @@ makebin(){
 makeserver(){
 	base=`basename $1`
 	sym=_`echo $base | sed 's/[\./-]/_/g'`
-	render "server.resource[\"^/${1}$\"][\"GET\"] = [](shared_ptr<HttpServer::Response> response, shared_ptr<HttpServer::Request> request){
+	path=`echo $1 | sed 's|webgui/build/||g'`
+	render "server.resource[\"^/${path}$\"][\"GET\"] = [](shared_ptr<HttpServer::Response> response, shared_ptr<HttpServer::Request> request){
 		if (rejectNonLocals(request)) return;
-		response->write(string_view(${sym}, ${sym}_len)); };"
+		response->write(string_view(${sym}, ${sym}_len));
+		};"
 	render
 }
 
