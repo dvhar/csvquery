@@ -244,7 +244,9 @@ void cgen::genHeader(){
 void cgen::genPrint(){
 	if (q->outputjson)
 		addop(PRINTJSON, q->outputcsv ? 0 : 1);
-	if (q->outputcsv)
+	if (globalSettings.termbox)
+		addop(PRINTBOX);
+	else if (q->outputcsv)
 		addop(PRINTCSV);
 }
 void cgen::genAndChainSet(astnode &n){
