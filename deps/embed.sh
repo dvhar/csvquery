@@ -10,7 +10,7 @@ makebin(){
 	#cp $1 build/
 	base=`basename $1`
 	sym=_`echo $base | sed 's/[\./-]/_/g'`
-	render "IMPORT_BIN(\"${base}\",${sym});"
+	render "IMPORT_BIN(\"../${1}\",${sym});"
 	render "extern const char ${sym}[], _sizeof_${sym}[];"
 	render "const size_t ${sym}_len = (size_t)_sizeof_${sym};"
 }
@@ -24,22 +24,6 @@ makeserver(){
 		};"
 	render
 }
-
-#echo '
-cat << EOF >> embed_site.hpp
-#define IMPORT_BIN(file, sym) asm (\\
-    ".section .rodata\n"                 \\
-    ".balign 4\n"                        \\
-    ".global " #sym "\n"                 \\
-    #sym ":\n"                           \\
-    ".incbin \"" file "\"\n"             \\
-    ".global _sizeof_" #sym "\n"         \\
-    ".set _sizeof_" #sym ", . - " #sym "\n"\\
-    ".balign 4\n"                        \\
-    ".section \".text\"\n")
-EOF
-#'
-
 
 files=`find webgui/build -regextype posix-egrep -regex ".*(js|css|map|json|png|txt|html)" -type f`
 
