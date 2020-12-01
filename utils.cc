@@ -396,10 +396,10 @@ char* durstring(dat& d, char* str){
 	}
 	if (mics) {
 		while(*s) ++s;
-		if (mics < 1000){
-			sprintf(s, "%lldms", mics/1000);
-		} else {
+		if (mics % 1000){
 			sprintf(s, "%lldmcs", mics);
+		} else {
+			sprintf(s, "%lldms", mics/1000);
 		}
 	}
 	return dest;

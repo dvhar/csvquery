@@ -190,7 +190,7 @@ class boxprinter {
 	vector<int> types;
 	vector<size_t> widths;
 	vector<string> names;
-	vector<vector<string>> datarows;
+	list<vector<string>> datarows;
 	public:
 	void init(vector<int>& types_, vector<string>& names_){
 		types = types_;
