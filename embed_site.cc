@@ -12,4 +12,15 @@ static bool rejectNonLocals(shared_ptr<HttpServer::Request>& request){
 	}
 	return false;
 }
+#define IMPORT_BIN(file, sym) asm (\
+    ".section .rodata\n"                 \
+    ".balign 4\n"                        \
+    ".global " #sym "\n"                 \
+    #sym ":\n"                           \
+    ".incbin \"" file "\"\n"             \
+    ".global _sizeof_" #sym "\n"         \
+    ".set _sizeof_" #sym ", . - " #sym "\n"\
+    ".balign 4\n"                        \
+    ".section \".text\"\n")
+
 #include "embed_site.hpp"
