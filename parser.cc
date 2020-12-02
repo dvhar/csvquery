@@ -1,6 +1,47 @@
 #include "interpretor.h"
 #include <boost/algorithm/string/replace.hpp>
 
+/*
+{} = optional
+[] = one of
+[[]] = at least one of
+
+query             -> <preselect> <select> <from> <afterfrom>
+preselect         -> <options> <with> | ε
+options           -> [ oh noh nh h ah s p t nan ] { <options> } | ε
+with              -> with <vars> | ε
+vars              -> <expradd> as alias { [ , and ] vars }
+expradd           -> <exprmult> { [ + - ] <expradd> }
+exprmult          -> <exprneg> { [ * % ^ / ] <exprmult> }
+exprneg           -> { - } <exprcase>
+<exprCase>        -> case <caseWhenPredList> { else <expradd> } end
+                   | case <expradd> <caseWhenExprList> { else <expradd> } end
+                   | <value>
+                   | ( <expradd> )
+caseWhenExprList> -> <caseWhenExpr> <caseWhenExprList> | <caseWhenExpr>
+caseWhenExpr      -> when <exprAdd> then <exprAdd>
+caseWhenPredList  -> <casePredicate> <caseWhenPredList> | <casePredicate>
+casePredicate     -> when <predicates> then <exprAdd>
+predicates        -> { not }  <predicateCompare> { <logop> <predicates> }
+value             -> column | literal | variable | <function>
+predicateCompare  -> { not } <expradd> { not } <relop> <expradd>
+                    | { not } <expradd> { not } between <expradd> and <expradd>
+                    | { not } <expradd> in ( <expressionlist> )
+                    | { not } ( predicates )
+function          -> func ( params )
+expressionlist    -> <expradd> {,} <expressionlist> | ε
+from              -> from file {[nh h ah]} { as alias } {[nh h ah]} <join>
+join              -> {[left inner]} join file {[nh h ah]} alias on <predicates> <join> | ε
+afterfrom         -> {[[ <where> <group> <having> <order> <limit> ]]}
+where             -> where <predicates>
+having            -> having <predicates>
+order             -> order by <expressionlist>
+group             -> group by <expressionlist>
+TODO:
+file              -> file { <fileoptions> } | ( <query> ) | filealias
+fileoptions       -> [ alias nh h ah s t p ] <fileoptions> | ε
+*/
+
 #define newNode(l) make_unique<node>(l)
 
 class parser {
