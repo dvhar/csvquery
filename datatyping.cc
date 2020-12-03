@@ -98,6 +98,8 @@ static bool canBeString(astnode &n){
 		else
 			return canBeString(n->node1);
 		break;
+	case N_SETLIST: //TODO: break when implemented subquery
+	case N_EXPRESSIONS:
 	case N_DEXPRESSIONS:
 	case N_CWEXPRLIST:
 	case N_CPREDLIST:
@@ -561,6 +563,7 @@ typer dataTyper::typeInnerNodes(astnode &n){
 			q->sorting = innerType.type;
 		break;
 	//things that may be list but have independant types
+	case N_SETLIST:  // TODO: break when implemented subquery
 	case N_SELECTIONS:
 	case N_GROUPBY:
 	case N_EXPRESSIONS:
@@ -800,6 +803,7 @@ void dataTyper::typeFinalValues(astnode &n, int finaltype){
 		typeFinalValues(n->node4, -1);
 		break;
 	//straightforward stuff
+	case N_SETLIST: //TODO: break when implemented subquery
 	case N_CWEXPRLIST:
 	case N_CPREDLIST:
 	case N_DEXPRESSIONS:
@@ -841,7 +845,7 @@ void dataTyper::typeFinalValues(astnode &n, int finaltype){
 		typePredCompFinalNodes(n);
 		break;
 	case N_VALUE:
-		typeFinalValues(n->node1, finaltype); //functioin
+		typeFinalValues(n->node1, finaltype); //function
 		break;
 	case N_FUNCTION:
 		typeFunctionFinalNodes(n, finaltype);

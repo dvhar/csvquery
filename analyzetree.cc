@@ -10,22 +10,23 @@ class analyzer {
 			if (int o = q->options; (o & O_OH) || (o & O_NOH))
 				shouldPrintHeader();
 		}
-		void varUsedInFilter(unique_ptr<node> &n);
-		void setSubtreeVarFilter(unique_ptr<node> &n, int filter);
+		void varUsedInFilter(astnode &n);
+		void setSubtreeVarFilter(astnode &n, int filter);
 		void propogateVarFilter(string var, int filter);
 		void selectAll();
-		void recordResultColumns(unique_ptr<node> &n);
-		bool findAgrregates(unique_ptr<node> &n);
-		bool allAgrregates(unique_ptr<node> &n);
-		void findMidrowTargets(unique_ptr<node> &n);
-		void setVarPhase(unique_ptr<node> &n, int phase, int section);
-		void setNodePhase(unique_ptr<node> &n, int phase);
-		void findIndexableJoinValues(unique_ptr<node> &n, int fileno);
-		set<int> whichFilesReferenced(unique_ptr<node> &n);
-		void findJoinAndChains(unique_ptr<node> &n, int fileno);
-		bool ischain(unique_ptr<node> &n, int &predno);
+		void recordResultColumns(astnode &n);
+		bool findAgrregates(astnode &n);
+		bool allAgrregates(astnode &n);
+		void findMidrowTargets(astnode &n);
+		void setVarPhase(astnode &n, int phase, int section);
+		void setNodePhase(astnode &n, int phase);
+		void findIndexableJoinValues(astnode &n, int fileno);
+		set<int> whichFilesReferenced(astnode &n);
+		void findJoinAndChains(astnode &n, int fileno);
+		bool ischain(astnode &n, int &predno);
 		void shouldPrintHeader();
-		int phaser(unique_ptr<node> &n);
+		int phaser(astnode &n);
+		void setAttributes(astnode& n);
 };
 
 void analyzer::propogateVarFilter(string var, int filter){
@@ -36,7 +37,7 @@ void analyzer::propogateVarFilter(string var, int filter){
 				return;
 			}
 }
-void analyzer::setSubtreeVarFilter(unique_ptr<node> &n, int filter){
+void analyzer::setSubtreeVarFilter(astnode &n, int filter){
 	if (n == nullptr) return;
 	switch (n->label){
 	case N_VALUE:
@@ -54,7 +55,7 @@ void analyzer::setSubtreeVarFilter(unique_ptr<node> &n, int filter){
 		setSubtreeVarFilter(n->node4, filter);
 	}
 }
-void analyzer::varUsedInFilter(unique_ptr<node> &n){
+void analyzer::varUsedInFilter(astnode &n){
 	if (n == nullptr) return;
 	string t1;
 	switch (n->label){
@@ -116,7 +117,7 @@ void analyzer::selectAll(){
 	}
 }
 
-void analyzer::recordResultColumns(unique_ptr<node> &n){
+void analyzer::recordResultColumns(astnode &n){
 	if (n == nullptr) return;
 	string t1 = n->tok1.lower();
 	switch (n->label){
@@ -146,7 +147,7 @@ void analyzer::recordResultColumns(unique_ptr<node> &n){
 		if (q->colspec.count == 0)
 			selectAll();
 		break;
-	case N_EXPRESSIONS:
+	case N_EXPRESSIONS:  //sort list
 		if (n->tok2.id){
 			if (q->grouping){
 				n->tok3.id = q->colspec.count + q->sortcount;
@@ -163,13 +164,13 @@ void analyzer::recordResultColumns(unique_ptr<node> &n){
 	}
 };
 
-bool analyzer::allAgrregates(unique_ptr<node> &n){
+bool analyzer::allAgrregates(astnode &n){
 	for (auto nn = n.get(); nn; nn = nn->node2.get())
 		if (!findAgrregates(nn->node1))
 			return false;
 	return true;
 }
-bool analyzer::findAgrregates(unique_ptr<node> &n){
+bool analyzer::findAgrregates(astnode &n){
 	if (n == nullptr) return false;
 	switch (n->label){
 	case N_FUNCTION:
@@ -206,7 +207,7 @@ bool analyzer::findAgrregates(unique_ptr<node> &n){
 	return false;
 }
 
-void analyzer::setVarPhase(unique_ptr<node> &n, int phase, int section){
+void analyzer::setVarPhase(astnode &n, int phase, int section){
 	if (n == nullptr) return;
 	switch (n->label){
 	case N_VARS:
@@ -277,7 +278,7 @@ void analyzer::setVarPhase(unique_ptr<node> &n, int phase, int section){
 	}
 }
 
-void analyzer::setNodePhase(unique_ptr<node> &n, int phase){
+void analyzer::setNodePhase(astnode &n, int phase){
 	if (n == nullptr) return;
 	switch (n->label){
 	case N_SELECTIONS:
@@ -332,7 +333,7 @@ void analyzer::setNodePhase(unique_ptr<node> &n, int phase){
 	}
 }
 
-int analyzer::phaser(unique_ptr<node> &n){
+int analyzer::phaser(astnode &n){
 	if (n == nullptr || !q->grouping) return 0;
 	switch (n->label){
 		case N_SELECTIONS:
@@ -344,7 +345,7 @@ int analyzer::phaser(unique_ptr<node> &n){
 	}
 	return n->phase;
 }
-void analyzer::findMidrowTargets(unique_ptr<node> &n){
+void analyzer::findMidrowTargets(astnode &n){
 	if (n == nullptr || !q->grouping) return;
 	switch (n->label){
 	case N_VARS:
@@ -388,7 +389,7 @@ void analyzer::findMidrowTargets(unique_ptr<node> &n){
 }
 
 //return file numbers referenced in expression
-set<int> analyzer::whichFilesReferenced(unique_ptr<node> &n){
+set<int> analyzer::whichFilesReferenced(astnode &n){
 	if (n == nullptr) return {};
 	switch (n->label){
 		case N_VALUE:
@@ -413,7 +414,7 @@ set<int> analyzer::whichFilesReferenced(unique_ptr<node> &n){
 }
 
 //only called on predicates nodes
-bool analyzer::ischain(unique_ptr<node> &n, int &predno){
+bool analyzer::ischain(astnode &n, int &predno){
 	if (n == nullptr) return predno >= 2;
 	if (n->label == KW_OR) return false;
 	bool simpleCompare = n->node1->tok1.id != SP_LPAREN;
@@ -428,7 +429,7 @@ bool analyzer::ischain(unique_ptr<node> &n, int &predno){
 	return false;
 }
 
-void analyzer::findJoinAndChains(unique_ptr<node> &n, int fileno){
+void analyzer::findJoinAndChains(astnode &n, int fileno){
 	if (n == nullptr) return;
 	auto& chainvec = q->getFileReader(fileno)->andchains;
 	switch (n->label){
@@ -470,7 +471,7 @@ int flipOp(int op){
 	return flipOperatorMap[op] ?: op;
 }
 
-void analyzer::findIndexableJoinValues(unique_ptr<node> &n, int fileno){
+void analyzer::findIndexableJoinValues(astnode &n, int fileno){
 	if (n == nullptr || !q->joining) return;
 	switch (n->label){
 	case N_PREDCOMP:
@@ -540,9 +541,66 @@ void analyzer::shouldPrintHeader(){
 	}
 	q->outputcsvheader = true;
 }
+void analyzer::setAttributes(astnode& n){
+	if (n == nullptr) return;
+	switch (n->label){
+	case N_SELECTIONS:
+		if (n->tok1.id == KW_DISTINCT)
+			q->distinctFiltering = 1;
+		break;
+	case N_PRESELECT:
+		q->options = n->tok1.id;
+		break;
+	case N_SELECT:
+		if (n->tok1.id)
+			q->quantityLimit = n->tok1.id;
+		break;
+	case N_AFTERFROM:
+		if (n->tok1.id)
+			q->quantityLimit = n->tok1.id;
+		break;
+	case N_WHERE:
+		q->whereFiltering = 1;
+		return;
+	case N_HAVING:
+		q->havingFiltering = 1;
+		return;
+	case N_ORDER:
+		q->sorting = 1;
+		return;
+	case N_JOIN:
+		q->joining = 1;
+		return;
+	case N_SETLIST:
+		if (n->tok1.id){
+			n->tok2.id = q->addSubquery(n->node1, SQ_INLIST);
+			return;
+		}
+		break;
+	case N_GROUPBY:
+		q->grouping = max(q->grouping, 2);
+		return;
+	case N_FUNCTION:
+		if ((n->tok1.id & AGG_BIT) != 0) {
+			q->grouping = max(q->grouping,1);
+		}
+		if (n->tok1.id == FN_ENCRYPT || n->tok1.id == FN_DECRYPT){
+			q->needPass = true;
+			q->password = n->tok4.val;
+		}
+	}
+	setAttributes(n->node1);
+	setAttributes(n->node2);
+	setAttributes(n->node3);
+	setAttributes(n->node4);
+}
 
-//typing done, still need semantics etc
-void analyzeTree(querySpecs &q){
+void earlyAnalyze(querySpecs &q){
+	analyzer an(q);
+	an.setAttributes(q.tree);
+}
+
+void lateAnalyze(querySpecs &q){
 	analyzer an(q);
 	an.varUsedInFilter(q.tree);
 	an.recordResultColumns(q.tree);
