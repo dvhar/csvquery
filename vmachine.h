@@ -228,6 +228,7 @@ class vmachine {
 	vector<dat> destrow;
 	vector<dat> onegroup;
 	array<dat,50> stack;
+	vector<unique_ptr<vmachine>> subqueries;
 	vector<shared_ptr<fileReader>> files;
 	vector<unique_ptr<dat[], freeC>> groupSorter;
 	vector<int> sortIdxs;
@@ -249,6 +250,7 @@ class vmachine {
 	static const function<bool (const datunion, const datunion&)> uNeqFuncs[3];
 	static const function<bool (const datunion, const datunion&)> uRxpFuncs[3];
 	static const function<bool (const datunion, const datunion&)>* uComparers[7];
+	void startSubqueries();
 	public:
 	static flatmap<int,int> relopIdx;
 	i64 sessionId =0;

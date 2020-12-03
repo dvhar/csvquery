@@ -550,7 +550,7 @@ void cgen::genAggSortList(astnode &n){
 	case N_QUERY:     genAggSortList(n->node4); break;
 	case N_AFTERFROM: genAggSortList(n->node4); break;
 	case N_ORDER:     genAggSortList(n->node1); break;
-	case N_EXPRESSIONS:
+	case N_EXPRESSIONS: // sort list
 		genExprAdd(n->node1);
 		genAggSortList(n->node2);
 	}
@@ -885,12 +885,16 @@ void cgen::genPredCompare(astnode &n){
 		break;
 	case KW_IN:
 		endcomp = jumps.newPlaceholder();
-		for (auto nn=n->node2.get(); nn; nn=nn->node2.get()){
-			genExprAll(nn->node1);
-			addop1(operations[OPEQ][n->node1->datatype], 0);
-			addop2(JMPTRUE, endcomp, 0);
-			if (nn->node2.get())
-				addop0(POP);
+		if (n->node2->tok1.id){
+			//subquery
+		} else {
+			for (auto nn=n->node2->node1.get(); nn; nn=nn->node2.get()){
+				genExprAll(nn->node1);
+				addop1(operations[OPEQ][n->node1->datatype], 0);
+				addop2(JMPTRUE, endcomp, 0);
+				if (nn->node2.get())
+					addop0(POP);
+			}
 		}
 		jumps.setPlace(endcomp, v.size());
 		if (negation)

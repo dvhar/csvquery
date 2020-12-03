@@ -52,6 +52,7 @@ void vmachine::run(){
 	decltype(groupTree->getMap().begin()) groupItstk[20];
 	typedef decltype(joinSetStack.front().begin()) jnit ;
 	vector<jnit> setItstk((q->numFiles-1)*2);
+	startSubqueries();
 
 	next();
 
@@ -1339,4 +1340,17 @@ ENDRUN_:
 CVER_:
 CVNO_:
 	error("Invalid opcode");
+}
+
+void vmachine::startSubqueries(){
+	subqueries.resize(q->subqueries.size());
+	int i = 0;
+	for (auto& sq : q->subqueries){
+		switch(sq->isSubquery){
+		case SQ_INLIST:
+			subqueries[i].reset(new vmachine(*sq));
+			//run and get btree
+		}
+		++i;
+	}
 }

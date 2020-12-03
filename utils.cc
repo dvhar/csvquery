@@ -60,12 +60,14 @@ const flatmap<int, string_view> treeMap = {
 	{N_FUNCTION,   "N_FUNCTION"},
 	{N_GROUPBY,    "N_GROUPBY"},
 	{N_EXPRESSIONS,"N_EXPRESSIONS"},
+	{N_SETLIST,    "N_SETLIST"},
 	{N_JOINCHAIN,  "N_JOINCHAIN"},
 	{N_JOIN,       "N_JOIN"},
 	{N_DEXPRESSIONS,"N_DEXPRESSIONS"},
 	{N_WITH,       "N_WITH"},
 	{N_VARS,       "N_VARS"},
-	{N_TYPECONV,   "N_TYPECONV"}
+	{N_TYPECONV,   "N_TYPECONV"},
+	{N_FILE,       "N_FILE"},
 };
 const flatmap<string_view, int> keywordMap = {
 	{"and" ,       KW_AND},
@@ -264,6 +266,17 @@ void querySpecs::promptPassword(){
 void querySpecs::setPassword(string s){
 	passReturn.set_value(s);
 };
+int querySpecs::addSubquery(astnode& subtree, int sqtype){
+	try {
+		subqueries.emplace_back();
+		auto& qptr = subqueries.back();
+		qptr.reset(new querySpecs(subtree, sqtype));
+		prepareQuery(*qptr);
+	} catch (...){
+		error("SUBQUERY: ",EX_STRING);
+	}
+	return subqueries.size()-1;
+}
 
 
 void printTree(astnode &n, int ident){
@@ -599,10 +612,11 @@ settings_t globalSettings;
 void prepareQuery(querySpecs &q){
 	scanTokens(q);
 	parseQuery(q);
+	earlyAnalyze(q);
 	openfiles(q);
 	q.promptPassword();
 	applyTypes(q);
-	analyzeTree(q);
+	lateAnalyze(q);
 	printTree(q.tree, 0);
 	codeGen(q);
 };
