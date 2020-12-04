@@ -561,10 +561,10 @@ void analyzer::setAttributes(astnode& n){
 		break;
 	case N_WHERE:
 		q->whereFiltering = 1;
-		return;
+		break;
 	case N_HAVING:
 		q->havingFiltering = 1;
-		return;
+		break;
 	case N_ORDER:
 		q->sorting = 1;
 		return;

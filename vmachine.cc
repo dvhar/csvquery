@@ -1346,9 +1346,9 @@ void vmachine::startSubqueries(){
 	subqueries.resize(q->subqueries.size());
 	int i = 0;
 	for (auto& sq : q->subqueries){
-		switch(sq->isSubquery){
+		switch(sq.query->isSubquery){
 		case SQ_INLIST:
-			subqueries[i].reset(new vmachine(*sq));
+			subqueries[i].reset(new vmachine(*sq.query));
 			//run and get btree
 		}
 		++i;
