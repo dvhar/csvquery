@@ -83,8 +83,28 @@ extern mt19937 rng;
 extern string version;
 extern settings_t globalSettings;
 static void perr(string s){
-	if (globalSettings.debug)
-		cerr << s;
+
+	static char* ss[] = {
+		(char*)"\033[38;5;82m",
+		(char*)"\033[38;5;87m",
+		(char*)"\033[38;5;205m",
+		(char*)"\033[38;5;196m",
+		(char*)"\033[38;5;208m",
+		(char*)"\033[38;5;82m",
+	};
+	static atomic_int i(0);
+	static map<thread::id,char*> cs;
+	static mutex dbmtx;
+	if (globalSettings.debug){
+
+		dbmtx.lock();
+		auto th = this_thread::get_id();
+		if (!cs.count(th))
+			cs[th] = ss[(i++)%6];
+
+		cerr << cs[th] << s << "\033[0m" << endl;
+		dbmtx.unlock();
+	}
 }
 
 template<typename... Args>
@@ -415,7 +435,7 @@ class opcode {
 	int p1 =0;
 	int p2 =0;
 	int p3 =0;
-	void print();
+	string print();
 };
 inline static char* newStr(char* src, int size){
 	char* s = (char*) malloc(size+1);
@@ -588,7 +608,7 @@ class querySpecs {
 class subquery {
 	public:
 	int type;
-	future<void> prepdone;
+	thread prepdone;
 	//pair is type, canbestring
 	shared_future<vector<pair<int,bool>>> topinnertypes;
 	promise<vector<pair<int,bool>>> topinnertypesp;

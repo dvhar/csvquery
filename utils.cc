@@ -2,6 +2,7 @@
 #include <chrono>
 #include <stdlib.h>
 #include <ctype.h>
+#include <thread>
 #include "deps/json/escape.h"
 #define max(a,b) (a) > (b) ? (a) : (b)
 
@@ -271,7 +272,7 @@ int querySpecs::addSubquery(astnode& subtree, int sqtype){
 		perr("adding subquery");
 		subqueries.emplace_back(new querySpecs(subtree, sqtype));
 		auto& sq = subqueries.back();
-		sq.prepdone = async([&]{prepareQuery(*sq.query);});
+		sq.prepdone = thread([&]{prepareQuery(*sq.query);});
 	} catch (...){
 		error("SUBQUERY: ",EX_STRING);
 	}
@@ -285,8 +286,7 @@ void printTree(astnode &n, int ident){
 	ident++;
 	string s = "";
 	for (int i=0;i<ident;i++) s += "  ";
-	perr(st( s , getnodename(n->label) , '\n',
-		s ,
+	perr(st( s , getnodename(n->label) , '\n', s,
 		ft("[%1% %2% %3% %4% %5%] t:%6% p:%7% k:%8%")
 		% n->tok1.val
 		% n->tok2.val
@@ -295,7 +295,7 @@ void printTree(astnode &n, int ident){
 		% n->tok5.val
 		% n->datatype
 		% n->phase
-		% n->keep , '\n'));
+		% n->keep));
 	printTree(n->node1,ident);
 	printTree(n->node2,ident);
 	printTree(n->node3,ident);
@@ -612,21 +612,21 @@ settings_t globalSettings;
 
 void prepareQuery(querySpecs &q){
 	scanTokens(q);
-	perr("Scanned\n");
+	perr("Scanned");
 	parseQuery(q);
-	perr("Parsed\n");
+	perr("Parsed");
 	earlyAnalyze(q);
-	perr("EAnalyzed\n");
+	perr("EAnalyzed");
 	openfiles(q);
-	perr("Opened\n");
+	perr("Opened");
 	q.promptPassword();
 	applyTypes(q);
-	perr("Typed\n");
+	perr("Typed");
 	lateAnalyze(q);
-	perr("LAnalyzed\n");
+	perr("LAnalyzed");
 	printTree(q.tree, 0);
 	codeGen(q);
-	perr("Genned\n");
+	perr("Genned");
 	for (auto& sq : q.subqueries)
-		sq.prepdone.get();
+		sq.prepdone.join();
 };
