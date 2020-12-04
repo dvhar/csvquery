@@ -80,11 +80,16 @@ static const int funcTypes[]  = { 0,0,1,0,0,2 };
 static int ident = 0;
 //#define e //turn off debug printer
 #ifndef e
-#define e(A) for (int i=0; i< ident; i++) perr("    "); \
-	perr(st( A , "\n")); ident++; \
+#define e(A) { \
+	string spc; \
+	for (int i=0; i< ident; i++) spc += "    "; \
+	perr(st(spc,  A )); \
+	ident++; } \
 	shared_ptr<void> _(nullptr, [&n](...){ \
-	ident--; for (int i=0; i< ident; i++) perr("    "); \
-	perr(st("done ",A,'\n')); });
+		ident--; \
+		string spc; \
+		for (int i=0; i< ident; i++) spc += "    "; \
+	perr(st(spc,"done ",A)); });
 #endif
 
 #define pushvars() for (auto &i : q->vars) addop(PUSH);
@@ -116,8 +121,7 @@ void cgen::generateCode(){
 void cgen::finish(){
 	int i = 0;
 	for (auto c : v){
-		perr(st("ip: ",left,setw(4),i++));
-		c.print();
+		perr(st("ip: ",left,setw(4),i++,c.print()));
 	}
 }
 

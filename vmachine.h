@@ -353,7 +353,7 @@ extern flatmap<int, int> functionCode;
 #define addop3(A,B,C,D) if has(n->phase, agg_phase) addop(A, B, C, D)
 //#define debugAddop
 #ifndef debugAddop
-#define debugAddop perr(st("addop: " , opMap[code], "  ip:", v.size(), '\n'));
+#define debugAddop perr(st("addop: " , opMap[code], "  ip:", v.size()));
 #endif
 
 void strplus(dat &s1, dat &s2);
@@ -375,15 +375,15 @@ class qinstance {
 	qinstance(querySpecs& qs) {
 		q = &qs;
 	}
-	~qinstance() { perr("Destructing query instance\n"); }
+	~qinstance() { perr("Destructing query instance"); }
 	int run(){
 		prepareQuery(*q);
-		perr("Constructing vm\n");
+		perr("Constructing vm");
 		vm.reset(new vmachine(*q));
 		id = vm->id;
-		perr("Starting query\n");
+		perr("Starting query");
 		vm->run();
-		perr("Finished query\n");
+		perr("Finished query");
 		return id;
 	}
 };

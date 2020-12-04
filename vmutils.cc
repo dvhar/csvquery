@@ -61,8 +61,8 @@ flatmap<int, int> functionCode = {
 	//make pow use N_MULT
 };
 
-void opcode::print(){
-	perr((ft("code: %-18s  [%-2d  %-2d  %-2d]\n")% opMap[code]% p1% p2% p3).str());
+string opcode::print(){
+	return (ft("code: %-18s  [%-2d  %-2d  %-2d]")% opMap[code]% p1% p2% p3).str();
 }
 // (1) csv need quoting: , \n
 // (2) csv need escaping: "
