@@ -518,7 +518,7 @@ class crypter {
 	void chachaEncrypt(dat&, int);
 	void chachaDecrypt(dat&, int);
 };
-
+class subquery;
 class querySpecs {
 	public:
 	string savepath;
@@ -533,7 +533,8 @@ class querySpecs {
 	map<string, shared_ptr<fileReader>> filemap;
 	vector<shared_ptr<fileReader>> filevec;
 	promise<string> passReturn;
-	vector<unique_ptr<querySpecs>> subqueries;
+	subquery* thisSq;
+	vector<subquery> subqueries;
 	resultSpecs colspec = {0};
 	crypter crypt = {};
 	i64 sessionId = 0;
@@ -582,6 +583,22 @@ class querySpecs {
 	querySpecs(astnode &n, int sqtype) {
 		tree.reset(n.release());
 		isSubquery = sqtype;
+	};
+};
+class subquery {
+	public:
+	int type;
+	future<void> prepdone;
+	//pair is type, canbestring
+	shared_future<vector<pair<int,bool>>> topinnertypes;
+	promise<vector<pair<int,bool>>> topinnertypesp;
+	future<vector<int>> topfinaltypes;
+	promise<vector<int>> topfinaltypesp;
+	unique_ptr<querySpecs> query;
+	subquery(querySpecs* q) : query(q) {
+		q->thisSq = this;
+		topinnertypes = topinnertypesp.get_future().share();
+		topfinaltypes = topfinaltypesp.get_future();
 	};
 };
 

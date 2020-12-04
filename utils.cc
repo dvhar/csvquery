@@ -268,13 +268,14 @@ void querySpecs::setPassword(string s){
 };
 int querySpecs::addSubquery(astnode& subtree, int sqtype){
 	try {
-		subqueries.emplace_back();
-		auto& qptr = subqueries.back();
-		qptr.reset(new querySpecs(subtree, sqtype));
-		prepareQuery(*qptr);
+		perr("adding subquery");
+		subqueries.emplace_back(new querySpecs(subtree, sqtype));
+		auto& sq = subqueries.back();
+		sq.prepdone = async([&]{prepareQuery(*sq.query);});
 	} catch (...){
 		error("SUBQUERY: ",EX_STRING);
 	}
+	perr("added subquery");
 	return subqueries.size()-1;
 }
 
@@ -611,12 +612,21 @@ settings_t globalSettings;
 
 void prepareQuery(querySpecs &q){
 	scanTokens(q);
+	perr("Scanned\n");
 	parseQuery(q);
+	perr("Parsed\n");
 	earlyAnalyze(q);
+	perr("EAnalyzed\n");
 	openfiles(q);
+	perr("Opened\n");
 	q.promptPassword();
 	applyTypes(q);
+	perr("Typed\n");
 	lateAnalyze(q);
+	perr("LAnalyzed\n");
 	printTree(q.tree, 0);
 	codeGen(q);
+	perr("Genned\n");
+	for (auto& sq : q.subqueries)
+		sq.prepdone.get();
 };
