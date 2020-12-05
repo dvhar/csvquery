@@ -590,7 +590,7 @@ class subquery {
 	public:
 	int singleDatatype = 0;
 	int btreeIdx = 0;
-	thread prepdone;
+	thread prep;
 	//pair is type, canbestring
 	shared_future<vector<pair<int,bool>>> topinnertypes;
 	promise<vector<pair<int,bool>>> topinnertypesp;

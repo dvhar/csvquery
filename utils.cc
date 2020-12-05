@@ -272,7 +272,7 @@ int querySpecs::addSubquery(astnode& subtree, int sqtype){
 		perr("adding subquery");
 		subqueries.emplace_back(new querySpecs(subtree, sqtype));
 		auto& sq = subqueries.back();
-		sq.prepdone = thread([&]{prepareQuery(*sq.query);});
+		sq.prep = thread([&]{prepareQuery(*sq.query);});
 	} catch (...){
 		error("SUBQUERY: ",EX_STRING);
 	}
@@ -614,8 +614,8 @@ void perr(string s){
 
 	static const char* ss[] = {
 		R "\033[38;5;82m",
-		R "\033[38;5;87m",
 		R "\033[38;5;205m",
+		R "\033[38;5;87m",
 		R "\033[38;5;196m",
 		R "\033[38;5;208m",
 		R "\033[38;5;82m",
@@ -653,5 +653,5 @@ void prepareQuery(querySpecs &q){
 	codeGen(q);
 	perr("Genned");
 	for (auto& sq : q.subqueries)
-		sq.prepdone.join();
+		sq.prep.join();
 };

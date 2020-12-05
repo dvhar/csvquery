@@ -492,7 +492,7 @@ astnode parser::parsePredicates() {
 //tok2 is negation
 //tok3 is 'like' expression
 //node1 is [expr, predicates]
-//node2 is second expr
+//node2 is second expr, <setlist> if inlist
 //node3 is third expr for betweens
 //later:
 //  [TOSCAN] will be number of node (1,2) for indexable join value
