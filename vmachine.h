@@ -184,6 +184,7 @@ class messager {
 };
 
 class boxprinter {
+	bool active = 0;
 	int rowlimit = 100;
 	int numcol = 0;
 	int numrow = 0;
@@ -193,6 +194,7 @@ class boxprinter {
 	list<vector<string>> datarows;
 	public:
 	void init(vector<int>& types_, vector<string>& names_){
+		active = 1;
 		types = types_;
 		names = names_;
 		numcol = names.size();
@@ -202,7 +204,7 @@ class boxprinter {
 	};
 	void addrow(dat* sourcerow);
 	void print();
-	~boxprinter(){ if (globalSettings.termbox) print(); };
+	~boxprinter(){ if (active && globalSettings.termbox) print(); };
 };
 
 class rowgroup;
