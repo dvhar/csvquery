@@ -610,6 +610,31 @@ string gethome(){
 
 settings_t globalSettings;
 
+void perr(string s){
+
+	static const char* ss[] = {
+		R "\033[38;5;82m",
+		R "\033[38;5;87m",
+		R "\033[38;5;205m",
+		R "\033[38;5;196m",
+		R "\033[38;5;208m",
+		R "\033[38;5;82m",
+	};
+	static atomic_int i(0);
+	static map<thread::id,const char*> cs;
+	static mutex dbmtx;
+	if (globalSettings.debug){
+
+		dbmtx.lock();
+		auto th = this_thread::get_id();
+		if (!cs.count(th))
+			cs[th] = ss[(i++)%6];
+
+		cerr << cs[th] << s << "\033[0m" << endl;
+		dbmtx.unlock();
+	}
+}
+
 void prepareQuery(querySpecs &q){
 	scanTokens(q);
 	perr("Scanned");

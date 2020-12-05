@@ -62,6 +62,7 @@ static string st(Args&&... args) {
 	return ss.str();
 }
 string gethome();
+void perr(string s);
 
 class settings_t {
 	public:
@@ -82,30 +83,6 @@ class settings_t {
 extern mt19937 rng;
 extern string version;
 extern settings_t globalSettings;
-static void perr(string s){
-
-	static char* ss[] = {
-		(char*)"\033[38;5;82m",
-		(char*)"\033[38;5;87m",
-		(char*)"\033[38;5;205m",
-		(char*)"\033[38;5;196m",
-		(char*)"\033[38;5;208m",
-		(char*)"\033[38;5;82m",
-	};
-	static atomic_int i(0);
-	static map<thread::id,char*> cs;
-	static mutex dbmtx;
-	if (globalSettings.debug){
-
-		dbmtx.lock();
-		auto th = this_thread::get_id();
-		if (!cs.count(th))
-			cs[th] = ss[(i++)%6];
-
-		cerr << cs[th] << s << "\033[0m" << endl;
-		dbmtx.unlock();
-	}
-}
 
 template<typename... Args>
 static void error(Args&&... A){ throw invalid_argument(st(A...));}
@@ -605,9 +582,14 @@ class querySpecs {
 		isSubquery = sqtype;
 	};
 };
+class subquerySet {
+	public:
+		virtual bool contains(dat&)=0;
+};
 class subquery {
 	public:
-	int type;
+	int singleDatatype = 0;
+	int btreeIdx = 0;
 	thread prepdone;
 	//pair is type, canbestring
 	shared_future<vector<pair<int,bool>>> topinnertypes;
@@ -615,6 +597,7 @@ class subquery {
 	future<vector<int>> topfinaltypes;
 	promise<vector<int>> topfinaltypesp;
 	unique_ptr<querySpecs> query;
+	unique_ptr<subquerySet> resultSet;
 	subquery(querySpecs* q) : query(q) {
 		q->thisSq = this;
 		topinnertypes = topinnertypesp.get_future().share();

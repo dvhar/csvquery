@@ -826,8 +826,10 @@ void dataTyper::typeFinalValues(astnode &n, int finaltype){
 	//straightforward stuff
 	case N_SETLIST:
 		if (n->tok1.id){
-			auto sz = q->subqueries[n->tok2.id].topinnertypes.get().size();
-			q->subqueries[n->tok2.id].topfinaltypesp.set_value(vector<int>(sz, finaltype));
+			auto& sq = q->subqueries[n->tok2.id];
+			auto sz = sq.topinnertypes.get().size();
+			sq.singleDatatype = finaltype;
+			sq.topfinaltypesp.set_value(vector<int>(sz, finaltype));
 			break;
 		}
 	case N_CWEXPRLIST:

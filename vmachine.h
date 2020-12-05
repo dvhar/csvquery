@@ -49,7 +49,7 @@ enum codes : int {
 	FUNC_LOG, FUNC_LOG2, FUNC_LOG10, FUNC_SQRT, FUNC_RAND, FUNC_UPPER, FUNC_LOWER, FUNC_BASE64_ENCODE,
 	FUNC_BASE64_DECODE, FUNC_HEX_ENCODE, FUNC_HEX_DECODE, FUNC_LEN, FUNC_SUBSTR, FUNC_MD5, FUNC_SHA1,
 	FUNC_SHA256, FUNC_ROUND, FUNC_CBRT, FUNC_NOW, FUNC_NOWGM, PRINTCSV_HEADER, FUNC_FORMAT,
-	LDCOUNT, BETWEEN, PRINTBOX
+	LDCOUNT, BETWEEN, PRINTBOX, PRINTBTREE
 
 };
 
@@ -228,7 +228,6 @@ class vmachine {
 	vector<dat> destrow;
 	vector<dat> onegroup;
 	array<dat,50> stack;
-	vector<unique_ptr<vmachine>> subqueries;
 	vector<shared_ptr<fileReader>> files;
 	vector<unique_ptr<dat[], freeC>> groupSorter;
 	vector<int> sortIdxs;
@@ -445,3 +444,25 @@ static pair<dat*,dat*> getfirst(dat* stacktop, int firsttype){
 		return {stacktop,stacktop-1};
 	return {stacktop-1,stacktop};
 }
+
+class subqueryNset : public subquerySet {
+	bset<i64> btree;
+	public:
+	bool contains(dat& d){
+		return btree.find(d.u.i) != btree.end();
+	}
+	subqueryNset(bset<i64>& src) :
+		btree(move(src)) {};
+};
+class subquerySset : public subquerySet {
+	bset<treeCString> btree;
+	public:
+	bool contains(dat& d){
+		treeCString t(d);
+		auto ret = btree.find(t) != btree.end();
+		free(t.s);
+		return ret;
+	}
+	subquerySset(bset<treeCString>& src) :
+		btree(move(src)) {};
+};

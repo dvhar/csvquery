@@ -9,6 +9,7 @@ class cgen {
 	int joinFileIdx = 0;
 	int prevJoinRead = 0;
 	int wherenot = 0;
+	int sqBtreeIndex = 0;
 	bool headerdone = false;
 	vector<int> valposTypes;
 	vector<opcode>& v;
@@ -63,6 +64,7 @@ class cgen {
 	void genIterateGroups(astnode &n);
 	void genUnsortedGroupRow(astnode &n, int nextgroup, int doneGroups);
 	void genSortedGroupRow(astnode &n, int nextgroup);
+	void genEndrun();
 	void finish();
 
 	cgen(querySpecs &qs): q{&qs}, v{qs.bytecode} {}
@@ -146,6 +148,9 @@ void cgen::genExprAll(astnode &n){
 	}
 }
 
+void cgen::genEndrun(){
+	addop(ENDRUN);
+}
 
 //given q.tree as node param
 void cgen::genJoiningQuery(astnode &n){
@@ -181,7 +186,7 @@ void cgen::genJoiningQuery(astnode &n){
 		addop(POP);
 	}
 	popvars();
-	addop(ENDRUN);
+	genEndrun();
 }
 //given 'from' node
 void cgen::genTraverseJoins(astnode &n){
@@ -248,10 +253,16 @@ void cgen::genHeader(){
 void cgen::genPrint(){
 	if (q->outputjson)
 		addop(PRINTJSON, q->outputcsv ? 0 : 1);
-	if (globalSettings.termbox)
-		addop(PRINTBOX);
-	else if (q->outputcsv)
-		addop(PRINTCSV);
+	if (q->outputcsv){
+		if (globalSettings.termbox)
+			addop(PRINTBOX);
+		else 
+			addop(PRINTCSV);
+	}
+	if (q->isSubquery == SQ_INLIST){
+		sqBtreeIndex = addBtree(q->thisSq->singleDatatype, q);
+		addop(PRINTBTREE, sqBtreeIndex);
+	}
 }
 void cgen::genAndChainSet(astnode &n){
 	int cz = n->info[CHAINSIZE];
@@ -466,7 +477,7 @@ void cgen::genNormalQuery(astnode &n){
 	jumps.setPlace(endfile, v.size());
 	addop(STOP_MESSAGE);
 	popvars();
-	addop(ENDRUN);
+	genEndrun();
 }
 void cgen::genNormalOrderedQuery(astnode &n){
 	int sorter = jumps.newPlaceholder(); //where to jump when done scanning file
@@ -502,7 +513,7 @@ void cgen::genNormalOrderedQuery(astnode &n){
 	addop(POP); //rereader used 2 stack spaces
 	addop(POP);
 	popvars();
-	addop(ENDRUN);
+	genEndrun();
 };
 
 //given afterfrom node
@@ -544,7 +555,7 @@ void cgen::genGroupingQuery(astnode &n){
 	addop(STOP_MESSAGE);
 	genIterateGroups(n->node4->node2);
 	popvars();
-	addop(ENDRUN);
+	genEndrun();
 }
 
 void cgen::genAggSortList(astnode &n){
