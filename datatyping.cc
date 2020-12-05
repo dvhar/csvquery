@@ -1004,6 +1004,7 @@ void dataTyper::setToptypes(){
 		} else if (n->tok1.id == SP_STAR){
 			//TODO: select all with other type
 		} else {
+			//TODO: type trivial seletions along with *
 			n->datatype = topftypes[i++] ?: T_STRING;
 		}
 		n = n->node2.get();

@@ -246,7 +246,7 @@ vmachine::vmachine(querySpecs &qs) :
 
 vmachine::~vmachine(){
 	perr("Destructing vm\n");
-	if (runmode == RUN_SINGLE) //skip garbage collection if one-off query
+	if (runmode == RUN_SINGLE && !q->isSubquery) //skip garbage collection if one-off query
 		return;
 	distinctVal.freedat();
 	for (auto &d : stack)   d.freedat();
