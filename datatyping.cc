@@ -1015,11 +1015,8 @@ void applyTypes(querySpecs &q){
 	dt.typeInitialValue(q.tree, false);
 	dt.typeInnerNodes(q.tree);
 	if (q.isSubquery){
-		perr("Getting top types in sub");
 		dt.getToptypes();
-		perr("Setting top types in sub");
 		dt.setToptypes();
-		perr("Set top types in sub");
 	}
 	dt.typeFinalValues(q.tree, -1);
 }

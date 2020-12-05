@@ -869,7 +869,7 @@ void cgen::genPredCompare(astnode &n){
 	if (n == nullptr) return;
 	e("gen pred compare");
 	int negation = n->tok2.id;
-	int endcomp, greaterThanExpr3;
+	int endcomp, greaterThanExpr3, subq=0;
 	genExprAll(n->node1);
 	switch (n->tok1.id){
 	case SP_NOEQ: negation ^= 1;
@@ -899,10 +899,11 @@ void cgen::genPredCompare(astnode &n){
 		jumps.setPlace(endcomp, v.size());
 		break;
 	case KW_IN:
-		endcomp = jumps.newPlaceholder();
 		if (n->node2->tok1.id){
-			//subquery
+			addop(INSUBQUERY, n->node2->tok2.id);
+			subq = 1;
 		} else {
+			endcomp = jumps.newPlaceholder();
 			for (auto nn=n->node2->node1.get(); nn; nn=nn->node2.get()){
 				genExprAll(nn->node1);
 				addop1(operations[OPEQ][n->node1->datatype], 0);
@@ -910,11 +911,12 @@ void cgen::genPredCompare(astnode &n){
 				if (nn->node2.get())
 					addop0(POP);
 			}
+			jumps.setPlace(endcomp, v.size());
 		}
-		jumps.setPlace(endcomp, v.size());
 		if (negation)
 			addop0(PNEG);
-		addop0(POPCPY); //put result where 1st expr was
+		if (!subq)
+			addop0(POPCPY); //put result where 1st expr was
 		break;
 	case KW_LIKE:
 		addop2(LIKE, q->dataholder.size(), negation);
