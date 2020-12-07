@@ -1005,7 +1005,9 @@ void dataTyper::setToptypes(){
 			//TODO: select all with other type
 		} else {
 			//TODO: type trivial seletions along with *
-			n->datatype = topftypes[i++] ?: T_STRING;
+			n->datatype = topftypes[i++];
+			if (n->datatype == T_NULL)
+				error("Subquery has null datatype");
 		}
 		n = n->node2.get();
 	}
