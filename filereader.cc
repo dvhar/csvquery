@@ -146,7 +146,7 @@ inline char* fileReader::nextIsDelim(){
 	auto nextc = pos2+1;
 	while (*nextc == ' ')
 		++nextc;
-	if (*nextc == delim || *nextc == '\n' || *nextc == '\r' || *nextc == 0)
+	if (*nextc == delim || *nextc == 0 || *nextc == '\n' || *nextc == '\r')
 		return nextc;
 	return nullptr;
 }
