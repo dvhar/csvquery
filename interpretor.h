@@ -660,6 +660,7 @@ int getNarrowestType(char* value, int startType);
 void openfiles(querySpecs &q);
 void applyTypes(querySpecs &q);
 void earlyAnalyze(querySpecs &q);
+void midAnalyze(querySpecs &q);
 void lateAnalyze(querySpecs &q);
 void codeGen(querySpecs &q);
 void runPlainQuery(querySpecs &q);

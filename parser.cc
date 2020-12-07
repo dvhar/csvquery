@@ -88,6 +88,14 @@ class parser {
 	parser(querySpecs &qs): q{&qs} {}
 	void parse(){
 		q->tree = parseQuery();
+		auto t = q->tok();
+		switch (t.id){
+			case EOS:
+			case SP_RPAREN:
+			break;
+			default:
+				error("Unexpected token at and of query: ",t.val);
+		}
 	}
 };
 
@@ -100,6 +108,10 @@ void parseQuery(querySpecs &q) {
 }
 
 //could include other commands like describe, insert
+//node1 is preselect
+//node2 is select
+//node3 is from
+//node4 is afterfrom
 astnode parser::parseQuery() {
 	astnode n = newNode(N_QUERY);
 	n->node1 = parsePreSelect();
@@ -221,7 +233,7 @@ astnode parser::parseVars() {
 	return n;
 }
 
-//node1 is selections
+//node2 is selections (same as N_SELECTIONS)
 //tok1.id is quantityLimit
 astnode parser::parseSelect() {
 	if (justfile) return nullptr;
@@ -230,7 +242,7 @@ astnode parser::parseSelect() {
 	if (t.lower() != "select") error("Expected 'select'. Found "+t.val);
 	q->nextTok();
 	parseTop(n);
-	n->node1 = parseSelections();
+	n->node2 = parseSelections();
 	return n;
 }
 

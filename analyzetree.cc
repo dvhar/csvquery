@@ -14,6 +14,8 @@ class analyzer {
 		void setSubtreeVarFilter(astnode &n, int filter);
 		void propogateVarFilter(string var, int filter);
 		void selectAll();
+		void selectAllSubquery();
+		pair<astnode,node*> expandSelectAll();
 		void recordResultColumns(astnode &n);
 		bool findAgrregates(astnode &n);
 		bool allAgrregates(astnode &n);
@@ -114,6 +116,57 @@ void analyzer::selectAll(){
 			q->colspec.colnames.insert(q->colspec.colnames.end(), f->colnames.begin(), f->colnames.end());
 			shouldPrintHeader();
 		}
+	}
+}
+
+pair<astnode,node*> analyzer::expandSelectAll(){
+	static array<int,5> branch = { N_EXPRADD, N_EXPRMULT, N_EXPRNEG, N_EXPRCASE, N_VALUE };
+	auto newselections = pair<astnode,node*>(make_unique<node>(N_SELECTIONS),nullptr);
+	node* selection = newselections.first.get();
+	node* last;
+	for (int filenum = 0; filenum < q->filevec.size(); ++filenum){
+		for (int colnum = 1; colnum <= q->filevec[filenum]->numFields; ++colnum){
+			node* thisnode = selection;
+			for (int label : branch){
+				thisnode->node1 = make_unique<node>(label);
+				thisnode = thisnode->node1.get();
+				if (label == N_EXPRCASE || label == N_VALUE){
+					thisnode->tok1.id = WORD_TK;
+					thisnode->tok1.val = st("_f",filenum,".c",colnum);
+				}
+			}
+			selection->node2 = make_unique<node>(N_SELECTIONS);
+			last = selection;
+			selection = selection->node2.get();
+		}
+	}
+	last->node2.reset(nullptr);
+	newselections.second = last;
+	return newselections;
+}
+
+void analyzer::selectAllSubquery(){
+	if (!q->isSubquery) return;
+	if (auto& selections = findFirstNode(q->tree, N_SELECTIONS); selections == nullptr){
+		if (auto& select = findFirstNode(q->tree, N_SELECT); select){
+			select->node2 = expandSelectAll().first;
+		} else {
+			q->tree->node2 = make_unique<node>(N_SELECT);
+			q->tree->node2->node2 = expandSelectAll().first;
+		}
+	} else {
+		auto prev = findFirstNode(q->tree, N_SELECT).get();
+		auto next = prev->node2.get();
+		do {
+			if (next->tok1.id == SP_STAR){
+				auto&& allcolumns = expandSelectAll();
+				auto nextafter = next->node2.release();
+				prev->node2.reset(allcolumns.first.release());
+				allcolumns.second->node2.reset(nextafter);
+			}
+			prev = next;
+			next = next->node2.get();
+		} while (next && next->label == N_SELECTIONS);
 	}
 }
 
@@ -599,7 +652,10 @@ void earlyAnalyze(querySpecs &q){
 	analyzer an(q);
 	an.setAttributes(q.tree);
 }
-
+void midAnalyze(querySpecs &q){
+	analyzer an(q);
+	an.selectAllSubquery();
+}
 void lateAnalyze(querySpecs &q){
 	analyzer an(q);
 	an.varUsedInFilter(q.tree);
