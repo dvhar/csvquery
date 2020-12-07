@@ -45,8 +45,14 @@ class dataTyper {
 	void typeFunctionFinalNodes(astnode &n, int finaltype);
 	void checkMathSemantics(astnode &n);
 	void checkFuncSemantics(astnode &n);
+	bool canBeString(astnode& n);
+	void getToptypes();
+	void setToptypes();
+	void selectallToptypes();
 
 	dataTyper(querySpecs& qs): q{&qs} {};
+	vector<pair<int,bool>> topitypes;
+	vector<int> topftypes;
 };
 
 //special cases handled later by keepSubtreeTypes()
@@ -83,7 +89,7 @@ static ktype keepSubtreeTypes(int t1, int t2, int op) {
 }
 
 //see if using string type would interfere with operations
-static bool canBeString(astnode &n){
+bool dataTyper::canBeString(astnode &n){
 	if (n == nullptr) return true;
 
 	switch (n->label){
@@ -98,6 +104,15 @@ static bool canBeString(astnode &n){
 		else
 			return canBeString(n->node1);
 		break;
+	case N_SETLIST:
+		if (n->tok1.id){
+			auto& tv = q->subqueries[n->tok2.id].topinnertypes.get();
+			if (!tv.size()) error("Subquery has no datatypes");
+			for (auto& t: tv)
+				if (!t.second) return false;
+			return true;
+		}
+	case N_EXPRESSIONS:
 	case N_DEXPRESSIONS:
 	case N_CWEXPRLIST:
 	case N_CPREDLIST:
@@ -310,8 +325,8 @@ void dataTyper::typeInitialValue(astnode &n, bool trivial){
 	//cerr << "typed " << n->tok1.val << " as " << n->datatype << endl;
 
 	//see if selecting trivial value (just column or literal)
-	if (n->label == N_SELECTIONS)       trivial = true;
-	if (trivial && !stillTrivial(n))    trivial = false;
+	if (n->label == N_SELECTIONS && !q->isSubquery) trivial = true;
+	if (trivial && !stillTrivial(n))                trivial = false;
 	if (trivial && n->label == N_VALUE) {
 		if (n->tok2.id == COLUMN) {
 			n->datatype = T_STRING;
@@ -561,6 +576,15 @@ typer dataTyper::typeInnerNodes(astnode &n){
 			q->sorting = innerType.type;
 		break;
 	//things that may be list but have independant types
+	case N_SETLIST:
+		if (n->tok1.id){
+			auto& tv = q->subqueries[n->tok2.id].topinnertypes.get();
+			if (!tv.size()) error("Subquery has no datatypes");
+			innerType = {tv[0].first, false};
+			for (auto& t: tv)
+				innerType = typeCompute({t.first,false}, {innerType.type,false});
+			break;
+		}
 	case N_SELECTIONS:
 	case N_GROUPBY:
 	case N_EXPRESSIONS:
@@ -800,6 +824,14 @@ void dataTyper::typeFinalValues(astnode &n, int finaltype){
 		typeFinalValues(n->node4, -1);
 		break;
 	//straightforward stuff
+	case N_SETLIST:
+		if (n->tok1.id){
+			auto& sq = q->subqueries[n->tok2.id];
+			auto sz = sq.topinnertypes.get().size();
+			sq.singleDatatype = finaltype;
+			sq.topfinaltypesp.set_value(vector<int>(sz, finaltype));
+			break;
+		}
 	case N_CWEXPRLIST:
 	case N_CPREDLIST:
 	case N_DEXPRESSIONS:
@@ -841,7 +873,7 @@ void dataTyper::typeFinalValues(astnode &n, int finaltype){
 		typePredCompFinalNodes(n);
 		break;
 	case N_VALUE:
-		typeFinalValues(n->node1, finaltype); //functioin
+		typeFinalValues(n->node1, finaltype); //function
 		break;
 	case N_FUNCTION:
 		typeFunctionFinalNodes(n, finaltype);
@@ -943,11 +975,48 @@ void dataTyper::checkFuncSemantics(astnode &n){
 		break;
 	}
 }
+void dataTyper::selectallToptypes(){
+	for (auto &f : q->filevec)
+		for (auto &c: f->colnames)
+			topitypes.push_back({T_NULL,true}); //turn to string if finaltype still null
+}
+void dataTyper::getToptypes(){
+	auto n = findFirstNode(q->tree, N_SELECTIONS).get();
+	if (n == nullptr){
+		selectallToptypes();
+	} else while (n){
+		if (n->tok1.id == KW_DISTINCT && n->tok1.lower() == "hidden"){
+		} else if (n->tok1.id == SP_STAR){
+			selectallToptypes();
+		} else {
+			topitypes.push_back({n->datatype,canBeString(n->node1)});
+		}
+		n = n->node2.get();
+	}
+	q->thisSq->topinnertypesp.set_value(move(topitypes));
+}
+void dataTyper::setToptypes(){
+	topftypes = q->thisSq->topfinaltypes.get();
+	auto n = findFirstNode(q->tree, N_SELECTIONS).get();
+	int i = 0;
+	while (n){
+		if (!(n->tok1.id == KW_DISTINCT && n->tok1.lower() == "hidden")){
+			n->datatype = topftypes[i++];
+			if (n->datatype == T_NULL)
+				error("Subquery has null datatype");
+		}
+		n = n->node2.get();
+	}
+}
 
 void applyTypes(querySpecs &q){
 	dataTyper dt(q);
 	dt.typeInitialValue(q.tree, false);
 	dt.typeInnerNodes(q.tree);
+	if (q.isSubquery){
+		dt.getToptypes();
+		dt.setToptypes();
+	}
 	dt.typeFinalValues(q.tree, -1);
 }
 

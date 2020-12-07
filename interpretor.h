@@ -62,6 +62,7 @@ static string st(Args&&... args) {
 	return ss.str();
 }
 string gethome();
+void perr(string s);
 
 class settings_t {
 	public:
@@ -69,6 +70,9 @@ class settings_t {
 	bool debug = 1;
 	bool autoheader = 0;
 	bool autoexit = 1;
+	bool termbox = 0;
+	bool tablecolor = 1;
+	bool tablelinebg = 0;
 #ifdef _WIN32
 	string configpath = st(getenv("USERPROFILE"),R"(\AppData\csvqueryConf.txt)");
 #else
@@ -79,19 +83,16 @@ class settings_t {
 extern mt19937 rng;
 extern string version;
 extern settings_t globalSettings;
-static void perr(string s){
-	if (globalSettings.debug)
-		cerr << s;
-}
 
 template<typename... Args>
 static void error(Args&&... A){ throw invalid_argument(st(A...));}
 
-enum nodetypes { N_QUERY, N_PRESELECT, N_WITH, N_VARS, N_SELECT, N_SELECTIONS, N_FROM, N_AFTERFROM, N_JOINCHAIN, N_JOIN, N_WHERE, N_HAVING, N_ORDER, N_EXPRADD, N_EXPRMULT, N_EXPRNEG, N_EXPRCASE, N_CPREDLIST, N_CPRED, N_CWEXPRLIST, N_CWEXPR, N_PREDICATES, N_PREDCOMP, N_VALUE, N_FUNCTION, N_GROUPBY, N_EXPRESSIONS, N_DEXPRESSIONS, N_TYPECONV };
+enum nodetypes { N_QUERY, N_PRESELECT, N_WITH, N_VARS, N_SELECT, N_SELECTIONS, N_FROM, N_AFTERFROM, N_JOINCHAIN, N_JOIN, N_WHERE, N_HAVING, N_ORDER, N_EXPRADD, N_EXPRMULT, N_EXPRNEG, N_EXPRCASE, N_CPREDLIST, N_CPRED, N_CWEXPRLIST, N_CWEXPR, N_PREDICATES, N_PREDCOMP, N_VALUE, N_FUNCTION, N_GROUPBY, N_EXPRESSIONS, N_DEXPRESSIONS, N_TYPECONV, N_FILE, N_SETLIST };
 
 enum valTypes { LITERAL, COLUMN, VARIABLE, FUNCTION };
 enum varFilters { WHERE_FILTER=1, DISTINCT_FILTER=2, ORDER_FILTER=4, AGG_FILTER=8, HAVING_FILTER=16, JCOMP_FILTER=32, JSCAN_FILTER=64, SELECT_FILTER=128 };
 enum varScopes { V_READ1_SCOPE, V_READ2_SCOPE, V_GROUP_SCOPE, V_SCAN_SCOPE };
+enum subquerytypes { SQ_INLIST=1 };
 
 
 enum {
@@ -396,6 +397,7 @@ class fileReader {
 	inline void getQuotedField();
 	inline void compactQuote();
 	inline bool checkWidth();
+	int size(){ return br.fsize; };
 	void inferTypes();
 	int getColIdx(string&);
 	bool readline();
@@ -410,7 +412,7 @@ class opcode {
 	int p1 =0;
 	int p2 =0;
 	int p3 =0;
-	void print();
+	string print();
 };
 inline static char* newStr(char* src, int size){
 	char* s = (char*) malloc(size+1);
@@ -513,7 +515,7 @@ class crypter {
 	void chachaEncrypt(dat&, int);
 	void chachaDecrypt(dat&, int);
 };
-
+class subquery;
 class querySpecs {
 	public:
 	string savepath;
@@ -528,6 +530,8 @@ class querySpecs {
 	map<string, shared_ptr<fileReader>> filemap;
 	vector<shared_ptr<fileReader>> filevec;
 	promise<string> passReturn;
+	subquery* thisSq;
+	vector<subquery> subqueries;
 	resultSpecs colspec = {0};
 	crypter crypt = {};
 	i64 sessionId = 0;
@@ -544,6 +548,7 @@ class querySpecs {
 	int sorting =0;
 	int sortcount =0;
 	int grouping =0; //1 = one group, 2 = groups
+	int isSubquery =0; //1 = in list predicate
 	bool outputjson =0;
 	bool outputcsv =0;
 	bool outputcsvheader =0;
@@ -568,9 +573,36 @@ class querySpecs {
 	void setPassword(string s);
 	shared_ptr<fileReader>& getFileReader(int);
 	void promptPassword();
+	int addSubquery(astnode&, int);
 	variable& var(string);
 	~querySpecs();
 	querySpecs(string &s) : queryString(s) {};
+	querySpecs(astnode &n, int sqtype) {
+		tree.reset(n.release());
+		isSubquery = sqtype;
+	};
+};
+class subquerySet {
+	public:
+		virtual bool contains(dat&)=0;
+};
+class subquery {
+	public:
+	int singleDatatype = 0;
+	int btreeIdx = 0;
+	thread prep;
+	//pair is type, canbestring
+	shared_future<vector<pair<int,bool>>> topinnertypes;
+	promise<vector<pair<int,bool>>> topinnertypesp;
+	future<vector<int>> topfinaltypes;
+	promise<vector<int>> topfinaltypesp;
+	unique_ptr<querySpecs> query;
+	unique_ptr<subquerySet> resultSet;
+	subquery(querySpecs* q) : query(q) {
+		q->thisSq = this;
+		topinnertypes = topinnertypesp.get_future().share();
+		topfinaltypes = topfinaltypesp.get_future();
+	};
 };
 
 class singleQueryResult {
@@ -625,9 +657,11 @@ int isDuration(const char*);
 int dateParse(const char*, struct timeval*);
 int parseDuration(char*, dat&);
 int getNarrowestType(char* value, int startType);
-void openfiles(querySpecs &q, astnode &n);
+void openfiles(querySpecs &q);
 void applyTypes(querySpecs &q);
-void analyzeTree(querySpecs &q);
+void earlyAnalyze(querySpecs &q);
+void midAnalyze(querySpecs &q);
+void lateAnalyze(querySpecs &q);
 void codeGen(querySpecs &q);
 void runPlainQuery(querySpecs &q);
 shared_ptr<singleQueryResult> runJsonQuery(querySpecs &q);

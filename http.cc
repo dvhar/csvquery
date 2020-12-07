@@ -74,7 +74,7 @@ static void serve(){
 				sendMessage(wq.sessionId, "Saved to " + wq.savepath);
 			else if (ret->maxclipped)
 				sendMessage(wq.sessionId, st("Only showing first ",ret->maxclipped," results"));
-			perr("Writing http respons\n");
+			perr("Writing http respons");
 			response->write(ret->tojson().str(), header);
 
 		} catch (...){
@@ -125,7 +125,7 @@ static void serve(){
 		}
 	};
 
-	perr("starting http server\n");
+	perr("starting http server");
 	auto ws = async(servews);
 	auto hs = async([](){server.start();});
 	openbrowser();
@@ -139,13 +139,13 @@ static shared_ptr<returnData> runqueries(webquery &wq){
 	auto ret = make_shared<returnData>();
 	for (auto &q: wq.queries){
 		auto&& singleResult = runWebQuery(wq);
-		perr("Got result of single query\n");
+		perr("Got result of single query");
 		ret->entries.push_back(singleResult);
 		if (singleResult->clipped)
 			ret->maxclipped = max(ret->maxclipped, singleResult->rowlimit);
 		wq.whichone++;
 	}
-	perr("Got result of all queries\n");
+	perr("Got result of all queries");
 	return ret;
 }
 

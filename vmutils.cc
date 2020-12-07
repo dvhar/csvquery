@@ -11,7 +11,7 @@
 
 //map for printing opcodes
 flatmap<int, string_view> opMap = {
-	{CVER,"CVER"}, {CVNO,"CVNO"}, {CVIF,"CVIF"}, {CVIS,"CVIS"}, {CVFI,"CVFI"}, {CVFS,"CVFS"}, {CVDRS,"CVDRS"}, {CVDTS,"CVDTS"}, {CVSI,"CVSI"}, {CVSF,"CVSF"}, {CVSDR,"CVSDR"}, {CVSDT,"CVSDT"}, {IADD,"IADD"}, {FADD,"FADD"}, {TADD,"TADD"}, {DTADD,"DTADD"}, {DRADD,"DRADD"}, {ISUB,"ISUB"}, {FSUB,"FSUB"}, {DTSUB,"DTSUB"}, {DRSUB,"DRSUB"}, {IMULT,"IMULT"}, {FMULT,"FMULT"}, {DRMULT,"DRMULT"}, {IDIV,"IDIV"}, {FDIV,"FDIV"}, {DRDIV,"DRDIV"}, {INEG,"INEG"}, {FNEG,"FNEG"}, {PNEG,"PNEG"}, {IMOD,"IMOD"}, {FMOD,"FMOD"}, {IPOW,"IPOW"}, {FPOW,"FPOW"}, {JMP,"JMP"}, {JMPCNT,"JMPCNT"}, {JMPTRUE,"JMPTRUE"}, {JMPFALSE,"JMPFALSE"}, {JMPNOTNULL_ELSEPOP,"JMPNOTNULL_ELSEPOP"}, {RDLINE,"RDLINE"}, {RDLINE_ORDERED,"RDLINE_ORDERED"}, {PREP_REREAD,"PREP_REREAD"}, {PUT,"PUT"}, {LDPUT,"LDPUT"}, {LDPUTALL,"LDPUTALL"}, {PUTVAR,"PUTVAR"}, {PUTVAR2,"PUTVAR2"}, {LDINT,"LDINT"}, {LDFLOAT,"LDFLOAT"}, {LDTEXT,"LDTEXT"}, {LDDATE,"LDDATE"}, {LDDUR,"LDDUR"}, {LDLIT,"LDLIT"}, {LDVAR,"LDVAR"}, {HOLDVAR,"HOLDVAR"}, {IEQ,"IEQ"}, {FEQ,"FEQ"}, {TEQ,"TEQ"}, {LIKE,"LIKE"}, {ILEQ,"ILEQ"}, {FLEQ,"FLEQ"}, {TLEQ,"TLEQ"}, {ILT,"ILT"}, {FLT,"FLT"}, {TLT,"TLT"}, {PRINTJSON,"PRINTJSON"}, {PRINTCSV,"PRINTCSV"}, {PUSH,"PUSH"}, {PUSH_N,"PUSH_N"}, {POP,"POP"}, {POPCPY,"POPCPY"}, {ENDRUN,"ENDRUN"}, {NULFALSE1,"NULFALSE1"}, {NULFALSE2,"NULFALSE2"}, {NDIST,"NDIST"}, {SDIST,"SDIST"}, {PUTDIST,"PUTDIST"}, {LDDIST,"LDDIST"}, {FINC,"FINC"}, {ENCCHA,"ENCCHA"}, {DECCHA,"DECCHA"}, {SAVESORTN,"SAVESORTN"}, {SAVESORTS,"SAVESORTS"}, {SAVEVALPOS,"SAVEVALPOS"}, {SAVEPOS,"SAVEPOS"}, {SORT,"SORT"}, {GETGROUP,"GETGROUP"}, {ONEGROUP,"ONEGROUP"}, {SUMI,"SUMI"}, {SUMF,"SUMF"}, {AVGI,"AVGI"}, {AVGF,"AVGF"}, {STDVI,"STDVI"}, {STDVF,"STDVF"}, {COUNT,"COUNT"}, {MINI,"MINI"}, {MINF,"MINF"}, {MINS,"MINS"}, {MAXI,"MAXI"}, {MAXF,"MAXF"}, {MAXS,"MAXS"}, {NEXTMAP,"NEXTMAP"}, {NEXTVEC,"NEXTVEC"}, {ROOTMAP,"ROOTMAP"}, {LDMID,"LDMID"}, {LDPUTMID,"LDPUTMID"}, {LDPUTGRP,"LDPUTGRP"}, {LDSTDVI,"LDSTDVI"}, {LDSTDVF,"LDSTDVF"}, {LDAVGI,"LDAVGI"}, {LDAVGF,"LDAVGF"}, {ADD_GROUPSORT_ROW,"ADD_GROUPSORT_ROW"}, {FREEMIDROW,"FREEMIDROW"}, {GSORT,"GSORT"}, {READ_NEXT_GROUP,"READ_NEXT_GROUP"}, {NUL_TO_STR,"NUL_TO_STR"}, {SORTVALPOS,"SORTVALPOS"}, {JOINSET_EQ,"JOINSET_EQ"}, {JOINSET_LESS,"JOINSET_LESS"}, {JOINSET_GRT,"JOINSET_GRT"}, {JOINSET_INIT,"JOINSET_INIT"}, {JOINSET_TRAV,"JOINSET_TRAV"}, {AND_SET,"AND_SET"}, {OR_SET,"OR_SET"}, {SAVEANDCHAIN,"SAVEANDCHAIN"}, {JOINSET_EQ_AND,"JOINSET_EQ_AND"}, {SORT_ANDCHAIN,"SORT_ANDCHAIN"},{FUNCYEAR,"FUNCYEAR"}, {FUNCMONTH,"FUNCMONTH"}, {FUNCWEEK,"FUNCWEEK"}, {FUNCYDAY,"FUNCYDAY"}, {FUNCMDAY,"FUNCMDAY"}, {FUNCWDAY,"FUNCWDAY"}, {FUNCHOUR,"FUNCHOUR"}, {FUNCMINUTE,"FUNCMINUTE"}, {FUNCSECOND,"FUNCSECOND"}, {FUNCWDAYNAME,"FUNCWDAYNAME"}, {FUNCMONTHNAME,"FUNCMONTHNAME"}, {JOINSET_LESS_AND,"JOINSET_LESS_AND"}, {JOINSET_GRT_AND,"JOINSET_GRT_AND"}, {FUNCABSF,"FUNCABSF"}, {FUNCABSI,"FUNCABSI"}, {START_MESSAGE,"START_MESSAGE"}, {STOP_MESSAGE,"STOP_MESSAGE"}, {FUNC_CIEL,"FUNC_CIEL"}, {FUNC_FLOOR,"FUNC_FLOOR"}, {FUNC_ACOS,"FUNC_ACOS"}, {FUNC_ASIN,"FUNC_ASIN"}, {FUNC_ATAN,"FUNC_ATAN"}, {FUNC_COS,"FUNC_COS"}, {FUNC_SIN,"FUNC_SIN"}, {FUNC_TAN,"FUNC_TAN"}, {FUNC_EXP,"FUNC_EXP"}, {FUNC_LOG,"FUNC_LOG"}, {FUNC_LOG2,"FUNC_LOG2"}, {FUNC_LOG10,"FUNC_LOG10"}, {FUNC_SQRT,"FUNC_SQRT"}, {FUNC_RAND,"FUNC_RAND"}, {FUNC_UPPER,"FUNC_UPPER"}, {FUNC_LOWER,"FUNC_LOWER"}, {FUNC_BASE64_ENCODE,"FUNC_BASE64_ENCODE"}, {FUNC_BASE64_DECODE,"FUNC_BASE64_DECODE"}, {FUNC_HEX_ENCODE,"FUNC_HEX_ENCODE"}, {FUNC_HEX_DECODE,"FUNC_HEX_DECODE"}, {FUNC_LEN,"FUNC_LEN"}, {FUNC_SUBSTR,"FUNC_SUBSTR"}, {FUNC_MD5,"FUNC_MD5"}, {FUNC_SHA1,"FUNC_SHA1"}, {FUNC_SHA256,"FUNC_SHA256"}, {FUNC_ROUND,"FUNC_ROUND"}, {FUNC_CBRT,"FUNC_CBRT"}, {FUNC_NOW,"FUNC_NOW"}, {FUNC_NOWGM,"FUNC_NOWGM"}, {PRINTCSV_HEADER,"PRINTCSV_HEADER"}, {FUNC_FORMAT,"FUNC_FORMAT"}, {LDCOUNT,"LDCOUNT"}
+	{CVER,"CVER"}, {CVNO,"CVNO"}, {CVIF,"CVIF"}, {CVIS,"CVIS"}, {CVFI,"CVFI"}, {CVFS,"CVFS"}, {CVDRS,"CVDRS"}, {CVDTS,"CVDTS"}, {CVSI,"CVSI"}, {CVSF,"CVSF"}, {CVSDR,"CVSDR"}, {CVSDT,"CVSDT"}, {IADD,"IADD"}, {FADD,"FADD"}, {TADD,"TADD"}, {DTADD,"DTADD"}, {DRADD,"DRADD"}, {ISUB,"ISUB"}, {FSUB,"FSUB"}, {DTSUB,"DTSUB"}, {DRSUB,"DRSUB"}, {IMULT,"IMULT"}, {FMULT,"FMULT"}, {DRMULT,"DRMULT"}, {IDIV,"IDIV"}, {FDIV,"FDIV"}, {DRDIV,"DRDIV"}, {INEG,"INEG"}, {FNEG,"FNEG"}, {PNEG,"PNEG"}, {IMOD,"IMOD"}, {FMOD,"FMOD"}, {IPOW,"IPOW"}, {FPOW,"FPOW"}, {JMP,"JMP"}, {JMPCNT,"JMPCNT"}, {JMPTRUE,"JMPTRUE"}, {JMPFALSE,"JMPFALSE"}, {JMPNOTNULL_ELSEPOP,"JMPNOTNULL_ELSEPOP"}, {RDLINE,"RDLINE"}, {RDLINE_ORDERED,"RDLINE_ORDERED"}, {PREP_REREAD,"PREP_REREAD"}, {PUT,"PUT"}, {LDPUT,"LDPUT"}, {LDPUTALL,"LDPUTALL"}, {PUTVAR,"PUTVAR"}, {PUTVAR2,"PUTVAR2"}, {LDINT,"LDINT"}, {LDFLOAT,"LDFLOAT"}, {LDTEXT,"LDTEXT"}, {LDDATE,"LDDATE"}, {LDDUR,"LDDUR"}, {LDLIT,"LDLIT"}, {LDVAR,"LDVAR"}, {HOLDVAR,"HOLDVAR"}, {IEQ,"IEQ"}, {FEQ,"FEQ"}, {TEQ,"TEQ"}, {LIKE,"LIKE"}, {ILEQ,"ILEQ"}, {FLEQ,"FLEQ"}, {TLEQ,"TLEQ"}, {ILT,"ILT"}, {FLT,"FLT"}, {TLT,"TLT"}, {PRINTJSON,"PRINTJSON"}, {PRINTCSV,"PRINTCSV"}, {PUSH,"PUSH"}, {PUSH_N,"PUSH_N"}, {POP,"POP"}, {POPCPY,"POPCPY"}, {ENDRUN,"ENDRUN"}, {NULFALSE,"NULFALSE"}, {NDIST,"NDIST"}, {SDIST,"SDIST"}, {PUTDIST,"PUTDIST"}, {LDDIST,"LDDIST"}, {FINC,"FINC"}, {ENCCHA,"ENCCHA"}, {DECCHA,"DECCHA"}, {SAVESORTN,"SAVESORTN"}, {SAVESORTS,"SAVESORTS"}, {SAVEVALPOS,"SAVEVALPOS"}, {SAVEPOS,"SAVEPOS"}, {SORT,"SORT"}, {GETGROUP,"GETGROUP"}, {ONEGROUP,"ONEGROUP"}, {SUMI,"SUMI"}, {SUMF,"SUMF"}, {AVGI,"AVGI"}, {AVGF,"AVGF"}, {STDVI,"STDVI"}, {STDVF,"STDVF"}, {COUNT,"COUNT"}, {MINI,"MINI"}, {MINF,"MINF"}, {MINS,"MINS"}, {MAXI,"MAXI"}, {MAXF,"MAXF"}, {MAXS,"MAXS"}, {NEXTMAP,"NEXTMAP"}, {NEXTVEC,"NEXTVEC"}, {ROOTMAP,"ROOTMAP"}, {LDMID,"LDMID"}, {LDPUTMID,"LDPUTMID"}, {LDPUTGRP,"LDPUTGRP"}, {LDSTDVI,"LDSTDVI"}, {LDSTDVF,"LDSTDVF"}, {LDAVGI,"LDAVGI"}, {LDAVGF,"LDAVGF"}, {ADD_GROUPSORT_ROW,"ADD_GROUPSORT_ROW"}, {FREEMIDROW,"FREEMIDROW"}, {GSORT,"GSORT"}, {READ_NEXT_GROUP,"READ_NEXT_GROUP"}, {NUL_TO_STR,"NUL_TO_STR"}, {SORTVALPOS,"SORTVALPOS"}, {JOINSET_EQ,"JOINSET_EQ"}, {JOINSET_LESS,"JOINSET_LESS"}, {JOINSET_GRT,"JOINSET_GRT"}, {JOINSET_INIT,"JOINSET_INIT"}, {JOINSET_TRAV,"JOINSET_TRAV"}, {AND_SET,"AND_SET"}, {OR_SET,"OR_SET"}, {SAVEANDCHAIN,"SAVEANDCHAIN"}, {JOINSET_EQ_AND,"JOINSET_EQ_AND"}, {SORT_ANDCHAIN,"SORT_ANDCHAIN"},{FUNCYEAR,"FUNCYEAR"}, {FUNCMONTH,"FUNCMONTH"}, {FUNCWEEK,"FUNCWEEK"}, {FUNCYDAY,"FUNCYDAY"}, {FUNCMDAY,"FUNCMDAY"}, {FUNCWDAY,"FUNCWDAY"}, {FUNCHOUR,"FUNCHOUR"}, {FUNCMINUTE,"FUNCMINUTE"}, {FUNCSECOND,"FUNCSECOND"}, {FUNCWDAYNAME,"FUNCWDAYNAME"}, {FUNCMONTHNAME,"FUNCMONTHNAME"}, {JOINSET_LESS_AND,"JOINSET_LESS_AND"}, {JOINSET_GRT_AND,"JOINSET_GRT_AND"}, {FUNCABSF,"FUNCABSF"}, {FUNCABSI,"FUNCABSI"}, {START_MESSAGE,"START_MESSAGE"}, {STOP_MESSAGE,"STOP_MESSAGE"}, {FUNC_CIEL,"FUNC_CIEL"}, {FUNC_FLOOR,"FUNC_FLOOR"}, {FUNC_ACOS,"FUNC_ACOS"}, {FUNC_ASIN,"FUNC_ASIN"}, {FUNC_ATAN,"FUNC_ATAN"}, {FUNC_COS,"FUNC_COS"}, {FUNC_SIN,"FUNC_SIN"}, {FUNC_TAN,"FUNC_TAN"}, {FUNC_EXP,"FUNC_EXP"}, {FUNC_LOG,"FUNC_LOG"}, {FUNC_LOG2,"FUNC_LOG2"}, {FUNC_LOG10,"FUNC_LOG10"}, {FUNC_SQRT,"FUNC_SQRT"}, {FUNC_RAND,"FUNC_RAND"}, {FUNC_UPPER,"FUNC_UPPER"}, {FUNC_LOWER,"FUNC_LOWER"}, {FUNC_BASE64_ENCODE,"FUNC_BASE64_ENCODE"}, {FUNC_BASE64_DECODE,"FUNC_BASE64_DECODE"}, {FUNC_HEX_ENCODE,"FUNC_HEX_ENCODE"}, {FUNC_HEX_DECODE,"FUNC_HEX_DECODE"}, {FUNC_LEN,"FUNC_LEN"}, {FUNC_SUBSTR,"FUNC_SUBSTR"}, {FUNC_MD5,"FUNC_MD5"}, {FUNC_SHA1,"FUNC_SHA1"}, {FUNC_SHA256,"FUNC_SHA256"}, {FUNC_ROUND,"FUNC_ROUND"}, {FUNC_CBRT,"FUNC_CBRT"}, {FUNC_NOW,"FUNC_NOW"}, {FUNC_NOWGM,"FUNC_NOWGM"}, {PRINTCSV_HEADER,"PRINTCSV_HEADER"}, {FUNC_FORMAT,"FUNC_FORMAT"}, {LDCOUNT,"LDCOUNT"}, {BETWEEN,"BETWEEN"}, {PRINTBOX,"PRINTBOX"}, {PRINTBTREE,"PRINTBTREE"}, {INSUBQUERY,"INSUBQUERY"}
 };
 
 
@@ -61,8 +61,8 @@ flatmap<int, int> functionCode = {
 	//make pow use N_MULT
 };
 
-void opcode::print(){
-	perr((ft("code: %-18s  [%-2d  %-2d  %-2d]\n")% opMap[code]% p1% p2% p3).str());
+string opcode::print(){
+	return (ft("code: %-18s  [%-2d  %-2d  %-2d]")% opMap[code]% p1% p2% p3).str();
 }
 // (1) csv need quoting: , \n
 // (2) csv need escaping: "
@@ -230,6 +230,10 @@ vmachine::vmachine(querySpecs &qs) :
 	if (q->outputjson){
 		jsonresult.reset(new singleQueryResult(qs));
 	}
+	if (globalSettings.termbox && !q->isSubquery){
+		termbox.init(q->colspec.types, q->colspec.colnames);
+		q->outputcsv = false;
+	}
 	if (q->outputcsv){
 		if (!q->savepath.empty()){
 			outfile.open(qs.savepath, ofstream::out | ofstream::app);
@@ -242,7 +246,7 @@ vmachine::vmachine(querySpecs &qs) :
 
 vmachine::~vmachine(){
 	perr("Destructing vm\n");
-	if (runmode == RUN_SINGLE) //skip garbage collection if one-off query
+	if (runmode == RUN_SINGLE && !q->isSubquery) //skip garbage collection if one-off query
 		return;
 	distinctVal.freedat();
 	for (auto &d : stack)   d.freedat();
@@ -573,8 +577,7 @@ bool opDoesJump(int opcode){
 	case JMPFALSE:
 	case RDLINE:
 	case RDLINE_ORDERED:
-	case NULFALSE1:
-	case NULFALSE2:
+	case NULFALSE:
 	case NDIST:
 	case SDIST:
 	case JMPNOTNULL_ELSEPOP:
@@ -660,4 +663,67 @@ void runPlainQuery(querySpecs &q){
 shared_ptr<singleQueryResult> runJsonQuery(querySpecs &q){
 	auto r = qrunner.runqueryJson(q);
 	return r.get();
+}
+void boxprinter::addrow(dat* sourcerow){
+	if (++numrow > rowlimit)
+		print();
+	datarows.emplace_back();
+	auto& newrow = datarows.back();
+	for (int i=0; i<numcol; ++i){
+		auto&& field = sourcerow[i].str();
+		widths[i] = max(widths[i], field.size());
+		newrow.push_back(field);
+	}
+}
+static const char* colors[] = {
+	"\033[38;5;142m",
+	"\033[38;5;87m",
+	"\033[38;5;82m",
+	"\033[38;5;205m",
+	"\033[38;5;196m",
+	"\033[38;5;208m",
+	"\033[0m",    //clearcolor
+	"\033[1;90m", //grey
+	"\033[1;93m", //yellow
+};
+static const char* nocolors[] = { "","","","","","","","","" };
+static const char** colortable;
+#define tc(i) colortable[types[i]]
+#define clearcolor colortable[6]
+#define grey  colortable[7]
+#define yellow colortable[8]
+#define bg1 "\033[48;5;232m"
+#define bg2 "\033[48;5;235m"
+void boxprinter::print(){
+	colortable = globalSettings.tablecolor ? colors : nocolors;
+	size_t totalwidth = accumulate(widths.begin(), widths.end(), numcol-1);
+	stringstream rowseps;
+	for (auto w : widths)
+		rowseps << '+' << string(w,'-');
+	rowseps << "+";
+	string rowsep = rowseps.str();
+	int i,j=0;
+	bool bg = globalSettings.tablelinebg;
+	if (bg) cout << bg1;
+	cout << '+' << string(totalwidth,'-') << '+' << clearcolor << '\n';
+	for (auto& cell : names){
+		if (bg) cout << bg1;
+		cout << '|' << yellow << right << setw(widths[i++]) << cell << clearcolor;
+	}
+	if (bg) cout << bg1 << '|' << clearcolor << '\n' << bg1 << rowsep << clearcolor << '\n' << grey;
+	else cout << "|\n" << rowsep << '\n' << grey;
+	for (auto& row : datarows){
+		i = 0;
+		if (bg) cout << ((j^=1) ?  bg2 : bg1);
+		cout << grey;
+		for (auto& cell : row){
+			cout << '|' << tc(i) << right << setw(widths[i]) << cell << grey;
+			++i;
+		}
+		cout << '|' << clearcolor << '\n';
+		row.clear();
+	}
+	cout << clearcolor;
+	datarows.clear();
+	numrow = 0;
 }

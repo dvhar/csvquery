@@ -13,7 +13,7 @@ def runtest(test):
     print(test['title'])
     print("---------------------------------------")
     print(q)
-    ret = subprocess.Popen(["./cql", q], stdout = subprocess.PIPE, stderr = subprocess.PIPE)
+    ret = subprocess.Popen(["./cql","-c", q], stdout = subprocess.PIPE, stderr = subprocess.PIPE)
     out, err = ret.communicate()
     if ret.returncode != test['code']:
         print(f"Failed! Expected return code {test['code']} but got {ret.returncode}")

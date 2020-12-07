@@ -1,1 +1,1 @@
-select count(*) from ptest p join drtest d on p.c3=d.state and d.state not like 'n%'
+select * from 'test/cities' nh where c3 in (select c1 from 'test/country' nh) limit 10

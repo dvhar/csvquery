@@ -1,5 +1,1 @@
-select
-distinct o.c1 l.c1
-from 'test/country.csv' o join 'test/lang.csv' l 
-on o.c1=l.c1 and l.c1 <> GUM and l.c1 like 'g%'
-order by l.c1
+select distinct c3 from 'test/cities' nh where c3 in (nh select c1 from l)

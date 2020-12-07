@@ -186,3 +186,7 @@
     format(d,131) as 131 format(d,119) as 119 format(d,140) as 140 format(d,141) as 141 format(d,136) as 136
     format(d,137) as 137 from 'test/country' limit 5
   output: 36.csv
+- title: basic inlist subquery
+  code: 0
+  query: select * from 'test/cities' nh where c3 in (select c1 from 'test/country' nh) limit 10
+  output: 37.csv
