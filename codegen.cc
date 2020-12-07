@@ -9,6 +9,7 @@ class cgen {
 	int joinFileIdx = 0;
 	int prevJoinRead = 0;
 	int wherenot = 0;
+	int sqBtreeIndex = 0;
 	bool headerdone = false;
 	vector<int> valposTypes;
 	vector<opcode>& v;
@@ -63,6 +64,7 @@ class cgen {
 	void genIterateGroups(astnode &n);
 	void genUnsortedGroupRow(astnode &n, int nextgroup, int doneGroups);
 	void genSortedGroupRow(astnode &n, int nextgroup);
+	void genEndrun();
 	void finish();
 
 	cgen(querySpecs &qs): q{&qs}, v{qs.bytecode} {}
@@ -80,11 +82,16 @@ static const int funcTypes[]  = { 0,0,1,0,0,2 };
 static int ident = 0;
 //#define e //turn off debug printer
 #ifndef e
-#define e(A) for (int i=0; i< ident; i++) perr("    "); \
-	perr(st( A , "\n")); ident++; \
+#define e(A) { \
+	string spc; \
+	for (int i=0; i< ident; i++) spc += "    "; \
+	perr(st(spc,  A )); \
+	ident++; } \
 	shared_ptr<void> _(nullptr, [&n](...){ \
-	ident--; for (int i=0; i< ident; i++) perr("    "); \
-	perr(st("done ",A,'\n')); });
+		ident--; \
+		string spc; \
+		for (int i=0; i< ident; i++) spc += "    "; \
+	perr(st(spc,"done ",A)); });
 #endif
 
 #define pushvars() for (auto &i : q->vars) addop(PUSH);
@@ -116,8 +123,7 @@ void cgen::generateCode(){
 void cgen::finish(){
 	int i = 0;
 	for (auto c : v){
-		perr(st("ip: ",left,setw(4),i++));
-		c.print();
+		perr(st("ip: ",left,setw(4),i++,c.print()));
 	}
 }
 
@@ -142,6 +148,9 @@ void cgen::genExprAll(astnode &n){
 	}
 }
 
+void cgen::genEndrun(){
+	addop(ENDRUN);
+}
 
 //given q.tree as node param
 void cgen::genJoiningQuery(astnode &n){
@@ -166,7 +175,7 @@ void cgen::genJoiningQuery(astnode &n){
 		addop(RDLINE_ORDERED, endreread);
 		vs.setscope(DISTINCT_FILTER, V_READ2_SCOPE);
 		genVars(n->node1);
-		genDistinct(n->node2->node1, reread);
+		genDistinct(n->node2, reread);
 		vs.setscope(SELECT_FILTER, V_READ2_SCOPE);
 		genVars(n->node1);
 		genSelect(n->node2);
@@ -177,7 +186,7 @@ void cgen::genJoiningQuery(astnode &n){
 		addop(POP);
 	}
 	popvars();
-	addop(ENDRUN);
+	genEndrun();
 }
 //given 'from' node
 void cgen::genTraverseJoins(astnode &n){
@@ -213,7 +222,7 @@ void cgen::genJoinSets(astnode &n){
 			genWhere(q->tree->node4);
 			vs.setscope(DISTINCT_FILTER, V_READ1_SCOPE);
 			genVars(q->tree->node1);
-			genDistinct(q->tree->node2->node1, wherenot);
+			genDistinct(q->tree->node2, wherenot);
 			vs.setscope(SELECT_FILTER, V_READ1_SCOPE);
 			genVars(q->tree->node1);
 			genSelect(q->tree->node2);
@@ -244,8 +253,16 @@ void cgen::genHeader(){
 void cgen::genPrint(){
 	if (q->outputjson)
 		addop(PRINTJSON, q->outputcsv ? 0 : 1);
-	if (q->outputcsv)
-		addop(PRINTCSV);
+	if (q->outputcsv){
+		if (globalSettings.termbox)
+			addop(PRINTBOX);
+		else 
+			addop(PRINTCSV);
+	}
+	if (q->isSubquery == SQ_INLIST){
+		sqBtreeIndex = addBtree(q->thisSq->singleDatatype, q);
+		addop(PRINTBTREE, sqBtreeIndex);
+	}
 }
 void cgen::genAndChainSet(astnode &n){
 	int cz = n->info[CHAINSIZE];
@@ -460,7 +477,7 @@ void cgen::genNormalQuery(astnode &n){
 	jumps.setPlace(endfile, v.size());
 	addop(STOP_MESSAGE);
 	popvars();
-	addop(ENDRUN);
+	genEndrun();
 }
 void cgen::genNormalOrderedQuery(astnode &n){
 	int sorter = jumps.newPlaceholder(); //where to jump when done scanning file
@@ -496,7 +513,7 @@ void cgen::genNormalOrderedQuery(astnode &n){
 	addop(POP); //rereader used 2 stack spaces
 	addop(POP);
 	popvars();
-	addop(ENDRUN);
+	genEndrun();
 };
 
 //given afterfrom node
@@ -538,7 +555,7 @@ void cgen::genGroupingQuery(astnode &n){
 	addop(STOP_MESSAGE);
 	genIterateGroups(n->node4->node2);
 	popvars();
-	addop(ENDRUN);
+	genEndrun();
 }
 
 void cgen::genAggSortList(astnode &n){
@@ -548,7 +565,7 @@ void cgen::genAggSortList(astnode &n){
 	case N_QUERY:     genAggSortList(n->node4); break;
 	case N_AFTERFROM: genAggSortList(n->node4); break;
 	case N_ORDER:     genAggSortList(n->node1); break;
-	case N_EXPRESSIONS:
+	case N_EXPRESSIONS: // sort list
 		genExprAdd(n->node1);
 		genAggSortList(n->node2);
 	}
@@ -754,7 +771,7 @@ void cgen::genSelect(astnode &n){
 		genSelectAll();
 		return;
 	}
-	genSelections(n->node1);
+	genSelections(n->node2);
 }
 
 //given selections node
@@ -852,7 +869,7 @@ void cgen::genPredCompare(astnode &n){
 	if (n == nullptr) return;
 	e("gen pred compare");
 	int negation = n->tok2.id;
-	int endcomp, greaterThanExpr3;
+	int endcomp, greaterThanExpr3, subq=0;
 	genExprAll(n->node1);
 	switch (n->tok1.id){
 	case SP_NOEQ: negation ^= 1;
@@ -873,34 +890,33 @@ void cgen::genPredCompare(astnode &n){
 	case KW_BETWEEN:
 		endcomp = jumps.newPlaceholder();
 		greaterThanExpr3 = jumps.newPlaceholder();
-		addop1(NULFALSE1, endcomp);
+		addop2(NULFALSE, endcomp, 0);
 		genExprAll(n->node2);
-		addop1(NULFALSE2, endcomp);
-		addop2(operations[OPLT][n->datatype], 0, 1);
-		addop2(JMPFALSE, greaterThanExpr3, 1);
+		addop2(NULFALSE, endcomp, 1);
 		genExprAll(n->node3);
-		addop1(NULFALSE2, endcomp);
-		addop2(operations[OPLT][n->datatype], 1, negation);
-		addop1(JMP, endcomp);
-		jumps.setPlace(greaterThanExpr3, v.size());
-		genExprAll(n->node3);
-		addop1(NULFALSE2, endcomp);
-		addop2(operations[OPLT][n->datatype], 1, negation^1);
+		addop2(NULFALSE, endcomp, 2);
+		addop2(BETWEEN, funcTypes[n->datatype], negation);
 		jumps.setPlace(endcomp, v.size());
 		break;
 	case KW_IN:
-		endcomp = jumps.newPlaceholder();
-		for (auto nn=n->node2.get(); nn; nn=nn->node2.get()){
-			genExprAll(nn->node1);
-			addop1(operations[OPEQ][n->node1->datatype], 0);
-			addop2(JMPTRUE, endcomp, 0);
-			if (nn->node2.get())
-				addop0(POP);
+		if (n->node2->tok1.id){
+			addop(INSUBQUERY, n->node2->tok2.id);
+			subq = 1;
+		} else {
+			endcomp = jumps.newPlaceholder();
+			for (auto nn=n->node2->node1.get(); nn; nn=nn->node2.get()){
+				genExprAll(nn->node1);
+				addop1(operations[OPEQ][n->node1->datatype], 0);
+				addop2(JMPTRUE, endcomp, 0);
+				if (nn->node2.get())
+					addop0(POP);
+			}
+			jumps.setPlace(endcomp, v.size());
 		}
-		jumps.setPlace(endcomp, v.size());
 		if (negation)
 			addop0(PNEG);
-		addop0(POPCPY); //put result where 1st expr was
+		if (!subq)
+			addop0(POPCPY); //put result where 1st expr was
 		break;
 	case KW_LIKE:
 		addop2(LIKE, q->dataholder.size(), negation);
@@ -931,7 +947,7 @@ void cgen::genDistinct(astnode &n, int gotoIfNot){
 	if (n == nullptr) return;
 	e("gen distinct");
 	if (n->label == N_SELECT){
-		genDistinct(n->node1, gotoIfNot);
+		genDistinct(n->node2, gotoIfNot);
 		return;
 	} else if (n->label != N_SELECTIONS)
 		return;
@@ -1212,7 +1228,7 @@ void cgen::genUnsortedGroupRow(astnode &n, int nextgroup, int doneGroups){
 		addop(JMPFALSE, nextgroup, 1);
 	vs.setscope(DISTINCT_FILTER, V_GROUP_SCOPE);
 	genVars(q->tree->node1);
-	genDistinct(q->tree->node2->node1, nextgroup);
+	genDistinct(q->tree->node2, nextgroup);
 	vs.setscope(SELECT_FILTER, V_GROUP_SCOPE);
 	genVars(q->tree->node1);
 	genSelect(q->tree->node2);
@@ -1229,7 +1245,7 @@ void cgen::genSortedGroupRow(astnode &n, int nextgroup){
 		addop(JMPFALSE, nextgroup, 1);
 	vs.setscope(DISTINCT_FILTER, V_GROUP_SCOPE);
 	genVars(q->tree->node1);
-	genDistinct(q->tree->node2->node1, nextgroup);
+	genDistinct(q->tree->node2, nextgroup);
 	addop(ADD_GROUPSORT_ROW);
 	vs.setscope(SELECT_FILTER, V_GROUP_SCOPE);
 	genVars(q->tree->node1);

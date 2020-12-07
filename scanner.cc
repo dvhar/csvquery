@@ -206,6 +206,7 @@ token scanner::scanQuotedToken(int qtype) {
 }
 
 void scanTokens(querySpecs &q) {
+	if (q.isSubquery) return;
 	scanner sc(q);
 	while(1) {
 		token t = sc.scanToken();

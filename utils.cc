@@ -2,10 +2,11 @@
 #include <chrono>
 #include <stdlib.h>
 #include <ctype.h>
+#include <thread>
 #include "deps/json/escape.h"
 #define max(a,b) (a) > (b) ? (a) : (b)
 
-string version = "1.22";
+string version = "1.23";
 int runmode;
 regex_t leadingZeroString;
 regex_t durationPattern;
@@ -60,12 +61,14 @@ const flatmap<int, string_view> treeMap = {
 	{N_FUNCTION,   "N_FUNCTION"},
 	{N_GROUPBY,    "N_GROUPBY"},
 	{N_EXPRESSIONS,"N_EXPRESSIONS"},
+	{N_SETLIST,    "N_SETLIST"},
 	{N_JOINCHAIN,  "N_JOINCHAIN"},
 	{N_JOIN,       "N_JOIN"},
 	{N_DEXPRESSIONS,"N_DEXPRESSIONS"},
 	{N_WITH,       "N_WITH"},
 	{N_VARS,       "N_VARS"},
-	{N_TYPECONV,   "N_TYPECONV"}
+	{N_TYPECONV,   "N_TYPECONV"},
+	{N_FILE,       "N_FILE"},
 };
 const flatmap<string_view, int> keywordMap = {
 	{"and" ,       KW_AND},
@@ -264,6 +267,18 @@ void querySpecs::promptPassword(){
 void querySpecs::setPassword(string s){
 	passReturn.set_value(s);
 };
+int querySpecs::addSubquery(astnode& subtree, int sqtype){
+	try {
+		perr("adding subquery");
+		subqueries.emplace_back(new querySpecs(subtree, sqtype));
+		auto& sq = subqueries.back();
+		sq.prep = thread([&]{prepareQuery(*sq.query);});
+	} catch (...){
+		error("SUBQUERY: ",EX_STRING);
+	}
+	perr("added subquery");
+	return subqueries.size()-1;
+}
 
 
 void printTree(astnode &n, int ident){
@@ -271,8 +286,7 @@ void printTree(astnode &n, int ident){
 	ident++;
 	string s = "";
 	for (int i=0;i<ident;i++) s += "  ";
-	perr(st( s , getnodename(n->label) , '\n',
-		s ,
+	perr(st( s , getnodename(n->label) , '\n', s,
 		ft("[%1% %2% %3% %4% %5%] t:%6% p:%7% k:%8%")
 		% n->tok1.val
 		% n->tok2.val
@@ -281,7 +295,7 @@ void printTree(astnode &n, int ident){
 		% n->tok5.val
 		% n->datatype
 		% n->phase
-		% n->keep , '\n'));
+		% n->keep));
 	printTree(n->node1,ident);
 	printTree(n->node2,ident);
 	printTree(n->node3,ident);
@@ -396,10 +410,10 @@ char* durstring(dat& d, char* str){
 	}
 	if (mics) {
 		while(*s) ++s;
-		if (mics < 1000){
-			sprintf(s, "%lldms", mics/1000);
-		} else {
+		if (mics % 1000){
 			sprintf(s, "%lldmcs", mics);
+		} else {
+			sprintf(s, "%lldms", mics/1000);
 		}
 	}
 	return dest;
@@ -553,6 +567,8 @@ const char* dateFormatCode(string& s){
 		case 109: return R "%b %d %Y %I:%M:%S:mmmm%p"; // mon dd yyyy hh:mi:ss:mmmmAM (or PM)
 		case 10:  return R "%m-%d-%y"; // mm-dd-yy
 		case 110: return R "%m-%d-%Y"; // mm-dd-yyyy
+		case 15:  return R "%y-%m-%d"; // yy-mm-dd
+		case 115: return R "%Y-%m-%d"; // yyyy-mm-dd
 		case 11:  return R "%y/%m/%d"; // yy/mm/dd
 		case 111: return R "%Y/%m/%d"; // yyyy/mm/dd
 		case 12:  return R "%y%m%d"; // yymmdd
@@ -594,13 +610,42 @@ string gethome(){
 
 settings_t globalSettings;
 
+void perr(string s){
+
+	static const char* ss[] = {
+		R "\033[38;5;82m",
+		R "\033[38;5;205m",
+		R "\033[38;5;87m",
+		R "\033[38;5;196m",
+		R "\033[38;5;208m",
+		R "\033[38;5;82m",
+	};
+	static atomic_int i(0);
+	static map<thread::id,const char*> cs;
+	static mutex dbmtx;
+	if (globalSettings.debug){
+
+		dbmtx.lock();
+		auto th = this_thread::get_id();
+		if (!cs.count(th))
+			cs[th] = ss[(i++)%6];
+
+		cerr << cs[th] << s << "\033[0m" << endl;
+		dbmtx.unlock();
+	}
+}
+
 void prepareQuery(querySpecs &q){
 	scanTokens(q);
 	parseQuery(q);
-	openfiles(q, q.tree);
+	earlyAnalyze(q);
+	openfiles(q);
+	midAnalyze(q);
 	q.promptPassword();
 	applyTypes(q);
-	analyzeTree(q);
+	lateAnalyze(q);
 	printTree(q.tree, 0);
 	codeGen(q);
+	for (auto& sq : q.subqueries)
+		sq.prep.join();
 };

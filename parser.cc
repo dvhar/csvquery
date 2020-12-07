@@ -1,10 +1,55 @@
 #include "interpretor.h"
 #include <boost/algorithm/string/replace.hpp>
 
+/*
+{} = optional
+[] = one of
+[[]] = at least one of
+
+query             -> <preselect> <select> <from> <afterfrom>
+preselect         -> <options> <with> | ε
+options           -> [ oh noh nh h ah s p t nan ] { <options> } | ε
+with              -> with <vars> | ε
+vars              -> <expradd> as alias { [ , and ] vars }
+expradd           -> <exprmult> { [ + - ] <expradd> }
+exprmult          -> <exprneg> { [ * % ^ / ] <exprmult> }
+exprneg           -> { - } <exprcase>
+<exprCase>        -> case <caseWhenPredList> { else <expradd> } end
+                   | case <expradd> <caseWhenExprList> { else <expradd> } end
+                   | <value>
+                   | ( <expradd> )
+caseWhenExprList> -> <caseWhenExpr> <caseWhenExprList> | <caseWhenExpr>
+caseWhenExpr      -> when <exprAdd> then <exprAdd>
+caseWhenPredList  -> <casePredicate> <caseWhenPredList> | <casePredicate>
+casePredicate     -> when <predicates> then <exprAdd>
+predicates        -> { not }  <predicateCompare> { <logop> <predicates> }
+value             -> column | literal | variable | <function>
+predicateCompare  -> { not } <expradd> { not } <relop> <expradd>
+                    | { not } <expradd> { not } between <expradd> and <expradd>
+                    | { not } <expradd> in ( <setlist> )
+                    | { not } ( predicates )
+setlist           -> <expressionlist> | <query>
+function          -> func ( params )
+expressionlist    -> <expradd> {,} <expressionlist> | ε
+from              -> from file {[nh h ah]} { as alias } {[nh h ah]} <join>
+join              -> {[left inner]} join file {[nh h ah]} alias on <predicates> <join> | ε
+afterfrom         -> {[[ <where> <group> <having> <order> <limit> ]]}
+where             -> where <predicates>
+having            -> having <predicates>
+order             -> order by <expressionlist>
+group             -> group by <expressionlist>
+
+TODO:
+from              -> from <file> <join>
+join              -> {[left inner]} join <file> on <predicates> <join> | ε
+file              -> file { <fileoptions> } | ( <query> ) | filealias
+fileoptions       -> [ alias nh h ah s t p ] <fileoptions> | ε
+*/
+
 #define newNode(l) make_unique<node>(l)
 
 class parser {
-	void parseOptions();
+	void parseOptions(astnode& n);
 	astnode parsePreSelect();
 	astnode parseWith();
 	astnode parseVars();
@@ -29,43 +74,67 @@ class parser {
 	astnode parseValue();
 	astnode parseFunction();
 	astnode parseAfterFrom();
+	astnode parseFile();
+	astnode parseSetList(bool);
 	astnode parseExpressionList(bool i, bool s);
-	void parseTop();
-	void parseLimit();
+	astnode parseQuery();
+	void parseFileOptions();
+	void parseTop(astnode& n);
+	void parseLimit(astnode& n);
 
 	querySpecs* q;
 	bool justfile = false;
 	public:
 	parser(querySpecs &qs): q{&qs} {}
 	void parse(){
-		q->tree = newNode(N_QUERY);
-		q->tree->node1 = parsePreSelect();
-		q->tree->node3 = parseFrom(false);
-		q->tree->node2 = parseSelect();
-		if (!justfile)
-			q->tree->node3 = parseFrom(true);
-		q->tree->node4 = parseAfterFrom();
+		q->tree = parseQuery();
+		auto t = q->tok();
+		switch (t.id){
+			case EOS:
+			case SP_RPAREN:
+			break;
+			default:
+				error("Unexpected token at and of query: ",t.val);
+		}
 	}
 };
 
 
 //run recursive descent parser for query
 void parseQuery(querySpecs &q) {
+	if (q.isSubquery) return;
 	parser pr(q);
 	pr.parse();
 }
 
-//could include other commands like describe
+//could include other commands like describe, insert
+//node1 is preselect
+//node2 is select
+//node3 is from
+//node4 is afterfrom
+astnode parser::parseQuery() {
+	astnode n = newNode(N_QUERY);
+	n->node1 = parsePreSelect();
+	n->node3 = parseFrom(false);
+	n->node2 = parseSelect();
+	if (!justfile)
+		n->node3 = parseFrom(true);
+	n->node4 = parseAfterFrom();
+	return n;
+}
+
 //node1 is with
+//tok1.id is options
 astnode parser::parsePreSelect() {
 	token t = q->tok();
-	parseOptions();
 	astnode n = newNode(N_PRESELECT);
+	parseOptions(n);
 	n->node1 = parseWith();
 	return n;
 }
 
 //anything that comes after 'from', in any order
+//tok1.id is quantitylimit
 astnode parser::parseAfterFrom() {
 	token t = q->tok();
 	astnode n = newNode(N_AFTERFROM);
@@ -85,7 +154,7 @@ astnode parser::parseAfterFrom() {
 			n->node4 = parseOrder();
 			break;
 		case KW_LIMIT:
-			parseLimit();
+			parseLimit(n);
 			break;
 		default:
 			goto done;
@@ -95,42 +164,42 @@ astnode parser::parseAfterFrom() {
 	return n;
 }
 
-void parser::parseOptions() {
+void parser::parseOptions(astnode& n) {
 	token t = q->tok();
 	string s = t.lower();
 	if (s == "c") {
-		q->options |= O_C;
+		n->tok1.id |= O_C;
 	} else if (s == "oh") {
-		if (q->options & O_NOH) error("Cannot mix output header options");
-		q->options |= O_OH;
+		if (n->tok1.id & O_NOH) error("Cannot mix output header options");
+		n->tok1.id |= O_OH;
 	} else if (s == "noh") {
-		if (q->options & O_NOH) error("Cannot mix output header options");
-		q->options |= O_NOH;
+		if (n->tok1.id & O_NOH) error("Cannot mix output header options");
+		n->tok1.id |= O_NOH;
 	} else if (s == "nh") {
-		if (q->options & (O_H|O_AH)) error("Cannot mix input header options");
-		q->options |= O_NH;
+		if (n->tok1.id & (O_H|O_AH)) error("Cannot mix input header options");
+		n->tok1.id |= O_NH;
 	} else if (s == "h") {
-		if (q->options & (O_NH|O_AH)) error("Cannot mix input header options");
-		q->options |= O_H;
+		if (n->tok1.id & (O_NH|O_AH)) error("Cannot mix input header options");
+		n->tok1.id |= O_H;
 	} else if (s == "ah") {
-		if (q->options & (O_NH|O_H)) error("Cannot mix input header options");
-		q->options |= O_AH;
+		if (n->tok1.id & (O_NH|O_H)) error("Cannot mix input header options");
+		n->tok1.id |= O_AH;
 	} else if (s == "s") {
-		if (q->options & (O_P|O_T)) error("Cannot mix delimiter options");
-		q->options |= O_S;
+		if (n->tok1.id & (O_P|O_T)) error("Cannot mix delimiter options");
+		n->tok1.id |= O_S;
 	} else if (s == "p") {
-		if (q->options & (O_S|O_T)) error("Cannot mix delimiter options");
-		q->options |= O_P;
+		if (n->tok1.id & (O_S|O_T)) error("Cannot mix delimiter options");
+		n->tok1.id |= O_P;
 	} else if (s == "t") {
-		if (q->options & (O_P|O_S)) error("Cannot mix delimiter options");
-		q->options |= O_T;
+		if (n->tok1.id & (O_P|O_S)) error("Cannot mix delimiter options");
+		n->tok1.id |= O_T;
 	} else if (s == "nan") {
-		q->options |= O_NAN;
+		n->tok1.id |= O_NAN;
 	} else {
 		return;
 	}
 	q->nextTok();
-	parseOptions();
+	parseOptions(n);
 }
 
 //node1 is vars
@@ -164,15 +233,16 @@ astnode parser::parseVars() {
 	return n;
 }
 
-//node1 is selections
+//node2 is selections (same as N_SELECTIONS)
+//tok1.id is quantityLimit
 astnode parser::parseSelect() {
 	if (justfile) return nullptr;
 	token t = q->tok();
 	astnode n = newNode(N_SELECT);
 	if (t.lower() != "select") error("Expected 'select'. Found "+t.val);
 	q->nextTok();
-	parseTop();
-	n->node1 = parseSelections();
+	parseTop(n);
+	n->node2 = parseSelections();
 	return n;
 }
 
@@ -198,7 +268,6 @@ astnode parser::parseSelections() {
 		return n;
 	case KW_DISTINCT:
 		n->tok1 = t;
-		q->distinctFiltering = true;
 		t = q->nextTok();
 		if (t.lower() == "hidden" && !t.quoted) {
 			n->tok1 = t;
@@ -435,7 +504,7 @@ astnode parser::parsePredicates() {
 //tok2 is negation
 //tok3 is 'like' expression
 //node1 is [expr, predicates]
-//node2 is second expr
+//node2 is second expr, <setlist> if inlist
 //node3 is third expr for betweens
 //later:
 //  [TOSCAN] will be number of node (1,2) for indexable join value
@@ -486,7 +555,7 @@ astnode parser::parsePredCompare() {
 	} else if (n->tok1.id == KW_IN) {
 		if (t.id != SP_LPAREN) error("Expected opening parenthesis for expression list. Found: ",t.val);
 		q->nextTok();
-		n->node2 = parseExpressionList(!nullInList, false);
+		n->node2 = parseSetList(!nullInList);
 		t = q->tok();
 		if (t.id != SP_RPAREN) error("Expected closing parenthesis after expression list. Found: ",t.val);
 		q->nextTok();
@@ -496,6 +565,23 @@ astnode parser::parsePredCompare() {
 	if (n->tok1.id == KW_BETWEEN) {
 		q->nextTok();
 		n->node3 = parseExprAdd();
+	}
+	return n;
+}
+
+//node1 is expressionlist or query
+//tok1.id is 1 if subquery else 0
+//tok2.id is index of subquery
+astnode parser::parseSetList(bool interdependant) {
+	astnode n = newNode(N_SETLIST);
+
+	int pos = q->tokIdx;
+	try {
+		n->node1 = parseQuery();
+		n->tok1.id = 1;
+	} catch (exception ex){
+		q->tokIdx = pos;
+		n->node1 = parseExpressionList(interdependant, false);
 	}
 	return n;
 }
@@ -526,23 +612,23 @@ astnode parser::parseCaseWhenExpr() {
 }
 
 //row limit at front of query
-void parser::parseTop() {
+void parser::parseTop(astnode& n) {
 	token t = q->tok();
 	if (t.lower() == "top") {
 		t = q->nextTok();
 		if (!is_number(t.val)) error("Expected number after 'top'. Found ",t.val);
-		q->quantityLimit = atoi(t.val.c_str());
+		n->tok1.id = atoi(t.val.c_str());
 		q->nextTok();
 	}
 }
 
 //row limit at end of query
-void parser::parseLimit() {
+void parser::parseLimit(astnode& n) {
 	token t = q->tok();
 	if (t.lower() == "limit") {
 		t = q->nextTok();
 		if (!is_number(t.val)) error("Expected number after 'limit'. Found ",t.val);
-		q->quantityLimit = atoi(t.val.c_str());
+		n->tok1.id = atoi(t.val.c_str());
 		q->nextTok();
 	}
 }
@@ -590,6 +676,11 @@ astnode parser::parseFrom(bool withselections) {
 	n->node1 = parseJoin();
 	return n;
 }
+astnode parser::parseFile() {
+	return nullptr;
+}
+void parser::parseFileOptions() {
+}
 
 //tok1 is filepath
 //tok2 is join token (join,sjoin,bjoin)
@@ -600,11 +691,10 @@ astnode parser::parseFrom(bool withselections) {
 //node2 is next join
 astnode parser::parseJoin() {
 	token t = q->tok();
-	astnode n = newNode(N_JOIN);
 	string s = t.lower();
 	if (joinMap.count(s) == 0)
 		return nullptr;
-	q->joining = true;
+	astnode n = newNode(N_JOIN);
 	if (s == "left" || s == "inner"){
 		n->tok3 = t;
 		q->nextTok();
@@ -656,7 +746,6 @@ astnode parser::parseJoin() {
 astnode parser::parseWhere() {
 	token t = q->tok();
 	if (t.lower() != "where") { return nullptr; }
-	q->whereFiltering = true;
 	astnode n = newNode(N_WHERE);
 	q->nextTok();
 	n->node1 = parsePredicates();
@@ -667,7 +756,6 @@ astnode parser::parseWhere() {
 astnode parser::parseHaving() {
 	token t = q->tok();
 	if (t.lower() != "having") { return nullptr; }
-	q->havingFiltering = true;
 	astnode n = newNode(N_HAVING);
 	q->nextTok();
 	n->node1 = parsePredicates();
@@ -681,7 +769,6 @@ astnode parser::parseOrder() {
 	token t = q->tok();
 	if (t.lower() == "order") {
 		if (q->nextTok().lower() != "by") error("Expected 'by' after 'order'. Found ",q->tok().val);
-		q->sorting = 1;
 		q->nextTok();
 		astnode n = newNode(N_ORDER);
 		n->node1 = parseExpressionList(false, true);
@@ -723,11 +810,10 @@ astnode parser::parseFunction() {
 		case FN_DECRYPT:
 			//first param is expression to en/decrypt
 			n->node1 = parseExprAdd();
-			q->needPass = true;
 			if (q->tok().id == SP_COMMA) {
 				//second param is password
 				t = q->nextTok();
-				q->password = n->tok4.val = t.val;
+				n->tok4.val = t.val;
 				q->nextTok();
 			} else if (q->tok().id != SP_RPAREN) {
 				error("Expect closing parenthesis or comma after expression in crypto function. Found: ",q->tok().val);
@@ -783,10 +869,6 @@ astnode parser::parseFunction() {
 	}
 	if (q->tok().id != SP_RPAREN) error("Expected closing parenthesis after function. Found: ",q->tok().val);
 	q->nextTok();
-	//groupby if aggregate function
-	if ((n->tok1.id & AGG_BIT) != 0) {
-		q->grouping = max(q->grouping,1);
-	}
 	return n;
 }
 
@@ -794,7 +876,6 @@ astnode parser::parseFunction() {
 astnode parser::parseGroupby() {
 	token t = q->tok();
 	if (!(t.lower() == "group" && q->peekTok().lower() == "by")) { return nullptr; }
-	q->grouping = max(q->grouping,2);
 	astnode n = newNode(N_GROUPBY);
 	q->nextTok();
 	q->nextTok();
