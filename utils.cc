@@ -637,21 +637,15 @@ void perr(string s){
 
 void prepareQuery(querySpecs &q){
 	scanTokens(q);
-	perr("Scanned");
 	parseQuery(q);
-	perr("Parsed");
 	earlyAnalyze(q);
-	perr("EAnalyzed");
 	openfiles(q);
-	perr("Opened");
+	midAnalyze(q);
 	q.promptPassword();
 	applyTypes(q);
-	perr("Typed");
 	lateAnalyze(q);
-	perr("LAnalyzed");
 	printTree(q.tree, 0);
 	codeGen(q);
-	perr("Genned");
 	for (auto& sq : q.subqueries)
 		sq.prep.join();
 };

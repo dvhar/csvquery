@@ -175,7 +175,7 @@ void cgen::genJoiningQuery(astnode &n){
 		addop(RDLINE_ORDERED, endreread);
 		vs.setscope(DISTINCT_FILTER, V_READ2_SCOPE);
 		genVars(n->node1);
-		genDistinct(n->node2->node1, reread);
+		genDistinct(n->node2, reread);
 		vs.setscope(SELECT_FILTER, V_READ2_SCOPE);
 		genVars(n->node1);
 		genSelect(n->node2);
@@ -222,7 +222,7 @@ void cgen::genJoinSets(astnode &n){
 			genWhere(q->tree->node4);
 			vs.setscope(DISTINCT_FILTER, V_READ1_SCOPE);
 			genVars(q->tree->node1);
-			genDistinct(q->tree->node2->node1, wherenot);
+			genDistinct(q->tree->node2, wherenot);
 			vs.setscope(SELECT_FILTER, V_READ1_SCOPE);
 			genVars(q->tree->node1);
 			genSelect(q->tree->node2);
@@ -771,7 +771,7 @@ void cgen::genSelect(astnode &n){
 		genSelectAll();
 		return;
 	}
-	genSelections(n->node1);
+	genSelections(n->node2);
 }
 
 //given selections node
@@ -947,7 +947,7 @@ void cgen::genDistinct(astnode &n, int gotoIfNot){
 	if (n == nullptr) return;
 	e("gen distinct");
 	if (n->label == N_SELECT){
-		genDistinct(n->node1, gotoIfNot);
+		genDistinct(n->node2, gotoIfNot);
 		return;
 	} else if (n->label != N_SELECTIONS)
 		return;
@@ -1228,7 +1228,7 @@ void cgen::genUnsortedGroupRow(astnode &n, int nextgroup, int doneGroups){
 		addop(JMPFALSE, nextgroup, 1);
 	vs.setscope(DISTINCT_FILTER, V_GROUP_SCOPE);
 	genVars(q->tree->node1);
-	genDistinct(q->tree->node2->node1, nextgroup);
+	genDistinct(q->tree->node2, nextgroup);
 	vs.setscope(SELECT_FILTER, V_GROUP_SCOPE);
 	genVars(q->tree->node1);
 	genSelect(q->tree->node2);
@@ -1245,7 +1245,7 @@ void cgen::genSortedGroupRow(astnode &n, int nextgroup){
 		addop(JMPFALSE, nextgroup, 1);
 	vs.setscope(DISTINCT_FILTER, V_GROUP_SCOPE);
 	genVars(q->tree->node1);
-	genDistinct(q->tree->node2->node1, nextgroup);
+	genDistinct(q->tree->node2, nextgroup);
 	addop(ADD_GROUPSORT_ROW);
 	vs.setscope(SELECT_FILTER, V_GROUP_SCOPE);
 	genVars(q->tree->node1);

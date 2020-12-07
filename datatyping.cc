@@ -325,8 +325,8 @@ void dataTyper::typeInitialValue(astnode &n, bool trivial){
 	//cerr << "typed " << n->tok1.val << " as " << n->datatype << endl;
 
 	//see if selecting trivial value (just column or literal)
-	if (n->label == N_SELECTIONS)       trivial = true;
-	if (trivial && !stillTrivial(n))    trivial = false;
+	if (n->label == N_SELECTIONS && !q->isSubquery) trivial = true;
+	if (trivial && !stillTrivial(n))                trivial = false;
 	if (trivial && n->label == N_VALUE) {
 		if (n->tok2.id == COLUMN) {
 			n->datatype = T_STRING;
@@ -1000,11 +1000,7 @@ void dataTyper::setToptypes(){
 	auto n = findFirstNode(q->tree, N_SELECTIONS).get();
 	int i = 0;
 	while (n){
-		if (n->tok1.id == KW_DISTINCT && n->tok1.lower() == "hidden"){
-		} else if (n->tok1.id == SP_STAR){
-			//TODO: select all with other type
-		} else {
-			//TODO: type trivial seletions along with *
+		if (!(n->tok1.id == KW_DISTINCT && n->tok1.lower() == "hidden")){
 			n->datatype = topftypes[i++];
 			if (n->datatype == T_NULL)
 				error("Subquery has null datatype");
