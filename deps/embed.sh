@@ -7,7 +7,6 @@ render(){
 }
 
 makebin(){
-	#cp $1 build/
 	base=`basename $1`
 	sym=_`echo $base | sed 's/[\./-]/_/g'`
 	render "IMPORT_BIN(\"../${1}\",${sym});"

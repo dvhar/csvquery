@@ -13,3 +13,5 @@ embed website:
 
 del tag:
 	git push --delete origin tagname
+
+look at hyperhtml or lighterhtml as alternative to reactjs
