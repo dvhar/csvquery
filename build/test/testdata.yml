@@ -190,3 +190,6 @@
   code: 0
   query: select * from 'test/cities' nh where c3 in (select c1 from 'test/country' nh) limit 10
   output: 37.csv
+- title: exception in top thread
+  code: 1
+  query: select c1 count(*) from 'test/lang' nh group by c1 having c1 in (select c3 from 'test/cities' nh)

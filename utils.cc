@@ -636,16 +636,25 @@ void perr(string s){
 }
 
 void prepareQuery(querySpecs &q){
-	scanTokens(q);
-	parseQuery(q);
-	earlyAnalyze(q);
-	openfiles(q);
-	midAnalyze(q);
-	q.promptPassword();
-	applyTypes(q);
-	lateAnalyze(q);
-	printTree(q.tree, 0);
-	codeGen(q);
+	exception_ptr ex = nullptr;
+	try {
+		scanTokens(q);
+		parseQuery(q);
+		earlyAnalyze(q);
+		openfiles(q);
+		midAnalyze(q);
+		q.promptPassword();
+		applyTypes(q);
+		lateAnalyze(q);
+		printTree(q.tree, 0);
+		codeGen(q);
+	} catch (...){
+		ex = current_exception();
+	}
+
 	for (auto& sq : q.subqueries)
 		sq.prep.join();
+
+	if (ex)
+		rethrow_exception(ex);
 };
