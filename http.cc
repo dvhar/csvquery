@@ -47,7 +47,7 @@ static void serve(){
 	state["saveDirList"] = startdir->tojson();
 	state["version"] = version;
 	state["notifyUpdate"] = globalSettings.update;
-	state["configpath"] = globalSettings.configpath;
+	state["configpath"] = globalSettings.configfilepath;
 	auto endSemicolon = regex(";\\s*$");
 	server.config.port = 8060;
 	header.emplace("Cache-Control","no-store");

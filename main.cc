@@ -25,16 +25,15 @@ void help(char* prog){
 		"\t-j Return json to stdout (rows limited to 20000 divided by number of columns)\n"
 		"\t-h Show this help message and exit\n"
 		"\t-v Show version and exit\n\n"
-		"Config file is " << globalSettings.configpath << "\n";
+		"Config file is " << globalSettings.configfilepath << "\n";
 	exit(0);
 }
 
 int main(int argc, char** argv){
 
 	bool jsonstdout = false;
-	int shift = 0;
 	loadconfig();
-	for(char c; (c = getopt(argc, argv, "hxvgdefjtywc")) != -1; ++shift)
+	for(char c; (c = getopt(argc, argv, "hxvgdefjtywc")) != -1;)
 		switch(c){
 		case 'x':
 			globalSettings.update = false;
@@ -76,13 +75,13 @@ int main(int argc, char** argv){
 		}
 
 	initregex();
-	runmode = argc > shift+1 ? RUN_SINGLE : RUN_SERVER;
+	runmode = argc > optind ? RUN_SINGLE : RUN_SERVER;
 	if (runmode == RUN_SERVER){
 		runServer();
 		return 0;
 	}
 
-	auto arg1 = argv[shift+1];
+	auto arg1 = argv[optind];
 	string querystring;
 	//show version and exit
 	if (!strcmp(arg1, "version")){
@@ -125,8 +124,9 @@ void loadconfig(){
 		"table_or_csv"
 	};
 	string defaultoutput;
-	if (boost::filesystem::is_regular_file(globalSettings.configpath)){
-		ifstream cfile(globalSettings.configpath);
+	boost::filesystem::create_directories(globalSettings.configdir);
+	if (boost::filesystem::is_regular_file(globalSettings.configfilepath)){
+		ifstream cfile(globalSettings.configfilepath);
 		if (cfile.good()){
 			string confversion;
 			CFG::ReadFile(cfile, opts,
@@ -145,7 +145,7 @@ void loadconfig(){
 		cfile.close();
 	}
 	defaultoutput = globalSettings.termbox ? "table":"csv";
-	ofstream cfile(globalSettings.configpath);
+	ofstream cfile(globalSettings.configfilepath);
 	CFG::WriteFile(cfile, opts,
 			version,
 			globalSettings.debug,

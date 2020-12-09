@@ -455,6 +455,7 @@ class subqueryNset : public subquerySet {
 	}
 	subqueryNset(bset<i64>& src) :
 		btree(move(src)) {};
+	~subqueryNset(){};
 };
 class subquerySset : public subquerySet {
 	bset<treeCString> btree;
@@ -467,4 +468,8 @@ class subquerySset : public subquerySet {
 	}
 	subquerySset(bset<treeCString>& src) :
 		btree(move(src)) {};
+	~subquerySset(){
+		for (auto tcs : btree)
+			free(tcs.s);
+	};
 };
