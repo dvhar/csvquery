@@ -280,6 +280,20 @@ int querySpecs::addSubquery(astnode& subtree, int sqtype){
 	return subqueries.size()-1;
 }
 
+void subquery::terminate(exception_ptr e){
+	ex = e;
+	if(topfinaltypes.valid()){
+		topfinaltypesp.set_exception(ex);
+	}
+}
+void subquery::terminateOutter(exception_ptr e){
+	ex = e;
+	if (topinnertypes.valid() &&
+			topinnertypes.wait_for(chrono::seconds(0)) == future_status::timeout) {
+		topinnertypesp.set_exception(ex);
+	}
+}
+
 
 void printTree(astnode &n, int ident){
 	if (n == nullptr) return;
@@ -610,9 +624,8 @@ string gethome(){
 
 settings_t globalSettings;
 
-void perr(string s){
-
-	static const char* ss[] = {
+void perr(string message){
+	static const char* dbcolors[] = {
 		R "\033[38;5;82m",
 		R "\033[38;5;205m",
 		R "\033[38;5;87m",
@@ -621,16 +634,14 @@ void perr(string s){
 		R "\033[38;5;82m",
 	};
 	static atomic_int i(0);
-	static map<thread::id,const char*> cs;
+	static map<thread::id,const char*> threadcolors;
 	static mutex dbmtx;
 	if (globalSettings.debug){
-
 		dbmtx.lock();
-		auto th = this_thread::get_id();
-		if (!cs.count(th))
-			cs[th] = ss[(i++)%6];
-
-		cerr << cs[th] << s << "\033[0m" << endl;
+		auto threadid = this_thread::get_id();
+		if (!threadcolors.count(threadid))
+			threadcolors[threadid] = dbcolors[(i++)%6];
+		cerr << threadcolors[threadid] << message << "\033[0m" << endl;
 		dbmtx.unlock();
 	}
 }
@@ -652,9 +663,17 @@ void prepareQuery(querySpecs &q){
 		ex = current_exception();
 	}
 
-	for (auto& sq : q.subqueries)
+	for (auto& sq : q.subqueries){
+		if (ex) sq.terminate(ex);
 		sq.prep.join();
+		if (sq.ex) ex = sq.ex;
+	}
 
-	if (ex)
-		rethrow_exception(ex);
+	if (ex){
+		if (q.isSubquery){
+			q.thisSq->terminateOutter(ex);
+		}else{
+			rethrow_exception(ex);
+		}
+	}
 };

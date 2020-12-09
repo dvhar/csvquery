@@ -74,9 +74,11 @@ class settings_t {
 	bool tablecolor = 1;
 	bool tablelinebg = 0;
 #ifdef _WIN32
-	string configpath = st(getenv("USERPROFILE"),R"(\AppData\csvqueryConf.txt)");
+	string configdir = st(getenv("USERPROFILE"),R"(\AppData\csvquery)");
+	string configfilepath = configdir + "\config.txt";
 #else
-	string configpath = st(gethome(),"/.config/csvquery.conf");
+	string configdir = st(gethome(),"/.config/csvquery");
+	string configfilepath = configdir + "/config";
 #endif 
 };
 
@@ -598,11 +600,14 @@ class subquery {
 	promise<vector<int>> topfinaltypesp;
 	unique_ptr<querySpecs> query;
 	unique_ptr<subquerySet> resultSet;
+	exception_ptr ex = nullptr;
 	subquery(querySpecs* q) : query(q) {
 		q->thisSq = this;
 		topinnertypes = topinnertypesp.get_future().share();
 		topfinaltypes = topfinaltypesp.get_future();
 	};
+	void terminate(exception_ptr);
+	void terminateOutter(exception_ptr);
 };
 
 class singleQueryResult {
