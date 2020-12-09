@@ -186,10 +186,22 @@
     format(d,131) as 131 format(d,119) as 119 format(d,140) as 140 format(d,141) as 141 format(d,136) as 136
     format(d,137) as 137 from 'test/country' limit 5
   output: 36.csv
-- title: basic inlist subquery
+- title: normal inlist normal subquery
   code: 0
   query: select * from 'test/cities' nh where c3 in (select c1 from 'test/country' nh) limit 10
   output: 37.csv
+- title: normal inlist agg subquery
+  code: 0
+  query: select from 'test/cities' nh where c3 in (select min(c1) from 'test/country' nh limit 10)
+  output: 38.csv
+- title: agg inlist where normal subquery
+  code: 0
+  query: select max(c3) min(c3) from 'test/cities' nh where c3 in (select c1 from 'test/country' nh where c1 < CAA)
+  output: 39.csv
+- title: agg inlist having normal subquery
+  code: 0
+  query: select max(c3) from 'test/cities' nh having max(c3) in (select c1 from 'test/country' nh where c1 < CAA) group by c3
+  output: 40.csv
 - title: exception in top thread
   code: 1
   query: select c1 count(*) from 'test/lang' nh group by c1 having c1 in (select c3 from 'test/cities' nh)

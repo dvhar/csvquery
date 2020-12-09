@@ -195,9 +195,12 @@ bool dataTyper::canBeString(astnode &n){
 		case FN_NOW:
 		case FN_NOWGM:
 			return false;
+		case FN_MAX:
+		case FN_MIN:
+			return canBeString(n->node1);
 		}
 	}
-	error("canBeString() function malfunctioned");
+	error("canBeString() function malfunctioned at node ", getnodename(n->label));
 	return false;
 }
 
