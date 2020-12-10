@@ -159,7 +159,7 @@ void cgen::genJoiningQuery(astnode &n){
 	joinFileIdx = 0;
 	if (q->grouping)
 		agg_phase = 1;
-	genScanJoinFiles(n->node3->node1);
+	genScanJoinFiles(n->node3->node2);
 	genHeader();
 	joinFileIdx = 0;
 	genTraverseJoins(n->node3);
@@ -197,7 +197,7 @@ void cgen::genTraverseJoins(astnode &n){
 	normal_read = v.size();
 	prevJoinRead = normal_read;
 	addop(RDLINE, endfile1, 0);
-	genJoinSets(n->node1);
+	genJoinSets(n->node2);
 	jumps.setPlace(endfile1, v.size());
 	addop(STOP_MESSAGE);
 }
@@ -235,13 +235,13 @@ void cgen::genJoinSets(astnode &n){
 	joinFileIdx++;
 	vs.setscope(JCOMP_FILTER, V_READ1_SCOPE);
 	genVars(q->tree->node1);
-	genJoinPredicates(n->node1);
+	genJoinPredicates(n->node2);
 	addop(JOINSET_INIT, (joinFileIdx-1)*2, n->tok3.lower() == "left");
 	int goWhenDone = prevJoinRead;
 	prevJoinRead = v.size();
 	wherenot = prevJoinRead;
 	addop(JOINSET_TRAV, goWhenDone, (joinFileIdx-1)*2, joinFileIdx);
-	genJoinSets(n->node2);
+	genJoinSets(n->node3);
 }
 void cgen::genHeader(){
 	if (headerdone)
@@ -364,8 +364,8 @@ void cgen::genJoinCompare(astnode &n){
 void cgen::genScanJoinFiles(astnode &n){
 	e("scan joins");
 	auto& joinNode = findFirstNode(n, N_JOIN);
-	for (auto jnode = joinNode.get(); jnode; jnode = jnode->node2.get()){
-		auto& f = q->filemap[jnode->tok4.val];
+	for (auto jnode = joinNode.get(); jnode; jnode = jnode->node3.get()){
+		auto& f = q->filemap[jnode->node1->tok4.val];
 		int afterfile = jumps.newPlaceholder();
 		addop(START_MESSAGE, messager::scanningjoin);
 		normal_read = v.size();
@@ -375,13 +375,13 @@ void cgen::genScanJoinFiles(astnode &n){
 		valposTypes.clear();
 		vs.setscope(JSCAN_FILTER, V_SCAN_SCOPE);
 		genVars(q->tree->node1);
-		genScannedJoinExprs(jnode->node1, f->fileno);
+		genScannedJoinExprs(jnode->node2, f->fileno);
 		if (valposTypes.size())
 			addop(SAVEVALPOS, f->fileno, f->joinValpos.size());
 		addop(JMP, normal_read);
 		jumps.setPlace(afterfile, v.size());
 		addop(START_MESSAGE, messager::indexing);
-		genSortAnds(joinNode->node1);
+		genSortAnds(joinNode->node2);
 		for (u32 i=0; i<valposTypes.size(); i++)
 			addop(SORTVALPOS, f->fileno, i, funcTypes[valposTypes[i]]);
 	}
@@ -432,8 +432,9 @@ void cgen::genScannedJoinExprs(astnode &n, int fileno){
 			}else if (n->info[TOSCAN] == 2){
 				genExprAll(n->node2);
 				gotExpr = true;
-			}else
+			}else{
 				error("invalid join comparision");
+			}
 			if (gotExpr){
 				valposTypes.push_back(n->datatype);
 				if (n->datatype == T_STRING)

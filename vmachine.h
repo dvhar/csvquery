@@ -447,17 +447,17 @@ static pair<dat*,dat*> getfirst(dat* stacktop, int firsttype){
 	return {stacktop-1,stacktop};
 }
 
-class subqueryNset : public subquerySet {
+class numericSet : public virtualSet {
 	bset<i64> btree;
 	public:
 	bool contains(dat& d){
 		return btree.find(d.u.i) != btree.end();
 	}
-	subqueryNset(bset<i64>& src) :
+	numericSet(bset<i64>& src) :
 		btree(move(src)) {};
-	~subqueryNset(){};
+	~numericSet(){};
 };
-class subquerySset : public subquerySet {
+class stringSet : public virtualSet {
 	bset<treeCString> btree;
 	public:
 	bool contains(dat& d){
@@ -466,9 +466,9 @@ class subquerySset : public subquerySet {
 		free(t.s);
 		return ret;
 	}
-	subquerySset(bset<treeCString>& src) :
+	stringSet(bset<treeCString>& src) :
 		btree(move(src)) {};
-	~subquerySset(){
+	~stringSet(){
 		for (auto tcs : btree)
 			free(tcs.s);
 	};

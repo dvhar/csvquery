@@ -566,6 +566,7 @@ typer dataTyper::typeInnerNodes(astnode &n){
 	case N_WITH:
 	case N_FROM:
 	case N_JOIN:
+	case N_FILE:
 	case N_WHERE:
 	case N_HAVING:
 		typeInnerNodes(n->node1);
@@ -817,6 +818,7 @@ void dataTyper::typeFinalValues(astnode &n, int finaltype){
 	case N_PRESELECT:
 	case N_FROM:
 	case N_JOIN:
+	case N_FILE:
 	case N_PREDICATES:
 	case N_WHERE:
 	case N_HAVING:

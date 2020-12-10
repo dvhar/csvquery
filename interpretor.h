@@ -584,7 +584,7 @@ class querySpecs {
 		isSubquery = sqtype;
 	};
 };
-class subquerySet {
+class virtualSet {
 	public:
 		virtual bool contains(dat&)=0;
 };
@@ -599,7 +599,7 @@ class subquery {
 	future<vector<int>> topfinaltypes;
 	promise<vector<int>> topfinaltypesp;
 	unique_ptr<querySpecs> query;
-	unique_ptr<subquerySet> resultSet;
+	unique_ptr<virtualSet> resultSet;
 	exception_ptr ex = nullptr;
 	subquery(querySpecs* q) : query(q) {
 		q->thisSq = this;

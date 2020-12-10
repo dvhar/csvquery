@@ -304,9 +304,9 @@ void analyzer::setVarPhase(astnode &n, int phase, int section){
 		}
 		break;
 	case N_JOIN:
-		if (findAgrregates(n->node1))
+		if (findAgrregates(n->node2))
 			error("cannot have aggregates in 'join' clause");
-		setVarPhase(n->node1, 1, 3);
+		setVarPhase(n->node2, 1, 3);
 		break;
 	case N_HAVING:
 		if (!findAgrregates(n->node1))
@@ -487,8 +487,8 @@ void analyzer::findJoinAndChains(astnode &n, int fileno){
 	auto& chainvec = q->getFileReader(fileno)->andchains;
 	switch (n->label){
 		case N_JOIN:
-			findJoinAndChains(n->node1, fileno);
-			findJoinAndChains(n->node2, fileno+1);
+			findJoinAndChains(n->node2, fileno);
+			findJoinAndChains(n->node3, fileno+1);
 			break;
 		case N_PREDICATES:
 			if (n->tok1.id == KW_AND){
@@ -572,7 +572,7 @@ void analyzer::findIndexableJoinValues(astnode &n, int fileno){
 		break;
 	case N_JOIN:
 		{
-			auto& f = q->filemap[n->tok4.val];
+			auto& f = q->filemap[n->node1->tok4.val];
 			if (!f)
 				error("Could not find file matching join alias ",n->tok4.val);
 			fileno = f->fileno;
@@ -666,7 +666,7 @@ void lateAnalyze(querySpecs &q){
 		an.setNodePhase(q.tree, 1);
 	}
 	if (q.joining){
-		an.findJoinAndChains(q.tree->node3->node1, 1);
-		an.findIndexableJoinValues(q.tree->node3->node1, 0);
+		an.findJoinAndChains(q.tree->node3->node2, 1);
+		an.findIndexableJoinValues(q.tree->node3->node2, 0);
 	}
 }
