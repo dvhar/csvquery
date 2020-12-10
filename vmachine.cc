@@ -1356,9 +1356,9 @@ void vmachine::startSubqueries(){
 			vmachine vm(*sq.query);
 			vm.run();
 			if (sq.singleDatatype == T_STRING)
-				sq.resultSet.reset(new subquerySset(vm.bt_strings[sq.btreeIdx]));
+				sq.resultSet.reset(new stringSet(vm.bt_strings[sq.btreeIdx]));
 			else
-				sq.resultSet.reset(new subqueryNset(vm.bt_nums[sq.btreeIdx]));
+				sq.resultSet.reset(new numericSet(vm.bt_nums[sq.btreeIdx]));
 			}
 		}
 	}
