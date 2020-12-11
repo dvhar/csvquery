@@ -528,6 +528,7 @@ class querySpecs {
 	vector<variable> vars;
 	vector<dat> dataholder;
 	vector<opcode> bytecode;
+	vector<int> settypes;
 	astnode tree;
 	map<string, shared_ptr<fileReader>> filemap;
 	vector<shared_ptr<fileReader>> filevec;
@@ -537,20 +538,17 @@ class querySpecs {
 	resultSpecs colspec = {0};
 	crypter crypt = {};
 	i64 sessionId = 0;
-	int distinctSFuncs =0;
-	int distinctNFuncs =0;
 	int midcount =0;
 	int numFiles =0;
 	u32 tokIdx =0;
 	int options =0;
-	int btn =0;
-	int bts =0;
 	int quantityLimit =0;
 	int posVecs =0;
 	int sorting =0;
 	int sortcount =0;
 	int grouping =0; //1 = one group, 2 = groups
 	int isSubquery =0; //1 = in list predicate
+	bool distinctFuncs =0;
 	bool outputjson =0;
 	bool outputcsv =0;
 	bool outputcsvheader =0;
@@ -587,6 +585,7 @@ class querySpecs {
 class virtualSet {
 	public:
 		virtual bool contains(dat&)=0;
+		virtual bool insert(dat&)=0;
 };
 class subquery {
 	public:

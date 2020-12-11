@@ -9,7 +9,6 @@ class cgen {
 	int joinFileIdx = 0;
 	int prevJoinRead = 0;
 	int wherenot = 0;
-	int sqBtreeIndex = 0;
 	bool headerdone = false;
 	vector<int> valposTypes;
 	vector<opcode>& v;
@@ -260,8 +259,8 @@ void cgen::genPrint(){
 			addop(PRINTCSV);
 	}
 	if (q->isSubquery == SQ_INLIST){
-		sqBtreeIndex = addBtree(q->thisSq->singleDatatype, q);
-		addop(PRINTBTREE, sqBtreeIndex);
+		q->thisSq->btreeIdx = addBtree(q->thisSq->singleDatatype, q);
+		addop(PRINTBTREE, q->thisSq->btreeIdx);
 	}
 }
 void cgen::genAndChainSet(astnode &n){
@@ -954,7 +953,7 @@ void cgen::genDistinct(astnode &n, int gotoIfNot){
 		return;
 	if (n->tok1.id == KW_DISTINCT){
 		genExprAll(n->node1);
-		addop2(operations[OPDIST][n->datatype], gotoIfNot, addBtree(n->datatype, q));
+		addop2(DIST, gotoIfNot, addBtree(n->datatype, q));
 	} else {
 		//there can be only 1 distinct filter
 		genDistinct(n->node2, gotoIfNot);
@@ -977,7 +976,7 @@ void cgen::genFunction(astnode &n){
 				setIndex = addBtree(n->node1->datatype, q);
 				separateSets = 0;
 			}
-			addop(operations[OPDIST][n->node1->datatype], funcDone, setIndex, separateSets);
+			addop(DIST, funcDone, setIndex, separateSets);
 			addop(LDDIST);
 		}
 	}

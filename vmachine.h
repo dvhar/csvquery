@@ -31,7 +31,7 @@ enum codes : int {
 	ILEQ, FLEQ, TLEQ,
 	ILT, FLT, TLT,
 	PRINTCSV, PRINTJSON, PUSH, PUSH_N, POP, POPCPY, ENDRUN, NULFALSE,
-	NDIST, SDIST, PUTDIST, LDDIST,
+	DIST, PUTDIST, LDDIST,
 	FINC, ENCCHA, DECCHA,
 	SAVESORTN, SAVESORTS, SAVEVALPOS, SAVEPOS, SORT,
 	GETGROUP, ONEGROUP,
@@ -56,7 +56,7 @@ enum codes : int {
 //2d array for ops indexed by operation and datatype
 enum typeOperators {
 	OPADD, OPSUB, OPMULT, OPMOD, OPDIV, OPPOW, OPNEG, OPLD, OPEQ, OPLEQ, OPLT,
-	OPMAX, OPMIN, OPSUM, OPAVG, OPSTV, OPLSTV, OPLAVG, OPSVSRT, OPDIST, OPABS
+	OPMAX, OPMIN, OPSUM, OPAVG, OPSTV, OPLSTV, OPLAVG, OPSVSRT, OPABS
 };
 static int operations[][6] = {
 	{ 0, IADD, FADD, DTADD, DRADD, TADD },
@@ -78,7 +78,6 @@ static int operations[][6] = {
 	{ 0, LDSTDVI, LDSTDVF, 0, LDSTDVI, 0 },
 	{ 0, LDAVGI, LDAVGF, LDAVGI, LDAVGI, 0 },
 	{ 0, SAVESORTN, SAVESORTN, SAVESORTN, SAVESORTN, SAVESORTS },
-	{ 0, NDIST, NDIST, NDIST, NDIST, SDIST },
 	{ 0, FUNCABSI, FUNCABSF, 0, FUNCABSI, 0 },
 };
 
@@ -257,8 +256,7 @@ class vmachine {
 	i64 sessionId =0;
 	int id =0;
 	vector<vector<datunion>> normalSortVals;
-	vector<bset<i64>> bt_nums;
-	vector<bset<treeCString>> bt_strings;
+	vector<unique_ptr<virtualSet>> vsets;
 	querySpecs* q;
 	void endQuery();
 	void run();
@@ -267,15 +265,52 @@ class vmachine {
 	~vmachine();
 };
 
+class numericSet : public virtualSet {
+	bset<i64> btree;
+	public:
+	bool contains(dat& d){
+		return btree.find(d.u.i) != btree.end();
+	}
+	bool insert(dat& d){
+		i64 temp = d.isnull() ? numeric_limits<i64>::min() : d.u.i;
+		return btree.insert(temp).second;
+	}
+	numericSet(){};
+	numericSet(bset<i64>& src) : btree(move(src)) {};
+	~numericSet(){};
+};
+class stringSet : public virtualSet {
+	bset<treeCString> btree;
+	public:
+	bool contains(dat& d){
+		treeCString t(d);
+		auto ret = btree.find(t) != btree.end();
+		free(t.s);
+		return ret;
+	}
+	bool insert(dat& d){
+		treeCString tsc(d);
+		if (btree.insert(tsc).second) {
+			return true;
+		} else {
+			free(tsc.s);
+			return false;
+		}
+	}
+	stringSet(){};
+	stringSet(bset<treeCString>& src) : btree(move(src)) {};
+	~stringSet(){
+		for (auto tcs : btree) free(tcs.s);
+	};
+};
 class rowgroup {
 	public:
 		struct {
-			u32 rowOrGroup : 2;
+			u32 distinctSetIdx : 32;
+			short rowsize : 16;
+			short rowOrGroup : 2;
 			bool mallocedKey : 1;
 			bool freed : 1;
-			u32 distinctNSetIdx : 26;
-			u32 distinctSSetIdx : 26;
-			u32 rowsize : 8;
 		} meta;
 		union { dat* vecp; map<dat, rowgroup>* mapp; } data;
 		dat* getVec(){ return data.vecp; };
@@ -298,15 +333,13 @@ class rowgroup {
 				meta.rowsize = v->q->midcount;
 				meta.rowOrGroup = 1;
 				data.vecp = (dat*) calloc(meta.rowsize, sizeof(dat));
-				if (v->q->distinctNFuncs){
-					meta.distinctNSetIdx = v->bt_nums.size();
-					for(int i=0; i<v->q->distinctNFuncs; ++i)
-						v->bt_nums.emplace_back();
-				}
-				if (v->q->distinctSFuncs){
-					meta.distinctSSetIdx = v->bt_strings.size();
-					for(int i=0; i<v->q->distinctSFuncs; ++i)
-						v->bt_strings.emplace_back();
+				if (v->q->distinctFuncs){
+					meta.distinctSetIdx = v->vsets.size();
+					for(int s: v->q->settypes){
+						v->vsets.emplace_back(s?
+							(virtualSet*) new stringSet() :
+							(virtualSet*) new numericSet());
+					}
 				}
 			}
 			return getVec();
@@ -447,29 +480,3 @@ static pair<dat*,dat*> getfirst(dat* stacktop, int firsttype){
 	return {stacktop-1,stacktop};
 }
 
-class numericSet : public virtualSet {
-	bset<i64> btree;
-	public:
-	bool contains(dat& d){
-		return btree.find(d.u.i) != btree.end();
-	}
-	numericSet(bset<i64>& src) :
-		btree(move(src)) {};
-	~numericSet(){};
-};
-class stringSet : public virtualSet {
-	bset<treeCString> btree;
-	public:
-	bool contains(dat& d){
-		treeCString t(d);
-		auto ret = btree.find(t) != btree.end();
-		free(t.s);
-		return ret;
-	}
-	stringSet(bset<treeCString>& src) :
-		btree(move(src)) {};
-	~stringSet(){
-		for (auto tcs : btree)
-			free(tcs.s);
-	};
-};
