@@ -229,11 +229,9 @@ bool analyzer::findAgrregates(astnode &n){
 	case N_FUNCTION:
 		if ((n->tok1.id & AGG_BIT) != 0){
 			if (n->tok3.lower() == "distinct"){
-				if (n->node1->datatype == T_STRING){
-					n->tok4.id = q->distinctSFuncs++;
-				} else {
-					n->tok4.id = q->distinctNFuncs++;
-				}
+				n->tok4.id = q->settypes.size();
+				q->settypes.push_back(n->node1->datatype == T_STRING);
+				q->distinctFuncs = 1;
 			}
 			return true;
 		} else {
