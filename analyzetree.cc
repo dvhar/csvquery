@@ -654,6 +654,8 @@ bool analyzer::addAlias(astnode& n){
 		string& alias = aliasnode->tok1.val;
 		string& fpath = filenode->tok1.val;
 		int opts = filenode->tok5.id;
+		if (regex_match(alias,filelike))
+			error("File alias cannot have dots or slashes");
 		string aliasfile = st(globalSettings.configdir,"/alias-",alias,".txt");
 		if (boost::filesystem::exists(aliasfile))
 			error(alias," alias already exists");
