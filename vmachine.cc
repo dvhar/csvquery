@@ -32,7 +32,7 @@ namespace bs_sort = boost::sort::parallel;
 #define ifneithernull if (stk0.isnull() || stk1.isnull()) { stk1.setnull(); } else
 
 void vmachine::run(){
-	constexpr void* labels[] = { &&CVER_, &&CVNO_, &&CVIF_, &&CVIS_, &&CVFI_, &&CVFS_, &&CVDRS_, &&CVDTS_, &&CVSI_, &&CVSF_, &&CVSDR_, &&CVSDT_, &&IADD_, &&FADD_, &&TADD_, &&DTADD_, &&DRADD_, &&ISUB_, &&FSUB_, &&DTSUB_, &&DRSUB_, &&IMULT_, &&FMULT_, &&DRMULT_, &&IDIV_, &&FDIV_, &&DRDIV_, &&INEG_, &&FNEG_, &&PNEG_, &&IMOD_, &&FMOD_, &&IPOW_, &&FPOW_, &&JMP_, &&JMPCNT_, &&JMPTRUE_, &&JMPFALSE_, &&JMPNOTNULL_ELSEPOP_, &&RDLINE_, &&RDLINE_ORDERED_, &&PREP_REREAD_, &&PUT_, &&LDPUT_, &&LDPUTALL_, &&PUTVAR_, &&PUTVAR2_, &&LDINT_, &&LDFLOAT_, &&LDTEXT_, &&LDDATE_, &&LDDUR_, &&LDLIT_, &&LDVAR_, &&HOLDVAR_, &&IEQ_, &&FEQ_, &&TEQ_, &&LIKE_, &&ILEQ_, &&FLEQ_, &&TLEQ_, &&ILT_, &&FLT_, &&TLT_, &&PRINTCSV_, &&PRINTJSON_, &&PUSH_, &&PUSH_N_, &&POP_, &&POPCPY_, &&ENDRUN_, &&NULFALSE_, &&NDIST_, &&SDIST_, &&PUTDIST_, &&LDDIST_, &&FINC_, &&FUNC_ENCCHA_, &&FUNC_DECCHA_, &&SAVESORTN_, &&SAVESORTS_, &&SAVEVALPOS_, &&SAVEPOS_, &&SORT_, &&GETGROUP_, &&ONEGROUP_, &&SUMI_, &&SUMF_, &&AVGI_, &&AVGF_, &&STDVI_, &&STDVF_, &&COUNT_, &&MINI_, &&MINF_, &&MINS_, &&MAXI_, &&MAXF_, &&MAXS_, &&NEXTMAP_, &&NEXTVEC_, &&ROOTMAP_, &&LDMID_, &&LDPUTMID_, &&LDPUTGRP_, &&LDSTDVI_, &&LDSTDVF_, &&LDAVGI_, &&LDAVGF_, &&ADD_GROUPSORT_ROW_, &&FREE_MIDROW_, &&GSORT_, &&READ_NEXT_GROUP_, &&NUL_TO_STR_, &&SORTVALPOS_, &&JOINSET_EQ_AND_, &&JOINSET_EQ_, &&JOINSET_LESS_, &&JOINSET_GRT_, &&JOINSET_LESS_AND_, &&JOINSET_GRT_AND_, &&JOINSET_INIT_, &&JOINSET_TRAV_, &&AND_SET_, &&OR_SET_, &&SAVEANDCHAIN_, &&SORT_ANDCHAIN_, &&FUNC_YEAR_, &&FUNC_MONTH_, &&FUNC_WEEK_, &&FUNC_YDAY_, &&FUNC_MDAY_, &&FUNC_WDAY_, &&FUNC_HOUR_, &&FUNC_MINUTE_, &&FUNC_SECOND_, &&FUNC_WDAYNAME_, &&FUNC_MONTHNAME_, &&FUNC_ABSF_, &&FUNC_ABSI_, &&START_MESSAGE_, &&STOP_MESSAGE_, &&FUNC_CIEL_, &&FUNC_FLOOR_, &&FUNC_ACOS_, &&FUNC_ASIN_, &&FUNC_ATAN_, &&FUNC_COS_, &&FUNC_SIN_, &&FUNC_TAN_, &&FUNC_EXP_, &&FUNC_LOG_, &&FUNC_LOG2_, &&FUNC_LOG10_, &&FUNC_SQRT_, &&FUNC_RAND_, &&FUNC_UPPER_, &&FUNC_LOWER_, &&FUNC_BASE64_ENCODE_, &&FUNC_BASE64_DECODE_, &&FUNC_HEX_ENCODE_, &&FUNC_HEX_DECODE_, &&FUNC_LEN_, &&FUNC_SUBSTR_, &&FUNC_MD5_, &&FUNC_SHA1_, &&FUNC_SHA256_, &&FUNC_ROUND_, &&FUNC_CBRT_, &&FUNC_NOW_, &&FUNC_NOWGM_, &&PRINTCSV_HEADER_, &&FUNC_FORMAT_, &&LDCOUNT_, &&BETWEEN_, &&PRINTBOX_, &&PRINTBTREE_, &&INSUBQUERY_};
+	constexpr void* labels[] = { &&CVER_, &&CVNO_, &&CVIF_, &&CVIS_, &&CVFI_, &&CVFS_, &&CVDRS_, &&CVDTS_, &&CVSI_, &&CVSF_, &&CVSDR_, &&CVSDT_, &&IADD_, &&FADD_, &&TADD_, &&DTADD_, &&DRADD_, &&ISUB_, &&FSUB_, &&DTSUB_, &&DRSUB_, &&IMULT_, &&FMULT_, &&DRMULT_, &&IDIV_, &&FDIV_, &&DRDIV_, &&INEG_, &&FNEG_, &&PNEG_, &&IMOD_, &&FMOD_, &&IPOW_, &&FPOW_, &&JMP_, &&JMPCNT_, &&JMPTRUE_, &&JMPFALSE_, &&JMPNOTNULL_ELSEPOP_, &&RDLINE_, &&RDLINE_ORDERED_, &&PREP_REREAD_, &&PUT_, &&LDPUT_, &&LDPUTALL_, &&PUTVAR_, &&PUTVAR2_, &&LDINT_, &&LDFLOAT_, &&LDTEXT_, &&LDDATE_, &&LDDUR_, &&LDLIT_, &&LDVAR_, &&HOLDVAR_, &&IEQ_, &&FEQ_, &&TEQ_, &&LIKE_, &&ILEQ_, &&FLEQ_, &&TLEQ_, &&ILT_, &&FLT_, &&TLT_, &&PRINTCSV_, &&PRINTJSON_, &&PUSH_, &&PUSH_N_, &&POP_, &&POPCPY_, &&ENDRUN_, &&NULFALSE_, &&DIST_, &&PUTDIST_, &&LDDIST_, &&FINC_, &&FUNC_ENCCHA_, &&FUNC_DECCHA_, &&SAVESORTN_, &&SAVESORTS_, &&SAVEVALPOS_, &&SAVEPOS_, &&SORT_, &&GETGROUP_, &&ONEGROUP_, &&SUMI_, &&SUMF_, &&AVGI_, &&AVGF_, &&STDVI_, &&STDVF_, &&COUNT_, &&MINI_, &&MINF_, &&MINS_, &&MAXI_, &&MAXF_, &&MAXS_, &&NEXTMAP_, &&NEXTVEC_, &&ROOTMAP_, &&LDMID_, &&LDPUTMID_, &&LDPUTGRP_, &&LDSTDVI_, &&LDSTDVF_, &&LDAVGI_, &&LDAVGF_, &&ADD_GROUPSORT_ROW_, &&FREE_MIDROW_, &&GSORT_, &&READ_NEXT_GROUP_, &&NUL_TO_STR_, &&SORTVALPOS_, &&JOINSET_EQ_AND_, &&JOINSET_EQ_, &&JOINSET_LESS_, &&JOINSET_GRT_, &&JOINSET_LESS_AND_, &&JOINSET_GRT_AND_, &&JOINSET_INIT_, &&JOINSET_TRAV_, &&AND_SET_, &&OR_SET_, &&SAVEANDCHAIN_, &&SORT_ANDCHAIN_, &&FUNC_YEAR_, &&FUNC_MONTH_, &&FUNC_WEEK_, &&FUNC_YDAY_, &&FUNC_MDAY_, &&FUNC_WDAY_, &&FUNC_HOUR_, &&FUNC_MINUTE_, &&FUNC_SECOND_, &&FUNC_WDAYNAME_, &&FUNC_MONTHNAME_, &&FUNC_ABSF_, &&FUNC_ABSI_, &&START_MESSAGE_, &&STOP_MESSAGE_, &&FUNC_CIEL_, &&FUNC_FLOOR_, &&FUNC_ACOS_, &&FUNC_ASIN_, &&FUNC_ATAN_, &&FUNC_COS_, &&FUNC_SIN_, &&FUNC_TAN_, &&FUNC_EXP_, &&FUNC_LOG_, &&FUNC_LOG2_, &&FUNC_LOG10_, &&FUNC_SQRT_, &&FUNC_RAND_, &&FUNC_UPPER_, &&FUNC_LOWER_, &&FUNC_BASE64_ENCODE_, &&FUNC_BASE64_DECODE_, &&FUNC_HEX_ENCODE_, &&FUNC_HEX_DECODE_, &&FUNC_LEN_, &&FUNC_SUBSTR_, &&FUNC_MD5_, &&FUNC_SHA1_, &&FUNC_SHA256_, &&FUNC_ROUND_, &&FUNC_CBRT_, &&FUNC_NOW_, &&FUNC_NOWGM_, &&PRINTCSV_HEADER_, &&FUNC_FORMAT_, &&LDCOUNT_, &&BETWEEN_, &&PRINTBOX_, &&PRINTBTREE_, &&INSUBQUERY_};
 
 	i64 i64Temp;
 	int iTemp1, iTemp2;
@@ -892,12 +892,8 @@ PRINTBOX_:
 	++totalPrinted;
 	nexti();
 PRINTBTREE_:
-	if (q->thisSq->singleDatatype == T_STRING)
-		for (int i=0; i<torowSize; ++i)
-			bt_strings[op->p1].insert(treeCString(torow[i]));
-	else
-		for (int i=0; i<torowSize; ++i)
-			bt_nums[op->p1].insert(torow[i].u.i);
+	for (int i=0; i<torowSize; ++i)
+		vsets[op->p1]->insert(torow[i]);
 	nexti();
 
 //distinct checkers
@@ -905,28 +901,13 @@ LDDIST_:
 	push();
 	stk0 = distinctVal; //distinctVal never owns heap data
 	nexti();
-NDIST_:
-	iTemp1 = op->p3 ? groupTemp->meta.distinctNSetIdx : 0;
-	i64Temp = stk0.isnull() ? numeric_limits<i64>::min() : stk0.u.i;
-	if (bt_nums[op->p2+iTemp1].insert(i64Temp).second) {
+DIST_:
+	iTemp1 = op->p3 ? groupTemp->meta.distinctSetIdx : 0;
+	if (vsets[op->p2+iTemp1]->insert(stk0)) {
 		distinctVal = stk0;
 		++ip;
 	} else {
 		ip = op->p1;
-	}
-	pop();
-	next();
-SDIST_:
-	{
-		iTemp1 = op->p3 ? groupTemp->meta.distinctSSetIdx : 0;
-		treeCString tsc(stk0); //disowns stk0
-		if (bt_strings[op->p2+iTemp1].insert(tsc).second) {
-			distinctVal = stk0;
-			++ip;
-		} else {
-			free(tsc.s);
-			ip = op->p1;
-		}
 	}
 	pop();
 	next();
@@ -1355,10 +1336,7 @@ void vmachine::startSubqueries(){
 		case SQ_INLIST: {
 			vmachine vm(*sq.query);
 			vm.run();
-			if (sq.singleDatatype == T_STRING)
-				sq.resultSet.reset(new subquerySset(vm.bt_strings[sq.btreeIdx]));
-			else
-				sq.resultSet.reset(new subqueryNset(vm.bt_nums[sq.btreeIdx]));
+			sq.resultSet.reset(vm.vsets[sq.btreeIdx].release());
 			}
 		}
 	}

@@ -299,7 +299,7 @@ export class Help extends React.Component {
 						{"select c1 c2 c3 dogs cats from '/home/user/pets.csv' limit 100"}
 					</blockquote>
 				<h4>Selecting rows that match a certain condition</h4>
-					 {"Use any combinatin of '<expression> <relational operator> <expression>', parentheses, 'and', 'or', 'xor', 'not', and 'between'. Dates are handled nicely, so 'May 18 1955' is the same as '5/18/1955'. Empty entries can be compared against the keyword 'null'."}
+					 {"Use any combinatin of '<expression> <relational operator> <expression>', parentheses, 'and', 'or', 'xor', 'not', 'in', and 'between'. Dates are handled nicely, so 'May 18 1955' is the same as '5/18/1955'. Empty entries can be compared against the keyword 'null'. The 'in' operator can be used with a subquery, though correlated subqueries are not yet supported."}
 					<br/><br/>
 					{"Valid relational operators are =,  !=,  <>,  >,  <,  >=,  <=, like, in, and between. '!' is evaluated the same as 'not', and can be put in front of a relational operator or a whole comparison."}
 					<br/><br/>
@@ -312,6 +312,8 @@ export class Help extends React.Component {
 						{"select from '/home/user/pets.csv' where c1 in (2,3,5,7,11,13,17,19,23)"}
 						<br/>
 						{"select from '/home/user/pets.csv' where null not in (c1,c2,c3)"}
+						<br/>
+						{"select from '/home/user/pets.csv' where species not in (select species from behaviors.csv where prey != humans)"}
 					</blockquote>
 				<h4>Sorting results</h4>
 					{"Use 'order by' at the end of the query, followed by any number of expressions, each followed optionally by 'asc'. Sorts by descending values unless 'asc' is specified."}
