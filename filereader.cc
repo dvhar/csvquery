@@ -4,19 +4,8 @@
 #include <string>
 #include "interpretor.h"
 
-
 fileReader::fileReader(string& fname, querySpecs &qs) : filename(fname), q(&qs) {
 	fileno = qs.numFiles;
-	if (!boost::filesystem::exists(fname)){
-		if (!regex_match(fname,extPat)){
-			fname += ".csv";
-			if (!boost::filesystem::exists(fname)){
-				error("Could not open file ",fname);
-			}
-		} else {
-			error("Could not open file ",fname);
-		}
-	}
 	i64 optisize = br.buffsize;
 	if (fileno > 0){
 		int jmegs = max(100, totalram() / 20);
@@ -250,10 +239,13 @@ class opener {
 	void openfiles(astnode &n);
 	opener(querySpecs &qs): q(&qs){};
 };
+bool checkAliases(astnode& n);
 void opener::openfiles(astnode &n){
 	if (n == nullptr)
 		return;
 	if (n->label == N_FILE){
+		if (!checkAliases(n))
+			findExtension(n->tok1.val);
 		string& fpath = n->tok1.val;
 		string id = st("_f",q->numFiles);
 		q->filevec.push_back(make_shared<fileReader>(fpath, *q));
@@ -325,4 +317,30 @@ shared_ptr<directory> filebrowse(string dir){
 	resp->parent = thisdir.parent_path().string();
 	resp->fpath = thisdir.string();
 	return resp;
+}
+
+void findExtension(string& fname){
+	if (!boost::filesystem::exists(fname)){
+		if (!regex_match(fname,extPat)){
+			fname += ".csv";
+			if (!boost::filesystem::exists(fname)){
+				error("Could not find file ",fname);
+			}
+		} else {
+			error("Could not find file ",fname);
+		}
+	}
+}
+bool checkAliases(astnode& n){
+	static regex filelike(".*[/\\\\\\.].*");
+	if (regex_match(n->tok1.val,filelike)){
+		return false;
+	}
+	string aliasfile = st(globalSettings.configdir,"/alias-",n->tok1.val,".txt");
+	if (!boost::filesystem::exists(aliasfile))
+		return false;
+	ifstream afile(aliasfile);
+	afile >> n->tok1.val;
+	afile >> n->tok5.id;
+	return true;
 }

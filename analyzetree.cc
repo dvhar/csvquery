@@ -1,4 +1,5 @@
 #include "interpretor.h"
+#include <boost/filesystem.hpp>
 #include<set>
 #include<algorithm>
 
@@ -648,6 +649,18 @@ void analyzer::setAttributes(astnode& n){
 }
 bool analyzer::addAlias(astnode& n){
 	if (n->tok1.id == N_ADDALIAS){
+		auto& aliasnode = n->node1;
+		auto& filenode = aliasnode->node1;
+		string& alias = aliasnode->tok1.val;
+		string& fpath = filenode->tok1.val;
+		int opts = filenode->tok5.id;
+		string aliasfile = st(globalSettings.configdir,"/alias-",alias,".txt");
+		if (boost::filesystem::exists(aliasfile))
+			error(alias," alias already exists");
+		findExtension(fpath);
+		ofstream afile(aliasfile);
+		afile << boost::filesystem::canonical(fpath).string() << endl << opts << endl;
+		
 		return true;
 	}
 	return false;
