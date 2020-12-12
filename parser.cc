@@ -679,6 +679,7 @@ astnode parser::parseFrom(bool withselections) {
 }
 
 //tok1 is file path or view name
+//tok2 will be copy of tok1 if filealias
 //tok4 is alias
 //tok5.id is file options
 astnode parser::parseFile() {
@@ -745,11 +746,8 @@ void parser::parseFileOptions(astnode& n) {
 	parseFileOptions(n);
 }
 
-//tok1 is filepath
 //tok2 is join token (join,sjoin,bjoin)
 //tok3 is join details (left/outer or inner)
-//tok4 is alias
-//tok5 is noheader
 //node1 is file
 //node2 is join condition (predicates)
 //node3 is next join
