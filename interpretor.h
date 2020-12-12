@@ -685,6 +685,7 @@ void sendMessage(i64 sesid, string);
 void sendPassPrompt(i64 sesid);
 void hideInput();
 void initregex();
+void findExtension(string& fname);
 const char* dateFormatCode(string& s);
 int totalram();
 
