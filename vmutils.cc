@@ -73,7 +73,7 @@ void dat::appendToJsonBuffer(string &outbuf){
 	static char buf[40];
 	char a = 0;
 	outbuf += '"';
-	switch ( b & 7 ) {
+	switch (type()) {
 	case T_INT:
 		sprintf(buf,"%lld",u.i);
 		outbuf += buf;
@@ -103,7 +103,7 @@ void dat::appendToCsvBuffer(string &outbuf){
 	if (b == 0) return;
 	static char buf[40];
 	char a = 0;
-	switch ( b & 7 ) {
+	switch (type()) {
 	case T_INT:
 		sprintf(buf,"%lld",u.i);
 		outbuf += buf;

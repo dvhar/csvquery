@@ -89,7 +89,7 @@ extern settings_t globalSettings;
 template<typename... Args>
 static void error(Args&&... A){ throw invalid_argument(st(A...));}
 
-enum nodetypes { N_QUERY, N_PRESELECT, N_WITH, N_VARS, N_SELECT, N_SELECTIONS, N_FROM, N_AFTERFROM, N_JOINCHAIN, N_JOIN, N_WHERE, N_HAVING, N_ORDER, N_EXPRADD, N_EXPRMULT, N_EXPRNEG, N_EXPRCASE, N_CPREDLIST, N_CPRED, N_CWEXPRLIST, N_CWEXPR, N_PREDICATES, N_PREDCOMP, N_VALUE, N_FUNCTION, N_GROUPBY, N_EXPRESSIONS, N_DEXPRESSIONS, N_TYPECONV, N_FILE, N_SETLIST };
+enum nodetypes { N_QUERY, N_PRESELECT, N_WITH, N_VARS, N_SELECT, N_SELECTIONS, N_FROM, N_AFTERFROM, N_JOINCHAIN, N_JOIN, N_WHERE, N_HAVING, N_ORDER, N_EXPRADD, N_EXPRMULT, N_EXPRNEG, N_EXPRCASE, N_CPREDLIST, N_CPRED, N_CWEXPRLIST, N_CWEXPR, N_PREDICATES, N_PREDCOMP, N_VALUE, N_FUNCTION, N_GROUPBY, N_EXPRESSIONS, N_DEXPRESSIONS, N_TYPECONV, N_FILE, N_SETLIST, N_ADDALIAS };
 
 enum valTypes { LITERAL, COLUMN, VARIABLE, FUNCTION };
 enum varFilters { WHERE_FILTER=1, DISTINCT_FILTER=2, ORDER_FILTER=4, AGG_FILTER=8, HAVING_FILTER=16, JCOMP_FILTER=32, JSCAN_FILTER=64, SELECT_FILTER=128 };
@@ -438,7 +438,8 @@ class dat {
 	void appendToCsvBuffer(string&);
 	void appendToJsonBuffer(string&);
 	string str(){ string st; appendToCsvBuffer(st); return st; }
-	bool istext() const { return (b & 7) == T_STRING; }
+	int type() const { return (b & 7); }
+	bool istext() const { return type() == T_STRING; }
 	bool isnull() const { return b == 0; }
 	bool ismal() const { return b & MAL; }
 	void setnull(){ *this = {0}; }
@@ -663,7 +664,7 @@ int parseDuration(char*, dat&);
 int getNarrowestType(char* value, int startType);
 void openfiles(querySpecs &q);
 void applyTypes(querySpecs &q);
-void earlyAnalyze(querySpecs &q);
+int earlyAnalyze(querySpecs &q);
 void midAnalyze(querySpecs &q);
 void lateAnalyze(querySpecs &q);
 void codeGen(querySpecs &q);
@@ -673,7 +674,7 @@ char* durstring(dat& dur, char* str);
 void runServer();
 string handle_err(exception_ptr eptr);
 astnode& findFirstNode(astnode &n, int label);
-void prepareQuery(querySpecs &q);
+int prepareQuery(querySpecs &q);
 void stopAllQueries();
 shared_ptr<directory> filebrowse(string);
 bool isTrivialColumn(astnode &n);

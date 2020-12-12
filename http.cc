@@ -28,6 +28,7 @@ void embedsite(HttpServer&);
 
 void runServer(){
 	serve();
+	exit(0);
 }
 
 static bool rejectNonLocals(shared_ptr<HttpServer::Request>& request){
