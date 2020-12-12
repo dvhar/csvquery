@@ -1,4 +1,5 @@
 #include "interpretor.h"
+#include <boost/filesystem.hpp>
 #include<set>
 #include<algorithm>
 
@@ -29,6 +30,7 @@ class analyzer {
 		void shouldPrintHeader();
 		int phaser(astnode &n);
 		void setAttributes(astnode& n);
+		bool addAlias(astnode& n);
 };
 
 void analyzer::propogateVarFilter(string var, int filter){
@@ -229,11 +231,9 @@ bool analyzer::findAgrregates(astnode &n){
 	case N_FUNCTION:
 		if ((n->tok1.id & AGG_BIT) != 0){
 			if (n->tok3.lower() == "distinct"){
-				if (n->node1->datatype == T_STRING){
-					n->tok4.id = q->distinctSFuncs++;
-				} else {
-					n->tok4.id = q->distinctNFuncs++;
-				}
+				n->tok4.id = q->settypes.size();
+				q->settypes.push_back(n->node1->datatype == T_STRING);
+				q->distinctFuncs = 1;
 			}
 			return true;
 		} else {
@@ -304,9 +304,9 @@ void analyzer::setVarPhase(astnode &n, int phase, int section){
 		}
 		break;
 	case N_JOIN:
-		if (findAgrregates(n->node1))
+		if (findAgrregates(n->node2))
 			error("cannot have aggregates in 'join' clause");
-		setVarPhase(n->node1, 1, 3);
+		setVarPhase(n->node2, 1, 3);
 		break;
 	case N_HAVING:
 		if (!findAgrregates(n->node1))
@@ -487,8 +487,8 @@ void analyzer::findJoinAndChains(astnode &n, int fileno){
 	auto& chainvec = q->getFileReader(fileno)->andchains;
 	switch (n->label){
 		case N_JOIN:
-			findJoinAndChains(n->node1, fileno);
-			findJoinAndChains(n->node2, fileno+1);
+			findJoinAndChains(n->node2, fileno);
+			findJoinAndChains(n->node3, fileno+1);
 			break;
 		case N_PREDICATES:
 			if (n->tok1.id == KW_AND){
@@ -572,7 +572,7 @@ void analyzer::findIndexableJoinValues(astnode &n, int fileno){
 		break;
 	case N_JOIN:
 		{
-			auto& f = q->filemap[n->tok4.val];
+			auto& f = q->filemap[n->node1->tok4.val];
 			if (!f)
 				error("Could not find file matching join alias ",n->tok4.val);
 			fileno = f->fileno;
@@ -647,10 +647,33 @@ void analyzer::setAttributes(astnode& n){
 	setAttributes(n->node3);
 	setAttributes(n->node4);
 }
+bool analyzer::addAlias(astnode& n){
+	if (n->tok1.id == N_ADDALIAS){
+		auto& aliasnode = n->node1;
+		auto& filenode = aliasnode->node1;
+		string& alias = aliasnode->tok1.val;
+		string& fpath = filenode->tok1.val;
+		int opts = filenode->tok5.id;
+		if (regex_match(alias,filelike))
+			error("File alias cannot have dots or slashes");
+		string aliasfile = st(globalSettings.configdir,"/alias-",alias,".txt");
+		if (boost::filesystem::exists(aliasfile))
+			error(alias," alias already exists");
+		findExtension(fpath);
+		ofstream afile(aliasfile);
+		afile << boost::filesystem::canonical(fpath).string() << endl << opts << endl;
+		
+		return true;
+	}
+	return false;
+}
 
-void earlyAnalyze(querySpecs &q){
+int earlyAnalyze(querySpecs &q){
 	analyzer an(q);
+	if (an.addAlias(q.tree))
+		return N_ADDALIAS;
 	an.setAttributes(q.tree);
+	return 0;
 }
 void midAnalyze(querySpecs &q){
 	analyzer an(q);
@@ -666,7 +689,7 @@ void lateAnalyze(querySpecs &q){
 		an.setNodePhase(q.tree, 1);
 	}
 	if (q.joining){
-		an.findJoinAndChains(q.tree->node3->node1, 1);
-		an.findIndexableJoinValues(q.tree->node3->node1, 0);
+		an.findJoinAndChains(q.tree->node3->node2, 1);
+		an.findIndexableJoinValues(q.tree->node3->node2, 0);
 	}
 }

@@ -17,6 +17,7 @@ regex posInt("^\\d+$");
 regex colNum("^c?\\d+$");
 regex extPat(".*\\.csv$", regex_constants::icase);
 regex hidPat(".*/\\.[^/]+$");
+regex filelike(".*[/\\\\\\.].*");
 int isDuration(const char* s){ return !regexec(&durationPattern, s, 0, NULL, 0); }
 int isInt(const char* s){ return !regexec(&intType, s, 0, NULL, 0); }
 int isFloat(const char* s){ return !regexec(&floatType, s, 0, NULL, 0); }
@@ -278,6 +279,20 @@ int querySpecs::addSubquery(astnode& subtree, int sqtype){
 	}
 	perr("added subquery");
 	return subqueries.size()-1;
+}
+
+void subquery::terminate(exception_ptr e){
+	ex = e;
+	if(topfinaltypes.valid()){
+		topfinaltypesp.set_exception(ex);
+	}
+}
+void subquery::terminateOutter(exception_ptr e){
+	ex = e;
+	if (topinnertypes.valid() &&
+			topinnertypes.wait_for(chrono::seconds(0)) == future_status::timeout) {
+		topinnertypesp.set_exception(ex);
+	}
 }
 
 
@@ -610,9 +625,8 @@ string gethome(){
 
 settings_t globalSettings;
 
-void perr(string s){
-
-	static const char* ss[] = {
+void perr(string message){
+	static const char* dbcolors[] = {
 		R "\033[38;5;82m",
 		R "\033[38;5;205m",
 		R "\033[38;5;87m",
@@ -621,31 +635,50 @@ void perr(string s){
 		R "\033[38;5;82m",
 	};
 	static atomic_int i(0);
-	static map<thread::id,const char*> cs;
+	static map<thread::id,const char*> threadcolors;
 	static mutex dbmtx;
 	if (globalSettings.debug){
-
 		dbmtx.lock();
-		auto th = this_thread::get_id();
-		if (!cs.count(th))
-			cs[th] = ss[(i++)%6];
-
-		cerr << cs[th] << s << "\033[0m" << endl;
+		auto threadid = this_thread::get_id();
+		if (!threadcolors.count(threadid))
+			threadcolors[threadid] = dbcolors[(i++)%6];
+		cerr << threadcolors[threadid] << message << "\033[0m" << endl;
 		dbmtx.unlock();
 	}
 }
 
-void prepareQuery(querySpecs &q){
-	scanTokens(q);
-	parseQuery(q);
-	earlyAnalyze(q);
-	openfiles(q);
-	midAnalyze(q);
-	q.promptPassword();
-	applyTypes(q);
-	lateAnalyze(q);
-	printTree(q.tree, 0);
-	codeGen(q);
-	for (auto& sq : q.subqueries)
+int prepareQuery(querySpecs &q){
+	exception_ptr ex = nullptr;
+	try {
+		scanTokens(q);
+		parseQuery(q);
+		switch (earlyAnalyze(q)){
+			case N_ADDALIAS:
+				return N_ADDALIAS;
+		}
+		openfiles(q);
+		midAnalyze(q);
+		q.promptPassword();
+		applyTypes(q);
+		lateAnalyze(q);
+		printTree(q.tree, 0);
+		codeGen(q);
+	} catch (...){
+		ex = current_exception();
+	}
+
+	for (auto& sq : q.subqueries){
+		if (ex) sq.terminate(ex);
 		sq.prep.join();
+		if (sq.ex) ex = sq.ex;
+	}
+
+	if (ex){
+		if (q.isSubquery){
+			q.thisSq->terminateOutter(ex);
+		}else{
+			rethrow_exception(ex);
+		}
+	}
+	return 0;
 };

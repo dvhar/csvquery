@@ -74,9 +74,11 @@ class settings_t {
 	bool tablecolor = 1;
 	bool tablelinebg = 0;
 #ifdef _WIN32
-	string configpath = st(getenv("USERPROFILE"),R"(\AppData\csvqueryConf.txt)");
+	string configdir = st(getenv("USERPROFILE"),R"(\AppData\csvquery)");
+	string configfilepath = configdir + "\config.txt";
 #else
-	string configpath = st(gethome(),"/.config/csvquery.conf");
+	string configdir = st(gethome(),"/.config/csvquery");
+	string configfilepath = configdir + "/config";
 #endif 
 };
 
@@ -87,7 +89,7 @@ extern settings_t globalSettings;
 template<typename... Args>
 static void error(Args&&... A){ throw invalid_argument(st(A...));}
 
-enum nodetypes { N_QUERY, N_PRESELECT, N_WITH, N_VARS, N_SELECT, N_SELECTIONS, N_FROM, N_AFTERFROM, N_JOINCHAIN, N_JOIN, N_WHERE, N_HAVING, N_ORDER, N_EXPRADD, N_EXPRMULT, N_EXPRNEG, N_EXPRCASE, N_CPREDLIST, N_CPRED, N_CWEXPRLIST, N_CWEXPR, N_PREDICATES, N_PREDCOMP, N_VALUE, N_FUNCTION, N_GROUPBY, N_EXPRESSIONS, N_DEXPRESSIONS, N_TYPECONV, N_FILE, N_SETLIST };
+enum nodetypes { N_QUERY, N_PRESELECT, N_WITH, N_VARS, N_SELECT, N_SELECTIONS, N_FROM, N_AFTERFROM, N_JOINCHAIN, N_JOIN, N_WHERE, N_HAVING, N_ORDER, N_EXPRADD, N_EXPRMULT, N_EXPRNEG, N_EXPRCASE, N_CPREDLIST, N_CPRED, N_CWEXPRLIST, N_CWEXPR, N_PREDICATES, N_PREDCOMP, N_VALUE, N_FUNCTION, N_GROUPBY, N_EXPRESSIONS, N_DEXPRESSIONS, N_TYPECONV, N_FILE, N_SETLIST, N_ADDALIAS };
 
 enum valTypes { LITERAL, COLUMN, VARIABLE, FUNCTION };
 enum varFilters { WHERE_FILTER=1, DISTINCT_FILTER=2, ORDER_FILTER=4, AGG_FILTER=8, HAVING_FILTER=16, JCOMP_FILTER=32, JSCAN_FILTER=64, SELECT_FILTER=128 };
@@ -254,6 +256,7 @@ extern regex posInt;
 extern regex colNum;
 extern regex extPat;
 extern regex hidPat;
+extern regex filelike;
 
 struct freeC {
 	void operator()(void*x){ free(x); }
@@ -436,7 +439,8 @@ class dat {
 	void appendToCsvBuffer(string&);
 	void appendToJsonBuffer(string&);
 	string str(){ string st; appendToCsvBuffer(st); return st; }
-	bool istext() const { return (b & 7) == T_STRING; }
+	int type() const { return (b & 7); }
+	bool istext() const { return type() == T_STRING; }
 	bool isnull() const { return b == 0; }
 	bool ismal() const { return b & MAL; }
 	void setnull(){ *this = {0}; }
@@ -526,6 +530,7 @@ class querySpecs {
 	vector<variable> vars;
 	vector<dat> dataholder;
 	vector<opcode> bytecode;
+	vector<int> settypes;
 	astnode tree;
 	map<string, shared_ptr<fileReader>> filemap;
 	vector<shared_ptr<fileReader>> filevec;
@@ -535,20 +540,17 @@ class querySpecs {
 	resultSpecs colspec = {0};
 	crypter crypt = {};
 	i64 sessionId = 0;
-	int distinctSFuncs =0;
-	int distinctNFuncs =0;
 	int midcount =0;
 	int numFiles =0;
 	u32 tokIdx =0;
 	int options =0;
-	int btn =0;
-	int bts =0;
 	int quantityLimit =0;
 	int posVecs =0;
 	int sorting =0;
 	int sortcount =0;
 	int grouping =0; //1 = one group, 2 = groups
 	int isSubquery =0; //1 = in list predicate
+	bool distinctFuncs =0;
 	bool outputjson =0;
 	bool outputcsv =0;
 	bool outputcsvheader =0;
@@ -582,9 +584,10 @@ class querySpecs {
 		isSubquery = sqtype;
 	};
 };
-class subquerySet {
+class virtualSet {
 	public:
 		virtual bool contains(dat&)=0;
+		virtual bool insert(dat&)=0;
 };
 class subquery {
 	public:
@@ -597,12 +600,15 @@ class subquery {
 	future<vector<int>> topfinaltypes;
 	promise<vector<int>> topfinaltypesp;
 	unique_ptr<querySpecs> query;
-	unique_ptr<subquerySet> resultSet;
+	unique_ptr<virtualSet> resultSet;
+	exception_ptr ex = nullptr;
 	subquery(querySpecs* q) : query(q) {
 		q->thisSq = this;
 		topinnertypes = topinnertypesp.get_future().share();
 		topfinaltypes = topfinaltypesp.get_future();
 	};
+	void terminate(exception_ptr);
+	void terminateOutter(exception_ptr);
 };
 
 class singleQueryResult {
@@ -659,7 +665,7 @@ int parseDuration(char*, dat&);
 int getNarrowestType(char* value, int startType);
 void openfiles(querySpecs &q);
 void applyTypes(querySpecs &q);
-void earlyAnalyze(querySpecs &q);
+int earlyAnalyze(querySpecs &q);
 void midAnalyze(querySpecs &q);
 void lateAnalyze(querySpecs &q);
 void codeGen(querySpecs &q);
@@ -669,7 +675,7 @@ char* durstring(dat& dur, char* str);
 void runServer();
 string handle_err(exception_ptr eptr);
 astnode& findFirstNode(astnode &n, int label);
-void prepareQuery(querySpecs &q);
+int prepareQuery(querySpecs &q);
 void stopAllQueries();
 shared_ptr<directory> filebrowse(string);
 bool isTrivialColumn(astnode &n);
@@ -680,6 +686,7 @@ void sendMessage(i64 sesid, string);
 void sendPassPrompt(i64 sesid);
 void hideInput();
 void initregex();
+void findExtension(string& fname);
 const char* dateFormatCode(string& s);
 int totalram();
 

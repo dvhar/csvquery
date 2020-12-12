@@ -6,7 +6,8 @@
 [] = one of
 [[]] = at least one of
 
-query             -> <preselect> <select> <from> <afterfrom>
+query             -> <preselect> <select> <from> <afterfrom> | <addalias>
+addalias          -> add filealias <file>
 preselect         -> <options> <with> | ε
 options           -> [ oh noh nh h ah s p t nan ] { <options> } | ε
 with              -> with <vars> | ε
@@ -31,19 +32,16 @@ predicateCompare  -> { not } <expradd> { not } <relop> <expradd>
 setlist           -> <expressionlist> | <query>
 function          -> func ( params )
 expressionlist    -> <expradd> {,} <expressionlist> | ε
-from              -> from file {[nh h ah]} { as alias } {[nh h ah]} <join>
-join              -> {[left inner]} join file {[nh h ah]} alias on <predicates> <join> | ε
+from              -> from <file> <join>
+join              -> {[left inner]} join <file> on <predicates> <join> | ε
+file              -> [ file view ] { <fileoptions> } { {as} alias } { <fileoptions> }
+                    | ( <query> ) { {as} alias }
+fileoptions       -> [ alias nh h ah s t p ] <fileoptions> | ε
 afterfrom         -> {[[ <where> <group> <having> <order> <limit> ]]}
 where             -> where <predicates>
 having            -> having <predicates>
 order             -> order by <expressionlist>
 group             -> group by <expressionlist>
-
-TODO:
-from              -> from <file> <join>
-join              -> {[left inner]} join <file> on <predicates> <join> | ε
-file              -> file { <fileoptions> } | ( <query> ) | filealias
-fileoptions       -> [ alias nh h ah s t p ] <fileoptions> | ε
 */
 
 #define newNode(l) make_unique<node>(l)
@@ -78,9 +76,10 @@ class parser {
 	astnode parseSetList(bool);
 	astnode parseExpressionList(bool i, bool s);
 	astnode parseQuery();
-	void parseFileOptions();
-	void parseTop(astnode& n);
-	void parseLimit(astnode& n);
+	astnode parseAddAlias();
+	void parseFileOptions(astnode&);
+	void parseTop(astnode&);
+	void parseLimit(astnode&);
 
 	querySpecs* q;
 	bool justfile = false;
@@ -107,19 +106,41 @@ void parseQuery(querySpecs &q) {
 	pr.parse();
 }
 
-//could include other commands like describe, insert
 //node1 is preselect
 //node2 is select
 //node3 is from
 //node4 is afterfrom
+//or
+//node1 is addalias
+//tok1.id is N_ADDALIAS
 astnode parser::parseQuery() {
+	token t = q->tok();
 	astnode n = newNode(N_QUERY);
+	if (t.lower() == "add"){
+		q->nextTok();
+		n->node1 = parseAddAlias();
+		n->tok1.id = N_ADDALIAS;
+		return n;
+	}
 	n->node1 = parsePreSelect();
 	n->node3 = parseFrom(false);
 	n->node2 = parseSelect();
 	if (!justfile)
 		n->node3 = parseFrom(true);
 	n->node4 = parseAfterFrom();
+	return n;
+}
+
+//node1 is file
+//tok1 is alias
+astnode parser::parseAddAlias() {
+	token t = q->tok();
+	astnode n = newNode(N_ADDALIAS);
+	if (t.id != WORD_TK)
+		error("Expected file alias after 'add'. Found ",t.val);
+	n->tok1 = t;
+	q->nextTok();
+	n->node1 = parseFile();
 	return n;
 }
 
@@ -636,7 +657,8 @@ void parser::parseLimit(astnode& n) {
 //tok1 is file path
 //tok4 is alias
 //tok5 is noheader
-//node1 is joins
+//node1 is file
+//node2 is joins
 astnode parser::parseFrom(bool withselections) {
 	token t = q->tok();
 
@@ -651,13 +673,33 @@ astnode parser::parseFrom(bool withselections) {
 	}
 
 	astnode n = newNode(N_FROM);
-	n->tok1.val = boost::replace_first_copy(t.val, "~/", gethome()+"/");
-	t = q->nextTok();
-	string s = t.lower();
-	if (s == "nh" || s == "h" || s == "ah") {
-		n->tok5 = t;
-		t = q->nextTok();
+	n->node1 = parseFile();
+	n->node2 = parseJoin();
+	return n;
+}
+
+//tok1 is file path or view name
+//tok4 is alias
+//tok5.id is file options
+astnode parser::parseFile() {
+	token t = q->tok();
+	astnode n = newNode(N_FILE);
+	bool isfile = false;
+	//subquery
+	if (t.id == SP_LPAREN){
+		error("Subquery as a file is not implemented yet");
+	//file or view
+	} else if (t.id == WORD_TK){
+		isfile = true;
+		boost::replace_first(t.val, "~/", gethome()+"/");
+		n->tok1 = t;
+		q->nextTok();
+		parseFileOptions(n);
+	} else {
+		error("Expected file. Found: ",t.val);
 	}
+	//alias
+	t = q->tok();
 	switch (t.id) {
 	case KW_AS:
 		t = q->nextTok();
@@ -667,19 +709,40 @@ astnode parser::parseFrom(bool withselections) {
 		n->tok4 = t;
 		q->nextTok();
 	}
-	t = q->tok();
-	s = t.lower();
-	if (s == "nh" || s == "h" || s == "ah") {
-		n->tok5 = t;
-		q->nextTok();
-	}
-	n->node1 = parseJoin();
+	//fileoptions can be before or after alias
+	if (isfile)
+		parseFileOptions(n);
 	return n;
 }
-astnode parser::parseFile() {
-	return nullptr;
-}
-void parser::parseFileOptions() {
+
+//tok5.id of arg node is file options
+void parser::parseFileOptions(astnode& n) {
+	token t = q->tok();
+	string s = t.lower();
+	if (s == "nh") {
+		if (n->tok5.id & (O_H|O_AH)) error("Cannot mix input header options");
+		n->tok5.id |= O_NH;
+	} else if (s == "h") {
+		if (n->tok5.id & (O_NH|O_AH)) error("Cannot mix input header options");
+		n->tok5.id |= O_H;
+	} else if (s == "ah") {
+		if (n->tok5.id & (O_NH|O_H)) error("Cannot mix input header options");
+		n->tok5.id |= O_AH;
+	} else if (s == "s") {
+		if (n->tok5.id & (O_P|O_T)) error("Cannot mix delimiter options");
+		n->tok5.id |= O_S;
+	} else if (s == "p") {
+		if (n->tok5.id & (O_S|O_T)) error("Cannot mix delimiter options");
+		n->tok5.id |= O_P;
+	} else if (s == "t") {
+		if (n->tok5.id & (O_P|O_S)) error("Cannot mix delimiter options");
+		n->tok5.id |= O_T;
+	} else {
+		return;
+	}
+	perr ( "SET OPTION " + s);
+	q->nextTok();
+	parseFileOptions(n);
 }
 
 //tok1 is filepath
@@ -687,8 +750,9 @@ void parser::parseFileOptions() {
 //tok3 is join details (left/outer or inner)
 //tok4 is alias
 //tok5 is noheader
-//node1 is join condition (predicates)
-//node2 is next join
+//node1 is file
+//node2 is join condition (predicates)
+//node3 is next join
 astnode parser::parseJoin() {
 	token t = q->tok();
 	string s = t.lower();
@@ -707,38 +771,14 @@ astnode parser::parseJoin() {
 	} else {
 		error("Expected 'join'. Found:",q->tok().val);
 	}
-	//file path
-	boost::replace_first(t.val, "~/", st(getenv("HOME"),"/"));
-	n->tok1 = t;
-	//1st after filepath
-	t = q->nextTok();
-	s = t.lower();
-	if (s == "noheader" || s == "nh" || s == "header" || s == "h") {
-		n->tok5 = t;
-		t = q->nextTok();
-	}
-	//alias
-	switch (t.id) {
-	case KW_AS:
-		t = q->nextTok();
-		if (t.id != WORD_TK || t.lower() == "on") error("Expected alias after as. Found: ",t.val);
-	case WORD_TK:
-		if (t.lower() == "on") break;
-		n->tok4 = t;
-		t = q->nextTok();
-		break;
-	}
-	s = t.lower();
-	if (s == "noheader" || s == "nh" || s == "header" || s == "h") {
-		n->tok5 = t;
-		t = q->nextTok();
-	}
-	if (n->tok4.id == 0)
+	n->node1 = parseFile();
+	if (n->node1->tok4.id == 0)
 		error("Joined file requires an alias.");
+	t = q->tok();
 	if (t.lower() != "on") error("Expected 'on'. Found: ",t.val);
 	q->nextTok();
-	n->node1 = parsePredicates();
-	n->node2 = parseJoin();
+	n->node2 = parsePredicates();
+	n->node3 = parseJoin();
 	return n;
 }
 

@@ -4,19 +4,8 @@
 #include <string>
 #include "interpretor.h"
 
-
 fileReader::fileReader(string& fname, querySpecs &qs) : filename(fname), q(&qs) {
 	fileno = qs.numFiles;
-	if (!boost::filesystem::exists(fname)){
-		if (!regex_match(fname,extPat)){
-			fname += ".csv";
-			if (!boost::filesystem::exists(fname)){
-				error("Could not open file ",fname);
-			}
-		} else {
-			error("Could not open file ",fname);
-		}
-	}
 	i64 optisize = br.buffsize;
 	if (fileno > 0){
 		int jmegs = max(100, totalram() / 20);
@@ -249,10 +238,13 @@ class opener {
 	void openfiles(astnode &n);
 	opener(querySpecs &qs): q(&qs){};
 };
+bool checkAliases(astnode& n);
 void opener::openfiles(astnode &n){
 	if (n == nullptr)
 		return;
-	if (n->label == N_FROM || n->label == N_JOIN){
+	if (n->label == N_FILE){
+		if (!checkAliases(n))
+			findExtension(n->tok1.val);
 		string& fpath = n->tok1.val;
 		string id = st("_f",q->numFiles);
 		q->filevec.push_back(make_shared<fileReader>(fpath, *q));
@@ -266,37 +258,27 @@ void opener::openfiles(astnode &n){
 		fpath = fpath.substr(a, b);
 		q->filemap[fpath] = fr;
 
-		if (q->options & O_S)
-			fr->delim = ' ';
-		else if (q->options & O_P)
-			fr->delim = '|';
-		else if (q->options & O_T)
-			fr->delim = '\t';
-		else
-			fr->delim = ',';
-
-		//header options
+		fr->delim = ',';
 		fr->autoheader = globalSettings.autoheader;
-		if ((q->options & O_H) != 0)
-			fr->noheader = fr->autoheader = false;
-		if ((q->options & O_NH) != 0)
-			fr->noheader = true;
-		if ((q->options & O_AH) != 0)
-			fr->autoheader = true;
-		//file opts override global opts
-		if (n->tok5.id){
-			string s = n->tok5.lower();
-			if (s == "nh"){
-				fr->noheader = true;
-			} if (s == "h") {
-				fr->noheader = fr->autoheader = false;
-			} if (s == "ah") {
-				fr->autoheader = true;
-			}
-		}
+		//global file options
+		if (q->options & O_S) fr->delim = ' ';
+		if (q->options & O_P) fr->delim = '|';
+		if (q->options & O_T) fr->delim = '\t';
+		if (q->options & O_H)  fr->noheader = fr->autoheader = false;
+		if (q->options & O_NH) fr->noheader = true;
+		if (q->options & O_AH) fr->autoheader = true;
+		//override with local file options
+		if (n->tok5.id & O_S)  fr->delim = ' ';
+		if (n->tok5.id & O_P)  fr->delim = '|';
+		if (n->tok5.id & O_T)  fr->delim = '\t';
+		if (n->tok5.id & O_H)  fr->noheader = fr->autoheader = false;
+		if (n->tok5.id & O_NH) fr->noheader = true;
+		if (n->tok5.id & O_AH) fr->autoheader = true;
+
 		++q->numFiles;
 		fr->inferTypes();
 		totalsize += fr->size();
+		return;
 	}
 	openfiles(n->node1);
 	openfiles(n->node2);
@@ -334,4 +316,29 @@ shared_ptr<directory> filebrowse(string dir){
 	resp->parent = thisdir.parent_path().string();
 	resp->fpath = thisdir.string();
 	return resp;
+}
+
+void findExtension(string& fname){
+	if (!boost::filesystem::exists(fname)){
+		if (!regex_match(fname,extPat)){
+			fname += ".csv";
+			if (!boost::filesystem::exists(fname)){
+				error("Could not find file ",fname);
+			}
+		} else {
+			error("Could not find file ",fname);
+		}
+	}
+}
+bool checkAliases(astnode& n){
+	if (regex_match(n->tok1.val,filelike)){
+		return false;
+	}
+	string aliasfile = st(globalSettings.configdir,"/alias-",n->tok1.val,".txt");
+	if (!boost::filesystem::exists(aliasfile))
+		return false;
+	ifstream afile(aliasfile);
+	afile >> n->tok1.val;
+	afile >> n->tok5.id;
+	return true;
 }
