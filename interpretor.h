@@ -256,6 +256,7 @@ extern regex posInt;
 extern regex colNum;
 extern regex extPat;
 extern regex hidPat;
+extern regex filelike;
 
 struct freeC {
 	void operator()(void*x){ free(x); }

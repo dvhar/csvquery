@@ -17,6 +17,7 @@ regex posInt("^\\d+$");
 regex colNum("^c?\\d+$");
 regex extPat(".*\\.csv$", regex_constants::icase);
 regex hidPat(".*/\\.[^/]+$");
+regex filelike(".*[/\\\\\\.].*");
 int isDuration(const char* s){ return !regexec(&durationPattern, s, 0, NULL, 0); }
 int isInt(const char* s){ return !regexec(&intType, s, 0, NULL, 0); }
 int isFloat(const char* s){ return !regexec(&floatType, s, 0, NULL, 0); }

@@ -332,7 +332,6 @@ void findExtension(string& fname){
 	}
 }
 bool checkAliases(astnode& n){
-	static regex filelike(".*[/\\\\\\.].*");
 	if (regex_match(n->tok1.val,filelike)){
 		return false;
 	}
