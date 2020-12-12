@@ -17,14 +17,15 @@ void help(char* prog){
 		"\t-g Don't show debug info in console\n"
 		"\t-d Show debug info in console (default)\n"
 		"\t-e Don't automatically exit 3 minutes after the browser page is closed\n"
-		"\t-f Guess if files have header based on whether or not there are numbers in the first row\n"
+		"\t-a Guess if files have header based on whether or not there are numbers in the first row\n"
 		"\t-t Output results in terminal as table instead of csv format\n"
 		"\t-c Output results in terminal as csv instead of table (default)\n"
 		"\t-y Same as -t but with background colors to help see lines\n"
 		"\t-w Same as -t but no colors\n"
 		"\t-j Return json to stdout (rows limited to 20000 divided by number of columns)\n"
 		"\t-h Show this help message and exit\n"
-		"\t-v Show version and exit\n\n"
+		"\t-v Show version and exit\n"
+		"\t-f <file> Run a selectAll query on file and output table\n\n"
 		"Config file is " << globalSettings.configfilepath << "\n";
 	exit(0);
 }
@@ -32,8 +33,9 @@ void help(char* prog){
 int main(int argc, char** argv){
 
 	bool jsonstdout = false;
+	string querystring;
 	loadconfig();
-	for(char c; (c = getopt(argc, argv, "hxvgdefjtywc")) != -1;)
+	for(char c; (c = getopt(argc, argv, "hxvgdeajtywcf:")) != -1;)
 		switch(c){
 		case 'x':
 			globalSettings.update = false;
@@ -47,8 +49,12 @@ int main(int argc, char** argv){
 		case 'e':
 			globalSettings.autoexit = false;
 			break;
-		case 'f':
+		case 'a':
 			globalSettings.autoheader = true;
+			break;
+		case 'f':
+			globalSettings.termbox = true;
+			querystring = st('"',optarg,'"');
 			break;
 		case 't':
 			globalSettings.termbox = true;
@@ -76,29 +82,48 @@ int main(int argc, char** argv){
 
 	initregex();
 	runmode = argc > optind ? RUN_SINGLE : RUN_SERVER;
-	if (runmode == RUN_SERVER){
-		runServer();
-		return 0;
+	auto arg1 = argv[optind];
+
+	//run select * on -f arg
+	if (!querystring.empty()){
+		runmode = RUN_SINGLE;
+		for (int i=optind; i<argc; ++i){
+			querystring += ' ';
+			querystring += argv[i];
+		}
 	}
 
-	auto arg1 = argv[optind];
-	string querystring;
+	//run gui server and exit when done
+	else if (runmode == RUN_SERVER)
+		runServer();
+
 	//show version and exit
-	if (!strcmp(arg1, "version")){
+	else if (!strcmp(arg1, "version")){
 		cout << version << endl;
 		return 0;
 	}
+
 	//show help and exit
-	if (!strcmp(arg1, "help"))
+	else if (!strcmp(arg1, "help"))
 		help(argv[0]);
+
+	//get query from multiple args
+	else if (argc > optind+1)
+		for (int i=optind; i<argc; ++i){
+			querystring += argv[i];
+			querystring += ' ';
+		}
+
 	//get query from file
-	if (strlen(arg1) < 30 && boost::filesystem::is_regular_file(arg1))
+	else if (strlen(arg1) < 30 && boost::filesystem::is_regular_file(arg1))
 		querystring = st(ifstream(arg1).rdbuf());
-	//get query from arg text
+
+	//get query from single arg
 	else
 		querystring = string(arg1);
 
 	try {
+
 		querySpecs q(querystring);
 		if (jsonstdout){
 			q.setoutputJson();

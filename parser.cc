@@ -6,7 +6,8 @@
 [] = one of
 [[]] = at least one of
 
-query             -> <preselect> <select> <from> <afterfrom>
+query             -> <preselect> <select> <from> <afterfrom> | <addalias>
+addalias          -> add filealias <file>
 preselect         -> <options> <with> | ε
 options           -> [ oh noh nh h ah s p t nan ] { <options> } | ε
 with              -> with <vars> | ε
@@ -75,6 +76,7 @@ class parser {
 	astnode parseSetList(bool);
 	astnode parseExpressionList(bool i, bool s);
 	astnode parseQuery();
+	astnode parseAddAlias();
 	void parseFileOptions(astnode&);
 	void parseTop(astnode&);
 	void parseLimit(astnode&);
@@ -104,19 +106,41 @@ void parseQuery(querySpecs &q) {
 	pr.parse();
 }
 
-//could include other commands like describe, insert
 //node1 is preselect
 //node2 is select
 //node3 is from
 //node4 is afterfrom
+//or
+//node1 is addalias
+//tok1.id is N_ADDALIAS
 astnode parser::parseQuery() {
+	token t = q->tok();
 	astnode n = newNode(N_QUERY);
+	if (t.lower() == "add"){
+		q->nextTok();
+		n->node1 = parseAddAlias();
+		n->tok1.id = N_ADDALIAS;
+		return n;
+	}
 	n->node1 = parsePreSelect();
 	n->node3 = parseFrom(false);
 	n->node2 = parseSelect();
 	if (!justfile)
 		n->node3 = parseFrom(true);
 	n->node4 = parseAfterFrom();
+	return n;
+}
+
+//node1 is file
+//tok1 is alias
+astnode parser::parseAddAlias() {
+	token t = q->tok();
+	astnode n = newNode(N_ADDALIAS);
+	if (t.id != WORD_TK)
+		error("Expected file alias after 'add'. Found ",t.val);
+	n->tok1 = t;
+	q->nextTok();
+	n->node1 = parseFile();
 	return n;
 }
 
@@ -669,7 +693,6 @@ astnode parser::parseFile() {
 		isfile = true;
 		boost::replace_first(t.val, "~/", gethome()+"/");
 		n->tok1 = t;
-		perr("SET FILE: "+ t.val);
 		q->nextTok();
 		parseFileOptions(n);
 	} else {
@@ -685,7 +708,6 @@ astnode parser::parseFile() {
 		if (joinMap.count(t.lower())) break;
 		n->tok4 = t;
 		q->nextTok();
-		perr ( "SET ALIAS: " + n->tok4.val);
 	}
 	//fileoptions can be before or after alias
 	if (isfile)

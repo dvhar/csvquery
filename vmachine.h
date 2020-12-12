@@ -409,15 +409,15 @@ class qinstance {
 	qinstance(querySpecs& qs) {
 		q = &qs;
 	}
-	~qinstance() { perr("Destructing query instance"); }
+	~qinstance(){}
 	int run(){
-		prepareQuery(*q);
-		perr("Constructing vm");
+		if (int nonquery = prepareQuery(*q); nonquery){
+			id = rng();
+			return id;
+		}
 		vm.reset(new vmachine(*q));
 		id = vm->id;
-		perr("Starting query");
 		vm->run();
-		perr("Finished query");
 		return id;
 	}
 };

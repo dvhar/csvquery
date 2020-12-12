@@ -29,6 +29,7 @@ class analyzer {
 		void shouldPrintHeader();
 		int phaser(astnode &n);
 		void setAttributes(astnode& n);
+		bool addAlias(astnode& n);
 };
 
 void analyzer::propogateVarFilter(string var, int filter){
@@ -645,10 +646,19 @@ void analyzer::setAttributes(astnode& n){
 	setAttributes(n->node3);
 	setAttributes(n->node4);
 }
+bool analyzer::addAlias(astnode& n){
+	if (n->tok1.id == N_ADDALIAS){
+		return true;
+	}
+	return false;
+}
 
-void earlyAnalyze(querySpecs &q){
+int earlyAnalyze(querySpecs &q){
 	analyzer an(q);
+	if (an.addAlias(q.tree))
+		return N_ADDALIAS;
 	an.setAttributes(q.tree);
+	return 0;
 }
 void midAnalyze(querySpecs &q){
 	analyzer an(q);

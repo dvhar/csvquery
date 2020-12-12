@@ -646,12 +646,15 @@ void perr(string message){
 	}
 }
 
-void prepareQuery(querySpecs &q){
+int prepareQuery(querySpecs &q){
 	exception_ptr ex = nullptr;
 	try {
 		scanTokens(q);
 		parseQuery(q);
-		earlyAnalyze(q);
+		switch (earlyAnalyze(q)){
+			case N_ADDALIAS:
+				return N_ADDALIAS;
+		}
 		openfiles(q);
 		midAnalyze(q);
 		q.promptPassword();
@@ -676,4 +679,5 @@ void prepareQuery(querySpecs &q){
 			rethrow_exception(ex);
 		}
 	}
+	return 0;
 };
