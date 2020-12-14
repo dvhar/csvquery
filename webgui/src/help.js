@@ -125,10 +125,10 @@ class FmtTable extends React.Component {
 	constructor(){
 		super();
 		this.table = (
-			<table className='helpTable'>
-				<th className='helpTable'>Format code</th><th className='helpTable'>Resulting format</th><th className='helpTable'>Corresonding format string</th>
+			<table className='helpTable helpDrop'>
+				<th className='helpTable helpDrop'>Format code</th><th className='helpTable helpDrop'>Resulting format</th><th className='helpTable helpDrop'>Corresonding format string</th>
 				{fmtlist.map((tr)=>{ return(
-					<tr>{tr.map( td => <td className='helpTable'>{td}</td> )}</tr>
+					<tr>{tr.map( td => <td className='helpTable helpDrop'>{td}</td> )}</tr>
 					);})}
 			</table>
 		);
@@ -141,14 +141,14 @@ class FmtTable extends React.Component {
 };
 
 const Func = ({fun,usage,params}) => {
-	return (<><tr><td className='helpTable'>{fun}</td><td className='helpTable'>{paramlist[params]}</td><td className='helpTable'>{usage}</td></tr></>);
+	return (<><tr><td className='helpTable helpDrop'>{fun}</td><td className='helpTable helpDrop'>{paramlist[params]}</td><td className='helpTable helpDrop'>{usage}</td></tr></>);
 }
 class FuncTable extends React.Component {
 	constructor(){
 		super();
 		this.table =  (
-			<table className='helpTable'>
-				<th className='helpTable'>Function</th><th className='helpTable'>parameters</th><th className='helpTable'>description</th>
+			<table className='helpTable helpDrop'>
+				<th className='helpTable helpDrop'>Function</th><th className='helpTable helpDrop'>parameters</th><th className='helpTable helpDrop'>description</th>
 				{funclist.map((f)=>{return(<Func fun={f[0]} usage={f[1]} params={f[2]}/>);})}
 			</table>
 		);
@@ -194,11 +194,22 @@ export class Help extends React.Component {
 			this.setState({ updated : true });	
 		},1000)
 	}
+	addclass(node){
+		if (!node) return;
+		if (!node.d){
+			node.className += ' helpDrop';
+			node.d = true;
+		}
+		node.childNodes.forEach(ch=>this.addclass(ch));
+	}
 	render(){
 		if (!this.props.show) return <></>
 		this.checkupdate();
+		setTimeout(()=>{
+			this.addclass(document.getElementById('helpBox'));
+		}, 50);
 		return ( 
-			<div className="helpBox">
+			<div className="helpBox" id="helpBox">
 			<h3>What this software does</h3>
 			<hr/>
 				Run <code>select</code> queries on csv files, display the results, and save to new csv files. It can handle big csv files that are too big for other programs.

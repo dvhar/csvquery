@@ -27,6 +27,7 @@ static SimpleWeb::CaseInsensitiveMultimap header;
 void embedsite(HttpServer&);
 
 void runServer(){
+	globalSettings.termbox = false;
 	serve();
 	exit(0);
 }
