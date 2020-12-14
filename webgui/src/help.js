@@ -201,160 +201,172 @@ export class Help extends React.Component {
 			<div className="helpBox">
 			<h3>What this software does</h3>
 			<hr/>
-			{"Run 'select' queries on csv files, display the results, and save to new csv files. It can handle big csv files that are too big for other programs."}
+				Run <code>select</code> queries on csv files, display the results, and save to new csv files. It can handle big csv files that are too big for other programs.
 			<br/>
-			{"It will show you the first several hundred results in the browser, with 2 options for viewing certain rows or columns. You can click on a column header to sort the displayed results by that column."}
+			It will show you the first several hundred results in the browser, with 2 options for viewing certain rows or columns. You can click on a column header to sort the displayed results by that column.
 			<h3>How to save files</h3>
 			<hr/>
-			{"After running a query, hit the save button. Navigate to where you want to save, type in the file name, and hit the save button to the right. All the queries on the page will run again, but this time they will be saved to csv files. If there are multiple queries on the page, you still only need to specify one file and a number will be added to the filename for each one. The program will infer whether or not to output a header unless you override it with an option. To always output header, add 'oh' to the beginning of the query. To never output header, add 'noh'."}
+				After running a query, hit the save button. Navigate to where you want to save, type in the file name, and hit the save button to the right. All the queries on the page will run again, but this time they will be saved to csv files. If there are multiple queries on the page, you still only need to specify one file and a number will be added to the filename for each one. The program will infer whether or not to output a header unless you override it with an option. To always output header, add <code>oh</code> to the beginning of the query. To never output header, add <code>noh</code>.
 			<h3>How to use the query language</h3>
 			<hr/>
-			{"This program uses a custom version of SQL loosely based on TSQL. Some features like Unions, Subqueries, and @variables are not implemented yet."}
+			This program uses a custom version of SQL loosely based on TSQL. Some features like Unions, Subqueries, and @variables are not implemented yet.
 			<br/>
 			<blockquote>
 				<h4>Specifying a file</h4>
-					{"Click 'Browse Files' to find files, and double click one to add it to the query. If a file has no header, add 'nh' after the file path or alias, or at the very beginning of a query. Us 'ah' (for auto-header) instead to guess if the file has a header based on if the first row contains any numbers."}
-				<h4>Using non-comma delimiters</h4>
-					{"If the delimiter is not a comma, add the letter for that delimiter to the very beginning of the query. Use 's' for spaces, 't' for tabs, or 'p' for pipes, which are this character: |. Future versions will be able to specify different delimiters for each file in a joining query."}
+				Click <code>Browse Files</code> to find files, and double click one to add it to the query.
+					<br/>
+				File paths can be saved for later use by running an <code>add</code> command. You may add file format options (described in the next section) after the filepath so save those too.
+					<br/><br/>
+					Example of specifying a file by filename and then by saved name:
+					<br/>
+				<blockquote><code>
+						select * from '/home/user/pets.csv'
+						<br/>
+						add pets '/home/user/pets.csv'
+						<br/>
+						select * from pets
+				</code></blockquote>
+				<h4>Specifying csv delimiters and file header</h4>
+				These characters can be added to the beginning of a query or after the file path to specify file format details: <code>nh</code>, <code>h</code>, <code>ah</code>, <code>s</code>, <code>t</code>, and <code>p</code>. <code>nh</code>, <code>h</code>, and <code>ah</code> mean 'no header', 'header', and 'auto header' respectively. Default behavior is to treat the first line of the file as a header. 'ah' will guess if there is a header based on whether or not the first row contains numbers. <code>s</code>, <code>t</code>, and <code>p</code> mean the delimiter is 'spaces', 'tabs', and 'pipes' respectively, with pipes being this character: |. Default delimiter is commas. See examples in the next section.
 				<h4>Selecting some columns</h4>
-					{"Columns can be specified by name or number. Select column numbers by prefacing the number with 'c', or by using a plain unquoted number if putting a 'c' in front of the whole query. Commas between selections are optional. Result columns can be renamed with the 'as' keyword."}
+				Columns can be specified by name or number. Select column numbers by prefacing the number with <code>c</code>, or by using a plain unquoted number if putting a <code></code> in front of the whole query. Commas between selections are optional. Result columns can be renamed with the <code>as</code> keyword.
 					<br/><br/>
 					Example: selecting columns 1-3, dogs, and cats from a file with no header<br/>
-					<blockquote>
-						{"nh select c1, c2 as 'food', c3, dogs, cats from '/home/user/pets.csv'"}
+				<blockquote><code>
+						nh select c1, c2 as 'food', c3, dogs, cats from '/home/user/pets.csv'
 						<br/>
-						{"select c1 c2 c3 dogs cats from 'C:\\users\\dave\\pets.csv' nh"}
+						select c1 c2 c3 dogs cats from 'C:\\users\\dave\\pets.csv' nh
 						<br/>
-						{"c nh select 1 2 3 dogs cats from 'C:\\users\\dave\\pets.csv'"}
-					</blockquote>
+						c nh select 1 2 3 dogs cats from 'C:\\users\\dave\\pets.csv'
+			</code></blockquote>
 				<h4>Selecting all columns</h4>
-					{"'select * ' works how you'd expect. If you don't specify any values at all, it will also select all. It will also select all if you skip the 'select from' part altogether as long as there are quotes around the file path."}
+				<code>select *</code> works how you'd expect. If you don't specify any values at all, it will also select all. It will also select all if you skip the <code>select from</code> part altogether as long as there are quotes around the file path.
 					<br/><br/>
 					Examples:
 					<br/>
-					<blockquote>
-						{"select * from '/home/user/pets.csv'"}
+				<blockquote><code>
+						select * from '/home/user/pets.csv'
 						<br/>
-						{"select from '/home/user/pets.csv'"}
+						select from '/home/user/pets.csv'
 						<br/>
-						{"'/home/user/pets.csv'"}
-					</blockquote>
+						'/home/user/pets.csv'
+				</code></blockquote>
 				<h4>Selecting more complex expressions</h4>
-					{"Use + - * / % operators to add, subtract, multiply, divide, and modulus expressions. You can combine them with parentheses. You can also use case expressions."}
+				Use <code>+ - * / %</code> operators to add, subtract, multiply, divide, and modulus expressions. You can combine them with parentheses. You can also use case expressions.
 					<br/><br/>
 					Examples:
-					<blockquote>
-						{"select birthdate+'3 weeks', c1*c2, c1/c2, c1-c2, c1%2, (c1-23)*(c2+34) from '/home/user/pets.csv'"}
+				<blockquote><code>
+						select birthdate+'3 weeks', c1*c2, c1/c2, c1-c2, c1%2, (c1-23)*(c2+34) from '/home/user/pets.csv'
 						<br/>
-						{"select case when c1*2<10 then dog when c1*10>=10.2 then cat else monkey end from '/home/user/pets.csv'"}
+					{"select case when c1*2<10 then dog when c1*10>=10.2 then cat else monkey end from '/home/user/pets.csv'"}
 						<br/>
-						{"select case c1 / c4 when (c3+c3)*2 then dog when c1*10 then cat end from '/home/user/pets.csv'"}
-					</blockquote>
+						select case c1 / c4 when (c3+c3)*2 then dog when c1*10 then cat end from '/home/user/pets.csv'
+				</code></blockquote>
 				<h4>Expression Aliases</h4>
-					{"Begin a query with 'with <expression> as <alias>' to use that value throughout the query. Separate aliases with ',' or 'and'."}
+				Begin a query with <code>{"with <expression> as <alias>"}</code> to use that value throughout the query. Separate aliases with <code>,</code> or <code>and</code>.
 					<br/><br/>
 					Example:
 					<br/>
-					<blockquote>
-						{"with age*7 as dogyears, 'Mr.'+name as dogname select dogname, dogyears from '/home/user/pets.csv' order by dogyears"}
-					</blockquote>
+				<blockquote><code>
+						with age*7 as dogyears, 'Mr.'+name as dogname select dogname, dogyears from '/home/user/pets.csv' order by dogyears
+			</code></blockquote>
 				<h4>Functions</h4>
 					<blockquote>
 						<FuncTable/>
 						<br/>
-					{"Aggregate functions can be used with a 'group by' clause and group by as many values as you want. Without a 'group by' clause, they will return a single row with the aggregate calculations of the whole file."}
+						Aggregate functions can be used with a <code>group by</code> clause and group by as many values as you want. Without a <code>group by</code> clause, they will aggregate everything into a single row.
 						<br/>
 						<br/>
-					{"Encryption function only guarantees a unique nonce for every value encrypted while the program is running. Uniqueness cannot be guaranteed between restarts, so avoid using the same password in different sessions. Encryption function uses the chacha20 stream cipher and a 32 bit MtE authenticator. It returns an empty value if ciphertext has been tampered with. It does not hide the length of a value, so it may be best to use other security solutions when possible. If no password is supplied, the program will prompt you for one."}
+					Encryption function only guarantees a unique nonce for every value encrypted while the program is running. Uniqueness cannot be guaranteed between restarts, so avoid using the same password in different sessions. Encryption function uses the chacha20 stream cipher and a 32 bit MtE authenticator. It returns an empty value if ciphertext has been tampered with. It does not hide the length of a value, so it may be best to use other security solutions when possible. If no password is supplied, the program will prompt you for one.
 						<br/>
 						<br/>
-					{"Math functions like asin and log return an empty value when not a real number, such as log(0) or asin(100). To return nan, inf, or -inf instead, add the option 'nan' to the beginning of the query. Return value will still be empty if function is called on a null value."}
+						Math functions like asin and log return an empty value when not a real number, such as <code>log(0)</code> or <code>asin(100)</code>. To return <code>nan</code>, <code>inf</code>, or <code>-inf</code> instead, add the option <code>nan</code> to the beginning of the query. Return value will still be empty if function is called on a null value.
 						<br/>
 						<br/>
-					{"Format function uses the type of date format string described by the "}<a href='https://linux.die.net/man/3/strftime' target='_blank'>Linux Manual</a>{", with the addition of 'mmm' for milliseconds. It can also take the format code for a preset format from the following table:"}
+						Format function uses the type of date format string described by the <a href='https://linux.die.net/man/3/strftime' target='_blank'>Linux Manual</a>, with the addition of <code>mmm</code> for milliseconds. It can also take the format code for a preset format from the following table:
 						<br/>
 						<FmtTable/>
 						<br/>
 					</blockquote>
 				<h4>Selecting rows or aggregates with a distinct value</h4>
-					{"To only return rows with a distinct value, put the 'distinct' keyword in front of the expression that you want to be distinct. Put 'hidden' after 'distinct' if you don't want that value to show up as a result column."}
+				To only return rows with a distinct value, put the <code>distinct</code> keyword in front of the expression that you want to be distinct. Put <code>hidden</code> after <code>distinct</code> if you don't want that value to show up as a result column.
 					<br/><br/>
-					{"To calculate aggregate function of distinct values, put the 'distinct' keyword in the function call."}
+				To calculate aggregate function of distinct values, put the <code>distinct</code> keyword in the function call.
 					<br/><br/>
 					Examples:
-					<blockquote>
-						{"select distinct c3 from '/home/user/pets.csv'"}
+				<blockquote><code>
+						select distinct c3 from '/home/user/pets.csv'
 						<br/>
-						{"select distinct hidden dogtypes, fluffiness from '/home/user/pets.csv'"}
+						select distinct hidden dogtypes, fluffiness from '/home/user/pets.csv'
 						<br/>
-						{"select count(distinct species) from '/home/user/pets.csv'"}
-					</blockquote>
+						select count(distinct species) from '/home/user/pets.csv'
+				</code></blockquote>
 				<h4>Selecting a number of rows</h4>
-					{"Use the 'top' keyword after 'select', or 'limit' at the end of the query. Be careful not to confuse the number after 'top' for part of an expression."}
+					Use the <code>top</code> keyword after <code>select</code>, or <code>limit</code> at the end of the query. Be careful not to confuse the number after <code>top</code> for part of an expression.
 					<br/><br/>
 					Examples:
-					<blockquote>
-						{"select top 100 c1 c2 c3 dogs cats from '/home/user/pets.csv'"}
+				<blockquote><code>
+						select top 100 c1 c2 c3 dogs cats from '/home/user/pets.csv'
 						<br/>
-						{"select c1 c2 c3 dogs cats from '/home/user/pets.csv' limit 100"}
-					</blockquote>
+						select c1 c2 c3 dogs cats from '/home/user/pets.csv' limit 100
+				</code></blockquote>
 				<h4>Selecting rows that match a certain condition</h4>
-					 {"Use any combinatin of '<expression> <relational operator> <expression>', parentheses, 'and', 'or', 'xor', 'not', 'in', and 'between'. Dates are handled nicely, so 'May 18 1955' is the same as '5/18/1955'. Empty entries can be compared against the keyword 'null'. The 'in' operator can be used with a subquery, though correlated subqueries are not yet supported."}
+				Use any combinatin of <code>{"<expression> <relational operator> <expression>"}</code>, parentheses, <code>and</code>, <code>or</code>, <code>xor</code>, <code>not</code>, <code>in</code>, and <code>between</code>. Dates are handled nicely, so <code>May 18 1955</code> is the same as <code>5/18/1955</code>. Empty entries can be compared against the keyword <code>null</code>. The <code>in</code> operator can be used with a subquery, though correlated subqueries are not yet supported.
 					<br/><br/>
-					{"Valid relational operators are =,  !=,  <>,  >,  <,  >=,  <=, like, in, and between. '!' is evaluated the same as 'not', and can be put in front of a relational operator or a whole comparison."}
+				Valid relational operators are <code>=</code>,  <code>!=</code>,  <code>{"<>"}</code>,  <code>{">"}</code>,  <code>{"<"}</code>,  <code>{">="}</code>,  <code>{"<="}</code>, <code>like</code>, <code>in</code>, and <code>between</code>. <code>!</code> is evaluated the same as <code>not</code>, and can be put in front of a relational operator or a whole comparison.
 					<br/><br/>
 					Examples:
-					<blockquote>
+				<blockquote><code>
 						{"select from '/home/user/pets.csv' where dateOfBirth < 'april 10 1980' or age between (c3-19)*1.2 and 30"}
 						<br/>
 						{"select from '/home/user/pets.csv' where (c1 < c13 or fuzzy = very) and not (c3 = null or weight >= 50 or name not like 'a_b%')"}
 						<br/>
-						{"select from '/home/user/pets.csv' where c1 in (2,3,5,7,11,13,17,19,23)"}
+						select from '/home/user/pets.csv' where c1 in (2,3,5,7,11,13,17,19,23)
 						<br/>
-						{"select from '/home/user/pets.csv' where null not in (c1,c2,c3)"}
+						select from '/home/user/pets.csv' where null not in (c1,c2,c3)
 						<br/>
-						{"select from '/home/user/pets.csv' where species not in (select species from behaviors.csv where prey != humans)"}
-					</blockquote>
+						select from '/home/user/pets.csv' where species not in (select species from behaviors.csv where prey != humans)
+				</code></blockquote>
 				<h4>Sorting results</h4>
-					{"Use 'order by' at the end of the query, followed by any number of expressions, each followed optionally by 'asc'. Sorts by descending values unless 'asc' is specified."}
+					Use <code>order by</code> at the end of the query, followed by any number of expressions, each followed optionally by <code>asc</code>. Sorts by descending values unless <code>asc</code> is specified.
 					<br/><br/>
 					Examples:
-					<blockquote>
-						{"select from '/home/user/pets.csv' where dog = husky order by age, fluffiness asc"}
+				<blockquote><code>
+						select from '/home/user/pets.csv' where dog = husky order by age, fluffiness asc
 						<br/>
-						{"select from '/home/user/pets.csv' order by c2*c3"}
-					</blockquote>
+						select from '/home/user/pets.csv' order by c2*c3
+				</code></blockquote>
 				<h4>Joining Files</h4>
-					{"Any number of files can be joined together. Left and inner joins are allowed, default is inner. Each file needs an alias. Join conditions can have as many comparisions as you want, and is most efficient when the first comparision las the lowest cardinality."}
+				Any number of files can be joined together. <code>left</code> and <code>inner</code> joins are allowed, default is <code>inner</code>. Each file needs an alias. Join conditions can have as many comparisions as you want, and is most efficient when the first comparision las the lowest cardinality.
 					<br/><br/>
 					Examples:
-					<blockquote>
-						{"select pet.name, pet.species, code.c1 from '/home/user/pets.csv' pet"
-							+" left join '/home/user/codes.csv' code"
-							+" on pet.species = code.species order by pet.age"}
+					<blockquote><code>
+						select pet.name, pet.species, code.c1 from '/home/user/pets.csv' pet
+							 left join '/home/user/codes.csv' code
+							 on pet.species = code.species order by pet.age
 						<br/>
-						{"select pet.name, code.c1, fur.flufftype from '/home/user/pets.csv' pet"
-							+" inner join '/home/user/fur.csv' fur"
-							+" on pet.fluffiness = fur.fluff and fur.flufftype <> hairless"
-							+" left join '/home/user/codes.csv' code"
-							+" on pet.species = code.species or pet.genus = species.genus"}
-					</blockquote>
+						select pet.name, code.c1, fur.flufftype from '/home/user/pets.csv' pet
+							 inner join '/home/user/fur.csv' fur
+							 on pet.fluffiness = fur.fluff and fur.flufftype {"<>"} hairless
+							 left join '/home/user/codes.csv' code
+							 on pet.species = code.species or pet.genus = species.genus
+					</code></blockquote>
 			</blockquote>
 			<h3>Ending queries early, viewing older queries, and exiting</h3>
 			<hr/>
-			{"If a query is taking too long, hit the button next to submit and the query will end and display the results that it found."}
+				If a query is taking too long, hit the button next to <code>submit</code> and the query will end and display the results that it found.
 			<br/>
-			{"The browser remembers previous queries. In the top-right corner, it will show you which query you are on. You can revisit other queries by hitting the forward and back arrows around the numbers."}
+			The browser remembers previous queries. In the top-right corner, it will show you which query you are on. You can revisit other queries by hitting the forward and back arrows around the numbers.
 			<br/>
-			{"To exit the program, just leave the browser page. The program exits if it goes 3 minutes without being viewed in a browser."}
+			To exit the program, just leave the browser page. The program exits if it goes 3 minutes without being viewed in a browser.
 			<h3>Waiting for results to load</h3>
 			<hr/>
-			{"Browsers can take a while to load big results, even when limiting the number of rows. If the results of a query look similar to the results of the previous query, you can confirm that they are new by checkng the query number in the top-right corner, or by reading the query text in the yellow area above the table."}
+			Browsers can take a while to load big results, even when limiting the number of rows. If the results of a query look similar to the results of the previous query, you can confirm that they are new by checkng the query number in the top-right corner, or by reading the query text in the yellow area above the table.
 			<br/><br/>
-			{"Another thing that can take a while is files that have tons of columns. The program samples the first 10000 rows to figure out datatypes and this can take a while with very wide files. That process is not yet interuptable by the 'end query early' button."}
+				Another thing that can take a while is files that have tons of columns. The program samples the first 10000 rows to figure out datatypes and this can take a while with very wide files. That process is not yet interuptable by the <code>end query early</code> button.
 			<h3>Configuration</h3>
 			<hr/>
-			{"Some settings can be configured by editing the config file "}{this.props.configpath}
+			Some settings can be configured by editing the config file {this.props.configpath}
 			<br/> <br/>
 			<hr/>
 			version {this.props.version}
