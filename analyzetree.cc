@@ -650,20 +650,30 @@ void analyzer::setAttributes(astnode& n){
 bool analyzer::addAlias(astnode& n){
 	if (n->tok1.id == N_ADDALIAS){
 		auto& aliasnode = n->node1;
-		auto& filenode = aliasnode->node1;
-		string& alias = aliasnode->tok1.val;
-		string& fpath = filenode->tok1.val;
-		int opts = filenode->tok5.id;
-		if (regex_match(alias,filelike))
-			error("File alias cannot have dots or slashes");
-		string aliasfile = st(globalSettings.configdir,"/alias-",alias,".txt");
-		if (boost::filesystem::exists(aliasfile))
-			error(alias," alias already exists");
-		findExtension(fpath);
-		ofstream afile(aliasfile);
-		afile << boost::filesystem::canonical(fpath).string() << endl << opts << endl;
-		
-		return true;
+		//add alias
+		if (aliasnode->tok2.id) {
+			auto& filenode = aliasnode->node1;
+			string& alias = aliasnode->tok1.val;
+			string& fpath = filenode->tok1.val;
+			int opts = filenode->tok5.id;
+			if (regex_match(alias,filelike))
+				error("File alias cannot have dots or slashes");
+			string aliasfile = st(globalSettings.configdir,"/alias-",alias,".txt");
+			if (boost::filesystem::exists(aliasfile))
+				error(alias," alias already exists");
+			findExtension(fpath);
+			ofstream afile(aliasfile);
+			afile << boost::filesystem::canonical(fpath).string() << endl << opts << endl;
+			return true;
+		//drop alias
+		} else {
+			string& alias = aliasnode->tok1.val;
+			string aliasfile = st(globalSettings.configdir,"/alias-",alias,".txt");
+			if (!boost::filesystem::exists(aliasfile))
+				error(alias," alias does not exist");
+			boost::filesystem::remove(aliasfile);
+			return true;
+		}
 	}
 	return false;
 }

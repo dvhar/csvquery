@@ -7,7 +7,7 @@
 [[]] = at least one of
 
 query             -> <preselect> <select> <from> <afterfrom> | <addalias>
-addalias          -> add filealias <file>
+addalias          -> add filealias <file> | drop filealias
 preselect         -> <options> <with> | ε
 options           -> [ oh noh nh h ah s p t nan ] { <options> } | ε
 with              -> with <vars> | ε
@@ -83,6 +83,7 @@ class parser {
 
 	querySpecs* q;
 	bool justfile = false;
+	bool add = false;
 	public:
 	parser(querySpecs &qs): q{&qs} {}
 	void parse(){
@@ -113,10 +114,14 @@ void parseQuery(querySpecs &q) {
 //or
 //node1 is addalias
 //tok1.id is N_ADDALIAS
+//tok2 is add/drop
 astnode parser::parseQuery() {
 	token t = q->tok();
 	astnode n = newNode(N_QUERY);
-	if (t.lower() == "add"){
+	auto l = t.lower();
+	if (l == "add" || l == "drop"){
+		if (l == "add") add = true;
+		n->tok2 = t;
 		q->nextTok();
 		n->node1 = parseAddAlias();
 		n->tok1.id = N_ADDALIAS;
@@ -133,14 +138,18 @@ astnode parser::parseQuery() {
 
 //node1 is file
 //tok1 is alias
+//tok2.id is 1 if add, 0 if drop
 astnode parser::parseAddAlias() {
 	token t = q->tok();
 	astnode n = newNode(N_ADDALIAS);
 	if (t.id != WORD_TK)
-		error("Expected file alias after 'add'. Found ",t.val);
+		error("Expected file alias after ",q->lastTok().val,". Found ",t.val);
 	n->tok1 = t;
 	q->nextTok();
-	n->node1 = parseFile();
+	if (add){
+		n->tok2.id = 1;
+		n->node1 = parseFile();
+	}
 	return n;
 }
 
