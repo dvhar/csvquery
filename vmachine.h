@@ -402,12 +402,15 @@ double ceil(double input, int decimals);
 double floor(double input, int decimals);
 
 class qinstance {
-	public:
 	unique_ptr<vmachine> vm;
+	shared_ptr<singleQueryResult> json;
 	querySpecs* q;
+	public:
 	int id;
+	int sesid;
 	qinstance(querySpecs& qs) {
 		q = &qs;
+		sesid = qs.sessionId;
 	}
 	~qinstance(){}
 	int run(){
@@ -418,7 +421,18 @@ class qinstance {
 		vm.reset(new vmachine(*q));
 		id = vm->id;
 		vm->run();
+		if (q->outputjson)
+			json = vm->getJsonResult();
 		return id;
+	}
+	shared_ptr<singleQueryResult> getResult(){
+		return json;
+	}
+	void stop(){
+		if (vm) vm->endQuery();
+	}
+	void setPass(string& p){
+		if (q) q->setPassword(p);
 	}
 };
 class queryQueue {

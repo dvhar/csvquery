@@ -650,8 +650,9 @@ void analyzer::setAttributes(astnode& n){
 bool analyzer::addAlias(astnode& n){
 	if (n->tok1.id == N_ADDALIAS){
 		auto& aliasnode = n->node1;
+		auto action = aliasnode->tok2.lower();
 		//add alias
-		if (aliasnode->tok2.id) {
+		if (action == "add") {
 			auto& filenode = aliasnode->node1;
 			string& alias = aliasnode->tok1.val;
 			string& fpath = filenode->tok1.val;
@@ -666,13 +667,30 @@ bool analyzer::addAlias(astnode& n){
 			afile << boost::filesystem::canonical(fpath).string() << endl << opts << endl;
 			return true;
 		//drop alias
-		} else {
+		} else if (action == "drop") {
 			string& alias = aliasnode->tok1.val;
 			string aliasfile = st(globalSettings.configdir,"/alias-",alias,".txt");
 			if (!boost::filesystem::exists(aliasfile))
 				error(alias," alias does not exist");
 			boost::filesystem::remove(aliasfile);
 			return true;
+		//show aliases - maybe do this in vm
+		} else if (action == "show") {
+			boost::filesystem::path thisdir(globalSettings.configdir);
+			auto tables = vector<tuple<string,string,int>>();
+			regex re("alias-.*");
+			for (auto& f : boost::filesystem::directory_iterator(thisdir)){
+				auto&& aliasfile = f.path().string();
+				if (regex_match(aliasfile,re)){
+					string alias = aliasfile.substr(5, aliasfile.size()-4);
+					ifstream afile(aliasfile);
+					string apath;
+					int opts;
+					afile >> apath >> opts;
+					tables.emplace_back(alias, apath, opts);
+				}
+			}
+
 		}
 	}
 	return false;

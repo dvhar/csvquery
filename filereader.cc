@@ -169,7 +169,6 @@ inline void fileReader::getField(){
 	++fieldsFound;
 }
 
-//initial scan also loads file into mem if small file
 void fileReader::inferTypes() {
 	if (readline())
 		error("Error reading first line from ",filename);
@@ -291,7 +290,6 @@ void openfiles(querySpecs &qs){
 }
 
 shared_ptr<directory> filebrowse(string dir){
-
 	boost::filesystem::path thisdir(dir);
 	if (!boost::filesystem::exists(thisdir) || !boost::filesystem::is_directory(thisdir)){
 		error(st(dir," is not a directory"));
