@@ -624,7 +624,7 @@ future<shared_ptr<singleQueryResult>> queryQueue::runqueryJson(querySpecs& q){
 		auto& thisq = queries.back();
 		mtx.unlock();
 		auto id = thisq.run();
-		auto ret = thisq.vm->getJsonResult();
+		auto ret = thisq.getResult();
 		perr("Got json result\n");
 		mtx.lock();
 		queries.remove_if([&](qinstance& qi){ return qi.id == id; });
@@ -635,15 +635,14 @@ future<shared_ptr<singleQueryResult>> queryQueue::runqueryJson(querySpecs& q){
 }
 void queryQueue::endall(){
 	mtx.lock();
-	for (auto& qi : queries)
-		qi.vm->endQuery();
+	for (auto& qi : queries) qi.stop();
 	mtx.unlock();
 }
 void queryQueue::setPassword(i64 sesid, string& pass){
 	mtx.lock();
 	for (auto& qi : queries)
-		if (qi.q->sessionId == sesid){ //TODO: use id not sessionId
-			qi.q->setPassword(pass);
+		if (qi.sesid == sesid){ //TODO: use id not sessionId
+			qi.setPass(pass);
 			break;
 		}
 	mtx.unlock();

@@ -246,6 +246,7 @@ extern const flatmap<string_view, int> functionMap;
 extern const flatmap<string_view, int> joinMap;
 extern const flatmap<string_view, int> specialMap;
 extern const flatmap<int, string_view> typeNames;
+extern const flatmap<int, const char*> dateFmtCodes;
 
 extern regex_t leadingZeroString;
 extern regex_t durationPattern;
