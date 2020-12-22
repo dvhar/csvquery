@@ -76,7 +76,7 @@ class parser {
 	astnode parseSetList(bool);
 	astnode parseExpressionList(bool i, bool s);
 	astnode parseQuery();
-	astnode parseAddAlias();
+	astnode parseHandleAlias();
 	void parseFileOptions(astnode&);
 	void parseTop(astnode&);
 	void parseLimit(astnode&);
@@ -112,7 +112,7 @@ void parseQuery(querySpecs &q) {
 //node4 is afterfrom
 //or
 //node1 is addalias
-//tok1.id is N_ADDALIAS
+//tok1.id is N_HANDLEALIAS
 //tok2 is add/drop/show
 astnode parser::parseQuery() {
 	token t = q->tok();
@@ -120,8 +120,8 @@ astnode parser::parseQuery() {
 	auto l = t.lower();
 	if (l == "add" || l == "drop" || l == "show"){
 		n->tok2 = t;
-		n->node1 = parseAddAlias();
-		n->tok1.id = N_ADDALIAS;
+		n->node1 = parseHandleAlias();
+		n->tok1.id = N_HANDLEALIAS;
 		return n;
 	}
 	n->node1 = parsePreSelect();
@@ -136,9 +136,9 @@ astnode parser::parseQuery() {
 //node1 is file
 //tok1 is alias
 //tok2 is add/drop/show
-astnode parser::parseAddAlias() {
+astnode parser::parseHandleAlias() {
 	token t = q->tok();
-	astnode n = newNode(N_ADDALIAS);
+	astnode n = newNode(N_HANDLEALIAS);
 	n->tok2 = t;
 	t = q->nextTok();
 	if (t.id != WORD_TK)

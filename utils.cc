@@ -446,8 +446,8 @@ int prepareQuery(querySpecs &q){
 		scanTokens(q);
 		parseQuery(q);
 		//return code for operations other than queries
-		if (int other = earlyAnalyze(q); other){
-			return other;
+		if (int nonquery = earlyAnalyze(q); nonquery){
+			return nonquery;
 		}
 		openfiles(q);
 		midAnalyze(q);
