@@ -203,7 +203,7 @@ class boxprinter {
 	};
 	void addrow(dat* sourcerow);
 	void print();
-	~boxprinter(){ if (active && globalSettings.termbox) print(); };
+	~boxprinter(){ if (active) print(); };
 };
 
 class rowgroup;
@@ -400,6 +400,7 @@ void md5(dat&);
 double round(double input, int decimals);
 double ceil(double input, int decimals);
 double floor(double input, int decimals);
+shared_ptr<singleQueryResult> showTables(querySpecs &q);
 
 class qinstance {
 	unique_ptr<vmachine> vm;
@@ -413,8 +414,10 @@ class qinstance {
 		sesid = qs.sessionId;
 	}
 	~qinstance(){}
-	int run(){
+	int runq(){
 		if (int nonquery = prepareQuery(*q); nonquery){
+			if (nonquery == CMD_SHOWTABLES)
+				json = showTables(*q);
 			id = rng();
 			return id;
 		}

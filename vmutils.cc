@@ -603,6 +603,49 @@ shared_ptr<singleQueryResult> vmachine::getJsonResult(){
 	return jsonresult;
 }
 
+shared_ptr<singleQueryResult> showTables(querySpecs &q){
+
+	boost::filesystem::path thisdir(globalSettings.configdir);
+	auto tables = vector<tuple<string,string>>();
+	regex re(".*alias-.*");
+	for (auto& f : boost::filesystem::directory_iterator(thisdir)){
+		auto&& aliasfile = f.path().string();
+		if (regex_match(aliasfile,re)){
+			string alias = boost::filesystem::basename(aliasfile);
+			alias = alias.substr(6, alias.size()-4);
+			ifstream afile(aliasfile);
+			string apath;
+			afile >> apath;
+			tables.emplace_back(alias, apath);
+		}
+	}
+	vector<string> colnames = {"Name","Details"};
+	vector<int> types = {5,5};
+	if (q.outputjson){
+		auto ret = make_shared<singleQueryResult>();
+		ret->numcols = 2;
+		ret->rowlimit = 10000;
+		ret->query = "show tables";
+		ret->colnames = move(colnames);
+		ret->types = move(types);
+		for (auto& t : tables){
+			ret->numrows++;
+			ret->Vals.push_back(st( "[\"", escapeJSON(get<0>(t)), "\",\"", escapeJSON(get<1>(t)), "\"]"));
+		}
+		return ret;
+	} else {
+		boxprinter bp;
+		bp.init(types,colnames);
+		dat row[2];
+		for (auto& t : tables){
+			row[0] = dat{{.s=(char*)get<0>(t).data()},T_STRING};
+			row[1] = dat{{.s=(char*)get<1>(t).data()},T_STRING};
+			bp.addrow(row);
+		}
+		return nullptr;
+	}
+
+}
 
 future<void> queryQueue::runquery(querySpecs& q){
 	return async([&](){
@@ -610,7 +653,7 @@ future<void> queryQueue::runquery(querySpecs& q){
 		queries.emplace_back(q);
 		auto& thisq = queries.back();
 		mtx.unlock();
-		auto id = thisq.run();
+		auto id = thisq.runq();
 		mtx.lock();
 		queries.remove_if([&](qinstance& qi){ return qi.id == id; });
 		mtx.unlock();
@@ -623,7 +666,7 @@ future<shared_ptr<singleQueryResult>> queryQueue::runqueryJson(querySpecs& q){
 		queries.emplace_back(q);
 		auto& thisq = queries.back();
 		mtx.unlock();
-		auto id = thisq.run();
+		auto id = thisq.runq();
 		auto ret = thisq.getResult();
 		perr("Got json result\n");
 		mtx.lock();
