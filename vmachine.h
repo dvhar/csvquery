@@ -112,6 +112,7 @@ class jumpPositions {
 
 //make sure to free manually like normal malloced c strings
 class treeCString {
+	static char blank;
 	public:
 		char* s;
 		treeCString(dat& d){
@@ -126,6 +127,13 @@ class treeCString {
 					memcpy(s, d.u.s, d.z+1);
 				}
 			}
+		}
+		//non-allocating constructor only for checking, never inserting
+		treeCString(datunion u){
+			if (u.s)
+				s = u.s;
+			else
+				s = &blank;
 		}
 		treeCString(){
 			s = nullptr;
@@ -276,16 +284,15 @@ class numericSet : public virtualSet {
 		return btree.insert(temp).second;
 	}
 	numericSet(){};
-	numericSet(bset<i64>& src) : btree(move(src)) {};
 	~numericSet(){};
 };
 class stringSet : public virtualSet {
 	bset<treeCString> btree;
 	public:
 	bool contains(dat& d){
-		treeCString t(d);
+		treeCString t(d.u); //use non-allocating constructor
 		auto ret = btree.find(t) != btree.end();
-		free(t.s);
+		d.freedat();
 		return ret;
 	}
 	bool insert(dat& d){
@@ -298,7 +305,6 @@ class stringSet : public virtualSet {
 		}
 	}
 	stringSet(){};
-	stringSet(bset<treeCString>& src) : btree(move(src)) {};
 	~stringSet(){
 		for (auto tcs : btree) free(tcs.s);
 	};
