@@ -30,7 +30,7 @@ class analyzer {
 		void shouldPrintHeader();
 		int phaser(astnode &n);
 		void setAttributes(astnode& n);
-		bool addAlias(astnode& n);
+		int addAlias(astnode& n);
 };
 
 void analyzer::propogateVarFilter(string var, int filter){
@@ -647,31 +647,45 @@ void analyzer::setAttributes(astnode& n){
 	setAttributes(n->node3);
 	setAttributes(n->node4);
 }
-bool analyzer::addAlias(astnode& n){
-	if (n->tok1.id == N_ADDALIAS){
+int analyzer::addAlias(astnode& n){
+	if (n->tok1.id == N_HANDLEALIAS){
 		auto& aliasnode = n->node1;
-		auto& filenode = aliasnode->node1;
-		string& alias = aliasnode->tok1.val;
-		string& fpath = filenode->tok1.val;
-		int opts = filenode->tok5.id;
-		if (regex_match(alias,filelike))
-			error("File alias cannot have dots or slashes");
-		string aliasfile = st(globalSettings.configdir,"/alias-",alias,".txt");
-		if (boost::filesystem::exists(aliasfile))
-			error(alias," alias already exists");
-		findExtension(fpath);
-		ofstream afile(aliasfile);
-		afile << boost::filesystem::canonical(fpath).string() << endl << opts << endl;
-		
-		return true;
+		auto action = aliasnode->tok2.lower();
+		//add alias
+		if (action == "add") {
+			auto& filenode = aliasnode->node1;
+			string& alias = aliasnode->tok1.val;
+			string& fpath = filenode->tok1.val;
+			int opts = filenode->tok5.id;
+			if (regex_match(alias,filelike))
+				error("File alias cannot have dots or slashes");
+			string aliasfile = st(globalSettings.configdir,"/alias-",alias,".txt");
+			if (boost::filesystem::exists(aliasfile))
+				error(alias," alias already exists");
+			findExtension(fpath);
+			ofstream afile(aliasfile);
+			afile << boost::filesystem::canonical(fpath).string() << endl << opts << endl;
+			return CMD_ADDALIAS;
+		//drop alias
+		} else if (action == "drop") {
+			string& alias = aliasnode->tok1.val;
+			string aliasfile = st(globalSettings.configdir,"/alias-",alias,".txt");
+			if (!boost::filesystem::exists(aliasfile))
+				error(alias," alias does not exist");
+			boost::filesystem::remove(aliasfile);
+			return CMD_DROPALIAS;
+		//show aliases - maybe do this in vm
+		} else if (action == "show") {
+			return CMD_SHOWTABLES;
+		}
 	}
-	return false;
+	return 0;
 }
 
 int earlyAnalyze(querySpecs &q){
 	analyzer an(q);
-	if (an.addAlias(q.tree))
-		return N_ADDALIAS;
+	if (int nonquery = an.addAlias(q.tree); nonquery)
+		return nonquery;
 	an.setAttributes(q.tree);
 	return 0;
 }

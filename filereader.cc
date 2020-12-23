@@ -168,7 +168,6 @@ inline void fileReader::getField(){
 	++fieldsFound;
 }
 
-//initial scan also loads file into mem if small file
 void fileReader::inferTypes() {
 	if (readline())
 		error("Error reading first line from ",filename);
@@ -235,10 +234,10 @@ class opener {
 	i64 totalsize = 0;
 	querySpecs *q;
 	public:
-	void openfiles(astnode &n);
+	void openfiles(astnode&);
+	bool checkAliases(astnode&);
 	opener(querySpecs &qs): q(&qs){};
 };
-bool checkAliases(astnode& n);
 void opener::openfiles(astnode &n){
 	if (n == nullptr)
 		return;
@@ -251,8 +250,8 @@ void opener::openfiles(astnode &n){
 		auto& fr = q->filevec.back();
 		fr->id = id;
 		q->filemap[id] = fr;
-		if (n->tok4.id)
-			q->filemap[n->tok4.val] = fr;
+		if (n->tok4.id) q->filemap[n->tok4.val] = fr;
+		if (n->tok2.id) q->filemap[n->tok2.val] = fr;
 		int a = fpath.find_last_of("/\\") + 1;
 		int b = fpath.size()-4-a;
 		fpath = fpath.substr(a, b);
@@ -290,7 +289,6 @@ void openfiles(querySpecs &qs){
 }
 
 shared_ptr<directory> filebrowse(string dir){
-
 	boost::filesystem::path thisdir(dir);
 	if (!boost::filesystem::exists(thisdir) || !boost::filesystem::is_directory(thisdir)){
 		error(st(dir," is not a directory"));
@@ -330,13 +328,13 @@ void findExtension(string& fname){
 		}
 	}
 }
-bool checkAliases(astnode& n){
-	if (regex_match(n->tok1.val,filelike)){
+bool opener::checkAliases(astnode& n){
+	if (regex_match(n->tok1.val,filelike))
 		return false;
-	}
 	string aliasfile = st(globalSettings.configdir,"/alias-",n->tok1.val,".txt");
 	if (!boost::filesystem::exists(aliasfile))
 		return false;
+	n->tok2 = n->tok1;
 	ifstream afile(aliasfile);
 	afile >> n->tok1.val;
 	afile >> n->tok5.id;

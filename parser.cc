@@ -7,7 +7,7 @@
 [[]] = at least one of
 
 query             -> <preselect> <select> <from> <afterfrom> | <addalias>
-addalias          -> add filealias <file>
+addalias          -> add filealias <file> | drop filealias | show tables
 preselect         -> <options> <with> | ε
 options           -> [ oh noh nh h ah s p t nan ] { <options> } | ε
 with              -> with <vars> | ε
@@ -76,7 +76,7 @@ class parser {
 	astnode parseSetList(bool);
 	astnode parseExpressionList(bool i, bool s);
 	astnode parseQuery();
-	astnode parseAddAlias();
+	astnode parseHandleAlias();
 	void parseFileOptions(astnode&);
 	void parseTop(astnode&);
 	void parseLimit(astnode&);
@@ -112,14 +112,16 @@ void parseQuery(querySpecs &q) {
 //node4 is afterfrom
 //or
 //node1 is addalias
-//tok1.id is N_ADDALIAS
+//tok1.id is N_HANDLEALIAS
+//tok2 is add/drop/show
 astnode parser::parseQuery() {
 	token t = q->tok();
 	astnode n = newNode(N_QUERY);
-	if (t.lower() == "add"){
-		q->nextTok();
-		n->node1 = parseAddAlias();
-		n->tok1.id = N_ADDALIAS;
+	auto l = t.lower();
+	if (l == "add" || l == "drop" || l == "show"){
+		n->tok2 = t;
+		n->node1 = parseHandleAlias();
+		n->tok1.id = N_HANDLEALIAS;
 		return n;
 	}
 	n->node1 = parsePreSelect();
@@ -133,14 +135,18 @@ astnode parser::parseQuery() {
 
 //node1 is file
 //tok1 is alias
-astnode parser::parseAddAlias() {
+//tok2 is add/drop/show
+astnode parser::parseHandleAlias() {
 	token t = q->tok();
-	astnode n = newNode(N_ADDALIAS);
+	astnode n = newNode(N_HANDLEALIAS);
+	n->tok2 = t;
+	t = q->nextTok();
 	if (t.id != WORD_TK)
-		error("Expected file alias after 'add'. Found ",t.val);
+		error("Expected file alias after ",n->tok2.val,". Found ",t.val);
 	n->tok1 = t;
 	q->nextTok();
-	n->node1 = parseFile();
+	if (n->tok2.lower() == "add")
+		n->node1 = parseFile();
 	return n;
 }
 
@@ -679,6 +685,7 @@ astnode parser::parseFrom(bool withselections) {
 }
 
 //tok1 is file path or view name
+//tok2 will be copy of tok1 if filealias
 //tok4 is alias
 //tok5.id is file options
 astnode parser::parseFile() {
@@ -745,11 +752,8 @@ void parser::parseFileOptions(astnode& n) {
 	parseFileOptions(n);
 }
 
-//tok1 is filepath
 //tok2 is join token (join,sjoin,bjoin)
 //tok3 is join details (left/outer or inner)
-//tok4 is alias
-//tok5 is noheader
 //node1 is file
 //node2 is join condition (predicates)
 //node3 is next join

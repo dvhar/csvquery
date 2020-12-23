@@ -72,6 +72,7 @@ int main(int argc, char** argv){
 			break;
 		case 'j':
 			jsonstdout = true;
+			globalSettings.termbox = false;
 			break;
 		case 'h':
 			help(argv[0]);

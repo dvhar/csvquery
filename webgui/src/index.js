@@ -98,8 +98,10 @@ class Main extends React.Component {
 	}
 	topDropReset(e){ 
 		setTimeout(()=>{
-		if (!e.target.matches('.dropContent'))
-			this.setState({ topDropdown : "nothing" }); 
+			if (!e.target.matches('.dropContent'))
+				this.setState({ topDropdown : "nothing" }); 
+			if (this.state.showHelp && !e.target.matches('.helpDrop'))
+				this.setState({ showHelp : false }); 
 		},50);
 	}
 	changeFilePath(whichPath){

@@ -213,7 +213,7 @@ class HelpButton extends React.Component {
 	render(){
 		var label = "Help";
 		if (this.props.showHelp) label = "Hide Help";
-		return( <button className="topButton dropContent" id="saveButton" onClick={()=>this.props.toggleHelp()}>{label}</button>)
+		return( <button className="topButton dropContent helpDrop" id="saveButton" onClick={()=>this.props.toggleHelp()}>{label}</button>)
 	}
 }
 

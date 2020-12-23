@@ -89,7 +89,7 @@ extern settings_t globalSettings;
 template<typename... Args>
 static void error(Args&&... A){ throw invalid_argument(st(A...));}
 
-enum nodetypes { N_QUERY, N_PRESELECT, N_WITH, N_VARS, N_SELECT, N_SELECTIONS, N_FROM, N_AFTERFROM, N_JOINCHAIN, N_JOIN, N_WHERE, N_HAVING, N_ORDER, N_EXPRADD, N_EXPRMULT, N_EXPRNEG, N_EXPRCASE, N_CPREDLIST, N_CPRED, N_CWEXPRLIST, N_CWEXPR, N_PREDICATES, N_PREDCOMP, N_VALUE, N_FUNCTION, N_GROUPBY, N_EXPRESSIONS, N_DEXPRESSIONS, N_TYPECONV, N_FILE, N_SETLIST, N_ADDALIAS };
+enum nodetypes { N_QUERY, N_PRESELECT, N_WITH, N_VARS, N_SELECT, N_SELECTIONS, N_FROM, N_AFTERFROM, N_JOINCHAIN, N_JOIN, N_WHERE, N_HAVING, N_ORDER, N_EXPRADD, N_EXPRMULT, N_EXPRNEG, N_EXPRCASE, N_CPREDLIST, N_CPRED, N_CWEXPRLIST, N_CWEXPR, N_PREDICATES, N_PREDCOMP, N_VALUE, N_FUNCTION, N_GROUPBY, N_EXPRESSIONS, N_DEXPRESSIONS, N_TYPECONV, N_FILE, N_SETLIST, N_HANDLEALIAS };
 
 enum valTypes { LITERAL, COLUMN, VARIABLE, FUNCTION };
 enum varFilters { WHERE_FILTER=1, DISTINCT_FILTER=2, ORDER_FILTER=4, AGG_FILTER=8, HAVING_FILTER=16, JCOMP_FILTER=32, JSCAN_FILTER=64, SELECT_FILTER=128 };
@@ -238,6 +238,9 @@ enum {
 	O_NOH = 128,
 	O_NAN = 256,
 	O_AH = 512,
+	CMD_ADDALIAS,
+	CMD_SHOWTABLES,
+	CMD_DROPALIAS,
 };
 
 extern const flatmap<int, string_view> treeMap;
@@ -246,6 +249,7 @@ extern const flatmap<string_view, int> functionMap;
 extern const flatmap<string_view, int> joinMap;
 extern const flatmap<string_view, int> specialMap;
 extern const flatmap<int, string_view> typeNames;
+extern const flatmap<int, const char*> dateFmtCodes;
 
 extern regex_t leadingZeroString;
 extern regex_t durationPattern;
@@ -588,6 +592,7 @@ class virtualSet {
 	public:
 		virtual bool contains(dat&)=0;
 		virtual bool insert(dat&)=0;
+		virtual ~virtualSet(){};
 };
 class subquery {
 	public:
@@ -621,13 +626,14 @@ class singleQueryResult {
 	int clipped =0;
 	vector<int> types;
 	vector<string> colnames;
-	list<string> Vals; //each string is whole row
+	list<string> Vals; //each string is whole row of encoded json
 	string query;
 	stringstream& tojson();
 	singleQueryResult(querySpecs &q){
 		numcols = q.colspec.count;
 		rowlimit = 20000 / numcols;
 	}
+	singleQueryResult(){}
 };
 class returnData {
 	stringstream j;
