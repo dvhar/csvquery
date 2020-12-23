@@ -226,7 +226,7 @@ export class Help extends React.Component {
 				<h4>Specifying a file</h4>
 				Click <code>Browse Files</code> to find files, and double click one to add it to the query.
 					<br/>
-				File paths can be saved for later use by running an <code>add</code> command. You may add file format options (described in the next section) after the filepath so save those too.
+				File paths can be saved for later use by running an <code>add {"<alias> <filepath>"}</code> command. You may add file format options (described in the next section) after the filepath so save those too. The <code>drop {"<alias>"}</code> command only deletes the alias, not the file. To view all aliases, type <code>show tables</code>.
 					<br/><br/>
 					Example of specifying a file by filename and then by saved name:
 					<br/>
@@ -236,9 +236,11 @@ export class Help extends React.Component {
 						add pets '/home/user/pets.csv'
 						<br/>
 						select * from pets
+						<br/>
+						drop pets
 				</code></blockquote>
 				<h4>Specifying csv delimiters and file header</h4>
-				These characters can be added to the beginning of a query or after the file path to specify file format details: <code>nh</code>, <code>h</code>, <code>ah</code>, <code>s</code>, <code>t</code>, and <code>p</code>. <code>nh</code>, <code>h</code>, and <code>ah</code> mean 'no header', 'header', and 'auto header' respectively. Default behavior is to treat the first line of the file as a header. 'ah' will guess if there is a header based on whether or not the first row contains numbers. <code>s</code>, <code>t</code>, and <code>p</code> mean the delimiter is 'spaces', 'tabs', and 'pipes' respectively, with pipes being this character: |. Default delimiter is commas. See examples in the next section.
+				These characters can be added to the beginning of a query or after the file path to specify file format details: <code>nh</code>, <code>h</code>, <code>ah</code>, <code>s</code>, <code>t</code>, and <code>p</code>. The characters <code>nh</code>, <code>h</code>, and <code>ah</code> mean 'no header', 'header', and 'auto header' respectively. Default behavior is to treat the first line of the file as a header. <code>ah</code> will guess if there is a header based on whether or not the first row contains numbers. <code>s</code>, <code>t</code>, and <code>p</code> mean the delimiter is 'spaces', 'tabs', and 'pipes' respectively, with pipes being this character: <code>|</code>. Default delimiter is commas. See examples in the next section.
 				<h4>Selecting some columns</h4>
 				Columns can be specified by name or number. Select column numbers by prefacing the number with <code>c</code>, or by using a plain unquoted number if putting a <code></code> in front of the whole query. Commas between selections are optional. Result columns can be renamed with the <code>as</code> keyword.
 					<br/><br/>

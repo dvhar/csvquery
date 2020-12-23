@@ -251,7 +251,6 @@ vmachine::vmachine(querySpecs &qs) :
 }
 
 vmachine::~vmachine(){
-	perr("Destructing vm\n");
 	if (runmode == RUN_SINGLE && !q->isSubquery) //skip garbage collection if one-off query
 		return;
 	distinctVal.freedat();
@@ -262,10 +261,8 @@ vmachine::~vmachine(){
 		if (q->sortInfo[i++].second == T_STRING)
 			for (auto u : vec)
 				free(u.s); //c strings allways allocated with c style
-	perr("Destructed vm\n");
 }
 querySpecs::~querySpecs(){
-	perr("Destructing queryspecs\n");
 	for (auto &d : dataholder){
 		d.freedat();
 		if (d.b & RMAL){
@@ -273,7 +270,6 @@ querySpecs::~querySpecs(){
 			delete d.u.r; //regex always allocated with 'new'
 		}
 	}
-	perr("Destructed queryspecs\n");
 }
 
 varScoper* varScoper::setscope(int f, int s, int f2){
