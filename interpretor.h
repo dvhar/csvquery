@@ -592,6 +592,7 @@ class virtualSet {
 	public:
 		virtual bool contains(dat&)=0;
 		virtual bool insert(dat&)=0;
+		virtual ~virtualSet(){};
 };
 class subquery {
 	public:

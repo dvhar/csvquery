@@ -191,6 +191,7 @@ int addBtree(int type, querySpecs *q){
 	}
 	return q->settypes.size()-1;
 }
+char treeCString::blank = 0;
 
 void vmachine::endQuery() {
 	for (auto& op : q->bytecode){
