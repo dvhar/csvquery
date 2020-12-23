@@ -112,6 +112,7 @@ class jumpPositions {
 
 //make sure to free manually like normal malloced c strings
 class treeCString {
+	static char blank;
 	public:
 		char* s;
 		treeCString(dat& d){
@@ -126,6 +127,13 @@ class treeCString {
 					memcpy(s, d.u.s, d.z+1);
 				}
 			}
+		}
+		//non-allocating constructor only for checking, never inserting
+		treeCString(datunion u){
+			if (u.s)
+				s = u.s;
+			else
+				s = &blank;
 		}
 		treeCString(){
 			s = nullptr;
@@ -203,7 +211,7 @@ class boxprinter {
 	};
 	void addrow(dat* sourcerow);
 	void print();
-	~boxprinter(){ if (active && globalSettings.termbox) print(); };
+	~boxprinter(){ if (active) print(); };
 };
 
 class rowgroup;
@@ -276,16 +284,15 @@ class numericSet : public virtualSet {
 		return btree.insert(temp).second;
 	}
 	numericSet(){};
-	numericSet(bset<i64>& src) : btree(move(src)) {};
 	~numericSet(){};
 };
 class stringSet : public virtualSet {
 	bset<treeCString> btree;
 	public:
 	bool contains(dat& d){
-		treeCString t(d);
+		treeCString t(d.u); //use non-allocating constructor
 		auto ret = btree.find(t) != btree.end();
-		free(t.s);
+		d.freedat();
 		return ret;
 	}
 	bool insert(dat& d){
@@ -298,7 +305,6 @@ class stringSet : public virtualSet {
 		}
 	}
 	stringSet(){};
-	stringSet(bset<treeCString>& src) : btree(move(src)) {};
 	~stringSet(){
 		for (auto tcs : btree) free(tcs.s);
 	};
@@ -400,25 +406,42 @@ void md5(dat&);
 double round(double input, int decimals);
 double ceil(double input, int decimals);
 double floor(double input, int decimals);
+shared_ptr<singleQueryResult> showTables(querySpecs &q);
 
 class qinstance {
-	public:
 	unique_ptr<vmachine> vm;
+	shared_ptr<singleQueryResult> json;
 	querySpecs* q;
+	public:
 	int id;
+	int sesid;
 	qinstance(querySpecs& qs) {
 		q = &qs;
+		sesid = qs.sessionId;
 	}
 	~qinstance(){}
-	int run(){
+	int runq(){
 		if (int nonquery = prepareQuery(*q); nonquery){
+			if (nonquery == CMD_SHOWTABLES)
+				json = showTables(*q);
 			id = rng();
 			return id;
 		}
 		vm.reset(new vmachine(*q));
 		id = vm->id;
 		vm->run();
+		if (q->outputjson)
+			json = vm->getJsonResult();
 		return id;
+	}
+	shared_ptr<singleQueryResult> getResult(){
+		return json;
+	}
+	void stop(){
+		if (vm) vm->endQuery();
+	}
+	void setPass(string& p){
+		if (q) q->setPassword(p);
 	}
 };
 class queryQueue {
@@ -475,7 +498,7 @@ class gsortcomp {
 		};
 };
 static pair<dat*,dat*> getfirst(dat* stacktop, int firsttype){
-	if (firsttype == (stacktop->b & 7))
+	if (firsttype == stacktop->type())
 		return {stacktop,stacktop-1};
 	return {stacktop-1,stacktop};
 }

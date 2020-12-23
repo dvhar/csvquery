@@ -191,6 +191,7 @@ int addBtree(int type, querySpecs *q){
 	}
 	return q->settypes.size()-1;
 }
+char treeCString::blank = 0;
 
 void vmachine::endQuery() {
 	for (auto& op : q->bytecode){
@@ -250,7 +251,6 @@ vmachine::vmachine(querySpecs &qs) :
 }
 
 vmachine::~vmachine(){
-	perr("Destructing vm\n");
 	if (runmode == RUN_SINGLE && !q->isSubquery) //skip garbage collection if one-off query
 		return;
 	distinctVal.freedat();
@@ -261,10 +261,8 @@ vmachine::~vmachine(){
 		if (q->sortInfo[i++].second == T_STRING)
 			for (auto u : vec)
 				free(u.s); //c strings allways allocated with c style
-	perr("Destructed vm\n");
 }
 querySpecs::~querySpecs(){
-	perr("Destructing queryspecs\n");
 	for (auto &d : dataholder){
 		d.freedat();
 		if (d.b & RMAL){
@@ -272,7 +270,6 @@ querySpecs::~querySpecs(){
 			delete d.u.r; //regex always allocated with 'new'
 		}
 	}
-	perr("Destructed queryspecs\n");
 }
 
 varScoper* varScoper::setscope(int f, int s, int f2){
@@ -603,6 +600,49 @@ shared_ptr<singleQueryResult> vmachine::getJsonResult(){
 	return jsonresult;
 }
 
+shared_ptr<singleQueryResult> showTables(querySpecs &q){
+
+	boost::filesystem::path thisdir(globalSettings.configdir);
+	auto tables = vector<tuple<string,string>>();
+	regex re(".*alias-.*");
+	for (auto& f : boost::filesystem::directory_iterator(thisdir)){
+		auto&& aliasfile = f.path().string();
+		if (regex_match(aliasfile,re)){
+			string alias = boost::filesystem::basename(aliasfile);
+			alias = alias.substr(6, alias.size()-4);
+			ifstream afile(aliasfile);
+			string apath;
+			afile >> apath;
+			tables.emplace_back(alias, apath);
+		}
+	}
+	vector<string> colnames = {"Name","Details"};
+	vector<int> types = {5,5};
+	if (q.outputjson){
+		auto ret = make_shared<singleQueryResult>();
+		ret->numcols = 2;
+		ret->rowlimit = 10000;
+		ret->query = "show tables";
+		ret->colnames = move(colnames);
+		ret->types = move(types);
+		for (auto& t : tables){
+			ret->numrows++;
+			ret->Vals.push_back(st( "[\"", escapeJSON(get<0>(t)), "\",\"", escapeJSON(get<1>(t)), "\"]"));
+		}
+		return ret;
+	} else {
+		boxprinter bp;
+		bp.init(types,colnames);
+		dat row[2];
+		for (auto& t : tables){
+			row[0] = dat{{.s=(char*)get<0>(t).data()},T_STRING};
+			row[1] = dat{{.s=(char*)get<1>(t).data()},T_STRING};
+			bp.addrow(row);
+		}
+		return nullptr;
+	}
+
+}
 
 future<void> queryQueue::runquery(querySpecs& q){
 	return async([&](){
@@ -610,7 +650,7 @@ future<void> queryQueue::runquery(querySpecs& q){
 		queries.emplace_back(q);
 		auto& thisq = queries.back();
 		mtx.unlock();
-		auto id = thisq.run();
+		auto id = thisq.runq();
 		mtx.lock();
 		queries.remove_if([&](qinstance& qi){ return qi.id == id; });
 		mtx.unlock();
@@ -623,8 +663,8 @@ future<shared_ptr<singleQueryResult>> queryQueue::runqueryJson(querySpecs& q){
 		queries.emplace_back(q);
 		auto& thisq = queries.back();
 		mtx.unlock();
-		auto id = thisq.run();
-		auto ret = thisq.vm->getJsonResult();
+		auto id = thisq.runq();
+		auto ret = thisq.getResult();
 		perr("Got json result\n");
 		mtx.lock();
 		queries.remove_if([&](qinstance& qi){ return qi.id == id; });
@@ -635,15 +675,14 @@ future<shared_ptr<singleQueryResult>> queryQueue::runqueryJson(querySpecs& q){
 }
 void queryQueue::endall(){
 	mtx.lock();
-	for (auto& qi : queries)
-		qi.vm->endQuery();
+	for (auto& qi : queries) qi.stop();
 	mtx.unlock();
 }
 void queryQueue::setPassword(i64 sesid, string& pass){
 	mtx.lock();
 	for (auto& qi : queries)
-		if (qi.q->sessionId == sesid){ //TODO: use id not sessionId
-			qi.q->setPassword(pass);
+		if (qi.sesid == sesid){ //TODO: use id not sessionId
+			qi.setPass(pass);
 			break;
 		}
 	mtx.unlock();
