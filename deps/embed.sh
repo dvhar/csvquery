@@ -24,7 +24,7 @@ makeserver(){
 	render
 }
 
-files=`find webgui/build -regextype posix-egrep -regex ".*(js|css|map|json|png|txt|html)" -type f`
+files=`find webgui/build -regextype posix-egrep -regex ".*(js|css|map|json|txt|html)" -type f`
 
 for f in $files; do
 makebin $f
