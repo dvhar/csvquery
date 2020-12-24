@@ -187,8 +187,6 @@ const flatmap<int, const char*> dateFmtCodes = {
 	{ 109, "%b %d %Y %I:%M:%S:mmmm%p"}, // mon dd yyyy hh:mi:ss:mmmmAM (or PM)
 	{ 10 , "%m-%d-%y"}, // mm-dd-yy
 	{ 110, "%m-%d-%Y"}, // mm-dd-yyyy
-	{ 15 , "%y-%m-%d"}, // yy-mm-dd
-	{ 115, "%Y-%m-%d"}, // yyyy-mm-dd
 	{ 11 , "%y/%m/%d"}, // yy/mm/dd
 	{ 111, "%Y/%m/%d"}, // yyyy/mm/dd
 	{ 12 , "%y%m%d"}, // yymmdd
@@ -197,6 +195,8 @@ const flatmap<int, const char*> dateFmtCodes = {
 	{ 113, "%d %b %Y %H:%M:%S:mmm"}, // dd mon yyyy hh:mi:ss:mmm(24h)
 	{ 14 , "%H:%M:%S:mmm"}, //  hh:mi:ss:mmm(24h)
 	{ 114, "%H:%M:%S:mmm"}, //  hh:mi:ss:mmm(24h)
+	{ 15 , "%y-%m-%d"}, // yy-mm-dd
+	{ 115, "%Y-%m-%d"}, // yyyy-mm-dd
 	{ 20 , "%y-%m-%d %H:%M:%S"}, //  yy-mm-dd hh:mi:ss(24h)
 	{ 120, "%Y-%m-%d %H:%M:%S"}, //  yyyy-mm-dd hh:mi:ss(24h)
 	{ 21 , "%y-%m-%d %H:%M:%S.mmm"}, // yy-mm-dd hh:mi:ss.mmm(24h)

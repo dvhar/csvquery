@@ -246,7 +246,7 @@ void cgen::genHeader(){
 	if (headerdone)
 		return;
 	headerdone = true;
-	if (q->outputcsv && q->outputcsvheader)
+	if (!globalSettings.termbox && q->outputcsv && q->outputcsvheader)
 		addop(PRINTCSV_HEADER);
 }
 void cgen::genPrint(){
