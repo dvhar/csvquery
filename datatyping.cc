@@ -185,6 +185,7 @@ bool dataTyper::canBeString(astnode &n){
 		case FN_SQRT:
 		case FN_CBRT:
 		case FN_RAND:
+		case FN_SIP:
 		case FN_LEN:
 		case FN_INT:
 		case FN_FLOAT:
@@ -525,6 +526,13 @@ typer dataTyper::typeFunctionInnerNodes(astnode &n){
 		if (canBeString(n->node1))
 			n->tok2.id = T_STRING;
 		break;
+	case FN_SIP:
+		innerType = {T_INT, false};
+		n->info[RETTYPE] = T_INT;
+		n->tok2.id = typeInnerNodes(n->node1).type;
+		if (canBeString(n->node1))
+			n->tok2.id = T_STRING;
+		break;
 	case FN_INT:
 		innerType = {T_INT, false};
 		n->info[PARAMTYPE] = typeInnerNodes(n->node1).type;
@@ -712,6 +720,7 @@ void dataTyper::typeFunctionFinalNodes(astnode &n, int finaltype){
 		needRetConvert = true;
 	}
 	switch (n->tok1.id){
+	case FN_SIP:
 	case FN_LEN:{
 		if (n->tok2.id == T_STRING){
 			typeFinalValues(n->node1, T_STRING);

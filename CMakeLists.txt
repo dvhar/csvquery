@@ -26,6 +26,7 @@ set(sources ${sources}
 	deps/crypto/sha256.c
 	deps/crypto/md5.c
 	deps/crypto/halfsiphash.c
+	deps/crypto/siphash.c
 	deps/getline/bufreader.cc
 	deps/json/escape.cc
 )
