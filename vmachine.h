@@ -49,7 +49,7 @@ enum codes : int {
 	FUNC_LOG, FUNC_LOG2, FUNC_LOG10, FUNC_SQRT, FUNC_RAND, FUNC_UPPER, FUNC_LOWER, FUNC_BASE64_ENCODE,
 	FUNC_BASE64_DECODE, FUNC_HEX_ENCODE, FUNC_HEX_DECODE, FUNC_LEN, FUNC_SUBSTR, FUNC_MD5, FUNC_SHA1,
 	FUNC_SHA256, FUNC_ROUND, FUNC_CBRT, FUNC_NOW, FUNC_NOWGM, PRINTCSV_HEADER, FUNC_FORMAT,
-	LDCOUNT, BETWEEN, PRINTBOX, PRINTBTREE, INSUBQUERY
+	LDCOUNT, BETWEEN, PRINTBOX, PRINTBTREE, INSUBQUERY, FUNC_SIP
 
 };
 
@@ -403,6 +403,7 @@ dat prepareLike(astnode &n);
 void sha1(dat&);
 void sha256(dat&);
 void md5(dat&);
+void sip(dat& d);
 double round(double input, int decimals);
 double ceil(double input, int decimals);
 double floor(double input, int decimals);
