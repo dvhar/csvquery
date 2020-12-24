@@ -121,6 +121,7 @@ const flatmap<string_view, int> functionMap = {
 	{"md5",          FN_MD5},
 	{"sha1",         FN_SHA1},
 	{"sha256",       FN_SHA256},
+	{"sip",          FN_SIP},
 	{"string",       FN_STRING},
 	{"text",         FN_STRING},
 	{"int",          FN_INT},

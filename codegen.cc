@@ -1084,6 +1084,7 @@ void cgen::genFunction(astnode &n){
 		addop2(functionCode[n->tok1.id], n->tok2.id, ((q->options & O_NAN) == 0));
 		break;
 	case FN_LEN:
+	case FN_SIP:
 		genExprAll(n->node1);
 		if (n->node1->datatype != T_STRING)
 			addop0(typeConv[n->node1->datatype][T_STRING]);

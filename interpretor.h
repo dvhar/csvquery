@@ -37,6 +37,7 @@ typedef struct chacha20_context chacha;
 typedef long long i64;
 typedef unsigned long long u64;
 typedef unsigned int u32;
+typedef unsigned char u8;
 typedef i64 dur_t;
 template<typename A, typename B>
 using flatmap = boost::container::flat_map<A,B>;
@@ -203,6 +204,7 @@ enum {
 	FN_NOWGM =         KEYWORD|100,
 	FN_DATE =          KEYWORD|101,
 	FN_DUR =           KEYWORD|102,
+	FN_SIP =           KEYWORD|103,
 	SPECIALBIT =  1<<21,
 	SPECIAL =      FINAL|SPECIALBIT,
 	SP_EQ =        RELOP|SPECIAL|50,

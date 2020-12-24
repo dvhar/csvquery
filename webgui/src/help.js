@@ -61,6 +61,7 @@ const funclist = [
 	["lower","lower case",1],
 	["len","lenth of text",1],
 	["substr","substring from indexes or pattern matching",3],
+	["sip","sip hash (outputs a 64bit number)",1],
 	["md5","md5 hash in base64",1],
 	["sha1","sha1 hash in base64",1],
 	["sha256","sha256 hash in base64",1],
