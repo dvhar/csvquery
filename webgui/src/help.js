@@ -106,6 +106,8 @@ const fmtlist = [
 	[113,"dd Mon yyyy hh:mi:ss:mmm(24h)","%d %b %Y %H:%M:%S:mmm"],
 	[14, "hh:mi:ss:mmm(24h)","%H:%M:%S:mmm"],
 	[114,"hh:mi:ss:mmm(24h)","%H:%M:%S:mmm"],
+	[15, "yy-mm-dd","%y-%m-%d"],
+	[115, "yyyy-mm-dd","%Y-%m-%d"],
 	[20, "yy-mm-dd hh:mi:ss(24h)","%y-%m-%d %H:%M:%S"],
 	[120,"yyyy-mm-dd hh:mi:ss(24h)","%Y-%m-%d %H:%M:%S"],
 	[21, "yy-mm-dd hh:mi:ss.mmm(24h)","%y-%m-%d %H:%M:%S.mmm"],
