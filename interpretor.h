@@ -312,6 +312,45 @@ class node {
 	node(int);
 	node();
 	node& operator=(const node&);
+
+	//getters for values of different node types
+	string& nvarname(){ return tok1.val; }
+	astnode& nxtvar(){ return node2; }
+	string& nval(){ return tok1.val; }
+	int& nvaltyp(){ return tok2.id; }
+	astnode& nsubexpr(){ return node1; }
+	token& nseldisttok(){ return tok1; }
+	astnode& nxtsel(){ return node2; }
+	astnode& nsels(){ return node2; }
+	astnode& nselect(){ return node2; }
+	int& nqlimit(){ return tok1.id; }
+	int& nseldestidx(){ return tok4.id; }
+	string& nselalias(){ return tok2.val; }
+	int& nselmididx(){ return tok3.id; }
+	int& nsortsz(){ return tok2.id; }
+	int& naggsortdestidx(){ return tok3.id; }
+	int& nfuncid(){ return tok1.id; }
+	token& nfuncdisttok(){ return tok3; }
+	int& nfuncdistnum(){ return tok4.id; }
+	astnode& njoinconds(){ return node2; }
+	astnode& nxtjoin(){ return node3; }
+	astnode& npredconds(){ return node1; }
+	astnode& nsortlist(){ return node1; }
+	int& nvarmididx(){ return tok3.id; }
+	astnode& ngrouplist(){ return node1; }
+	string& nvalsrc(){ return tok3.val; }
+	astnode& npredcomp(){ return node1; }
+	astnode& nmorepreds(){ return node1; }
+	astnode& nxtpreds(){ return node2; }
+	int& nrelop(){ return tok1.id; }
+	int& nlogop(){ return tok1.id; }
+	astnode& npredexp1(){ return node1; }
+	astnode& npredexp2(){ return node2; }
+	int& nissubquery(){ return tok1.id; }
+	int& nsubqidx(){ return tok2.id; }
+	string& npassword(){ return tok4.val; }
+	astnode& nfrom(){ return node3; }
+	astnode& njoins(){ return node2; }
 };
 class variable {
 	public:

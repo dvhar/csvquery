@@ -35,9 +35,9 @@ class analyzer {
 
 void analyzer::propogateVarFilter(string var, int filter){
 	if (auto& firstvar = findFirstNode(q->tree->node1, N_VARS); firstvar)
-		for (auto n = firstvar.get(); n; n = n->node2.get())
-			if (n->tok1.val == var){
-				setSubtreeVarFilter(n->node1,  filter);
+		for (auto n = firstvar.get(); n; n = n->nxtvar().get())
+			if (n->nvarname() == var){
+				setSubtreeVarFilter(n->nsubexpr(),  filter);
 				return;
 			}
 }
@@ -45,11 +45,11 @@ void analyzer::setSubtreeVarFilter(astnode &n, int filter){
 	if (n == nullptr) return;
 	switch (n->label){
 	case N_VALUE:
-		if (n->tok2.id == VARIABLE){
-			q->var(n->tok1.val).filter |= filter;
-			propogateVarFilter(n->tok1.val, filter);
+		if (n->nvaltyp() == VARIABLE){
+			q->var(n->nval()).filter |= filter;
+			propogateVarFilter(n->nval(), filter);
 		} else {
-			setSubtreeVarFilter(n->node1, filter);
+			setSubtreeVarFilter(n->nsubexpr(), filter);
 		}
 		break;
 	default:
@@ -66,36 +66,36 @@ void analyzer::varUsedInFilter(astnode &n){
 	//vars case just adds files referenced info to variable for joins and finds max
 	case N_VARS:
 		{
-			auto& var = q->var(n->tok1.val);
-			var.filesReferenced = whichFilesReferenced(n->node1);
+			auto& var = q->var(n->nvarname());
+			var.filesReferenced = whichFilesReferenced(n->nsubexpr());
 			var.maxfileno = 0;
 			for (auto r: var.filesReferenced)
 				var.maxfileno = max(r, var.maxfileno);
-			varUsedInFilter(n->node2);
+			varUsedInFilter(n->nxtvar());
 		}
 		break;
 	case N_SELECTIONS:
-		t1 = n->tok1.lower();
+		t1 = n->nseldisttok().lower();
 		if (t1 == "hidden" || t1 == "distinct"){
-			setSubtreeVarFilter(n->node1, DISTINCT_FILTER);
+			setSubtreeVarFilter(n->nsubexpr(), DISTINCT_FILTER);
 			if (t1 != "hidden")
-				setSubtreeVarFilter(n->node1, SELECT_FILTER);
+				setSubtreeVarFilter(n->nsubexpr(), SELECT_FILTER);
 		} else {
-			setSubtreeVarFilter(n->node1, SELECT_FILTER);
+			setSubtreeVarFilter(n->nsubexpr(), SELECT_FILTER);
 		}
-		varUsedInFilter(n->node2);
+		varUsedInFilter(n->nxtsel());
 		break;
 	case N_WHERE:
-		setSubtreeVarFilter(n->node1, WHERE_FILTER);
+		setSubtreeVarFilter(n->nsubexpr(), WHERE_FILTER);
 		break;
 	case N_ORDER:
-		setSubtreeVarFilter(n->node1, ORDER_FILTER);
+		setSubtreeVarFilter(n->nsubexpr(), ORDER_FILTER);
 		break;
 	case N_GROUPBY:
-		setSubtreeVarFilter(n->node1, AGG_FILTER);
+		setSubtreeVarFilter(n->nsubexpr(), AGG_FILTER);
 		break;
 	case N_HAVING:
-		setSubtreeVarFilter(n->node1, HAVING_FILTER);
+		setSubtreeVarFilter(n->nsubexpr(), HAVING_FILTER);
 		break;
 	//joins handled later to distinguish scan vs comp values
 	default:
@@ -130,19 +130,19 @@ pair<astnode,node*> analyzer::expandSelectAll(){
 		for (int colnum = 1; colnum <= q->filevec[filenum]->numFields; ++colnum){
 			node* thisnode = selection;
 			for (int label : branch){
-				thisnode->node1 = make_unique<node>(label);
-				thisnode = thisnode->node1.get();
+				thisnode->nsubexpr() = make_unique<node>(label);
+				thisnode = thisnode->nsubexpr().get();
 				if (label == N_EXPRCASE || label == N_VALUE){
 					thisnode->tok1.id = WORD_TK;
 					thisnode->tok1.val = st("_f",filenum,".c",colnum);
 				}
 			}
-			selection->node2 = make_unique<node>(N_SELECTIONS);
+			selection->nxtsel() = make_unique<node>(N_SELECTIONS);
 			last = selection;
-			selection = selection->node2.get();
+			selection = selection->nxtsel().get();
 		}
 	}
-	last->node2.reset(nullptr);
+	last->nxtsel().reset(nullptr);
 	newselections.second = last;
 	return newselections;
 }
@@ -151,38 +151,38 @@ void analyzer::selectAllSubquery(){
 	if (!q->isSubquery) return;
 	if (auto& selections = findFirstNode(q->tree, N_SELECTIONS); selections == nullptr){
 		if (auto& select = findFirstNode(q->tree, N_SELECT); select){
-			select->node2 = expandSelectAll().first;
+			select->nsels() = expandSelectAll().first;
 		} else {
-			q->tree->node2 = make_unique<node>(N_SELECT);
-			q->tree->node2->node2 = expandSelectAll().first;
+			q->tree->nselect() = make_unique<node>(N_SELECT);
+			q->tree->nselect()->nsels() = expandSelectAll().first;
 		}
 	} else {
 		auto prev = findFirstNode(q->tree, N_SELECT).get();
-		auto next = prev->node2.get();
+		auto next = prev->nsels().get();
 		do {
-			if (next->tok1.id == SP_STAR){
+			if (next->nseldisttok().id == SP_STAR){
 				auto&& allcolumns = expandSelectAll();
-				auto nextafter = next->node2.release();
-				prev->node2.reset(allcolumns.first.release());
-				allcolumns.second->node2.reset(nextafter);
+				auto nextafter = next->nxtsel().release();
+				prev->nxtsel().reset(allcolumns.first.release());
+				allcolumns.second->nxtsel().reset(nextafter);
 			}
 			prev = next;
-			next = next->node2.get();
+			next = next->nxtsel().get();
 		} while (next && next->label == N_SELECTIONS);
 	}
 }
 
 void analyzer::recordResultColumns(astnode &n){
 	if (n == nullptr) return;
-	string t1 = n->tok1.lower();
+	string t1 = n->nseldisttok().lower();
 	switch (n->label){
 	case N_SELECTIONS:
 		if (t1 == "hidden") {
 		} else if (t1 == "*"){
 			selectAll();
 		} else {
-			n->tok4.id = q->colspec.count++;
-			auto name = n->tok2.val;
+			n->nseldestidx() = q->colspec.count++;
+			auto name = n->nselalias();
 			bool tcol = isTrivialColumn(n);
 			if (name.empty() && (tcol || isTrivialAlias(n)))
 				name = nodeName(n->node1, q);
@@ -196,18 +196,18 @@ void analyzer::recordResultColumns(astnode &n){
 			else
 				q->colspec.types.push_back(n->datatype);
 		}
-		recordResultColumns(n->node2);
+		recordResultColumns(n->nxtsel());
 		break;
 	case N_FROM:
 		if (q->colspec.count == 0)
 			selectAll();
 		break;
 	case N_EXPRESSIONS:  //sort list
-		if (n->tok2.id){
+		if (n->nsortsz()){
 			if (q->grouping){
-				n->tok3.id = q->colspec.count + q->sortcount;
+				n->naggsortdestidx() = q->colspec.count + q->sortcount;
 			} else {
-				n->tok3.id = q->sortcount;
+				n->naggsortdestidx() = q->sortcount;
 			}
 			q->sortcount++;
 		}
@@ -229,19 +229,19 @@ bool analyzer::findAgrregates(astnode &n){
 	if (n == nullptr) return false;
 	switch (n->label){
 	case N_FUNCTION:
-		if ((n->tok1.id & AGG_BIT) != 0){
-			if (n->tok3.lower() == "distinct"){
-				n->tok4.id = q->settypes.size();
-				q->settypes.push_back(n->node1->datatype == T_STRING);
+		if ((n->nfuncid() & AGG_BIT) != 0){
+			if (n->nfuncdisttok().lower() == "distinct"){
+				n->nfuncdistnum() = q->settypes.size();
+				q->settypes.push_back(n->nsubexpr()->datatype == T_STRING);
 				q->distinctFuncs = 1;
 			}
 			return true;
 		} else {
-			return findAgrregates(n->node1);
+			return findAgrregates(n->nsubexpr());
 		}
 		break;
 	case N_VARS:
-		if (findAgrregates(n->node1)){
+		if (findAgrregates(n->nsubexpr())){
 			return true;
 		}
 		return false;
@@ -265,29 +265,29 @@ void analyzer::setVarPhase(astnode &n, int phase, int section){
 	switch (n->label){
 	case N_VARS:
 		if (findAgrregates(n)){
-			q->var(n->tok1.val).phase |= 2;
-			setVarPhase(n->node2, 2, 1);
+			q->var(n->nvarname()).phase |= 2;
+			setVarPhase(n->nxtvar(), 2, 1);
 		} else {
-			q->var(n->tok1.val).phase |= 1;
+			q->var(n->nvarname()).phase |= 1;
 		}
-		setVarPhase(n->node2, 1, 0);
+		setVarPhase(n->nxtvar(), 1, 0);
 		break;
 	case N_SELECTIONS:
-		if (!findAgrregates(n->node1))
-			setVarPhase(n->node1, 1|2, 2);
+		if (!findAgrregates(n->nsubexpr()))
+			setVarPhase(n->nsubexpr(), 1|2, 2);
 		else
-			setVarPhase(n->node1, 2, 2);
-		setVarPhase(n->node2, 1, 0);
+			setVarPhase(n->nsubexpr(), 2, 2);
+		setVarPhase(n->nxtsel(), 1, 0);
 		break;
 	case N_FUNCTION:
-		if ((n->tok1.id & AGG_BIT) != 0){
-			setVarPhase(n->node1, 1, section);
+		if ((n->nfuncid() & AGG_BIT) != 0){
+			setVarPhase(n->nsubexpr(), 1, section);
 		} else {
-			setVarPhase(n->node1, phase, section);
+			setVarPhase(n->nsubexpr(), phase, section);
 		}
 		break;
 	case N_VALUE:
-		if (n->tok2.id == VARIABLE){
+		if (n->nvaltyp() == VARIABLE){
 			switch (section){
 			case 0: 
 				error("invalid variable found");
@@ -296,32 +296,32 @@ void analyzer::setVarPhase(astnode &n, int phase, int section){
 			case 3: //join conditions
 			case 4: //having conditions
 			case 5: //where conditions
-				q->var(n->tok1.val).phase |= phase;
+				q->var(n->nval()).phase |= phase;
 				break;
 			}
 		} else {
-			setVarPhase(n->node1, phase, section);
+			setVarPhase(n->nsubexpr(), phase, section);
 		}
 		break;
 	case N_JOIN:
-		if (findAgrregates(n->node2))
+		if (findAgrregates(n->njoinconds()))
 			error("cannot have aggregates in 'join' clause");
-		setVarPhase(n->node2, 1, 3);
+		setVarPhase(n->njoinconds(), 1, 3);
 		break;
 	case N_HAVING:
-		if (!findAgrregates(n->node1))
+		if (!findAgrregates(n->npredconds()))
 			error("values in 'having' clause must be aggregates");
-		setVarPhase(n->node1, 2, 4);
+		setVarPhase(n->npredconds(), 2, 4);
 		break;
 	case N_WHERE:
-		if (findAgrregates(n->node1))
+		if (findAgrregates(n->npredconds()))
 			error("cannot have aggregates in 'where' clause");
-		setVarPhase(n->node1, 1, 5);
+		setVarPhase(n->npredconds(), 1, 5);
 		break;
 	case N_ORDER:
-		if (!allAgrregates(n->node1))
+		if (!allAgrregates(n->nsortlist()))
 			error("cannot sort aggregate query by non-aggregate value");
-		setVarPhase(n->node1, 2, 6);
+		setVarPhase(n->nsortlist(), 2, 6);
 		break;
 	default:
 		setVarPhase(n->node1, phase, section);
@@ -335,47 +335,47 @@ void analyzer::setNodePhase(astnode &n, int phase){
 	if (n == nullptr) return;
 	switch (n->label){
 	case N_SELECTIONS:
-		if (findAgrregates(n->node1)){
+		if (findAgrregates(n->nsubexpr())){
 			//upper nodes of aggregate query are phase 2
 			n->phase = 2;
-			setNodePhase(n->node1, 2);
+			setNodePhase(n->nsubexpr(), 2);
 		} else {
 			//non-aggregate gets queried in phase 1, retrieved again in phase 2
 			n->phase = 1|2;
-			setNodePhase(n->node1, 1);
+			setNodePhase(n->nsubexpr(), 1);
 		}
-		setNodePhase(n->node2, 2);
+		setNodePhase(n->nxtsel(), 2);
 		phaser(n);
 		break;
 	case N_FUNCTION:
 		n->phase = phase;
-		if ((n->tok1.id & AGG_BIT) != 0){
+		if ((n->nfuncid() & AGG_BIT) != 0){
 			//nodes below aggregate are phase 1
-			setNodePhase(n->node1, 1);
+			setNodePhase(n->nsubexpr(), 1);
 		} else {
-			setNodePhase(n->node1, phase);
+			setNodePhase(n->nsubexpr(), phase);
 		}
 		break;
 	case N_VARS:
-		if (findAgrregates(n->node1)){
+		if (findAgrregates(n->nsubexpr())){
 			n->phase = 2;
-			setNodePhase(n->node1, 2);
+			setNodePhase(n->nsubexpr(), 2);
 		} else {
-			n->phase = q->var(n->tok1.val).phase;
-			setNodePhase(n->node1, 1);
+			n->phase = q->var(n->nvarname()).phase;
+			setNodePhase(n->nsubexpr(), 1);
 		}
-		q->var(n->tok1.val).phase |= n->phase;
-		setNodePhase(n->node2, 0);
+		q->var(n->nvarname()).phase |= n->phase;
+		setNodePhase(n->nxtvar(), 0);
 		break;
 	case N_GROUPBY:
 	case N_WHERE:
 		n->phase = 1;
-		setNodePhase(n->node1, 1);
+		setNodePhase(n->npredconds(), 1);
 		break;
 	case N_HAVING:
 	case N_ORDER:
 		n->phase = 2;
-		setNodePhase(n->node1, 2);
+		setNodePhase(n->nsortlist(), 2);
 		break;
 	default:
 		n->phase = phase;
@@ -391,7 +391,7 @@ int analyzer::phaser(astnode &n){
 	switch (n->label){
 		case N_SELECTIONS:
 			if (n->phase > 1){
-				if (phaser(n->node1) < n->phase) {
+				if (phaser(n->nsubexpr()) < n->phase) {
 					n->info[LPMID] = 1;
 				}
 			}
@@ -403,34 +403,34 @@ void analyzer::findMidrowTargets(astnode &n){
 	switch (n->label){
 	case N_VARS:
 		if (findAgrregates(n)) {
-			findMidrowTargets(n->node1);
+			findMidrowTargets(n->nsubexpr());
 		} else {
-			n->tok3.id = q->midcount;
+			n->nvarmididx() = q->midcount;
 			q->midcount++;
 		}
-		findMidrowTargets(n->node2);
+		findMidrowTargets(n->nxtvar());
 		break;
 	case N_SELECTIONS:
-		if (findAgrregates(n->node1)){
-			findMidrowTargets(n->node1);
+		if (findAgrregates(n->nsubexpr())){
+			findMidrowTargets(n->nsubexpr());
 		} else {
-			n->tok3.id = q->midcount;
+			n->nselmididx() = q->midcount;
 			q->midcount++;
 		}
-		findMidrowTargets(n->node2);
+		findMidrowTargets(n->nxtsel());
 		break;
 	case N_FUNCTION:
-		if ((n->tok1.id & AGG_BIT) != 0){
+		if ((n->nfuncid() & AGG_BIT) != 0){
 			//TODO:re-enable nested aggregate check
 			n->info[MIDIDX] = q->midcount;
 			q->midcount++;
 			return;
 		} else {
-			findAgrregates(n->node1);
+			findAgrregates(n->nsubexpr());
 		}
 		break;
 	case N_GROUPBY:
-		if (findAgrregates(n->node1))
+		if (findAgrregates(n->ngrouplist()))
 			error("Cannot have aggregate function in groupby clause");
 		break;
 	default:
@@ -446,12 +446,12 @@ set<int> analyzer::whichFilesReferenced(astnode &n){
 	if (n == nullptr) return {};
 	switch (n->label){
 		case N_VALUE:
-			if (n->tok2.id == COLUMN)
-				return {q->filemap[n->tok3.val]->fileno };
-			else if (n->tok2.id == VARIABLE)
-				return q->var(n->tok1.val).filesReferenced;
+			if (n->nvaltyp() == COLUMN)
+				return {q->filemap[n->nvalsrc()]->fileno };
+			else if (n->nvaltyp() == VARIABLE)
+				return q->var(n->nvarname()).filesReferenced;
 			else
-				return whichFilesReferenced(n->node1);
+				return whichFilesReferenced(n->nsubexpr());
 		default: 
 			{
 				auto f1 = whichFilesReferenced(n->node1);
@@ -470,10 +470,10 @@ set<int> analyzer::whichFilesReferenced(astnode &n){
 bool analyzer::ischain(astnode &n, int &predno){
 	if (n == nullptr) return predno >= 2;
 	if (n->label == KW_OR) return false;
-	bool simpleCompare = n->node1->tok1.id != SP_LPAREN;
+	bool simpleCompare = n->npredcomp()->nrelop() != SP_LPAREN;
 	if (simpleCompare){
 		++predno;
-		if (ischain(n->node2, predno)){
+		if (ischain(n->nxtpreds(), predno)){
 			n->info[ANDCHAIN] = 1;
 			n->node1->info[ANDCHAIN] = 1;
 			return true;
@@ -487,8 +487,8 @@ void analyzer::findJoinAndChains(astnode &n, int fileno){
 	auto& chainvec = q->getFileReader(fileno)->andchains;
 	switch (n->label){
 		case N_JOIN:
-			findJoinAndChains(n->node2, fileno);
-			findJoinAndChains(n->node3, fileno+1);
+			findJoinAndChains(n->njoinconds(), fileno);
+			findJoinAndChains(n->nxtjoin(), fileno+1);
 			break;
 		case N_PREDICATES:
 			if (n->tok1.id == KW_AND){
@@ -506,9 +506,9 @@ void analyzer::findJoinAndChains(astnode &n, int fileno){
 					n->node1->info[ANDCHAIN] = 2;
 				}
 			}
-			if (n->node1->tok1.id == SP_LPAREN)
-				findJoinAndChains(n->node1->node1, fileno);
-			findJoinAndChains(n->node2, fileno);
+			if (n->npredcomp()->tok1.id == SP_LPAREN)
+				findJoinAndChains(n->npredcomp()->nmorepreds(), fileno);
+			findJoinAndChains(n->nxtpreds(), fileno);
 			break;
 	}
 }
@@ -528,14 +528,14 @@ void analyzer::findIndexableJoinValues(astnode &n, int fileno){
 	if (n == nullptr || !q->joining) return;
 	switch (n->label){
 	case N_PREDCOMP:
-		switch (n->tok1.id){
+		switch (n->nrelop()){
 		case SP_LPAREN:
-			findIndexableJoinValues(n->node1, fileno);
+			findIndexableJoinValues(n->nmorepreds(), fileno);
 			return;
 		default: //found a comparison
 			{
-			auto e1 = whichFilesReferenced(n->node1);
-			auto e2 = whichFilesReferenced(n->node2);
+			auto e1 = whichFilesReferenced(n->npredexp1());
+			auto e2 = whichFilesReferenced(n->npredexp2());
 			set<int> intersection;
 			set_intersection(e1.begin(), e1.end(), e2.begin(), e2.end(),
 					inserter(intersection, intersection.begin()));
@@ -546,16 +546,16 @@ void analyzer::findIndexableJoinValues(astnode &n, int fileno){
 					if (i > fileno)
 						error("Join condition cannot compare to a file that appears later in the query, only earlier");
 				n->info[TOSCAN] = 1;
-				setSubtreeVarFilter(n->node2, JCOMP_FILTER);
-				setSubtreeVarFilter(n->node1, JSCAN_FILTER);
+				setSubtreeVarFilter(n->npredexp2(), JCOMP_FILTER);
+				setSubtreeVarFilter(n->npredexp1(), JSCAN_FILTER);
 			}else if (e2.size() == 1 && *e2.begin() == fileno){
 				for (auto i : e1)
 					if (i > fileno)
 						error("Join condition cannot compare to a file that appears later in the query, only earlier");
 				n->info[TOSCAN] = 2;
-				n->tok1.id = flipOp(n->tok1.id);
-				setSubtreeVarFilter(n->node2, JSCAN_FILTER);
-				setSubtreeVarFilter(n->node1, JCOMP_FILTER);
+				n->nrelop() = flipOp(n->nrelop());
+				setSubtreeVarFilter(n->npredexp2(), JSCAN_FILTER);
+				setSubtreeVarFilter(n->npredexp1(), JCOMP_FILTER);
 			}else{
 				error("One side of join condition must be the joined file and only the joined file");
 			}
@@ -598,19 +598,19 @@ void analyzer::setAttributes(astnode& n){
 	if (n == nullptr) return;
 	switch (n->label){
 	case N_SELECTIONS:
-		if (n->tok1.id == KW_DISTINCT)
+		if (n->nseldisttok().id == KW_DISTINCT)
 			q->distinctFiltering = 1;
 		break;
 	case N_PRESELECT:
 		q->options = n->tok1.id;
 		break;
 	case N_SELECT:
-		if (n->tok1.id)
-			q->quantityLimit = n->tok1.id;
+		if (n->nqlimit())
+			q->quantityLimit = n->nqlimit();
 		break;
 	case N_AFTERFROM:
-		if (n->tok1.id)
-			q->quantityLimit = n->tok1.id;
+		if (n->nqlimit())
+			q->quantityLimit = n->nqlimit();
 		break;
 	case N_WHERE:
 		q->whereFiltering = 1;
@@ -625,8 +625,8 @@ void analyzer::setAttributes(astnode& n){
 		q->joining = 1;
 		return;
 	case N_SETLIST:
-		if (n->tok1.id){
-			n->tok2.id = q->addSubquery(n->node1, SQ_INLIST);
+		if (n->nissubquery()){
+			n->nsubqidx() = q->addSubquery(n->node1, SQ_INLIST);
 			return;
 		}
 		break;
@@ -634,12 +634,12 @@ void analyzer::setAttributes(astnode& n){
 		q->grouping = max(q->grouping, 2);
 		return;
 	case N_FUNCTION:
-		if ((n->tok1.id & AGG_BIT) != 0) {
+		if ((n->nfuncid() & AGG_BIT) != 0) {
 			q->grouping = max(q->grouping,1);
 		}
-		if (n->tok1.id == FN_ENCRYPT || n->tok1.id == FN_DECRYPT){
+		if (n->nfuncid() == FN_ENCRYPT || n->nfuncid() == FN_DECRYPT){
 			q->needPass = true;
-			q->password = n->tok4.val;
+			q->password = n->npassword();
 		}
 	}
 	setAttributes(n->node1);
@@ -703,7 +703,7 @@ void lateAnalyze(querySpecs &q){
 		an.setNodePhase(q.tree, 1);
 	}
 	if (q.joining){
-		an.findJoinAndChains(q.tree->node3->node2, 1);
-		an.findIndexableJoinValues(q.tree->node3->node2, 0);
+		an.findJoinAndChains(q.tree->nfrom()->njoins(), 1);
+		an.findIndexableJoinValues(q.tree->nfrom()->njoins(), 0);
 	}
 }
