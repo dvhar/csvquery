@@ -335,6 +335,7 @@ class node {
 	int& nfuncid(){ return tok1.id; }
 	token& nfuncdisttok(){ return tok3; }
 	int& nfuncdistnum(){ return tok4.id; }
+	int& nseldistnum(){ return tok4.id; }
 	int& nfuncparamtype(){ return tok2.id; }
 	int& nfuncreturntype(){ return info[RETTYPE]; }
 	int& norigparamtype(){ return info[PARAMTYPE]; }
@@ -343,7 +344,13 @@ class node {
 	astnode& nxtjoin(){ return node3; }
 	astnode& npredconds(){ return node1; }
 	astnode& nsortlist(){ return node1; }
+	astnode& nxtlist(){ return node2; }
+	astnode& norder(){ return node4; }
+	astnode& nwhere(){ return node1; }
+	astnode& nsetlist(){ return node2; }
+	int& nsortasc(){ return tok1.id; }
 	int& nvarmididx(){ return tok3.id; }
+	int& nnegation(){ return tok2.id; }
 	astnode& ngrouplist(){ return node1; }
 	string& nvalsrc(){ return tok3.val; }
 	astnode& npredcomp(){ return node1; }
@@ -356,8 +363,13 @@ class node {
 	int& nissubquery(){ return tok1.id; }
 	int& nsubqidx(){ return tok2.id; }
 	string& npassword(){ return tok4.val; }
+	astnode& nafterfrom(){ return node4; }
 	astnode& nfrom(){ return node3; }
+	astnode& nhaving(){ return node3; }
 	astnode& njoins(){ return node2; }
+	astnode& ngroups(){ return node2; }
+	astnode& npreselect(){ return node1; }
+	astnode& nfile(){ return node1; }
 	string& nfilename(){ return tok1.val; }
 	string& nfilealias(){ return tok4.val; }
 	int& nmathop(){ return tok1.id; }
