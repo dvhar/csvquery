@@ -95,18 +95,18 @@ bool dataTyper::canBeString(astnode &n){
 	switch (n->label){
 	case N_CWEXPR:
 	case N_CPRED:
-		return canBeString(n->node2);
+		return canBeString(n->ncaseresultexpr());
 	case N_EXPRNEG:
 	case N_EXPRADD:
 	case N_EXPRMULT:
-		if (n->tok1.id)
+		if (n->nmathop())
 			return false;
 		else
-			return canBeString(n->node1);
+			return canBeString(n->nsubexpr());
 		break;
 	case N_SETLIST:
-		if (n->tok1.id){
-			auto& tv = q->subqueries[n->tok2.id].topinnertypes.get();
+		if (n->nissubquery()){
+			auto& tv = q->subqueries[n->nsubqidx()].topinnertypes.get();
 			if (!tv.size()) error("Subquery has no datatypes");
 			for (auto& t: tv)
 				if (!t.second) return false;
@@ -118,9 +118,9 @@ bool dataTyper::canBeString(astnode &n){
 	case N_CPREDLIST:
 		return canBeString(n->node1) && canBeString(n->node2);
 	case N_EXPRCASE:
-		switch (n->tok1.id){
+		switch (n->ncasetype()){
 		case KW_CASE:
-			switch (n->tok1.id){
+			switch (n->ncasetype()){
 			case KW_WHEN:
 				return canBeString(n->node1) && canBeString(n->node3);
 			default:
@@ -131,11 +131,11 @@ bool dataTyper::canBeString(astnode &n){
 		}
 		break;
 	case N_VALUE:
-		if (n->tok2.id)
-			return canBeString(n->node1);
+		if (n->nvaltyp())
+			return canBeString(n->nsubexpr());
 		return true;
 	case N_FUNCTION:
-		switch (n->tok1.id){
+		switch (n->nfuncid()){
 		case FN_COALESCE:
 			return canBeString(n->node1);
 		case FN_ENCRYPT:
@@ -198,7 +198,7 @@ bool dataTyper::canBeString(astnode &n){
 			return false;
 		case FN_MAX:
 		case FN_MIN:
-			return canBeString(n->node1);
+			return canBeString(n->nsubexpr());
 		}
 	}
 	error("canBeString() function malfunctioned at node ", getnodename(n->label));
@@ -211,15 +211,15 @@ static bool stillTrivial(astnode &n){
 	case N_EXPRADD:
 	case N_EXPRMULT:
 	case N_EXPRNEG:
-		if (n->tok1.id != 0)
+		if (n->nmathop() != 0)
 			return false;
 		break;
 	case N_EXPRCASE:
-		if (n->tok1.id != WORD_TK)
+		if (n->ncasetype() != WORD_TK)
 			return false;
 		break;
 	case N_VALUE:
-		if (n->tok2.id != COLUMN && n->tok2.id != LITERAL)
+		if (n->nvaltyp() != COLUMN && n->nvaltyp() != LITERAL)
 			return false;
 		break;
 	}
@@ -234,17 +234,17 @@ void dataTyper::typeInitialValue(astnode &n, bool trivial){
 	string thisVar;
 	string r;
 	if (n->label == N_VARS){
-		thisVar = n->tok1.val;
+		thisVar = n->nvarname();
 	}
 
 	//only do leaf nodes
-	if (n->label == N_VALUE && n->tok2.id != FUNCTION){
-		string val = n->tok1.val;
+	if (n->label == N_VALUE && n->nvaltyp() != FUNCTION){
+		string val = n->nval();
 		int period;
 		//see if variable
 		for (auto &v : q->vars)
 			if (val == v.name){
-				n->tok2.id = VARIABLE;
+				n->nvaltyp() = VARIABLE;
 				goto donetyping;
 			}
 		//see if file alias
@@ -258,18 +258,18 @@ void dataTyper::typeInitialValue(astnode &n, bool trivial){
 				i = f->getColIdx(column);
 				if (i != -1){
 					//found column name with file alias
-					n->tok1.id = i;
-					n->tok2.id = COLUMN;
-					n->tok3.val = alias;
+					n->ncolidx() = i;
+					n->nvaltyp() = COLUMN;
+					n->nvalsrc() = alias;
 					n->datatype = f->types[i];
 					goto donetyping;
 				} else if (!n->tok1.quoted && regex_match(column, cInt)){
 					i = stoi(column.substr(1))-1;
 					if (i < f->numFields){
 						//found column idx with file alias
-						n->tok1.id = i;
-						n->tok2.id = COLUMN;
-						n->tok3.val = alias;
+						n->ncolidx() = i;
+						n->nvaltyp() = COLUMN;
+						n->nvalsrc() = alias;
 						n->datatype = f->types[i];
 						goto donetyping;
 					}
@@ -277,9 +277,9 @@ void dataTyper::typeInitialValue(astnode &n, bool trivial){
 					i = stoi(column)-1;
 					if (i < f->numFields){
 						//found column idx with file alias
-						n->tok1.id = i;
-						n->tok2.id = COLUMN;
-						n->tok3.val = alias;
+						n->ncolidx() = i;
+						n->nvaltyp() = COLUMN;
+						n->nvalsrc() = alias;
 						n->datatype = f->types[i];
 						goto donetyping;
 					}
@@ -291,9 +291,9 @@ void dataTyper::typeInitialValue(astnode &n, bool trivial){
 			i = f->getColIdx(val);
 			if (i != -1){
 				//found column name without file alias
-				n->tok1.id = i;
-				n->tok2.id = COLUMN;
-				n->tok3.val = f->id;
+				n->ncolidx() = i;
+				n->nvaltyp() = COLUMN;
+				n->nvalsrc() = f->id;
 				n->datatype = f->types[i];
 				goto donetyping;
 			}
@@ -303,9 +303,9 @@ void dataTyper::typeInitialValue(astnode &n, bool trivial){
 			auto& f = q->filevec.front();
 			if (i < f->numFields){
 				//found column idx without file alias
-				n->tok1.id = i;
-				n->tok2.id = COLUMN;
-				n->tok3.val = "_f0";
+				n->ncolidx() = i;
+				n->nvaltyp() = COLUMN;
+				n->nvalsrc() = "_f0";
 				n->datatype = f->types[i];
 				goto donetyping;
 			}
@@ -314,15 +314,15 @@ void dataTyper::typeInitialValue(astnode &n, bool trivial){
 			auto& f = q->filevec.front();
 			if (i < f->numFields){
 				//found column idx without file alias
-				n->tok1.id = i;
-				n->tok2.id = COLUMN;
-				n->tok3.val = "_f0";
+				n->ncolidx() = i;
+				n->nvaltyp() = COLUMN;
+				n->nvalsrc() = "_f0";
 				n->datatype = f->types[i];
 				goto donetyping;
 			}
 		}
 		//is not a var, function, or column, must be literal
-		n->tok2.id = LITERAL;
+		n->nvaltyp() = LITERAL;
 		n->datatype = getNarrowestType((char*)val.c_str(), 0);
 	}
 	donetyping:;
@@ -332,11 +332,11 @@ void dataTyper::typeInitialValue(astnode &n, bool trivial){
 	if (n->label == N_SELECTIONS && !q->isSubquery) trivial = true;
 	if (trivial && !stillTrivial(n))                trivial = false;
 	if (trivial && n->label == N_VALUE) {
-		if (n->tok2.id == COLUMN) {
+		if (n->nvaltyp() == COLUMN) {
 			n->datatype = T_STRING;
-			n->tok3.id = 1;
-		} else if (n->tok2.id == VARIABLE)
-			n->tok4.id = 1;
+			n->nvaltrivial() = 1;
+		} else if (n->nvaltyp() == VARIABLE)
+			n->nvaltrivialalias() = 1;
 	}
 
 	typeInitialValue(n->node1, trivial);
@@ -356,7 +356,7 @@ typer dataTyper::typeCaseInnerNodes(astnode &n){
 	switch (n->tok1.id){
 	//case statement
 	case KW_CASE:
-		switch (n->tok2.id){
+		switch (n->ncasepredorwhen()){
 		//when predicates are true
 		case KW_WHEN:
 			thenExpr  = typeInnerNodes(n->node1);
@@ -376,14 +376,14 @@ typer dataTyper::typeCaseInnerNodes(astnode &n){
 				compExpr = typeCompute(compExpr, whenExpr);
 			}
 			n->datatype = innerType.type;
-			n->tok3.id = compExpr.type;
+			n->ncasewhentype() = compExpr.type;
 			return innerType;
 		}
 		break;
 	//expression
 	case WORD_TK:
 	case SP_LPAREN:
-		return typeInnerNodes(n->node1);
+		return typeInnerNodes(n->nsubexpr());
 	}
 	error("bad case node");
 	return {0,0};
@@ -392,15 +392,15 @@ typer dataTyper::typeCaseInnerNodes(astnode &n){
 typer dataTyper::typePredCompareInnerNodes(astnode &n){
 	if (n == nullptr) return {0,0};
 	typer n1, n2, n3, innerType;
-	if (n->tok1.id == SP_LPAREN){
+	if (n->nrelop() == SP_LPAREN){
 		typeInnerNodes(n->node1);
-	} else if (n->tok1.id & RELOP) {
+	} else if (n->nrelop() & RELOP) {
 		n1 = typeInnerNodes(n->node1);
 		n2 = typeInnerNodes(n->node2);
 		n3 = typeInnerNodes(n->node3);
 		innerType = typeCompute(n1,n2);
 		innerType = typeCompute(innerType,n3);
-		if (n->tok1.id == KW_LIKE) //keep raw string if using regex
+		if (n->nrelop() == KW_LIKE) //keep raw string if using regex
 			innerType.type = T_STRING;
 	} else { error("bad comparision node"); }
 	return innerType;
@@ -409,9 +409,9 @@ typer dataTyper::typePredCompareInnerNodes(astnode &n){
 typer dataTyper::typeValueInnerNodes(astnode &n){
 	if (n == nullptr) return {0,0};
 	typer innerType = {0,0};
-	switch (n->tok2.id){
+	switch (n->nvaltyp()){
 	case FUNCTION:
-		innerType = typeInnerNodes(n->node1);
+		innerType = typeInnerNodes(n->nsubexpr());
 		break;
 	case LITERAL:
 		innerType = {n->datatype, 1};
@@ -421,7 +421,7 @@ typer dataTyper::typeValueInnerNodes(astnode &n){
 		break;
 	case VARIABLE:
 		{
-			auto& v = q->var(n->tok1.val);
+			auto& v = q->var(n->nval());
 			innerType = {v.type, v.lit};
 		}
 		break;
@@ -432,19 +432,19 @@ typer dataTyper::typeValueInnerNodes(astnode &n){
 typer dataTyper::typeFunctionInnerNodes(astnode &n){
 	if (n == nullptr) return {0,0};
 	typer innerType = {0}, paramType = {0};
-	switch (n->tok1.id){
+	switch (n->nfuncid()){
 	case FN_COUNT:
 		n->keep = true;
-		typeInnerNodes(n->node1);
+		typeInnerNodes(n->nsubexpr());
 		innerType = {T_FLOAT, false};
 		break;
 	case FN_FORMAT:
 	case FN_MONTHNAME:
 	case FN_WDAYNAME:
 		n->keep = true;
-		typeInnerNodes(n->node1);
+		typeInnerNodes(n->nsubexpr());
 		innerType = {T_STRING, false};
-		n->info[RETTYPE] = innerType.type;
+		n->nfuncreturntype() = innerType.type;
 		break;
 	case FN_ENCRYPT:
 	case FN_DECRYPT:
@@ -459,17 +459,17 @@ typer dataTyper::typeFunctionInnerNodes(astnode &n){
 	case FN_SUBSTR:
 	case FN_BASE64_DECODE:
 	case FN_HEX_DECODE:
-		paramType = typeInnerNodes(n->node1);
+		paramType = typeInnerNodes(n->nsubexpr());
 		innerType = {T_STRING, false};
-		n->info[RETTYPE] = innerType.type;
-		if (!canBeString(n->node1))
-			n->info[PARAMTYPE] = paramType.type;
+		n->nfuncreturntype() = innerType.type;
+		if (!canBeString(n->nsubexpr()))
+			n->norigparamtype() = paramType.type;
 		break;
 	case FN_POW:{
 		auto n1 = typeInnerNodes(n->node1);
 		auto n2 = typeInnerNodes(n->node2);
 		innerType = typeCompute(n1, n2);
-		n->info[RETTYPE] = innerType.type;
+		n->nfuncreturntype() = innerType.type;
 		}
 		break;
 	case FN_YEAR:
@@ -481,14 +481,14 @@ typer dataTyper::typeFunctionInnerNodes(astnode &n){
 	case FN_HOUR:
 	case FN_MINUTE:
 	case FN_SECOND:
-		typeInnerNodes(n->node1);
+		typeInnerNodes(n->nsubexpr());
 		innerType = {T_INT, true}; //TODO: reconsider these true/false values
-		n->info[RETTYPE] = T_INT;
+		n->nfuncreturntype() = T_INT;
 		break;
 	case FN_STDEV:
 	case FN_STDEVP:
 	case FN_AVG:
-		innerType = typeInnerNodes(n->node1);
+		innerType = typeInnerNodes(n->nsubexpr());
 		if (innerType.type == T_INT)
 			innerType.type = T_FLOAT;
 		break;
@@ -509,53 +509,53 @@ typer dataTyper::typeFunctionInnerNodes(astnode &n){
 	case FN_RAND:
 	case FN_ROUND:
 	case FN_INC:
-		if (auto pt = typeInnerNodes(n->node1).type; pt > T_FLOAT)
-			n->info[PARAMTYPE] = pt;
+		if (auto pt = typeInnerNodes(n->nsubexpr()).type; pt > T_FLOAT)
+			n->norigparamtype() = pt;
 		innerType = {T_FLOAT, false};
-		n->info[RETTYPE] = T_FLOAT;
+		n->nfuncreturntype() = T_FLOAT;
 		break;
 	case FN_NOW:
 	case FN_NOWGM:
 		innerType = {T_DATE, false};
-		n->info[RETTYPE] = T_DATE;
+		n->nfuncreturntype() = T_DATE;
 		break;
 	case FN_LEN:
 		innerType = {T_FLOAT, false};
-		n->info[RETTYPE] = T_FLOAT;
-		n->tok2.id = typeInnerNodes(n->node1).type;
-		if (canBeString(n->node1))
+		n->nfuncreturntype() = T_FLOAT;
+		n->tok2.id = typeInnerNodes(n->nsubexpr()).type;
+		if (canBeString(n->nsubexpr()))
 			n->tok2.id = T_STRING;
 		break;
 	case FN_SIP:
 		innerType = {T_INT, false};
-		n->info[RETTYPE] = T_INT;
-		n->tok2.id = typeInnerNodes(n->node1).type;
-		if (canBeString(n->node1))
+		n->nfuncreturntype() = T_INT;
+		n->tok2.id = typeInnerNodes(n->nsubexpr()).type;
+		if (canBeString(n->nsubexpr()))
 			n->tok2.id = T_STRING;
 		break;
 	case FN_INT:
 		innerType = {T_INT, false};
-		n->info[PARAMTYPE] = typeInnerNodes(n->node1).type;
-		n->info[RETTYPE] = T_INT;
+		n->norigparamtype() = typeInnerNodes(n->nsubexpr()).type;
+		n->nfuncreturntype() = T_INT;
 		break;
 	case FN_FLOAT:
 		innerType = {T_FLOAT, false};
-		n->info[PARAMTYPE] = typeInnerNodes(n->node1).type;
-		n->info[RETTYPE] = T_FLOAT;
+		n->norigparamtype() = typeInnerNodes(n->nsubexpr()).type;
+		n->nfuncreturntype() = T_FLOAT;
 		break;
 	case FN_DATE:
 		innerType = {T_DATE, false};
-		n->info[PARAMTYPE] = typeInnerNodes(n->node1).type;
-		n->info[RETTYPE] = T_DATE;
+		n->norigparamtype() = typeInnerNodes(n->nsubexpr()).type;
+		n->nfuncreturntype() = T_DATE;
 		break;
 	case FN_DUR:
 		innerType = {T_DURATION, false};
-		n->info[PARAMTYPE] = typeInnerNodes(n->node1).type;
-		n->info[RETTYPE] = T_DURATION;
+		n->norigparamtype() = typeInnerNodes(n->nsubexpr()).type;
+		n->nfuncreturntype() = T_DURATION;
 		break;
 
 	default:
-		innerType = typeInnerNodes(n->node1);
+		innerType = typeInnerNodes(n->nsubexpr());
 	}
 	return innerType;
 }
@@ -583,14 +583,14 @@ typer dataTyper::typeInnerNodes(astnode &n){
 		typeInnerNodes(n->node4);
 		break;
 	case N_ORDER:
-		innerType = typeInnerNodes(n->node1);
+		innerType = typeInnerNodes(n->nsortlist());
 		if (q->sorting)
 			q->sorting = innerType.type;
 		break;
 	//things that may be list but have independant types
 	case N_SETLIST:
 		if (n->tok1.id){
-			auto& tv = q->subqueries[n->tok2.id].topinnertypes.get();
+			auto& tv = q->subqueries[n->nsubqidx()].topinnertypes.get();
 			if (!tv.size()) error("Subquery has no datatypes");
 			innerType = {tv[0].first, false};
 			for (auto& t: tv)
@@ -604,9 +604,9 @@ typer dataTyper::typeInnerNodes(astnode &n){
 		typeInnerNodes(n->node2);
 		break;
 	case N_VARS:
-		innerType = typeInnerNodes(n->node1);
+		innerType = typeInnerNodes(n->nsubexpr());
 		{
-			auto& v = q->var(n->tok1.val);
+			auto& v = q->var(n->nvarname());
 			v.type = innerType.type;
 			v.lit = innerType.lit;
 		}
@@ -638,7 +638,7 @@ typer dataTyper::typeInnerNodes(astnode &n){
 	case N_CPRED:
 	case N_CWEXPR:
 		typeInnerNodes(n->node1); //conditions or comparision
-		innerType = typeInnerNodes(n->node2); //result
+		innerType = typeInnerNodes(n->ncaseresultexpr()); //result
 		break;
 	case N_PREDICATES:
 		//both just boolean
@@ -665,10 +665,10 @@ typer dataTyper::typeInnerNodes(astnode &n){
 void dataTyper::typeCaseFinalNodes(astnode &n, int finaltype){
 	if (n == nullptr) return;
 	int comptype;
-	switch (n->tok1.id){
+	switch (n->ncasetype()){
 	//case statement
 	case KW_CASE:
-		switch (n->tok2.id){
+		switch (n->ncasepredorwhen()){
 		//when predicates are true
 		case KW_WHEN:
 			typeFinalValues(n->node1, finaltype);
@@ -692,14 +692,14 @@ void dataTyper::typeCaseFinalNodes(astnode &n, int finaltype){
 	//expression
 	case WORD_TK:
 	case SP_LPAREN:
-		typeFinalValues(n->node1, finaltype);
+		typeFinalValues(n->nsubexpr(), finaltype);
 	}
 }
 
 void dataTyper::typePredCompFinalNodes(astnode &n){
 	if (n == nullptr) return;
 	if (n->tok1.id == SP_LPAREN){
-		typeFinalValues(n->node1, -1);
+		typeFinalValues(n->nmorepreds(), -1);
 	} else if (n->tok1.id & RELOP) {
 		typeFinalValues(n->node1, n->datatype);
 		typeFinalValues(n->node2, n->datatype);
@@ -714,19 +714,19 @@ void dataTyper::typeFunctionFinalNodes(astnode &n, int finaltype){
 	node *convNode, *tempNode;
 	bool needRetConvert = false;
 	//TODO: find out why now() return is not using dynamic typing
-	if (auto rt = n->info[RETTYPE]; rt > 0 && finaltype != rt){
+	if (auto rt = n->nfuncreturntype(); rt > 0 && finaltype != rt){
 		//need conversion from RETTYPE (can do) to original finaltype (need)
 		n->datatype = finaltype = rt;
 		needRetConvert = true;
 	}
-	switch (n->tok1.id){
+	switch (n->nfuncid()){
 	case FN_SIP:
 	case FN_LEN:{
-		if (n->tok2.id == T_STRING){
-			typeFinalValues(n->node1, T_STRING);
+		if (n->nfuncparamtype() == T_STRING){
+			typeFinalValues(n->nsubexpr(), T_STRING);
 			break;
 		}
-		finaltype = n->tok2.id;
+		finaltype = n->nfuncparamtype();
 	}
 	case FN_COUNT:
 	case FN_INC:
@@ -767,15 +767,15 @@ void dataTyper::typeFunctionFinalNodes(astnode &n, int finaltype){
 	case FN_NOW:
 	case FN_NOWGM:
 		//add type conversion node for parameter if needed
-		if (auto pt = n->info[PARAMTYPE]; pt){
+		if (auto pt = n->norigparamtype(); pt){
 			typeFinalValues(n->node1, pt);
 			typeFinalValues(n->node2, pt);
 			convNode = new node(N_TYPECONV);
 			convNode->keep = true;
 			convNode->datatype = finaltype;
-			convNode->tok1.id = pt;
-			tempNode = n->node1.release();
-			convNode->node1.reset(tempNode);
+			convNode->nconvfromtype() = pt;
+			tempNode = n->nsubexpr().release();
+			convNode->nsubexpr().reset(tempNode);
 			n->node1.reset(convNode);
 		} else {
 			typeFinalValues(n->node1, finaltype);
@@ -804,9 +804,9 @@ void dataTyper::typeFunctionFinalNodes(astnode &n, int finaltype){
 			convNode = new node(N_TYPECONV);
 			convNode->keep = true;
 			convNode->datatype = oldret;
-			convNode->tok1.id = n->info[RETTYPE];
+			convNode->nconvfromtype() = n->nfuncreturntype();
 			tempNode = n.release();
-			convNode->node1.reset(tempNode);
+			convNode->nsubexpr().reset(tempNode);
 			n.reset(convNode);
 	}
 }
@@ -839,8 +839,8 @@ void dataTyper::typeFinalValues(astnode &n, int finaltype){
 		break;
 	//straightforward stuff
 	case N_SETLIST:
-		if (n->tok1.id){
-			auto& sq = q->subqueries[n->tok2.id];
+		if (n->nissubquery()){
+			auto& sq = q->subqueries[n->nsubqidx()];
 			auto sz = sq.topinnertypes.get().size();
 			sq.singleDatatype = finaltype;
 			sq.topfinaltypesp.set_value(vector<int>(sz, finaltype));
@@ -862,7 +862,7 @@ void dataTyper::typeFinalValues(astnode &n, int finaltype){
 		break;
 	//may or may not preserve subtree types
 	case N_EXPRNEG:
-		if (n->tok1.id && (finaltype == T_STRING || finaltype == T_DATE))
+		if (n->nmathop() && (finaltype == T_STRING || finaltype == T_DATE))
 			error("Minus sign does not work with type ",gettypename(finaltype));
 	case N_EXPRADD:
 	case N_EXPRMULT:
@@ -909,7 +909,7 @@ void dataTyper::checkMathSemantics(astnode &n){
 	auto is = [&](int t){ return n->datatype == t; };
 	auto typestr = gettypename(n->datatype);
 
-	switch (n->tok1.id){
+	switch (n->nmathop()){
 	case SP_PLUS:
 		if (combo(T_DATE, T_DATE))
 			error("Cannot add 2 dates");
@@ -952,7 +952,7 @@ void dataTyper::checkFuncSemantics(astnode &n){
 	auto typestr = gettypename(n->datatype);
 	char* e = NULL;
 
-	switch (n->tok1.id){
+	switch (n->nfuncid()){
 	case FN_SUM:
 	case FN_AVG:
 	case FN_STDEV:
@@ -999,13 +999,13 @@ void dataTyper::getToptypes(){
 	if (n == nullptr){
 		selectallToptypes();
 	} else while (n){
-		if (n->tok1.id == KW_DISTINCT && n->tok1.lower() == "hidden"){
-		} else if (n->tok1.id == SP_STAR){
+		if (n->nseldisttok().id == KW_DISTINCT && n->nseldisttok().lower() == "hidden"){
+		} else if (n->nseldisttok().id == SP_STAR){
 			selectallToptypes();
 		} else {
-			topitypes.push_back({n->datatype,canBeString(n->node1)});
+			topitypes.push_back({n->datatype,canBeString(n->nsubexpr())});
 		}
-		n = n->node2.get();
+		n = n->nxtsel().get();
 	}
 	q->thisSq->topinnertypesp.set_value(move(topitypes));
 }
@@ -1014,12 +1014,12 @@ void dataTyper::setToptypes(){
 	auto n = findFirstNode(q->tree, N_SELECTIONS).get();
 	int i = 0;
 	while (n){
-		if (!(n->tok1.id == KW_DISTINCT && n->tok1.lower() == "hidden")){
+		if (!(n->nseldisttok().id == KW_DISTINCT && n->nseldisttok().lower() == "hidden")){
 			n->datatype = topftypes[i++];
 			if (n->datatype == T_NULL)
 				error("Subquery has null datatype");
 		}
-		n = n->node2.get();
+		n = n->nxtsel().get();
 	}
 }
 
