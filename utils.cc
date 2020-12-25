@@ -418,7 +418,7 @@ string gethome(){
 settings_t globalSettings;
 
 #define R (const char*)
-void perr(string message){
+void perr(string&& message){
 	static const char* dbcolors[] = {
 		R "\033[38;5;82m",
 		R "\033[38;5;205m",

@@ -141,12 +141,15 @@ astnode parser::parseHandleAlias() {
 	astnode n = newNode(N_HANDLEALIAS);
 	n->tok2 = t;
 	t = q->nextTok();
-	if (t.id != WORD_TK)
-		error("Expected file alias after ",n->tok2.val,". Found ",t.val);
 	n->tok1 = t;
 	q->nextTok();
-	if (n->tok2.lower() == "add")
+	if (n->tok2.lower() == "drop" && t.id != WORD_TK)
+			error("Expected file alias after 'drop'. Found ",t.val);
+	if (n->tok2.lower() == "add"){
+		if (t.id != WORD_TK)
+			error("Expected file alias after 'add'. Found ",t.val);
 		n->node1 = parseFile();
+	}
 	return n;
 }
 
