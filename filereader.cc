@@ -243,14 +243,14 @@ void opener::openfiles(astnode &n){
 		return;
 	if (n->label == N_FILE){
 		if (!checkAliases(n))
-			findExtension(n->tok1.val);
-		string& fpath = n->tok1.val;
+			findExtension(n->nfilename());
+		string& fpath = n->nfilename();
 		string id = st("_f",q->numFiles);
 		q->filevec.push_back(make_shared<fileReader>(fpath, *q));
 		auto& fr = q->filevec.back();
 		fr->id = id;
 		q->filemap[id] = fr;
-		if (n->tok4.id) q->filemap[n->tok4.val] = fr;
+		if (n->tok4.id) q->filemap[n->nfilealias()] = fr;
 		if (n->tok2.id) q->filemap[n->tok2.val] = fr;
 		int a = fpath.find_last_of("/\\") + 1;
 		int b = fpath.size()-4-a;
