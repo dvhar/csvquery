@@ -809,8 +809,7 @@ astnode parser::parseHaving() {
 	return n;
 }
 
-//old: node1 is sort expr
-//new: node1 is sort expr list
+//node1 is sort expr list
 //tok1 is asc
 astnode parser::parseOrder() {
 	token t = q->tok();
