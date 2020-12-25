@@ -704,7 +704,7 @@ void returnPassword(i64 sesid, string pass){
 	qrunner.setPassword(sesid, pass);
 }
 
-atomic_int vmachine::idCounter = 0;
+atomic_int vmachine::idCounter(0);
 void runPlainQuery(querySpecs &q){
 	auto r = qrunner.runquery(q);
 	r.get();

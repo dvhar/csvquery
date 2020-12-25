@@ -63,7 +63,7 @@ static string st(Args&&... args) {
 	return ss.str();
 }
 string gethome();
-void perr(string s);
+void perr(string &&s);
 
 class settings_t {
 	public:
