@@ -240,7 +240,7 @@ void cgen::genJoinSets(astnode &n){
 	prevJoinRead = v.size();
 	wherenot = prevJoinRead;
 	addop(JOINSET_TRAV, goWhenDone, (joinFileIdx-1)*2, joinFileIdx);
-	genJoinSets(n->nxtjoin());
+	genJoinSets(n->nnextjoin());
 }
 void cgen::genHeader(){
 	if (headerdone)
@@ -271,7 +271,7 @@ void cgen::genAndChainSet(astnode &n){
 	auto nn = n.get();
 	for (int i=0; i<cz; ++i){
 		auto& prednode = nn->npredcomp();
-		if (prednode->nrelop() == KW_LIKE){
+		if (prednode->relop() == KW_LIKE){
 			addop(LDLIT, q->dataholder.size());
 			q->dataholder.push_back(prepareLike(prednode));
 		} else if (prednode->info[TOSCAN] == 1){
@@ -280,13 +280,13 @@ void cgen::genAndChainSet(astnode &n){
 			genExprAll(prednode->npredexp1());
 		}
 		chain.functionTypes.push_back(funcTypes[prednode->datatype]);
-		chain.relops.push_back(vmachine::relopIdx[prednode->nrelop()]);
-		chain.negations.push_back(prednode->nnegation());
-		nn = nn->nxtpreds().get();
+		chain.relops.push_back(vmachine::relopIdx[prednode->relop()]);
+		chain.negations.push_back(prednode->negated());
+		nn = nn->nnextpreds().get();
 	}
 	chain.relops[0] = 4; // 4 is index of eq, instruction already konws real first relop
 	int orEquals = 0;
-	switch (n->npredcomp()->nrelop()){
+	switch (n->npredcomp()->relop()){
 		case SP_EQ:
 			addop(JOINSET_EQ_AND, fi, ci);
 			break;
@@ -313,9 +313,9 @@ void cgen::genJoinPredicates(astnode &n){
 		genAndChainSet(n);
 		return;
 	}
-	genJoinPredicates(n->nxtpreds());
+	genJoinPredicates(n->nnextpreds());
 	genJoinCompare(n->npredcomp());
-	switch (n->nlogop()){
+	switch (n->logop()){
 	case KW_AND:
 		addop(AND_SET);
 		break;
@@ -327,7 +327,7 @@ void cgen::genJoinPredicates(astnode &n){
 //given predicate comparison node
 void cgen::genJoinCompare(astnode &n){
 	if (n == nullptr) return;
-	if (n->nrelop() == SP_LPAREN){
+	if (n->relop() == SP_LPAREN){
 		genJoinPredicates(n->nmorepreds());
 		return;
 	}
@@ -340,7 +340,7 @@ void cgen::genJoinCompare(astnode &n){
 	if (n->datatype == T_STRING)
 		addop(NUL_TO_STR);
 	int orEquals = 0, vpidx = n->info[VALPOSIDX];
-	switch (n->nrelop()){
+	switch (n->relop()){
 		case SP_EQ:
 			addop(JOINSET_EQ, joinFileIdx, vpidx, funcTypes[valposTypes[vpidx]]);
 			break;
@@ -363,8 +363,8 @@ void cgen::genJoinCompare(astnode &n){
 void cgen::genScanJoinFiles(astnode &n){
 	e("scan joins");
 	auto& joinNode = findFirstNode(n, N_JOIN);
-	for (auto jnode = joinNode.get(); jnode; jnode = jnode->nxtjoin().get()){
-		auto& f = q->filemap[jnode->nfile()->nfilealias()];
+	for (auto jnode = joinNode.get(); jnode; jnode = jnode->nnextjoin().get()){
+		auto& f = q->filemap[jnode->nfile()->filealias()];
 		int afterfile = jumps.newPlaceholder();
 		addop(START_MESSAGE, messager::scanningjoin);
 		normal_read = v.size();
@@ -393,8 +393,8 @@ void cgen::genSortAnds(astnode &n){
 		addop(SORT_ANDCHAIN, n->info[FILENO],  n->info[CHAINIDX]);
 		return;
 	} else {
-		genSortAnds(n->nxtpreds());
-		if (n->npredcomp()->nrelop() == SP_LPAREN)
+		genSortAnds(n->nnextpreds());
+		if (n->npredcomp()->relop() == SP_LPAREN)
 			genSortAnds(n->npredcomp()->nmorepreds());
 	}
 }
@@ -410,7 +410,7 @@ void cgen::genScanAndChain(astnode &n, int fileno){
 		}else if (prednode->info[TOSCAN] == 2){
 			genExprAll(prednode->npredexp2());
 		}
-		nn = nn->nxtpreds().get();
+		nn = nn->nnextpreds().get();
 	}
 	addop(SAVEANDCHAIN, n->info[CHAINIDX], fileno);
 }
@@ -423,7 +423,7 @@ void cgen::genScannedJoinExprs(astnode &n, int fileno){
 		case N_PREDCOMP:
 			if (n->info[ANDCHAIN]) //this is just for valpos joins
 				return;
-			if (n->nrelop() == SP_LPAREN)
+			if (n->relop() == SP_LPAREN)
 				genScannedJoinExprs(n->nmorepreds(), fileno);
 			else if (n->info[TOSCAN] == 1){
 				genExprAll(n->npredexp1());
@@ -524,12 +524,12 @@ void cgen::genNormalSortList(astnode &n){
 	genVars(q->tree->npreselect());
 	auto& ordnode = findFirstNode(n, N_ORDER);
 	int i = 0;
-	for (auto x = ordnode->nsortlist().get(); x; x = x->nxtlist().get()){
+	for (auto x = ordnode->norderlist().get(); x; x = x->nnextlist().get()){
 		genExprAll(x->nsubexpr());
 		if (x->datatype == T_STRING)
 			addop(NUL_TO_STR);
 		addop(operations[OPSVSRT][x->datatype], i++);
-		q->sortInfo.push_back({x->nsortasc(), x->datatype});
+		q->sortInfo.push_back({x->orderasc(), x->datatype});
 	}
 }
 void cgen::genGroupingQuery(astnode &n){
@@ -564,10 +564,10 @@ void cgen::genAggSortList(astnode &n){
 	switch (n->label){
 	case N_QUERY:     genAggSortList(n->nafterfrom()); break;
 	case N_AFTERFROM: genAggSortList(n->norder()); break;
-	case N_ORDER:     genAggSortList(n->nsortlist()); break;
+	case N_ORDER:     genAggSortList(n->norderlist()); break;
 	case N_EXPRESSIONS: // sort list
 		genExprAdd(n->nsubexpr());
-		genAggSortList(n->nxtlist());
+		genAggSortList(n->nnextlist());
 	}
 }
 
@@ -581,26 +581,26 @@ void cgen::genVars(astnode &n){
 		break;
 	case N_VARS:
 		{
-			int i = q->getVarIdx(n->nvarname());
+			int i = q->getVarIdx(n->varname());
 			auto& var = q->vars[i];
 			if (vs.neededHere(i, var.filter, var.maxfileno)){
 				genExprAll(n->nsubexpr());
 				if (n->phase == (1|2)){
 					//non-aggs in phase2
 					if (agg_phase == 1){
-						addop2(PUTVAR2, i, n->nvarmididx());
+						addop2(PUTVAR2, i, n->varmididx());
 					} else {
-						addop1(LDMID, n->nvarmididx());
+						addop1(LDMID, n->varmididx());
 						addop1(PUTVAR, i);
 					}
 				} else {
 					addop1(PUTVAR, i);
-					int vartype = q->getVarType(n->nvarname());
+					int vartype = q->getVarType(n->varname());
 					if (agg_phase == 2 && q->sorting && vartype == T_STRING)
 						addop1(HOLDVAR, i);
 				}
 			}
-			genVars(n->nxtvar());
+			genVars(n->nnextvar());
 		}
 		break;
 	}
@@ -610,9 +610,9 @@ void cgen::genExprAdd(astnode &n){
 	if (n == nullptr) return;
 	e("gen add");
 	genExprAll(n->node1);
-	if (!n->nmathop()) return;
+	if (!n->mathop()) return;
 	genExprAll(n->node2);
-	switch (n->nmathop()){
+	switch (n->mathop()){
 	case SP_PLUS:
 		addop0(operations[OPADD][n->datatype]);
 		break;
@@ -626,9 +626,9 @@ void cgen::genExprMult(astnode &n){
 	if (n == nullptr) return;
 	e("gen mult");
 	genExprAll(n->node1);
-	if (!n->nmathop()) return;
+	if (!n->mathop()) return;
 	genExprAll(n->node2);
-	switch (n->nmathop()){
+	switch (n->mathop()){
 	case SP_STAR:
 		addop0(operations[OPMULT][n->datatype]);
 		break;
@@ -648,7 +648,7 @@ void cgen::genExprNeg(astnode &n){
 	if (n == nullptr) return;
 	e("gen neg");
 	genExprAll(n->node1);
-	if (!n->nmathop()) return;
+	if (!n->mathop()) return;
 	addop0(operations[OPNEG][n->datatype]);
 }
 
@@ -657,9 +657,9 @@ void cgen::genValue(astnode &n){
 	e("gen value: "+n->tok1.val);
 	dat lit;
 	int vtype, op;
-	switch (n->nvaltyp()){
+	switch (n->valtype()){
 	case COLUMN:
-		addop2(operations[OPLD][n->datatype], q->getFileNo(n->nvalsrc()), n->ncolidx());
+		addop2(operations[OPLD][n->datatype], q->getFileNo(n->dotsrc()), n->colidx());
 		break;
 	case LITERAL:
 		if (n->tok1.lower() == "null"){
@@ -677,9 +677,9 @@ void cgen::genValue(astnode &n){
 		}
 		break;
 	case VARIABLE:
-		addop1(LDVAR, q->getVarIdx(n->nvarname()));
+		addop1(LDVAR, q->getVarIdx(n->varname()));
 		//variable may be used in operations with different types
-		vtype = q->getVarType(n->nvarname());
+		vtype = q->getVarType(n->varname());
 		op = typeConv[vtype][n->datatype];
 		if (op == CVER)
 			error("Cannot use alias '",n->nval(),"' of type ",gettypename(vtype)," with incompatible type ",gettypename(n->datatype));
@@ -696,9 +696,9 @@ void cgen::genExprCase(astnode &n){
 	if (n == nullptr) return;
 	e("gen case");
 	int caseEnd = jumps.newPlaceholder();
-	switch (n->ncasetype()){
+	switch (n->casenodetype()){
 	case KW_CASE:
-		switch (n->ncasepredorwhen()){
+		switch (n->casetype()){
 		//when predicates are true
 		case KW_WHEN:
 			genCPredList(n->node1, caseEnd);
@@ -771,7 +771,7 @@ void cgen::genSelect(astnode &n){
 		genSelectAll();
 		return;
 	}
-	genSelections(n->nsels());
+	genSelections(n->nselections());
 }
 
 //given selections node
@@ -782,7 +782,7 @@ void cgen::genSelections(astnode &n){
 		return;
 	}
 	e("gen selections");
-	string t1 = n->nseldisttok().lower();
+	string t1 = n->diststartok().lower();
 	switch (n->label){
 	case N_SELECTIONS:
 		if (t1 == "hidden") {
@@ -791,7 +791,7 @@ void cgen::genSelections(astnode &n){
 			if (agg_phase == 1){
 				genExprAll(n->nsubexpr());
 			} else {
-				addop1(PUTDIST, n->nseldistnum());
+				addop1(PUTDIST, n->selectiondistnum());
 			}
 			incSelectCount();
 
@@ -802,22 +802,22 @@ void cgen::genSelections(astnode &n){
 			switch (agg_phase){
 			case 0:
 				for (auto nn = n.get(); nn; nn = nn->node1.get()) if (nn->label == N_VALUE){
-					addop3(LDPUT, n->nseldestidx(), nn->ncolidx(), q->getFileNo(nn->nvalsrc()));
+					addop3(LDPUT, n->selectiondestidx(), nn->colidx(), q->getFileNo(nn->dotsrc()));
 					break;
 				} break;
 			case 1:
 				for (auto nn = n.get(); nn; nn = nn->node1.get()) if (nn->label == N_VALUE){
-					addop3(LDPUTGRP, n->nselmididx(), nn->ncolidx(), q->getFileNo(nn->nvalsrc()));
+					addop3(LDPUTGRP, n->selectionmididx(), nn->colidx(), q->getFileNo(nn->dotsrc()));
 					break;
 				} break;
 			case 2:
-				addop2(LDPUTMID, n->nseldestidx(), n->nselmididx());
+				addop2(LDPUTMID, n->selectiondestidx(), n->selectionmididx());
 				break;
 			}
 			incSelectCount();
 
 		} else if (agg_phase == 2 && n->info[LPMID]) {
-			addop2(LDPUTMID, n->nseldestidx(), n->nselmididx());
+			addop2(LDPUTMID, n->selectiondestidx(), n->selectionmididx());
 
 		} else {
 			genExprAll(n->node1);
@@ -838,20 +838,20 @@ void cgen::genPredicates(astnode &n){
 	genPredCompare(n->npredcomp());
 	int doneAndOr = jumps.newPlaceholder();
 	int xor1true;
-	switch (n->nlogop()){
+	switch (n->logop()){
 	case KW_AND:
 		addop2(JMPFALSE, doneAndOr, 0);
 		addop0(POP); //don't need old result
-		genPredicates(n->nxtpreds());
+		genPredicates(n->nnextpreds());
 		break;
 	case KW_OR:
 		addop2(JMPTRUE, doneAndOr, 0);
 		addop0(POP); //don't need old result
-		genPredicates(n->nxtpreds());
+		genPredicates(n->nnextpreds());
 		break;
 	case KW_XOR:
 		xor1true = jumps.newPlaceholder();
-		genPredicates(n->nxtpreds());
+		genPredicates(n->nnextpreds());
 		addop2(JMPTRUE, xor1true, 0);
 		addop0(POP);
 		addop1(JMP, doneAndOr);
@@ -868,10 +868,10 @@ void cgen::genPredicates(astnode &n){
 void cgen::genPredCompare(astnode &n){
 	if (n == nullptr) return;
 	e("gen pred compare");
-	int negation = n->nnegation();
+	int negation = n->negated();
 	int endcomp, greaterThanExpr3, subq=0;
 	genExprAll(n->npredexp1());
-	switch (n->nrelop()){
+	switch (n->relop()){
 	case SP_NOEQ: negation ^= 1;
 	case SP_EQ:
 		genExprAll(n->npredexp2());
@@ -899,16 +899,16 @@ void cgen::genPredCompare(astnode &n){
 		jumps.setPlace(endcomp, v.size());
 		break;
 	case KW_IN:
-		if (n->nsetlist()->nissubquery()){
-			addop(INSUBQUERY, n->nsetlist()->nsubqidx());
+		if (n->nsetlist()->hassubquery()){
+			addop(INSUBQUERY, n->nsetlist()->subqidx());
 			subq = 1;
 		} else {
 			endcomp = jumps.newPlaceholder();
-			for (auto nn=n->nsetlist()->node1.get(); nn; nn=nn->nxtlist().get()){
+			for (auto nn=n->nsetlist()->node1.get(); nn; nn=nn->nnextlist().get()){
 				genExprAll(nn->nsubexpr());
 				addop1(operations[OPEQ][n->npredexp1()->datatype], 0);
 				addop2(JMPTRUE, endcomp, 0);
-				if (nn->nxtlist().get())
+				if (nn->nnextlist().get())
 					addop0(POP);
 			}
 			jumps.setPlace(endcomp, v.size());
@@ -947,16 +947,16 @@ void cgen::genDistinct(astnode &n, int gotoIfNot){
 	if (n == nullptr) return;
 	e("gen distinct");
 	if (n->label == N_SELECT){
-		genDistinct(n->nsels(), gotoIfNot);
+		genDistinct(n->nselections(), gotoIfNot);
 		return;
 	} else if (n->label != N_SELECTIONS)
 		return;
-	if (n->nseldisttok().id == KW_DISTINCT){
+	if (n->diststartok().id == KW_DISTINCT){
 		genExprAll(n->nsubexpr());
 		addop2(DIST, gotoIfNot, addBtree(n->datatype, q));
 	} else {
 		//there can be only 1 distinct filter
-		genDistinct(n->nxtsel(), gotoIfNot);
+		genDistinct(n->nnextselection(), gotoIfNot);
 	}
 }
 
@@ -967,10 +967,10 @@ void cgen::genFunction(astnode &n){
 	int idx;
 
 	//stuff common to all aggregate functions
-	if ((n->nfuncid() & AGG_BIT) != 0 ) {
+	if ((n->funcid() & AGG_BIT) != 0 ) {
 		genExprAll(n->nsubexpr());
 		if (n->tok3.val == "distinct" && agg_phase == 1){
-			int setIndex = n->nfuncdistnum();
+			int setIndex = n->funcdistnum();
 			int separateSets = 1;
 			if (q->grouping == 1){ //when onegroup, btree not indexed by rowgroup
 				setIndex = addBtree(n->nsubexpr()->datatype, q);
@@ -984,7 +984,7 @@ void cgen::genFunction(astnode &n){
 	switch (n->tok1.id){
 	//non-aggregates
 	case FN_COALESCE:
-		for (auto nn = n->node1.get(); nn; nn = nn->nxtlist().get()){
+		for (auto nn = n->node1.get(); nn; nn = nn->nnextlist().get()){
 			genExprAll(nn->nsubexpr());
 			addop1(JMPNOTNULL_ELSEPOP, funcDone);
 		}
@@ -1001,13 +1001,13 @@ void cgen::genFunction(astnode &n){
 	case FN_ENCRYPT:
 		genExprAll(n->nsubexpr());
 		//TODO: if add block cipher, check here
-		idx = q->crypt.newChacha(n->npassword());
+		idx = q->crypt.newChacha(n->password());
 		addop1(ENCCHA, idx);
 		break;
 	case FN_DECRYPT:
 		genExprAll(n->nsubexpr());
 		//TODO: if add block cipher, check here
-		idx = q->crypt.newChacha(n->npassword());
+		idx = q->crypt.newChacha(n->password());
 		addop1(DECCHA, idx);
 		break;
 	case FN_SUBSTR:
@@ -1037,7 +1037,7 @@ void cgen::genFunction(astnode &n){
 		break;
 	case FN_FORMAT:
 		genExprAll(n->nsubexpr());
-		addop1(functionCode[n->nfuncid()], q->dataholder.size());
+		addop1(functionCode[n->funcid()], q->dataholder.size());
 		{ auto fmt = dateFormatCode(n->tok2.val);
 		q->dataholder.push_back(dat{ { .s = strdup(fmt) }, T_STRING|MAL, (u32)strlen(fmt) }); }
 		break;
@@ -1081,20 +1081,20 @@ void cgen::genFunction(astnode &n){
 	case FN_NOWGM:
 		genExprAll(n->nsubexpr());
 		//p1 is rounding places, p2 is use nan vs null
-		addop2(functionCode[n->nfuncid()], n->tok2.id, ((q->options & O_NAN) == 0));
+		addop2(functionCode[n->funcid()], n->tok2.id, ((q->options & O_NAN) == 0));
 		break;
 	case FN_LEN:
 	case FN_SIP:
 		genExprAll(n->nsubexpr());
 		if (n->node1->datatype != T_STRING)
 			addop0(typeConv[n->node1->datatype][T_STRING]);
-		addop0(functionCode[n->nfuncid()]);
+		addop0(functionCode[n->funcid()]);
 		break;
 	}
 
 	//aggregates
 	if (agg_phase == 1) {
-		switch (n->nfuncid()){
+		switch (n->funcid()){
 		case FN_SUM:
 			addop(operations[OPSUM][n->datatype], n->info[MIDIDX]);
 			break;
@@ -1117,7 +1117,7 @@ void cgen::genFunction(astnode &n){
 		}
 		select_count++;
 	} else if (agg_phase == 2) {
-		switch (n->nfuncid()){
+		switch (n->funcid()){
 		case FN_AVG:
 			addop(operations[OPLAVG][n->datatype], n->info[MIDIDX]);
 			break;
@@ -1144,9 +1144,9 @@ void cgen::genTypeConv(astnode &n){
 	if (n == nullptr) return;
 	e("type convert");
 	genExprAll(n->nsubexpr());
-	auto cnv = typeConv[n->nconvfromtype()][n->datatype];
+	auto cnv = typeConv[n->convfromtype()][n->datatype];
 	if (cnv == CVER)
-		error("Cannot use type ",gettypename(n->nconvfromtype())," with incompatible type ",gettypename(n->datatype));
+		error("Cannot use type ",gettypename(n->convfromtype())," with incompatible type ",gettypename(n->datatype));
 	if (cnv != CVNO)
 		addop0(cnv);
 }
@@ -1158,7 +1158,7 @@ void cgen::genGetGroup(astnode &n){
 	e("get group");
 	if (n->label == N_GROUPBY){
 		int depth = -1;
-		for (auto nn=n->node1.get(); nn; nn=nn->nxtlist().get()){
+		for (auto nn=n->node1.get(); nn; nn=nn->nnextlist().get()){
 			depth++;
 			genExprAll(nn->nsubexpr());
 		}
@@ -1183,13 +1183,13 @@ void cgen::genIterateGroups(astnode &n){
 		int goWhenDone;
 		int prevmap;
 		addop(ROOTMAP, depth);
-		for (auto nn=n->node1.get(); nn; nn=nn->nxtlist().get()){
+		for (auto nn=n->node1.get(); nn; nn=nn->nnextlist().get()){
 			if (depth == 0) {
 				goWhenDone = doneGroups;
 			} else {
 				goWhenDone = prevmap;
 			}
-			if (nn->nxtlist().get()){
+			if (nn->nnextlist().get()){
 				depth += 2;
 				prevmap = v.size();
 				addop(NEXTMAP, goWhenDone, depth);
@@ -1206,9 +1206,9 @@ void cgen::genIterateGroups(astnode &n){
 		jumps.setPlace(doneGroups, v.size());
 
 		if (q->sorting){
-			auto& ordnode1 = q->tree->nafterfrom()->norder()->nsortlist();
+			auto& ordnode1 = q->tree->nafterfrom()->norder()->norderlist();
 			int doneReadGroups = jumps.newPlaceholder();
-			addop(GSORT, ordnode1->naggsortdestidx());
+			addop(GSORT, ordnode1->aggorderdestidx());
 			addop(PUSH_N, 0);
 			int readNext = v.size();
 			addop(READ_NEXT_GROUP, doneReadGroups);
@@ -1252,12 +1252,12 @@ void cgen::genSortedGroupRow(astnode &n, int nextgroup){
 	genVars(q->tree->npreselect());
 	genSelect(q->tree->nselect());
 	auto& ordnode = q->tree->nafterfrom()->norder();
-	for (auto x = ordnode->nsortlist().get(); x; x = x->nxtlist().get()){
+	for (auto x = ordnode->norderlist().get(); x; x = x->nnextlist().get()){
 		genExprAll(x->nsubexpr());
 		if (x->datatype == T_STRING)
 			addop(NUL_TO_STR);
-		addop(PUT, x->naggsortdestidx());
-		q->sortInfo.push_back({x->nsortasc(), x->datatype});
+		addop(PUT, x->aggorderdestidx());
+		q->sortInfo.push_back({x->orderasc(), x->datatype});
 	}
 	addop(FREEMIDROW);
 	addop(JMP, nextgroup);

@@ -315,54 +315,54 @@ class node {
 
 	//getters for values of different node types
 	//TODO: organize and document and finish implementing
-	string& nvarname(){ return tok1.val; }
-	astnode& nxtvar(){ return node2; }
+	string& varname(){ return tok1.val; }
+	astnode& nnextvar(){ return node2; }
 	string& nval(){ return tok1.val; }
-	int& nvaltyp(){ return tok2.id; }
-	int& nvaltrivial(){ return tok3.id; }
-	int& nvaltrivialalias(){ return tok4.id; }
+	int& valtype(){ return tok2.id; }
+	int& trivialvalcol(){ return tok3.id; }
+	int& trivialvalalias(){ return tok4.id; }
 	astnode& nsubexpr(){ return node1; }
-	token& nseldisttok(){ return tok1; }
-	astnode& nxtsel(){ return node2; }
-	astnode& nsels(){ return node2; }
+	token& diststartok(){ return tok1; }
+	astnode& nnextselection(){ return node2; }
+	astnode& nselections(){ return node2; }
 	astnode& nselect(){ return node2; }
-	int& nqlimit(){ return tok1.id; }
-	int& nseldestidx(){ return tok4.id; }
-	string& nselalias(){ return tok2.val; }
-	int& nselmididx(){ return tok3.id; }
-	int& nsortsz(){ return tok2.id; }
-	int& naggsortdestidx(){ return tok3.id; }
-	int& nfuncid(){ return tok1.id; }
-	token& nfuncdisttok(){ return tok3; }
-	int& nfuncdistnum(){ return tok4.id; }
-	int& nseldistnum(){ return tok4.id; }
-	int& nfuncparamtype(){ return tok2.id; }
-	int& nfuncreturntype(){ return info[RETTYPE]; }
-	int& norigparamtype(){ return info[PARAMTYPE]; }
-	int& nconvfromtype(){ return tok1.id; }
+	int& quantlimit(){ return tok1.id; }
+	int& selectiondestidx(){ return tok4.id; }
+	string& selectionalias(){ return tok2.val; }
+	int& selectionmididx(){ return tok3.id; }
+	int& ordersize(){ return tok2.id; }
+	int& aggorderdestidx(){ return tok3.id; }
+	int& funcid(){ return tok1.id; }
+	token& funcdisttok(){ return tok3; }
+	int& funcdistnum(){ return tok4.id; }
+	int& selectiondistnum(){ return tok4.id; }
+	int& funcparamtype(){ return tok2.id; }
+	int& funcreturntype(){ return info[RETTYPE]; }
+	int& origparamtype(){ return info[PARAMTYPE]; }
+	int& convfromtype(){ return tok1.id; }
 	astnode& njoinconds(){ return node2; }
-	astnode& nxtjoin(){ return node3; }
+	astnode& nnextjoin(){ return node3; }
 	astnode& npredconds(){ return node1; }
-	astnode& nsortlist(){ return node1; }
-	astnode& nxtlist(){ return node2; }
+	astnode& norderlist(){ return node1; }
+	astnode& nnextlist(){ return node2; }
 	astnode& norder(){ return node4; }
 	astnode& nwhere(){ return node1; }
 	astnode& nsetlist(){ return node2; }
-	int& nsortasc(){ return tok1.id; }
-	int& nvarmididx(){ return tok3.id; }
-	int& nnegation(){ return tok2.id; }
+	int& orderasc(){ return tok1.id; }
+	int& varmididx(){ return tok3.id; }
+	int& negated(){ return tok2.id; }
 	astnode& ngrouplist(){ return node1; }
-	string& nvalsrc(){ return tok3.val; }
+	string& dotsrc(){ return tok3.val; }
 	astnode& npredcomp(){ return node1; }
 	astnode& nmorepreds(){ return node1; }
-	astnode& nxtpreds(){ return node2; }
-	int& nrelop(){ return tok1.id; }
-	int& nlogop(){ return tok1.id; }
+	astnode& nnextpreds(){ return node2; }
+	int& relop(){ return tok1.id; }
+	int& logop(){ return tok1.id; }
 	astnode& npredexp1(){ return node1; }
 	astnode& npredexp2(){ return node2; }
-	int& nissubquery(){ return tok1.id; }
-	int& nsubqidx(){ return tok2.id; }
-	string& npassword(){ return tok4.val; }
+	int& hassubquery(){ return tok1.id; }
+	int& subqidx(){ return tok2.id; }
+	string& password(){ return tok4.val; }
 	astnode& nafterfrom(){ return node4; }
 	astnode& nfrom(){ return node3; }
 	astnode& nhaving(){ return node3; }
@@ -370,14 +370,14 @@ class node {
 	astnode& ngroups(){ return node2; }
 	astnode& npreselect(){ return node1; }
 	astnode& nfile(){ return node1; }
-	string& nfilename(){ return tok1.val; }
-	string& nfilealias(){ return tok4.val; }
-	int& nmathop(){ return tok1.id; }
-	int& ncasetype(){ return tok1.id; }
-	int& ncasepredorwhen(){ return tok2.id; }
+	string& filename(){ return tok1.val; }
+	string& filealias(){ return tok4.val; }
+	int& mathop(){ return tok1.id; }
+	int& casenodetype(){ return tok1.id; }
+	int& casetype(){ return tok2.id; }
 	astnode& ncaseresultexpr(){ return node2; }
-	int& ncolidx(){ return tok1.id; }
-	int& ncasewhentype(){ return tok3.id; }
+	int& colidx(){ return tok1.id; }
+	int& casewhentype(){ return tok3.id; }
 };
 class variable {
 	public:
