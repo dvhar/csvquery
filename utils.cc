@@ -315,31 +315,31 @@ string handle_err(exception_ptr eptr) {
 
 int querySpecs::trivialColumnType(astnode &n){
 	if (n == nullptr) return 0;
-	if (n->label == N_VALUE && n->nvaltrivial()){
-		return filemap[n->nvalsrc()]->types[n->ncolidx()];
+	if (n->label == N_VALUE && n->trivialvalcol()){
+		return filemap[n->dotsrc()]->types[n->colidx()];
 	}
 	return trivialColumnType(n->node1);
 }
 bool isTrivialColumn(astnode &n){
 	if (n == nullptr) return false;
-	if (n->label == N_VALUE && n->nvaltrivial())
+	if (n->label == N_VALUE && n->trivialvalcol())
 		return true;
 	return isTrivialColumn(n->node1);
 }
 bool isTrivialAlias(astnode &n){
 	if (n == nullptr) return false;
-	if (n->label == N_VALUE && n->nvaltrivialalias())
+	if (n->label == N_VALUE && n->trivialvalalias())
 		return true;
 	return isTrivialAlias(n->node1);
 }
 string nodeName(astnode &n, querySpecs* q){
 	if (n == nullptr) return "";
 	if (n->label == N_VALUE){
-		if (n->nvaltyp() == COLUMN && n->nvaltrivial()){
-			if (!q->filemap[n->nvalsrc()]->noheader)
-			return q->filemap[n->nvalsrc()]->colnames[n->ncolidx()];
+		if (n->valtype() == COLUMN && n->trivialvalcol()){
+			if (!q->filemap[n->dotsrc()]->noheader)
+			return q->filemap[n->dotsrc()]->colnames[n->colidx()];
 		}
-		if (n->nvaltyp() == VARIABLE)
+		if (n->valtype() == VARIABLE)
 			return n->nval();
 		return "";
 	}
