@@ -1030,23 +1030,22 @@ FUNC_LOG_:
 	ifnotnull {
 		stk0.u.f = log(stk0.u.f);
 		if (op->p2 && isinf(stk0.u.f)) stk0.setnull();
-	}
-	nexti();
+	} nexti();
 FUNC_LOG2_:
 	ifnotnull {
 		stk0.u.f = log2(stk0.u.f);
 		if (op->p2 && isinf(stk0.u.f)) stk0.setnull();
-	}
-	nexti();
+	} nexti();
 FUNC_LOG10_:
 	ifnotnull {
 		stk0.u.f = log10(stk0.u.f);
 		if (op->p2 && isinf(stk0.u.f)) stk0.setnull();
-	}
-	nexti();
+	} nexti();
 FUNC_SQRT_:
-	ifnotnull stk0.u.f = sqrt(stk0.u.f);
-	nexti();
+	ifnotnull {
+		stk0.u.f = sqrt(stk0.u.f);
+		if (op->p2 && isnan(stk0.u.f)) stk0.setnull();
+	} nexti();
 FUNC_CBRT_:
 	ifnotnull stk0.u.f = cbrt(stk0.u.f);
 	nexti();
