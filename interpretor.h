@@ -793,7 +793,7 @@ template<typename T>
 static T fromjson(json& j, string&& key){
 	try {
 		return j[key].get<T>();
-	} catch (exception e) {
+	} catch (exception &e) {
 		return T{};
 	}
 }
