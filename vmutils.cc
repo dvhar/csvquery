@@ -144,17 +144,17 @@ void vmachine::endQuery() {
 	}
 }
 vmachine::vmachine(querySpecs &qs) :
-	csvOutput(0),
-	q(&qs),
-	id(idCounter++),
-	sessionId(qs.sessionId),
-	files(move(qs.filevec)),
-	torowSize(qs.colspec.count),
 	ops(qs.bytecode.data()),
-	quantityLimit(qs.quantityLimit),
 	stacktop(stack),
 	stackbot(stack),
-	distinctVal{0}
+	distinctVal{0},
+	torowSize(qs.colspec.count),
+	quantityLimit(qs.quantityLimit),
+	files(move(qs.filevec)),
+	csvOutput(0),
+	sessionId(qs.sessionId),
+	id(idCounter++),
+	q(&qs)
 {
 	updates.sessionId = sessionId;
 	destrow.resize(q->colspec.count, {0});

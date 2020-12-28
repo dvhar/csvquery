@@ -9,9 +9,7 @@ render(){
 makebin(){
 	base=`basename $1`
 	sym=_`echo $base | sed 's/[\./-]/_/g'`
-	render "IMPORT_BIN(\"../${1}\",${sym});"
-	render "extern const char ${sym}[], _sizeof_${sym}[];"
-	render "const size_t ${sym}_len = (size_t)_sizeof_${sym};"
+	render "INCBIN(${sym},\"../${1}\");"
 }
 makeserver(){
 	base=`basename $1`
@@ -19,7 +17,7 @@ makeserver(){
 	path=`echo $1 | sed 's|webgui/build/||g'`
 	render "server.resource[\"^/${path}$\"][\"GET\"] = [](shared_ptr<HttpServer::Response> response, shared_ptr<HttpServer::Request> request){
 		if (rejectNonLocals(request)) return;
-		response->write(string_view(${sym}, ${sym}_len));
+			response->write(string_view((const char*)g${sym}Data, g${sym}Size));
 		};"
 	render
 }
@@ -37,6 +35,6 @@ done
 
 render "server.default_resource[\"GET\"] = [](shared_ptr<HttpServer::Response> response, shared_ptr<HttpServer::Request> request){
 		if (rejectNonLocals(request)) return;
-		response->write(string_view(_index_html, _index_html_len)); };"
+			response->write(string_view((const char*)g_index_htmlData, g_index_htmlSize)); };"
 
 render '}'
