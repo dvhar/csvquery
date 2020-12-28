@@ -914,10 +914,10 @@ DIST_:
 
 //functions
 FUNC_ABSI_:
-	ifnotnull if (stk0.u.i < 0) stk0.u.i *= -1;
+	ifnotnull stk0.u.i = abs(stk0.u.i);
 	nexti();
 FUNC_ABSF_:
-	ifnotnull if (stk0.u.f < 0) stk0.u.f *= -1;
+	ifnotnull stk0.u.f = abs(stk0.u.f);
 	nexti();
 FINC_:
 	q->dataholder[op->p1].u.f++;

@@ -264,9 +264,9 @@ void cgen::genPrint(){
 	}
 }
 void cgen::genAndChainSet(astnode &n){
-	int cz = n->info[CHAINSIZE];
-	int ci = n->info[CHAINIDX];
-	int fi = n->info[FILENO];
+	int cz = n->chainSize();
+	int ci = n->chainIdx();
+	int fi = n->predFileNum();
 	auto& chain = q->getFileReader(fi)->andchains[ci];
 	auto nn = n.get();
 	for (int i=0; i<cz; ++i){
@@ -274,9 +274,9 @@ void cgen::genAndChainSet(astnode &n){
 		if (prednode->relop() == KW_LIKE){
 			addop(LDLIT, q->dataholder.size());
 			q->dataholder.push_back(prepareLike(prednode));
-		} else if (prednode->info[TOSCAN] == 1){
+		} else if (prednode->scannedExpr() == 1){
 			genExprAll(prednode->npredexp2());
-		}else if (prednode->info[TOSCAN] == 2){
+		}else if (prednode->scannedExpr() == 2){
 			genExprAll(prednode->npredexp1());
 		}
 		chain.functionTypes.push_back(funcTypes[prednode->datatype]);
@@ -309,7 +309,7 @@ void cgen::genAndChainSet(astnode &n){
 //given 'predicates' node
 void cgen::genJoinPredicates(astnode &n){
 	if (n == nullptr) return;
-	if (n->info[ANDCHAIN]){
+	if (n->andChain()){
 		genAndChainSet(n);
 		return;
 	}
@@ -332,14 +332,14 @@ void cgen::genJoinCompare(astnode &n){
 		return;
 	}
 	//evaluate the one not scanned
-	if (n->info[TOSCAN] == 1){
+	if (n->scannedExpr() == 1){
 		genExprAll(n->npredexp2());
-	} else if (n->info[TOSCAN] == 2){
+	} else if (n->scannedExpr() == 2){
 		genExprAll(n->npredexp1());
 	}
 	if (n->datatype == T_STRING)
 		addop(NUL_TO_STR);
-	int orEquals = 0, vpidx = n->info[VALPOSIDX];
+	int orEquals = 0, vpidx = n->predValposIdx();
 	switch (n->relop()){
 		case SP_EQ:
 			addop(JOINSET_EQ, joinFileIdx, vpidx, funcTypes[valposTypes[vpidx]]);
@@ -389,8 +389,8 @@ void cgen::genScanJoinFiles(astnode &n){
 void cgen::genSortAnds(astnode &n){
 	if (n == nullptr) return;
 	e("sort ands");
-	if (n->info[ANDCHAIN] == 1){
-		addop(SORT_ANDCHAIN, n->info[FILENO],  n->info[CHAINIDX]);
+	if (n->andChain() == 1){
+		addop(SORT_ANDCHAIN, n->predFileNum(),  n->chainIdx());
 		return;
 	} else {
 		genSortAnds(n->nnextpreds());
@@ -399,20 +399,20 @@ void cgen::genSortAnds(astnode &n){
 	}
 }
 void cgen::genScanAndChain(astnode &n, int fileno){
-	if (n == nullptr || n->info[ANDCHAIN] == 0) return;
+	if (n == nullptr || n->andChain() == 0) return;
 	e("join ands");
 
 	auto nn = n.get();
-	for (int i=0; i<n->info[CHAINSIZE]; ++i){
+	for (int i=0; i<n->chainSize(); ++i){
 		auto& prednode = nn->npredcomp();
-		if (prednode->info[TOSCAN] == 1){
+		if (prednode->scannedExpr() == 1){
 			genExprAll(prednode->npredexp1());
-		}else if (prednode->info[TOSCAN] == 2){
+		}else if (prednode->scannedExpr() == 2){
 			genExprAll(prednode->npredexp2());
 		}
 		nn = nn->nnextpreds().get();
 	}
-	addop(SAVEANDCHAIN, n->info[CHAINIDX], fileno);
+	addop(SAVEANDCHAIN, n->chainIdx(), fileno);
 }
 
 void cgen::genScannedJoinExprs(astnode &n, int fileno){
@@ -421,14 +421,14 @@ void cgen::genScannedJoinExprs(astnode &n, int fileno){
 	bool gotExpr = false;
 	switch (n->label){
 		case N_PREDCOMP:
-			if (n->info[ANDCHAIN]) //this is just for valpos joins
+			if (n->andChain()) //this is just for valpos joins
 				return;
 			if (n->relop() == SP_LPAREN)
 				genScannedJoinExprs(n->nmorepreds(), fileno);
-			else if (n->info[TOSCAN] == 1){
+			else if (n->scannedExpr() == 1){
 				genExprAll(n->npredexp1());
 				gotExpr = true;
-			}else if (n->info[TOSCAN] == 2){
+			}else if (n->scannedExpr() == 2){
 				genExprAll(n->npredexp2());
 				gotExpr = true;
 			}else{
@@ -441,7 +441,7 @@ void cgen::genScannedJoinExprs(astnode &n, int fileno){
 			}
 			break;
 		case N_PREDICATES:
-			if (n->info[ANDCHAIN]){ //handle andchains separately
+			if (n->andChain()){ //handle andchains separately
 				genScanAndChain(n, fileno);
 				return;
 			}
@@ -816,7 +816,7 @@ void cgen::genSelections(astnode &n){
 			}
 			incSelectCount();
 
-		} else if (agg_phase == 2 && n->info[LPMID]) {
+		} else if (agg_phase == 2 && n->selectionlpmid()) {
 			addop2(LDPUTMID, n->selectiondestidx(), n->selectionmididx());
 
 		} else {
@@ -1096,44 +1096,44 @@ void cgen::genFunction(astnode &n){
 	if (agg_phase == 1) {
 		switch (n->funcid()){
 		case FN_SUM:
-			addop(operations[OPSUM][n->datatype], n->info[MIDIDX]);
+			addop(operations[OPSUM][n->datatype], n->funcmididx());
 			break;
 		case FN_AVG:
-			addop(operations[OPAVG][n->datatype], n->info[MIDIDX]);
+			addop(operations[OPAVG][n->datatype], n->funcmididx());
 			break;
 		case FN_STDEV:
 		case FN_STDEVP:
-			addop(operations[OPSTV][n->datatype], n->info[MIDIDX]);
+			addop(operations[OPSTV][n->datatype], n->funcmididx());
 			break;
 		case FN_MIN:
-			addop(operations[OPMIN][n->datatype], n->info[MIDIDX]);
+			addop(operations[OPMIN][n->datatype], n->funcmididx());
 			break;
 		case FN_MAX:
-			addop(operations[OPMAX][n->datatype], n->info[MIDIDX]);
+			addop(operations[OPMAX][n->datatype], n->funcmididx());
 			break;
 		case FN_COUNT:
-			addop(COUNT, n->info[MIDIDX], n->tok2.id ? 1 : 0);
+			addop(COUNT, n->funcmididx(), n->tok2.id ? 1 : 0);
 			break;
 		}
 		select_count++;
 	} else if (agg_phase == 2) {
 		switch (n->funcid()){
 		case FN_AVG:
-			addop(operations[OPLAVG][n->datatype], n->info[MIDIDX]);
+			addop(operations[OPLAVG][n->datatype], n->funcmididx());
 			break;
 		case FN_STDEV:
-			addop(operations[OPLSTV][n->datatype], n->info[MIDIDX], 1);
+			addop(operations[OPLSTV][n->datatype], n->funcmididx(), 1);
 			break;
 		case FN_STDEVP:
-			addop(operations[OPLSTV][n->datatype], n->info[MIDIDX]);
+			addop(operations[OPLSTV][n->datatype], n->funcmididx());
 			break;
 		case FN_COUNT:
-			addop(LDCOUNT, n->info[MIDIDX]);
+			addop(LDCOUNT, n->funcmididx());
 			break;
 		case FN_MIN:
 		case FN_MAX:
 		case FN_SUM:
-			addop(LDMID, n->info[MIDIDX]);
+			addop(LDMID, n->funcmididx());
 			break;
 		}
 	}

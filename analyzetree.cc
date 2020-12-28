@@ -373,6 +373,9 @@ void analyzer::setNodePhase(astnode &n, int phase){
 		setNodePhase(n->npredconds(), 1);
 		break;
 	case N_HAVING:
+		n->phase = 2;
+		setNodePhase(n->npredconds(), 2);
+		break;
 	case N_ORDER:
 		n->phase = 2;
 		setNodePhase(n->norderlist(), 2);
@@ -392,7 +395,7 @@ int analyzer::phaser(astnode &n){
 		case N_SELECTIONS:
 			if (n->phase > 1){
 				if (phaser(n->nsubexpr()) < n->phase) {
-					n->info[LPMID] = 1;
+					n->selectionlpmid() = 1;
 				}
 			}
 	}
@@ -422,7 +425,7 @@ void analyzer::findMidrowTargets(astnode &n){
 	case N_FUNCTION:
 		if ((n->funcid() & AGG_BIT) != 0){
 			//TODO:re-enable nested aggregate check
-			n->info[MIDIDX] = q->midcount;
+			n->funcmididx() = q->midcount;
 			q->midcount++;
 			return;
 		} else {
@@ -474,8 +477,8 @@ bool analyzer::ischain(astnode &n, int &predno){
 	if (simpleCompare){
 		++predno;
 		if (ischain(n->nnextpreds(), predno)){
-			n->info[ANDCHAIN] = 1;
-			n->node1->info[ANDCHAIN] = 1;
+			n->andChain() = 1;
+			n->node1->andChain() = 1;
 			return true;
 		}
 	}
@@ -492,18 +495,18 @@ void analyzer::findJoinAndChains(astnode &n, int fileno){
 			break;
 		case N_PREDICATES:
 			if (n->tok1.id == KW_AND){
-				bool first = n->info[ANDCHAIN] != 1;
+				bool first = n->andChain() != 1;
 				int chainsize = 0;
 				if (ischain(n, chainsize) && first){
-					n->info[CHAINSIZE] = chainsize;
-					n->info[CHAINIDX] = chainvec.size();
-					n->info[FILENO] = fileno;
-					chainvec.push_back(andchain(n->info[CHAINSIZE]));
+					n->chainSize() = chainsize;
+					n->chainIdx() = chainvec.size();
+					n->predFileNum() = fileno;
+					chainvec.push_back(andchain(n->chainSize()));
 				}
 			}
-			if (n->info[ANDCHAIN]){
-				if (n->info[CHAINSIZE] == 0){ //not first
-					n->node1->info[ANDCHAIN] = 2;
+			if (n->andChain()){
+				if (n->chainSize() == 0){ //not first
+					n->node1->andChain() = 2;
 				}
 			}
 			if (n->npredcomp()->tok1.id == SP_LPAREN)
@@ -545,14 +548,14 @@ void analyzer::findIndexableJoinValues(astnode &n, int fileno){
 				for (auto i : e2)
 					if (i > fileno)
 						error("Join condition cannot compare to a file that appears later in the query, only earlier");
-				n->info[TOSCAN] = 1;
+				n->scannedExpr() = 1;
 				setSubtreeVarFilter(n->npredexp2(), JCOMP_FILTER);
 				setSubtreeVarFilter(n->npredexp1(), JSCAN_FILTER);
 			}else if (e2.size() == 1 && *e2.begin() == fileno){
 				for (auto i : e1)
 					if (i > fileno)
 						error("Join condition cannot compare to a file that appears later in the query, only earlier");
-				n->info[TOSCAN] = 2;
+				n->scannedExpr() = 2;
 				n->relop() = flipOp(n->relop());
 				setSubtreeVarFilter(n->npredexp2(), JSCAN_FILTER);
 				setSubtreeVarFilter(n->npredexp1(), JCOMP_FILTER);
@@ -561,9 +564,9 @@ void analyzer::findIndexableJoinValues(astnode &n, int fileno){
 			}
 
 			//add valpos vector only if not part of and chain
-			if (n->info[ANDCHAIN] == 0){
+			if (n->andChain() == 0){
 				auto& vpv = q->getFileReader(fileno)->joinValpos;
-				n->tok5.id = vpv.size();
+				n->predValposIdx() = vpv.size();
 				vpv.push_back(vector<valpos>());
 			}
 			return;

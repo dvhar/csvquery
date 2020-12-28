@@ -11,6 +11,9 @@ template<typename T>
 using bset = btree::btree_set<T>;
 using grprow = const unique_ptr<dat[], freeC>;
 
+extern int operations[20][6];
+extern int typeConv[6][6];
+
 enum codes : int {
 	CVER, CVNO,
 	CVIF, CVIS, CVFI, CVFS, CVDRS, CVDTS,
@@ -53,42 +56,10 @@ enum codes : int {
 
 };
 
-//2d array for ops indexed by operation and datatype
+//2d array for ops indexed by operation and datatype. used with operations[][]
 enum typeOperators {
 	OPADD, OPSUB, OPMULT, OPMOD, OPDIV, OPPOW, OPNEG, OPLD, OPEQ, OPLEQ, OPLT,
 	OPMAX, OPMIN, OPSUM, OPAVG, OPSTV, OPLSTV, OPLAVG, OPSVSRT, OPABS
-};
-static int operations[][6] = {
-	{ 0, IADD, FADD, DTADD, DRADD, TADD },
-	{ 0, ISUB, FSUB, DTSUB, DRSUB, 0 },
-	{ 0, IMULT, FMULT, 0, DRMULT, 0 },
-	{ 0, IMOD, FMOD, 0, 0, 0 },
-	{ 0, IDIV, FDIV, 0, DRDIV, 0 },
-	{ 0, IPOW, FPOW, 0, 0, 0 },
-	{ 0, INEG, FNEG, 0, INEG, 0 },
-	{ 0, LDINT, LDFLOAT, LDDATE, LDDUR, LDTEXT },
-	{ 0, IEQ, FEQ, IEQ, IEQ, TEQ },
-	{ 0, ILEQ, FLEQ, ILEQ, ILEQ, TLEQ },
-	{ 0, ILT, FLT, ILT, ILT, TLT },
-	{ 0, MAXI, MAXF, MAXI, MAXI, MAXS },
-	{ 0, MINI, MINF, MINI, MINI, MINS },
-	{ 0, SUMI, SUMF, 0, SUMI, 0 },
-	{ 0, AVGI, AVGF, AVGI, AVGI, 0 },
-	{ 0, STDVI, STDVF, 0, STDVI, 0 },
-	{ 0, LDSTDVI, LDSTDVF, 0, LDSTDVI, 0 },
-	{ 0, LDAVGI, LDAVGF, LDAVGI, LDAVGI, 0 },
-	{ 0, SAVESORTN, SAVESORTN, SAVESORTN, SAVESORTN, SAVESORTS },
-	{ 0, FUNCABSI, FUNCABSF, 0, FUNCABSI, 0 },
-};
-
-//type conversion opcodes - [from][to]
-static int typeConv[6][6] = {
-	{0, 0,  0,  0,  0,  0 },
-	{0, CVNO, CVIF, CVER, CVER, CVIS },
-	{0, CVFI, CVNO, CVER, CVER, CVFS },
-	{0, CVER, CVER, CVNO, CVER, CVDTS},
-	{0, CVER, CVER, CVER, CVNO, CVDRS},
-	{0, CVSI, CVSF, CVSDT,CVSDR,CVNO},
 };
 
 dat parseIntDat(const char* s);
@@ -236,7 +207,7 @@ class vmachine {
 	vector<stddev> stdvs;
 	vector<dat> destrow;
 	vector<dat> onegroup;
-	array<dat,50> stack;
+	dat stack[50];
 	vector<shared_ptr<fileReader>> files;
 	vector<unique_ptr<dat[], freeC>> groupSorter;
 	vector<int> sortIdxs;
@@ -313,8 +284,8 @@ class rowgroup {
 	public:
 		struct {
 			u32 distinctSetIdx : 32;
-			short rowsize : 16;
-			short rowOrGroup : 2;
+			u16 rowsize : 16;
+			u16 rowOrGroup : 2;
 			bool mallocedKey : 1;
 			bool freed : 1;
 		} meta;

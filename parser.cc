@@ -533,12 +533,12 @@ astnode parser::parsePredicates() {
 //tok1 is [relop, lparen] for comparison or more predicates
 //tok2 is negation
 //tok3 is 'like' expression
+//tok5.id is index of valpos vector for joins
 //node1 is [expr, predicates]
 //node2 is second expr, <setlist> if inlist
 //node3 is third expr for betweens
 //later:
 //  [TOSCAN] will be number of node (1,2) for indexable join value
-//  [VALPOSIDX] is index of valpos vector for joins
 //  [ANDCHAIN] is 1 or 2 if part of simple and chain, 2 if not first
 astnode parser::parsePredCompare() {
 	token t = q->tok();
@@ -827,7 +827,7 @@ astnode parser::parseOrder() {
 //tok2 is * for count(*), preconv paramtype for len(), rounding dec places, date format
 //tok3 is distinct, minus sign for rounding param
 //tok4 is password or (determined later) count of distinct N or S functions
-//[PARAMTYPE] is paramtype for type conversion
+//[PARAMTYPE] is original paramtype for type conversion
 //[RETTYPE] is inflexible return type
 //[MIDIDX] is midrow index
 //node1 is expression in parens
