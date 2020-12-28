@@ -37,6 +37,7 @@ typedef struct chacha20_context chacha;
 typedef long long i64;
 typedef unsigned long long u64;
 typedef unsigned int u32;
+typedef unsigned short u16;
 typedef unsigned char u8;
 typedef i64 dur_t;
 template<typename A, typename B>
@@ -330,6 +331,7 @@ class node {
 	int& selectiondestidx(){ return tok4.id; }
 	string& selectionalias(){ return tok2.val; }
 	int& selectionmididx(){ return tok3.id; }
+	int& selectionlpmid(){ return info[LPMID]; }
 	int& ordersize(){ return tok2.id; }
 	int& aggorderdestidx(){ return tok3.id; }
 	int& funcid(){ return tok1.id; }
@@ -339,6 +341,7 @@ class node {
 	int& funcparamtype(){ return tok2.id; }
 	int& funcreturntype(){ return info[RETTYPE]; }
 	int& origparamtype(){ return info[PARAMTYPE]; }
+	int& funcmididx(){ return info[MIDIDX]; }
 	int& convfromtype(){ return tok1.id; }
 	astnode& njoinconds(){ return node2; }
 	astnode& nnextjoin(){ return node3; }
@@ -356,6 +359,12 @@ class node {
 	astnode& npredcomp(){ return node1; }
 	astnode& nmorepreds(){ return node1; }
 	astnode& nnextpreds(){ return node2; }
+	int& scannedExpr(){ return info[TOSCAN]; }
+	int& andChain(){ return info[ANDCHAIN]; }
+	int& chainSize(){ return info[CHAINSIZE]; }
+	int& chainIdx(){ return info[CHAINIDX]; }
+	int& predFileNum(){ return info[FILENO]; }
+	int& predValposIdx(){ return tok5.id; }
 	int& relop(){ return tok1.id; }
 	int& logop(){ return tok1.id; }
 	astnode& npredexp1(){ return node1; }
