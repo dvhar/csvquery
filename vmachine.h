@@ -285,7 +285,7 @@ class rowgroup {
 		struct {
 			u32 distinctSetIdx : 32;
 			u16 rowsize : 16;
-			u16 rowOrGroup : 2;
+			u8 rowOrGroup : 2;
 			bool mallocedKey : 1;
 			bool freed : 1;
 		} meta;
