@@ -267,12 +267,13 @@ void opener::openfiles(astnode &n){
 		if (q->options & O_NH) fr->noheader = true;
 		if (q->options & O_AH) fr->autoheader = true;
 		//override with local file options
-		if (n->tok5.id & O_S)  fr->delim = ' ';
-		if (n->tok5.id & O_P)  fr->delim = '|';
-		if (n->tok5.id & O_T)  fr->delim = '\t';
-		if (n->tok5.id & O_H)  fr->noheader = fr->autoheader = false;
-		if (n->tok5.id & O_NH) fr->noheader = true;
-		if (n->tok5.id & O_AH) fr->autoheader = true;
+		int fileopts = n->optionbits();
+		if (fileopts & O_S)  fr->delim = ' ';
+		if (fileopts & O_P)  fr->delim = '|';
+		if (fileopts & O_T)  fr->delim = '\t';
+		if (fileopts & O_H)  fr->noheader = fr->autoheader = false;
+		if (fileopts & O_NH) fr->noheader = true;
+		if (fileopts & O_AH) fr->autoheader = true;
 
 		++q->numFiles;
 		fr->inferTypes();
@@ -337,6 +338,6 @@ bool opener::checkAliases(astnode& n){
 	n->tok2 = n->tok1;
 	ifstream afile(aliasfile);
 	afile >> n->tok1.val;
-	afile >> n->tok5.id;
+	afile >> n->optionbits();
 	return true;
 }

@@ -385,12 +385,9 @@ class qinstance {
 	shared_ptr<singleQueryResult> json;
 	querySpecs* q;
 	public:
-	int id;
-	int sesid;
-	qinstance(querySpecs& qs) {
-		q = &qs;
-		sesid = qs.sessionId;
-	}
+	i64 id;
+	i64 sesid;
+	qinstance(querySpecs& qs) : q(&qs), sesid(qs.sessionId) {}
 	~qinstance(){}
 	int runq(){
 		if (int nonquery = prepareQuery(*q); nonquery){

@@ -291,7 +291,8 @@ enum: int {
 	TOSCAN,
 	PARAMTYPE,
 	RETTYPE,
-	LPMID
+	LPMID,
+	OPTS
 };
 class node {
 	public:
@@ -307,7 +308,6 @@ class node {
 	token tok2;
 	token tok3;
 	token tok4;
-	token tok5;
 	map<int,int> info;
 	~node();
 	node(int);
@@ -364,7 +364,7 @@ class node {
 	int& chainSize(){ return info[CHAINSIZE]; }
 	int& chainIdx(){ return info[CHAINIDX]; }
 	int& predFileNum(){ return info[FILENO]; }
-	int& predValposIdx(){ return tok5.id; }
+	int& predValposIdx(){ return info[VALPOSIDX]; }
 	int& relop(){ return tok1.id; }
 	int& logop(){ return tok1.id; }
 	astnode& npredexp1(){ return node1; }
@@ -387,6 +387,7 @@ class node {
 	astnode& ncaseresultexpr(){ return node2; }
 	int& colidx(){ return tok1.id; }
 	int& casewhentype(){ return tok3.id; }
+	int& optionbits(){ return info[OPTS]; }
 };
 class variable {
 	public:

@@ -138,12 +138,11 @@ void printTree(astnode &n, int ident){
 	string s = "";
 	for (int i=0;i<ident;i++) s += "  ";
 	perr(st( s , getnodename(n->label) , '\n', s,
-		ft("[%1% %2% %3% %4% %5%] t:%6% p:%7% k:%8%")
+		ft("[%1% %2% %3% %4%] t:%5% p:%6% k:%7%")
 		% n->tok1.val
 		% n->tok2.val
 		% n->tok3.val
 		% n->tok4.val
-		% n->tok5.val
 		% n->datatype
 		% n->phase
 		% n->keep));
@@ -275,7 +274,6 @@ node& node::operator=(const node& other){
 	tok2 = other.tok2;
 	tok3 = other.tok3;
 	tok4 = other.tok4;
-	tok5 = other.tok5;
 	label = other.label;
 	phase = other.phase;
 	datatype = other.datatype;
@@ -283,12 +281,12 @@ node& node::operator=(const node& other){
 	return *this;
 }
 node::node(){
-	tok1 = tok2 = tok3 = tok4 = tok5 = token{};
+	tok1 = tok2 = tok3 = tok4 = token{};
 	label = phase = datatype = 0;
 	keep = false;
 }
 node::node(int l){
-	tok1 = tok2 = tok3 = tok4 = tok5 = token{};
+	tok1 = tok2 = tok3 = tok4 = token{};
 	label = l;
 	phase = datatype = 0;
 	keep = false;

@@ -533,13 +533,13 @@ astnode parser::parsePredicates() {
 //tok1 is [relop, lparen] for comparison or more predicates
 //tok2 is negation
 //tok3 is 'like' expression
-//tok5.id is index of valpos vector for joins
 //node1 is [expr, predicates]
 //node2 is second expr, <setlist> if inlist
 //node3 is third expr for betweens
 //later:
 //  [TOSCAN] will be number of node (1,2) for indexable join value
 //  [ANDCHAIN] is 1 or 2 if part of simple and chain, 2 if not first
+//  [VALPOSIDX] is index of valpos vector for joins
 astnode parser::parsePredCompare() {
 	token t = q->tok();
 	astnode n = newNode(N_PREDCOMP);
@@ -665,7 +665,6 @@ void parser::parseLimit(astnode& n) {
 
 //tok1 is file path
 //tok4 is alias
-//tok5 is noheader
 //node1 is file
 //node2 is joins
 astnode parser::parseFrom(bool withselections) {
@@ -690,7 +689,7 @@ astnode parser::parseFrom(bool withselections) {
 //tok1 is file path or view name
 //tok2 will be copy of tok1 if filealias
 //tok4 is alias
-//tok5.id is file options
+//[OPTS] is file options
 astnode parser::parseFile() {
 	token t = q->tok();
 	astnode n = newNode(N_FILE);
@@ -725,28 +724,29 @@ astnode parser::parseFile() {
 	return n;
 }
 
-//tok5.id of arg node is file options
+//[OPTS] of arg node is file options
 void parser::parseFileOptions(astnode& n) {
 	token t = q->tok();
+	int& opts = n->optionbits();
 	string s = t.lower();
 	if (s == "nh") {
-		if (n->tok5.id & (O_H|O_AH)) error("Cannot mix input header options");
-		n->tok5.id |= O_NH;
+		if (opts & (O_H|O_AH)) error("Cannot mix input header options");
+		opts |= O_NH;
 	} else if (s == "h") {
-		if (n->tok5.id & (O_NH|O_AH)) error("Cannot mix input header options");
-		n->tok5.id |= O_H;
+		if (opts & (O_NH|O_AH)) error("Cannot mix input header options");
+		opts |= O_H;
 	} else if (s == "ah") {
-		if (n->tok5.id & (O_NH|O_H)) error("Cannot mix input header options");
-		n->tok5.id |= O_AH;
+		if (opts & (O_NH|O_H)) error("Cannot mix input header options");
+		opts |= O_AH;
 	} else if (s == "s") {
-		if (n->tok5.id & (O_P|O_T)) error("Cannot mix delimiter options");
-		n->tok5.id |= O_S;
+		if (opts & (O_P|O_T)) error("Cannot mix delimiter options");
+		opts |= O_S;
 	} else if (s == "p") {
-		if (n->tok5.id & (O_S|O_T)) error("Cannot mix delimiter options");
-		n->tok5.id |= O_P;
+		if (opts & (O_S|O_T)) error("Cannot mix delimiter options");
+		opts |= O_P;
 	} else if (s == "t") {
-		if (n->tok5.id & (O_P|O_S)) error("Cannot mix delimiter options");
-		n->tok5.id |= O_T;
+		if (opts & (O_P|O_S)) error("Cannot mix delimiter options");
+		opts |= O_T;
 	} else {
 		return;
 	}

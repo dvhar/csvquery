@@ -659,7 +659,7 @@ int analyzer::addAlias(astnode& n){
 			auto& filenode = aliasnode->node1;
 			string& alias = aliasnode->tok1.val;
 			string& fpath = filenode->tok1.val;
-			int opts = filenode->tok5.id;
+			int opts = filenode->optionbits();
 			if (regex_match(alias,filelike))
 				error("File alias cannot have dots or slashes");
 			string aliasfile = st(globalSettings.configdir,"/alias-",alias,".txt");
