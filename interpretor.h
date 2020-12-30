@@ -77,7 +77,7 @@ class settings_t {
 	bool tablelinebg = 0;
 #ifdef _WIN32
 	string configdir = st(getenv("USERPROFILE"),R"(\AppData\csvquery)");
-	string configfilepath = configdir + "\config.txt";
+	string configfilepath = configdir + R"(\config.txt)";
 #else
 	string configdir = st(gethome(),"/.config/csvquery");
 	string configfilepath = configdir + "/config";
