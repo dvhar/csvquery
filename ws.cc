@@ -38,7 +38,7 @@ void servews(){
 		connections[sesid] = connection;
 		seslock.unlock();
 		clientCount++;
-		cerr << "opened websocket connection " << connection.get() << endl;
+		cerr << "opened websocket connection " << sesid << endl;
 	};
 
 	wsocket.on_close = [](shared_ptr<WsServer::Connection> connection, int status, const string &) {
