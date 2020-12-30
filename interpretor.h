@@ -69,7 +69,7 @@ void perr(string &&s);
 class settings_t {
 	public:
 	bool update = 1;
-	bool debug = 1;
+	bool debug = 0;
 	bool autoheader = 0;
 	bool autoexit = 1;
 	bool termbox = 0;
