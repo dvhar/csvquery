@@ -128,6 +128,7 @@ static void serve(){
 	};
 
 	perr("starting http server");
+	cout << "Go to http://localhost:8060 to use graphic interface\n";
 	auto ws = async(servews);
 	auto hs = async([](){server.start();});
 	openbrowser();
