@@ -75,6 +75,7 @@ class settings_t {
 	bool termbox = 0;
 	bool tablecolor = 1;
 	bool tablelinebg = 0;
+	bool needcomma = 1;
 #ifdef _WIN32
 	string configdir = st(getenv("USERPROFILE"),R"(\AppData\csvquery)");
 	string configfilepath = configdir + R"(\config.txt)";

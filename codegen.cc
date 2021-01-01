@@ -322,6 +322,9 @@ void cgen::genJoinPredicates(astnode &n){
 	case KW_OR:
 		addop(OR_SET);
 		break;
+	case KW_XOR:
+		addop(XOR_SET);
+		break;
 	}
 }
 //given predicate comparison node

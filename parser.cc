@@ -9,9 +9,11 @@
 query             -> <preselect> <select> <from> <afterfrom> | <addalias>
 addalias          -> add filealias <file> | drop filealias | show tables
 preselect         -> <options> <with> | ε
-options           -> [ oh noh nh h ah s p t nan ] { <options> } | ε
+options           -> [ oh noh nh h ah s p t nan m ] { <options> } | ε
 with              -> with <vars> | ε
 vars              -> <expradd> as alias { [ , and ] vars }
+select            -> select <selections> | ε
+selections        -> {,} <expradd> <selections> | ε
 expradd           -> <exprmult> { [ + - ] <expradd> }
 exprmult          -> <exprneg> { [ * % ^ / ] <exprmult> }
 exprneg           -> { - } <exprcase>
@@ -83,6 +85,8 @@ class parser {
 
 	querySpecs* q;
 	bool justfile = false;
+	bool needcomma = globalSettings.needcomma;
+	bool firstselection = true;
 	public:
 	parser(querySpecs &qs): q{&qs} {}
 	void parse(){
@@ -93,7 +97,7 @@ class parser {
 			case SP_RPAREN:
 			break;
 			default:
-				error("Unexpected token at and of query: ",t.val);
+				error("Unexpected token at and of query: '",t.val,"'");
 		}
 	}
 };
@@ -144,10 +148,10 @@ astnode parser::parseHandleAlias() {
 	n->tok1 = t;
 	q->nextTok();
 	if (n->tok2.lower() == "drop" && t.id != WORD_TK)
-			error("Expected file alias after 'drop'. Found ",t.val);
+			error("Expected file alias after 'drop'. Found '",t.val,"'");
 	if (n->tok2.lower() == "add"){
 		if (t.id != WORD_TK)
-			error("Expected file alias after 'add'. Found ",t.val);
+			error("Expected file alias after 'add'. Found '",t.val,"'");
 		n->node1 = parseFile();
 	}
 	return n;
@@ -200,31 +204,33 @@ void parser::parseOptions(astnode& n) {
 	if (s == "c") {
 		n->tok1.id |= O_C;
 	} else if (s == "oh") {
-		if (n->tok1.id & O_NOH) error("Cannot mix output header options");
+		if (n->tok1.id & O_NOH) error("Cannot have multiple output header options");
 		n->tok1.id |= O_OH;
 	} else if (s == "noh") {
-		if (n->tok1.id & O_NOH) error("Cannot mix output header options");
+		if (n->tok1.id & O_NOH) error("Cannot have multiple output header options");
 		n->tok1.id |= O_NOH;
 	} else if (s == "nh") {
-		if (n->tok1.id & (O_H|O_AH)) error("Cannot mix input header options");
+		if (n->tok1.id & (O_H|O_AH)) error("Cannot have multiple input header options");
 		n->tok1.id |= O_NH;
 	} else if (s == "h") {
-		if (n->tok1.id & (O_NH|O_AH)) error("Cannot mix input header options");
+		if (n->tok1.id & (O_NH|O_AH)) error("Cannot have multiple input header options");
 		n->tok1.id |= O_H;
 	} else if (s == "ah") {
-		if (n->tok1.id & (O_NH|O_H)) error("Cannot mix input header options");
+		if (n->tok1.id & (O_NH|O_H)) error("Cannot have multiple input header options");
 		n->tok1.id |= O_AH;
 	} else if (s == "s") {
-		if (n->tok1.id & (O_P|O_T)) error("Cannot mix delimiter options");
+		if (n->tok1.id & (O_P|O_T)) error("Cannot have multiple delimiter options");
 		n->tok1.id |= O_S;
 	} else if (s == "p") {
-		if (n->tok1.id & (O_S|O_T)) error("Cannot mix delimiter options");
+		if (n->tok1.id & (O_S|O_T)) error("Cannot have multiple delimiter options");
 		n->tok1.id |= O_P;
 	} else if (s == "t") {
-		if (n->tok1.id & (O_P|O_S)) error("Cannot mix delimiter options");
+		if (n->tok1.id & (O_P|O_S)) error("Cannot have multiple delimiter options");
 		n->tok1.id |= O_T;
 	} else if (s == "nan") {
 		n->tok1.id |= O_NAN;
+	} else if (s == "m") {
+		needcomma = false;
 	} else {
 		return;
 	}
@@ -251,9 +257,9 @@ astnode parser::parseVars() {
 	astnode n = newNode(N_VARS);
 	n->node1 = parseExprAdd();
 	t = q->tok();
-	if (t.lower() != "as") error("Expected 'as' after expression. Found ",t.val);
+	if (t.lower() != "as") error("Expected 'as' after expression. Found '",t.val,"'");
 	t = q->nextTok();
-	if (t.id != WORD_TK) error("Expected variable name. Found ",t.val);
+	if (t.id != WORD_TK) error("Expected variable name. Found '",t.val,"'");
 	n->tok1 = t;
 	t = q->nextTok();
 	if (t.lower() == "and" || t.id == SP_COMMA) {
@@ -269,7 +275,7 @@ astnode parser::parseSelect() {
 	if (justfile) return nullptr;
 	token t = q->tok();
 	astnode n = newNode(N_SELECT);
-	if (t.lower() != "select") error("Expected 'select'. Found "+t.val);
+	if (t.lower() != "select") error("Expected 'select'. Found '",t.val,"'");
 	q->nextTok();
 	parseTop(n);
 	n->node2 = parseSelections();
@@ -289,7 +295,11 @@ astnode parser::parseSelections() {
 		return nullptr;
 	}
 	astnode n = newNode(N_SELECTIONS);
-	if (t.id == SP_COMMA) t = q->nextTok();
+	if (t.id == SP_COMMA) {
+		t = q->nextTok();
+	} else if (needcomma && !firstselection){
+		error("Expected 'from' clause or comma before next selection. Found: '",t.val,"'");
+	}
 	switch (t.id) {
 	case SP_STAR:
 		n->tok1 = t;
@@ -311,7 +321,7 @@ astnode parser::parseSelections() {
 	case SP_LPAREN:
 		//alias = expression
 		if (q->peekTok().id == SP_EQ) {
-			if (t.id != WORD_TK) error("Alias must be a word. Found ",t.val);
+			if (t.id != WORD_TK) error("Alias must be a word. Found '",t.val,"'");
 			n->tok2 = t;
 			q->nextTok();
 			q->nextTok();
@@ -324,15 +334,19 @@ astnode parser::parseSelections() {
 				t = q->nextTok();
 				n->tok2 = t;
 				q->nextTok();
+			} else if (t.id == WORD_TK && needcomma){
+				n->tok2 = t;
+				q->nextTok();
 			}
 		}
 		if (q->tok().id == SP_LPAREN)
 			error("Cannot start expression after '", q->lastTok().val,
 						"' with parenthesis. Did you misspell a function or forget a comma between selections?");
+		firstselection = false;
 		n->node2 = parseSelections();
 		return n;
 	default:
-		error("Expected a new selection or 'from' clause. Found ",t.val);
+		error("Expected a new selection or 'from' clause. Found '",t.val,"'");
 	}
 	return nullptr;
 }
@@ -417,7 +431,7 @@ astnode parser::parseExprCase() {
 			n->tok2 = t2;
 			n->node1 = parseExprAdd();
 			t = q->tok();
-			if (t.lower() != "when") error("Expected 'when' after case expression. Found ",t.val);
+			if (t.lower() != "when") error("Expected 'when' after case expression. Found '",t.val,"'");
 			n->node2 = parseCaseWhenExprList();
 			break;
 		default: error("Expected expression or 'when'. Found ",q->tok().val);
@@ -431,11 +445,11 @@ astnode parser::parseExprCase() {
 			t = q->nextTok();
 			n->node3 = parseExprAdd();
 			t = q->tok();
-			if (t.lower() != "end") error("Expected 'end' after 'else' expression. Found ",t.val);
+			if (t.lower() != "end") error("Expected 'end' after 'else' expression. Found '",t.val,"'");
 			q->nextTok();
 			break;
 		default:
-			error("Expected 'end' or 'else' after case expression. Found ",q->tok().val);
+			error("Expected 'end' or 'else' after case expression. Found '",q->tok().val,"'");
 		}
 		break;
 
@@ -448,7 +462,7 @@ astnode parser::parseExprCase() {
 		n->tok1 = t;
 		q->nextTok();
 		n->node1 = parseExprAdd();
-		if (q->tok().id != SP_RPAREN) error("Expected closing parenthesis. Found ",q->tok().val);
+		if (q->tok().id != SP_RPAREN) error("Expected closing parenthesis. Found '",q->tok().val,"'");
 		q->nextTok();
 		break;
 	default: error("Expected case, value, or expression. Found ",q->tok().val);
@@ -501,7 +515,7 @@ astnode parser::parseCasePredicate() {
 	q->nextTok(); //eat when token
 	n->node1 = parsePredicates();
 	t = q->tok();
-	if (t.lower() != "then") error("Expected 'then' after predicate. Found: ",q->tok().val);
+	if (t.lower() != "then") error("Expected 'then' after predicate. Found: '",q->tok().val,"'");
 	q->nextTok(); //eat then token
 	n->node2 = parseExprAdd();
 	return n;
@@ -554,7 +568,7 @@ astnode parser::parsePredCompare() {
 		try {
 			n->node1 = parsePredicates();
 			t = q->tok();
-			if (t.id != SP_RPAREN) error("Expected cosing parenthesis. Found: ",t.val);
+			if (t.id != SP_RPAREN) error("Expected cosing parenthesis. Found: '",t.val,"'");
 		//if failed, reparse as expression
 		} catch (const std::invalid_argument& e) {
 			q->tokIdx = pos;
@@ -575,7 +589,7 @@ astnode parser::parsePredCompare() {
 		t = q->nextTok();
 	}
 	n->tok2.id = negate;
-	if ((t.id & RELOP) == 0) error("Expected relational operator. Found: ",t.val);
+	if ((t.id & RELOP) == 0) error("Expected relational operator. Found: '",t.val,"'");
 	t = q->tok();
 	n->tok1 = t;
 	t = q->nextTok();
@@ -583,11 +597,11 @@ astnode parser::parsePredCompare() {
 		n->tok3 = t;
 		t = q->nextTok();
 	} else if (n->tok1.id == KW_IN) {
-		if (t.id != SP_LPAREN) error("Expected opening parenthesis for expression list. Found: ",t.val);
+		if (t.id != SP_LPAREN) error("Expected opening parenthesis for expression list. Found: '",t.val,"'");
 		q->nextTok();
 		n->node2 = parseSetList(!nullInList);
 		t = q->tok();
-		if (t.id != SP_RPAREN) error("Expected closing parenthesis after expression list. Found: ",t.val);
+		if (t.id != SP_RPAREN) error("Expected closing parenthesis after expression list. Found: '",t.val,"'");
 		q->nextTok();
 	} else {
 		n->node2 = parseExprAdd();
@@ -646,7 +660,7 @@ void parser::parseTop(astnode& n) {
 	token t = q->tok();
 	if (t.lower() == "top") {
 		t = q->nextTok();
-		if (!is_number(t.val)) error("Expected number after 'top'. Found ",t.val);
+		if (!is_number(t.val)) error("Expected number after 'top'. Found '",t.val,"'");
 		n->tok1.id = atoi(t.val.c_str());
 		q->nextTok();
 	}
@@ -657,7 +671,7 @@ void parser::parseLimit(astnode& n) {
 	token t = q->tok();
 	if (t.lower() == "limit") {
 		t = q->nextTok();
-		if (!is_number(t.val)) error("Expected number after 'limit'. Found ",t.val);
+		if (!is_number(t.val)) error("Expected number after 'limit'. Found '",t.val,"'");
 		n->tok1.id = atoi(t.val.c_str());
 		q->nextTok();
 	}
@@ -676,7 +690,7 @@ astnode parser::parseFrom(bool withselections) {
 			return nullptr;
 		justfile = true;
 	} else {
-		if (t.lower() != "from") error("Expected 'from'. Found: ",t.val);
+		if (t.lower() != "from") error("Expected 'from'. Found: '",t.val,"'");
 		t = q->nextTok();
 	}
 
@@ -705,14 +719,14 @@ astnode parser::parseFile() {
 		q->nextTok();
 		parseFileOptions(n);
 	} else {
-		error("Expected file. Found: ",t.val);
+		error("Expected file. Found: '",t.val,"'");
 	}
 	//alias
 	t = q->tok();
 	switch (t.id) {
 	case KW_AS:
 		t = q->nextTok();
-		if (t.id != WORD_TK) error("Expected alias after as. Found: ",t.val);
+		if (t.id != WORD_TK) error("Expected alias after as. Found: '",t.val,"'");
 	case WORD_TK:
 		if (joinMap.count(t.lower())) break;
 		n->tok4 = t;
@@ -730,22 +744,22 @@ void parser::parseFileOptions(astnode& n) {
 	int& opts = n->optionbits();
 	string s = t.lower();
 	if (s == "nh") {
-		if (opts & (O_H|O_AH)) error("Cannot mix input header options");
+		if (opts & (O_H|O_AH)) error("Cannot have multiple input header options");
 		opts |= O_NH;
 	} else if (s == "h") {
-		if (opts & (O_NH|O_AH)) error("Cannot mix input header options");
+		if (opts & (O_NH|O_AH)) error("Cannot have multiple input header options");
 		opts |= O_H;
 	} else if (s == "ah") {
-		if (opts & (O_NH|O_H)) error("Cannot mix input header options");
+		if (opts & (O_NH|O_H)) error("Cannot have multiple input header options");
 		opts |= O_AH;
 	} else if (s == "s") {
-		if (opts & (O_P|O_T)) error("Cannot mix delimiter options");
+		if (opts & (O_P|O_T)) error("Cannot have multiple delimiter options");
 		opts |= O_S;
 	} else if (s == "p") {
-		if (opts & (O_S|O_T)) error("Cannot mix delimiter options");
+		if (opts & (O_S|O_T)) error("Cannot have multiple delimiter options");
 		opts |= O_P;
 	} else if (s == "t") {
-		if (opts & (O_P|O_S)) error("Cannot mix delimiter options");
+		if (opts & (O_P|O_S)) error("Cannot have multiple delimiter options");
 		opts |= O_T;
 	} else {
 		return;
@@ -782,7 +796,7 @@ astnode parser::parseJoin() {
 	if (n->node1->tok4.id == 0)
 		error("Joined file requires an alias.");
 	t = q->tok();
-	if (t.lower() != "on") error("Expected 'on'. Found: ",t.val);
+	if (t.lower() != "on") error("Expected 'on'. Found: '",t.val,"'");
 	q->nextTok();
 	n->node2 = parsePredicates();
 	n->node3 = parseJoin();
@@ -814,7 +828,7 @@ astnode parser::parseHaving() {
 astnode parser::parseOrder() {
 	token t = q->tok();
 	if (t.lower() == "order") {
-		if (q->nextTok().lower() != "by") error("Expected 'by' after 'order'. Found ",q->tok().val);
+		if (q->nextTok().lower() != "by") error("Expected 'by' after 'order'. Found '",q->tok().val,"'");
 		q->nextTok();
 		astnode n = newNode(N_ORDER);
 		n->node1 = parseExpressionList(false, true);
@@ -862,7 +876,7 @@ astnode parser::parseFunction() {
 				n->tok4.val = t.val;
 				q->nextTok();
 			} else if (q->tok().id != SP_RPAREN) {
-				error("Expect closing parenthesis or comma after expression in crypto function. Found: ",q->tok().val);
+				error("Expect closing parenthesis or comma after expression in crypto function. Found: '",q->tok().val,"'");
 			}
 			break;
 
@@ -883,21 +897,21 @@ astnode parser::parseFunction() {
 		case FN_POW:
 			n->node1 = parseExprAdd();
 			if (t = q->tok(); t.id != SP_COMMA)
-				error("POW function expected comma before second expression. Found: ", t.val);
+				error("POW function expected comma before second expression. Found: '",t.val,"'");
 			q->nextTok();
 			n->node2 = parseExprAdd();
 			break;
 		case FN_FORMAT:
 			n->node1 = parseExprAdd();
 			if (t = q->tok(); t.id != SP_COMMA)
-				error("FORMAT function expected comma before date format parameter. Found: ", t.val);
+				error("FORMAT function expected comma before date format parameter. Found: '",t.val,"'");
 			n->tok2 = q->nextTok();
 			q->nextTok();
 			break;
 		case FN_SUBSTR:
 			n->node1 = parseExprAdd();
 			if (t = q->tok(); t.id != SP_COMMA)
-				error("SUBSTR function expected comma before second parameter. Found: ", t.val);
+				error("SUBSTR function expected comma before second parameter. Found: '",t.val,"'");
 			n->tok2 = q->nextTok();
 			if (t = q->nextTok(); t.id == SP_COMMA){
 				n->tok3 = q->nextTok();
@@ -913,7 +927,7 @@ astnode parser::parseFunction() {
 			n->node1 = parseExprAdd();
 		}
 	}
-	if (q->tok().id != SP_RPAREN) error("Expected closing parenthesis after function. Found: ",q->tok().val);
+	if (q->tok().id != SP_RPAREN) error("Expected closing parenthesis after function. Found: '",q->tok().val,"'");
 	q->nextTok();
 	return n;
 }
