@@ -14,6 +14,7 @@ void help(char* prog){
 		<< prog << "\n\tRun server to use graphic interface in web browser\n\n"
 		"Flags:\n"
 		"\t-x Don't check for updates when clicking the gui's help button\n"
+		"\t-m Don't require comma between selections, but do require 'as' for result names\n"
 		"\t-g Don't show debug info in console\n"
 		"\t-d Show debug info in console (default)\n"
 		"\t-e Don't automatically exit 3 minutes after the browser page is closed\n"
@@ -35,7 +36,7 @@ int main(int argc, char** argv){
 	bool jsonstdout = false;
 	string querystring;
 	loadconfig();
-	for(char c; (c = getopt(argc, argv, "hxvgdeajtywcf:")) != -1;)
+	for(char c; (c = getopt(argc, argv, "hxvgdeajtywcmf:")) != -1;)
 		switch(c){
 		case 'x':
 			globalSettings.update = false;
@@ -73,6 +74,9 @@ int main(int argc, char** argv){
 		case 'j':
 			jsonstdout = true;
 			globalSettings.termbox = false;
+			break;
+		case 'm':
+			globalSettings.needcomma = false;
 			break;
 		case 'h':
 			help(argv[0]);
@@ -147,7 +151,8 @@ void loadconfig(){
 		"check_update",
 		"guess_file_header",
 		"exit_automatically",
-		"table_or_csv"
+		"table_or_csv",
+		"need_comma_separator"
 	};
 	string defaultoutput;
 	boost::filesystem::create_directories(globalSettings.configdir);
@@ -161,7 +166,8 @@ void loadconfig(){
 					globalSettings.update,
 					globalSettings.autoheader,
 					globalSettings.autoexit,
-					defaultoutput);
+					defaultoutput,
+					globalSettings.needcomma);
 			if (defaultoutput == "table")
 				globalSettings.termbox = true;
 			if (confversion >= version){
@@ -178,5 +184,6 @@ void loadconfig(){
 			globalSettings.update,
 			globalSettings.autoheader,
 			globalSettings.autoexit,
-			defaultoutput);
+			defaultoutput,
+			globalSettings.needcomma);
 }

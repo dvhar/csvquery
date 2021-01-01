@@ -472,7 +472,7 @@ set<int> analyzer::whichFilesReferenced(astnode &n){
 //only called on predicates nodes
 bool analyzer::ischain(astnode &n, int &predno){
 	if (n == nullptr) return predno >= 2;
-	if (n->label == KW_OR) return false;
+	if (n->logop() == KW_OR || n->logop() == KW_XOR) return false;
 	bool simpleCompare = n->npredcomp()->relop() != SP_LPAREN;
 	if (simpleCompare){
 		++predno;
@@ -494,7 +494,7 @@ void analyzer::findJoinAndChains(astnode &n, int fileno){
 			findJoinAndChains(n->nnextjoin(), fileno+1);
 			break;
 		case N_PREDICATES:
-			if (n->tok1.id == KW_AND){
+			if (n->logop() == KW_AND){
 				bool first = n->andChain() != 1;
 				int chainsize = 0;
 				if (ischain(n, chainsize) && first){
@@ -567,7 +567,7 @@ void analyzer::findIndexableJoinValues(astnode &n, int fileno){
 			if (n->andChain() == 0){
 				auto& vpv = q->getFileReader(fileno)->joinValpos;
 				n->predValposIdx() = vpv.size();
-				vpv.push_back(vector<valpos>());
+				vpv.emplace_back();
 			}
 			return;
 			}
@@ -575,9 +575,9 @@ void analyzer::findIndexableJoinValues(astnode &n, int fileno){
 		break;
 	case N_JOIN:
 		{
-			auto& f = q->filemap[n->node1->tok4.val];
+			auto& f = q->filemap[n->nfile()->filealias()];
 			if (!f)
-				error("Could not find file matching join alias ",n->tok4.val);
+				error("Could not find file matching join alias ",n->nfile()->filealias());
 			fileno = f->fileno;
 		}
 	default:
