@@ -245,15 +245,17 @@ export class Help extends React.Component {
 				<h4>Specifying csv delimiters and file header</h4>
 				These characters can be added to the beginning of a query or after the file path to specify file format details: <code>nh</code>, <code>h</code>, <code>ah</code>, <code>s</code>, <code>t</code>, and <code>p</code>. The characters <code>nh</code>, <code>h</code>, and <code>ah</code> mean 'no header', 'header', and 'auto header' respectively. Default behavior is to treat the first line of the file as a header. <code>ah</code> will guess if there is a header based on whether or not the first row contains numbers. <code>s</code>, <code>t</code>, and <code>p</code> mean the delimiter is 'spaces', 'tabs', and 'pipes' respectively, with pipes being this character: <code>|</code>. Default delimiter is commas. See examples in the next section.
 				<h4>Selecting some columns</h4>
-				Columns can be specified by name or number. Select column numbers by prefacing the number with <code>c</code>, or by using a plain unquoted number if putting a <code></code> in front of the whole query. Commas between selections are optional. Result columns can be renamed with the <code>as</code> keyword.
+				Columns can be specified by name or number. Select column numbers by prefacing the number with <code>c</code>, or by using a plain unquoted number if putting a <code>c</code> in front of the whole query. To make commas between selections optional (but require <code>as</code> to rename), put <code>m</code> in front of the query, or set <code>need_comma_separator</code> to <code>false</code> in the config file.
 					<br/><br/>
-					Example: selecting columns 1-3, dogs, and cats from a file with no header<br/>
+					Example: selecting columns 1-3, dogs, and cats from a file with no header and name column 2 as 'food'<br/>
 				<blockquote><code>
-						nh select c1, c2 as 'food', c3, dogs, cats from '/home/user/pets.csv'
+						nh select c1, c2 'food', c3, dogs, cats from '/home/user/pets.csv'
 						<br/>
-						select c1 c2 c3 dogs cats from 'C:\\users\\dave\\pets.csv' nh
+						select c1, c2 'food', c3 dogs cats from 'C:\\users\\dave\\pets.csv' nh
 						<br/>
-						c nh select 1 2 3 dogs cats from 'C:\\users\\dave\\pets.csv'
+						c nh select 1, 2 'food', 3 dogs cats from 'C:\\users\\dave\\pets.csv'
+						<br/>
+						m c nh select 1 2 as 'food' 3 dogs cats from 'C:\\users\\dave\\pets.csv'
 			</code></blockquote>
 				<h4>Selecting all columns</h4>
 				<code>select *</code> works how you'd expect. If you don't specify any values at all, it will also select all. It will also select all if you skip the <code>select from</code> part altogether as long as there are quotes around the file path.
@@ -322,9 +324,9 @@ export class Help extends React.Component {
 					<br/><br/>
 					Examples:
 				<blockquote><code>
-						select top 100 c1 c2 c3 dogs cats from '/home/user/pets.csv'
+						select top 100 c1, c2, c3, dogs, cats from '/home/user/pets.csv'
 						<br/>
-						select c1 c2 c3 dogs cats from '/home/user/pets.csv' limit 100
+						select c1, c2, c3, dogs, cats from '/home/user/pets.csv' limit 100
 				</code></blockquote>
 				<h4>Selecting rows that match a certain condition</h4>
 				Use any combinatin of <code>{"<expression> <relational operator> <expression>"}</code>, parentheses, <code>and</code>, <code>or</code>, <code>xor</code>, <code>not</code>, <code>in</code>, and <code>between</code>. Dates are handled nicely, so <code>May 18 1955</code> is the same as <code>5/18/1955</code>. Empty entries can be compared against the keyword <code>null</code>. The <code>in</code> operator can be used with a subquery, though correlated subqueries are not yet supported.
