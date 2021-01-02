@@ -293,7 +293,6 @@ enum: int {
 	PARAMTYPE,
 	RETTYPE,
 	LPMID,
-	OPTS
 };
 class node {
 	public:
@@ -381,14 +380,14 @@ class node {
 	astnode& npreselect(){ return node1; }
 	astnode& nfile(){ return node1; }
 	string& filename(){ return tok1.val; }
-	string& filealias(){ return tok4.val; }
+	string& filealias(){ return tok4.id? tok4.val : tok1.val; }
 	int& mathop(){ return tok1.id; }
 	int& casenodetype(){ return tok1.id; }
 	int& casetype(){ return tok2.id; }
 	astnode& ncaseresultexpr(){ return node2; }
 	int& colidx(){ return tok1.id; }
 	int& casewhentype(){ return tok3.id; }
-	int& optionbits(){ return info[OPTS]; }
+	int& optionbits(){ return tok3.id; }
 };
 class variable {
 	public:

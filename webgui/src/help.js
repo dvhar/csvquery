@@ -355,7 +355,7 @@ export class Help extends React.Component {
 						select from '/home/user/pets.csv' order by c2*c3
 				</code></blockquote>
 				<h4>Joining Files</h4>
-				Any number of files can be joined together. <code>left</code> and <code>inner</code> joins are allowed, default is <code>inner</code>. Each file needs an alias. Join conditions can have as many comparisions as you want, and is most efficient when the first comparision las the lowest cardinality.
+				Any number of files can be joined together. <code>left</code> and <code>inner</code> joins are allowed, default is <code>inner</code>. Join conditions can have as many comparisions as you want, and is most efficient when the first comparision las the lowest cardinality.
 					<br/><br/>
 					Examples:
 					<blockquote><code>
