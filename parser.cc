@@ -74,7 +74,7 @@ class parser {
 	astnode parseValue();
 	astnode parseFunction();
 	astnode parseAfterFrom();
-	astnode parseFile();
+	astnode parseFile(bool join);
 	astnode parseSetList(bool);
 	astnode parseExpressionList(bool i, bool s);
 	astnode parseQuery();
@@ -152,13 +152,13 @@ astnode parser::parseHandleAlias() {
 	if (n->tok2.lower() == "add"){
 		if (t.id != WORD_TK)
 			error("Expected file alias after 'add'. Found '",t.val,"'");
-		n->node1 = parseFile();
+		n->node1 = parseFile(false);
 	}
 	return n;
 }
 
 //node1 is with
-//tok1.id is options
+//tok3.id is options
 astnode parser::parsePreSelect() {
 	token t = q->tok();
 	astnode n = newNode(N_PRESELECT);
@@ -198,37 +198,39 @@ astnode parser::parseAfterFrom() {
 	return n;
 }
 
+//tok3.id of arg node is options
 void parser::parseOptions(astnode& n) {
 	token t = q->tok();
+	int& opts = n->optionbits();
 	string s = t.lower();
 	if (s == "c") {
-		n->tok1.id |= O_C;
+		opts |= O_C;
 	} else if (s == "oh") {
-		if (n->tok1.id & O_NOH) error("Cannot have multiple output header options");
-		n->tok1.id |= O_OH;
+		if (opts & O_NOH) error("Cannot have multiple output header options");
+		opts |= O_OH;
 	} else if (s == "noh") {
-		if (n->tok1.id & O_NOH) error("Cannot have multiple output header options");
-		n->tok1.id |= O_NOH;
+		if (opts & O_NOH) error("Cannot have multiple output header options");
+		opts |= O_NOH;
 	} else if (s == "nh") {
-		if (n->tok1.id & (O_H|O_AH)) error("Cannot have multiple input header options");
-		n->tok1.id |= O_NH;
+		if (opts & (O_H|O_AH)) error("Cannot have multiple input header options");
+		opts |= O_NH;
 	} else if (s == "h") {
-		if (n->tok1.id & (O_NH|O_AH)) error("Cannot have multiple input header options");
-		n->tok1.id |= O_H;
+		if (opts & (O_NH|O_AH)) error("Cannot have multiple input header options");
+		opts |= O_H;
 	} else if (s == "ah") {
-		if (n->tok1.id & (O_NH|O_H)) error("Cannot have multiple input header options");
-		n->tok1.id |= O_AH;
+		if (opts & (O_NH|O_H)) error("Cannot have multiple input header options");
+		opts |= O_AH;
 	} else if (s == "s") {
-		if (n->tok1.id & (O_P|O_T)) error("Cannot have multiple delimiter options");
-		n->tok1.id |= O_S;
+		if (opts & (O_P|O_T)) error("Cannot have multiple delimiter options");
+		opts |= O_S;
 	} else if (s == "p") {
-		if (n->tok1.id & (O_S|O_T)) error("Cannot have multiple delimiter options");
-		n->tok1.id |= O_P;
+		if (opts & (O_S|O_T)) error("Cannot have multiple delimiter options");
+		opts |= O_P;
 	} else if (s == "t") {
-		if (n->tok1.id & (O_P|O_S)) error("Cannot have multiple delimiter options");
-		n->tok1.id |= O_T;
+		if (opts & (O_P|O_S)) error("Cannot have multiple delimiter options");
+		opts |= O_T;
 	} else if (s == "nan") {
-		n->tok1.id |= O_NAN;
+		opts |= O_NAN;
 	} else if (s == "m") {
 		needcomma = false;
 	} else {
@@ -695,16 +697,16 @@ astnode parser::parseFrom(bool withselections) {
 	}
 
 	astnode n = newNode(N_FROM);
-	n->node1 = parseFile();
+	n->node1 = parseFile(false);
 	n->node2 = parseJoin();
 	return n;
 }
 
 //tok1 is file path or view name
 //tok2 will be copy of tok1 if filealias
+//tok3.id is file options
 //tok4 is alias
-//[OPTS] is file options
-astnode parser::parseFile() {
+astnode parser::parseFile(bool join) {
 	token t = q->tok();
 	astnode n = newNode(N_FILE);
 	bool isfile = false;
@@ -728,7 +730,7 @@ astnode parser::parseFile() {
 		t = q->nextTok();
 		if (t.id != WORD_TK) error("Expected alias after as. Found: '",t.val,"'");
 	case WORD_TK:
-		if (joinMap.count(t.lower())) break;
+		if (auto tl=t.lower(); joinMap.count(tl) || (join && tl=="on")) break;
 		n->tok4 = t;
 		q->nextTok();
 	}
@@ -738,7 +740,7 @@ astnode parser::parseFile() {
 	return n;
 }
 
-//[OPTS] of arg node is file options
+//tok3.id of arg node is file options
 void parser::parseFileOptions(astnode& n) {
 	token t = q->tok();
 	int& opts = n->optionbits();
@@ -792,9 +794,7 @@ astnode parser::parseJoin() {
 	} else {
 		error("Expected 'join'. Found:",q->tok().val);
 	}
-	n->node1 = parseFile();
-	if (n->node1->tok4.id == 0)
-		error("Joined file requires an alias.");
+	n->node1 = parseFile(true);
 	t = q->tok();
 	if (t.lower() != "on") error("Expected 'on'. Found: '",t.val,"'");
 	q->nextTok();

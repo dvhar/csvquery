@@ -509,7 +509,7 @@ void analyzer::findJoinAndChains(astnode &n, int fileno){
 					n->node1->andChain() = 2;
 				}
 			}
-			if (n->npredcomp()->tok1.id == SP_LPAREN)
+			if (n->npredcomp()->relop() == SP_LPAREN)
 				findJoinAndChains(n->npredcomp()->nmorepreds(), fileno);
 			findJoinAndChains(n->nnextpreds(), fileno);
 			break;
@@ -605,7 +605,7 @@ void analyzer::setAttributes(astnode& n){
 			q->distinctFiltering = 1;
 		break;
 	case N_PRESELECT:
-		q->options = n->tok1.id;
+		q->options = n->optionbits();
 		break;
 	case N_SELECT:
 		if (n->quantlimit())
