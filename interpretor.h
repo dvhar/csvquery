@@ -351,7 +351,7 @@ class node {
 	astnode& norder(){ return node4; }
 	astnode& nwhere(){ return node1; }
 	astnode& nsetlist(){ return node2; }
-	int& orderasc(){ return tok1.id; }
+	int& orderdirection(){ return tok1.id; }
 	int& varmididx(){ return tok3.id; }
 	int& negated(){ return tok2.id; }
 	astnode& ngrouplist(){ return node1; }
@@ -608,7 +608,7 @@ class querySpecs {
 	string queryString;
 	string password;
 	vector<token> tokArray;
-	vector<pair<int,int>> sortInfo; // asc, datatype
+	vector<pair<int,int>> sortInfo; // desc, datatype
 	vector<variable> vars;
 	vector<dat> dataholder;
 	vector<opcode> bytecode;

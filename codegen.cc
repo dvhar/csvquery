@@ -532,7 +532,7 @@ void cgen::genNormalSortList(astnode &n){
 		if (x->datatype == T_STRING)
 			addop(NUL_TO_STR);
 		addop(operations[OPSVSRT][x->datatype], i++);
-		q->sortInfo.push_back({x->orderasc(), x->datatype});
+		q->sortInfo.push_back({x->orderdirection(), x->datatype});
 	}
 }
 void cgen::genGroupingQuery(astnode &n){
@@ -1260,7 +1260,7 @@ void cgen::genSortedGroupRow(astnode &n, int nextgroup){
 		if (x->datatype == T_STRING)
 			addop(NUL_TO_STR);
 		addop(PUT, x->aggorderdestidx());
-		q->sortInfo.push_back({x->orderasc(), x->datatype});
+		q->sortInfo.push_back({x->orderdirection(), x->datatype});
 	}
 	addop(FREEMIDROW);
 	addop(JMP, nextgroup);

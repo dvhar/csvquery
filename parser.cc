@@ -824,7 +824,6 @@ astnode parser::parseHaving() {
 }
 
 //node1 is sort expr list
-//tok1 is asc
 astnode parser::parseOrder() {
 	token t = q->tok();
 	if (t.lower() == "order") {
@@ -945,7 +944,7 @@ astnode parser::parseGroupby() {
 
 //node1 is expression
 //node2 is expressionlist
-//tok1 id asc for sorting lists
+//tok1 id desc for sorting lists
 //tok2.id will be sort list size, initially set to 1
 //tok3.id will be destrow index for aggregate sort values
 //	or sequence number for non-agg sort values
@@ -957,7 +956,7 @@ astnode parser::parseExpressionList(bool interdependant, bool sortlist) { //bool
 	n->node1 = parseExprAdd();
 	t = q->tok();
 	if (sortlist && (t.lower() == "asc" || t.lower() == "desc")){
-		n->tok1.id = t.lower() == "asc";
+		n->tok1.id = t.lower() == "desc";
 		t = q->nextTok();
 	}
 	n->tok2.id = sortlist;

@@ -442,7 +442,7 @@ class sortcomp {
 			int sortval = 0;
 			do dif = comps[sortval](vals[sortval][a], vals[sortval][b]);
 			while (dif == 0 && ++sortval < sortcount);
-			return dif>0;
+			return dif<0;
 		};
 };
 class gsortcomp {
@@ -463,7 +463,7 @@ class gsortcomp {
 			int sortval = sortidx;
 			do dif = comps[sortval-sortidx](a[sortval].u, b[sortval].u);
 			while (dif == 0 && ++sortval < sortcount+sortidx);
-			return dif>0;
+			return dif<0;
 		};
 };
 static pair<dat*,dat*> getfirst(dat* stacktop, int firsttype){

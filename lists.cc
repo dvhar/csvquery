@@ -55,7 +55,7 @@ const flatmap<string_view, int> keywordMap = {
 	{"order" ,     KW_ORDER},
 	{"by" ,        KW_BY},
 	{"distinct" ,  KW_DISTINCT},
-	{"asc" ,       KW_ORDHOW},
+	{"desc" ,       KW_ORDHOW},
 	{"between" ,   KW_BETWEEN},
 	{"like" ,      KW_LIKE},
 	{"case" ,      KW_CASE},

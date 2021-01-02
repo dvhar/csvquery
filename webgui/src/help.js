@@ -346,11 +346,11 @@ export class Help extends React.Component {
 						select from '/home/user/pets.csv' where species not in (select species from behaviors.csv where prey != humans)
 				</code></blockquote>
 				<h4>Sorting results</h4>
-					Use <code>order by</code> at the end of the query, followed by any number of expressions, each followed optionally by <code>asc</code>. Sorts by descending values unless <code>asc</code> is specified.
+					Use <code>order by</code> at the end of the query, followed by any number of expressions, each followed optionally by <code>desc</code>. Sorts by ascending values unless <code>desc</code> is specified.
 					<br/><br/>
 					Examples:
 				<blockquote><code>
-						select from '/home/user/pets.csv' where dog = husky order by age, fluffiness asc
+						select from '/home/user/pets.csv' where dog = husky order by age, fluffiness desc
 						<br/>
 						select from '/home/user/pets.csv' order by c2*c3
 				</code></blockquote>

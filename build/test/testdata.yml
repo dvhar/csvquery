@@ -38,26 +38,26 @@
   query: m select top 10 c1 from 'test/country.csv' nh where c1 not in (AFG, AGO, AIA,
     ALB, 'AND', ANT, ARE, ARG, ARM, ASM)
   output: 8.csv
-- title: order by int
+- title: order by int desc
   code: 0
-  query: m select top 10 c7 from 'test/country.csv' nh order by c7
+  query: m select top 10 c7 from 'test/country.csv' nh order by c7 desc
   output: 9.csv
 - title: order by float asc
   code: 0
   query: m select top 10 c9 from 'test/country.csv' nh order by c9 asc where c9 <> 0
   output: 10.csv
-- title: order by date
+- title: order by date desc
   code: 0
-  query: m select top 10 c16 from 'test/country.csv' nh order by c16
+  query: m select top 10 c16 from 'test/country.csv' nh order by c16 desc
   output: 11.csv
-- title: order by string
+- title: order by string desc
   code: 0
-  query: m select top 10 c1 from 'test/country.csv' nh order by c1
+  query: m select top 10 c1 from 'test/country.csv' nh order by c1 desc
   output: 12.csv
-- title: order by variable
+- title: order by variable desc
   code: 0
   query: m with c1 + dog as ord select top 10 ord from 'test/country.csv' nh order by
-    ord
+    ord desc
   output: 13.csv
 - title: order by variable asc
   code: 0
@@ -98,17 +98,17 @@
 - title: double group sort with var
   code: 0
   query: m with max(c1) as m1 select max(c3) m1 from 'test/country' nh group by inc()
-    order by max(c3) m1 asc
+    order by max(c3) desc m1 asc
   output: 21.csv
 - title: triple group sort with just vars
   code: 0
   query: m with max(c1) as m1, max(c3) as m3, max(c4) as m4 select m3 m4 m1 from 'test/country'
-    nh group by inc() % 20 order by m3 m4 asc m1
+    nh group by inc() % 20 order by m3 desc m4 asc m1 desc
   output: 22.csv
 - title: triple plain sort with var
   code: 0
-  query: m with c7%10000 as v7 select c3 v7 c9 from 'test/country' nh order by c3 v7
-    c9
+  query: m with c7%10000 as v7 select c3 v7 c9 from 'test/country' nh order by c3 desc v7 desc
+    c9 desc
   output: 23.csv
 - title: count distinct with groups
   code: 0
@@ -138,12 +138,12 @@
 - title: sorting group join
   code: 0
   query: m with count(*) as k select c1 max(l.c2) k from 'test/country.csv' o nh join 'test/lang.csv'
-    l nh on o.c1=l.c1 group by l.c1 order by k max(l.c2) max(c1) limit 10
+    l nh on o.c1=l.c1 group by l.c1 order by k desc max(l.c2) desc max(c1) desc limit 10
   output: 29.csv
 - title: sorting group join with having var
   code: 0
   query: m with count(*) as k select c1 max(l.c2) k from 'test/country.csv' o nh join 'test/lang.csv' l
-    nh on o.c1=l.c1 group by l.c1 order by k max(l.c2) max(c1) having k between 10 and 5
+    nh on o.c1=l.c1 group by l.c1 order by k desc max(l.c2) desc max(c1) desc having k between 10 and 5
   output: 30.csv
 - title: distinct aggregate
   code: 0
