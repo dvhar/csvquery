@@ -55,7 +55,7 @@ const flatmap<string_view, int> keywordMap = {
 	{"order" ,     KW_ORDER},
 	{"by" ,        KW_BY},
 	{"distinct" ,  KW_DISTINCT},
-	{"desc" ,       KW_ORDHOW},
+	{"desc" ,      KW_ORDHOW},
 	{"between" ,   KW_BETWEEN},
 	{"like" ,      KW_LIKE},
 	{"case" ,      KW_CASE},
@@ -65,7 +65,8 @@ const flatmap<string_view, int> keywordMap = {
 	{"end" ,       KW_END},
 	{"in" ,        KW_IN},
 	{"group" ,     KW_GROUP},
-	{"not" ,       SP_NEGATE}
+	{"not" ,       SP_NEGATE},
+	{"is" ,        SP_EQ}
 };
 //functions are normal words to avoid taking up too many words
 //use map when parsing not scanning
