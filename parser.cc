@@ -27,7 +27,7 @@ caseWhenPredList  -> <casePredicate> <caseWhenPredList> | <casePredicate>
 casePredicate     -> when <predicates> then <exprAdd>
 predicates        -> { not }  <predicateCompare> { <logop> <predicates> }
 value             -> column | literal | variable | <function>
-predicateCompare  -> { not } <expradd> { not } <relop> <expradd>
+predicateCompare  -> { not } <expradd> { not } <relop> { not } <expradd>
                     | { not } <expradd> { not } between <expradd> and <expradd>
                     | { not } <expradd> in ( <setlist> )
                     | { not } ( predicates )
@@ -590,11 +590,14 @@ astnode parser::parsePredCompare() {
 		negate ^= 1;
 		t = q->nextTok();
 	}
-	n->tok2.id = negate;
 	if ((t.id & RELOP) == 0) error("Expected relational operator. Found: '",t.val,"'");
 	t = q->tok();
 	n->tok1 = t;
 	t = q->nextTok();
+	if (t.id == SP_NEGATE) {
+		negate ^= 1;
+		t = q->nextTok();
+	}
 	if (n->tok1.id == KW_LIKE) {
 		n->tok3 = t;
 		t = q->nextTok();
@@ -612,6 +615,7 @@ astnode parser::parsePredCompare() {
 		q->nextTok();
 		n->node3 = parseExprAdd();
 	}
+	n->tok2.id = negate;
 	return n;
 }
 

@@ -331,7 +331,7 @@ export class Help extends React.Component {
 				<h4>Selecting rows that match a certain condition</h4>
 				Use any combinatin of <code>{"<expression> <relational operator> <expression>"}</code>, parentheses, <code>and</code>, <code>or</code>, <code>xor</code>, <code>not</code>, <code>in</code>, and <code>between</code>. Dates are handled nicely, so <code>May 18 1955</code> is the same as <code>5/18/1955</code>. Empty entries can be compared against the keyword <code>null</code>. The <code>in</code> operator can be used with a subquery, though correlated subqueries are not yet supported.
 					<br/><br/>
-				Valid relational operators are <code>=</code>,  <code>!=</code>,  <code>{"<>"}</code>,  <code>{">"}</code>,  <code>{"<"}</code>,  <code>{">="}</code>,  <code>{"<="}</code>, <code>like</code>, <code>in</code>, and <code>between</code>. <code>!</code> is evaluated the same as <code>not</code>, and can be put in front of a relational operator or a whole comparison.
+				Valid relational operators are <code>is</code>, <code>=</code>,  <code>!=</code>,  <code>{"<>"}</code>,  <code>{">"}</code>,  <code>{"<"}</code>,  <code>{">="}</code>,  <code>{"<="}</code>, <code>like</code>, <code>in</code>, and <code>between</code>. <code>!</code> is evaluated the same as <code>not</code>, and can be put in front of a relational operator or a whole comparison.
 					<br/><br/>
 					Examples:
 				<blockquote><code>
@@ -342,6 +342,8 @@ export class Help extends React.Component {
 						select from '/home/user/pets.csv' where c1 in (2,3,5,7,11,13,17,19,23)
 						<br/>
 						select from '/home/user/pets.csv' where null not in (c1,c2,c3)
+						<br/>
+						select from '/home/user/pets.csv' where name is not null
 						<br/>
 						select from '/home/user/pets.csv' where species not in (select species from behaviors.csv where prey != humans)
 				</code></blockquote>
