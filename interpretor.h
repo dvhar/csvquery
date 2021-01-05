@@ -245,6 +245,7 @@ enum {
 	CMD_ADDALIAS,
 	CMD_SHOWTABLES,
 	CMD_DROPALIAS,
+	COMMENTED_OUT,
 };
 
 extern const flatmap<int, string_view> treeMap;
@@ -642,6 +643,7 @@ class querySpecs {
 	bool havingFiltering =0;
 	bool distinctFiltering =0;
 	bool needPass =0;
+	bool canskip =0;
 	token tok();
 	token nextTok();
 	token peekTok();
@@ -697,11 +699,12 @@ class subquery {
 class singleQueryResult {
 	stringstream j;
 	public:
-	int numrows =0;
-	int rowlimit =0;
-	int numcols =0;
-	int status =0;
-	int clipped =0;
+	int numrows = 0;
+	int rowlimit = 0;
+	int numcols = 0;
+	int status = 0;
+	int clipped = 0;
+	bool skip = 0;
 	vector<int> types;
 	vector<string> colnames;
 	list<string> Vals; //each string is whole row of encoded json
@@ -717,9 +720,9 @@ class returnData {
 	stringstream j;
 	public:
 	list<shared_ptr<singleQueryResult>> entries;
-	int status =0;
-	int maxclipped =0;
-	bool clipped =0;
+	int status = 0;
+	int maxclipped = 0;
+	bool clipped = 0;
 	string originalQuery;
 	string message;
 	stringstream& tojson();

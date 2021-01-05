@@ -81,19 +81,30 @@ class stringLookahead {
 	int filderedGetc();
 	int filderedPeek();
 	char* nextCstr();
-	stringLookahead(string s, int* ll, int* cc){
-		text = s;
-		l = ll;
-		c = cc;
-	};
+	querySpecs* qs;
+	stringLookahead(string s, int* ll, int* cc, querySpecs& q) :
+		text(s), l(ll), c(cc), qs(&q) {};
 };
 int stringLookahead::filderedGetc() {
 	if (idx >= text.length()) { return EOS; }
-	if (idx+1 < text.length() && string_view(text.data()+idx, 2) == "--"){
-		while (text[idx] != '\n' && idx < text.length()) {
-			lastskipped = idx;
-			idx++;
-			*c++;
+	if (idx+1 < text.length()){
+		auto maybecomment = string_view(text.data()+idx, 2);
+		if (maybecomment == "--"){
+			qs->canskip = true;
+			while (idx < text.length() && text[idx] != '\n') {
+				lastskipped = idx;
+				idx++;
+				*c++;
+			}
+		}
+		if (maybecomment == "/*"){
+			qs->canskip = true;
+			int oldidx = idx;
+			int endcomment = text.find("*/",idx);
+			if (endcomment == -1) error("Comment starting with '/*' was not terminated");
+			lastskipped = endcomment+1;
+			*c += endcomment - oldidx;
+			idx = lastskipped+1;
 		}
 	}
 	if (idx >= text.length()) { return EOS; }
@@ -120,7 +131,7 @@ class scanner {
 	public:
 		token scanToken();
 		token scanQuotedToken(int);
-		scanner(querySpecs &q) : input(q.queryString, &lineNo, &colNo) {
+		scanner(querySpecs &q) : input(q.queryString, &lineNo, &colNo, q) {
 			initable();
 		}
 };

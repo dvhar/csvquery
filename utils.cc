@@ -442,6 +442,10 @@ int prepareQuery(querySpecs &q){
 	exception_ptr ex = nullptr;
 	try {
 		scanTokens(q);
+		if (q.canskip && q.tokArray.size() == 1 && q.tokArray[0].id == EOS){
+			perr("Query commented out\n");
+			return COMMENTED_OUT;
+		}
 		parseQuery(q);
 		//return code for operations other than queries
 		if (int nonquery = earlyAnalyze(q); nonquery){

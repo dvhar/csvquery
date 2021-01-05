@@ -142,11 +142,13 @@ static shared_ptr<returnData> runqueries(webquery &wq){
 	auto ret = make_shared<returnData>();
 	for (auto &q: wq.queries){
 		auto&& singleResult = runWebQuery(wq);
+		wq.whichone++;
+		if (singleResult == nullptr)
+			continue;
 		perr("Got result of single query");
 		ret->entries.push_back(singleResult);
 		if (singleResult->clipped)
 			ret->maxclipped = max(ret->maxclipped, singleResult->rowlimit);
-		wq.whichone++;
 	}
 	perr("Got result of all queries");
 	return ret;
