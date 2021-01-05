@@ -391,8 +391,10 @@ class qinstance {
 	~qinstance(){}
 	int runq(){
 		if (int nonquery = prepareQuery(*q); nonquery){
-			if (nonquery == CMD_SHOWTABLES)
+			if (nonquery == COMMENTED_OUT){
+			} else if (nonquery == CMD_SHOWTABLES){
 				json = showTables(*q);
+			}
 			id = rng();
 			return id;
 		}
