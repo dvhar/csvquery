@@ -131,7 +131,6 @@ int main(int argc, char** argv){
 
 		querySpecs q(querystring);
 		if (jsonstdout){
-			q.setoutputJson();
 			cout << runJsonQuery(q)->tojson().str();
 		} else {
 			q.setoutputCsv();
