@@ -329,7 +329,7 @@ void dataTyper::typeInitialValue(astnode &n, bool trivial){
 	//cerr << "typed " << n->tok1.val << " as " << n->datatype << endl;
 
 	//see if selecting trivial value (just column or literal)
-	if (n->label == N_SELECTIONS && !q->isSubquery) trivial = true;
+	if (n->label == N_SELECTIONS && !q->isSubquery && n->diststartok().id != KW_DISTINCT) trivial = true;
 	if (trivial && !stillTrivial(n))                trivial = false;
 	if (trivial && n->label == N_VALUE) {
 		if (n->valtype() == COLUMN) {

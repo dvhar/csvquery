@@ -19,7 +19,6 @@ makeserver(){
 		if (rejectNonLocals(request)) return;
 			response->write(string_view((const char*)g${sym}Data, g${sym}Size));
 		};"
-	render
 }
 
 files=`find webgui/build -regextype posix-egrep -regex ".*(js|css|map|json|txt|html)" -type f`
