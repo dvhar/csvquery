@@ -56,7 +56,7 @@ enum codes : int {
 
 };
 
-//2d array for ops indexed by operation and datatype. used with operations[][]
+//used as indexes in 2D operations array
 enum typeOperators {
 	OPADD, OPSUB, OPMULT, OPMOD, OPDIV, OPPOW, OPNEG, OPLD, OPEQ, OPLEQ, OPLT,
 	OPMAX, OPMIN, OPSUM, OPAVG, OPSTV, OPLSTV, OPLAVG, OPSVSRT, OPABS

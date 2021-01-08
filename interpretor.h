@@ -84,6 +84,11 @@ class settings_t {
 	string configfilepath = configdir + "/config";
 #endif 
 };
+#ifdef _WIN32
+#define SLASH "\\"
+#else
+#define SLASH "/"
+#endif
 
 extern mt19937 rng;
 extern string version;

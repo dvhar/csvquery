@@ -258,7 +258,7 @@ export class Help extends React.Component {
 						m c nh select 1 2 as 'food' 3 dogs cats from 'C:\\users\\dave\\pets.csv'
 			</code></blockquote>
 				<h4>Selecting all columns</h4>
-				<code>select *</code> works how you'd expect. If you don't specify any values at all, it will also select all. It will also select all if you skip the <code>select from</code> part altogether as long as there are quotes around the file path.
+				<code>select *</code> works how you'd expect. If you don't specify any values at all, it will also select all. It will also select all if you skip the <code>select from</code> part altogether.
 					<br/><br/>
 					Examples:
 					<br/>
