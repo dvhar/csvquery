@@ -332,7 +332,7 @@ void findExtension(string& fname){
 bool opener::checkAliases(astnode& n){
 	if (regex_match(n->tok1.val,filelike))
 		return false;
-	string aliasfile = st(globalSettings.configdir,"/alias-",n->tok1.val,".txt");
+	string aliasfile = st(globalSettings.configdir,SLASH,"alias-",n->tok1.val,".txt");
 	if (!boost::filesystem::exists(aliasfile))
 		return false;
 	n->tok2 = n->tok1;

@@ -502,6 +502,7 @@ function<i64 (const datunion,const datunion)> datunionDiffs[6] = {
 	[](const auto a, const auto b) { return strcmp(b.s, a.s); },
 };
 
+//2d array for ops indexed by operation and datatype. used with operations[][]
 int operations[20][6] = {
 	{ 0, IADD, FADD, DTADD, DRADD, TADD },
 	{ 0, ISUB, FSUB, DTSUB, DRSUB, 0 },
