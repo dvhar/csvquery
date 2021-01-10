@@ -28,6 +28,7 @@ class Main extends React.Component {
 			configpath : "",
 			version : "",
 			sessionId : "",
+			lastpass : "",
 		}
 		this.topDropReset = this.topDropReset.bind(this);
 
@@ -191,11 +192,18 @@ class Main extends React.Component {
 				that.setState({ topMessage : dat.text }); 
 				break;
 			case bit.SK_PASS:
-				that.setState({ topDropdown : "passShow" });
+				if (that.state.lastpass){
+					that.sendSocket({type: bit.SK_PASS, text: that.state.lastpass});
+					that.state.lastpass = "";
+				} else {
+					that.setState({ topDropdown : "passShow" });
+				}
 				break;
 			case bit.SK_ID:
 				that.setState({ sessionId : dat.id });
 				console.log("WS session id: "+that.state.sessionId);
+				break;
+			default:
 				break;
 			}
 		}

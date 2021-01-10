@@ -29,6 +29,7 @@ Submit queries by pressing the button or shift-enter`}>
 					<br/>
 					<button className="queryRunButton dropContent" onClick={()=>{
 						var query = this.textbox.value;
+						this.props.s.lastpass = "";
 						this.props.submitQuery({query : query});
 					}}>Submit Query</button>
 					<button className="queryRunButton" onClick={()=>{ this.props.sendSocket({type : bit.SK_STOP}); }}>End Query Early</button>

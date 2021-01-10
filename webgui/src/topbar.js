@@ -7,6 +7,7 @@ export class TopMenuBar extends React.Component {
 		return (
 			<div className="topBar">
 			<TopDropdown
+				s = {this.props.s}
 				updateTopMessage = {this.props.updateTopMessage}
 				changeTopDrop = {this.props.changeTopDrop}
 				currentQuery = {this.props.s.queryHistory[this.props.s.historyPosition]}
@@ -83,6 +84,7 @@ class TopDropdown extends React.Component {
 							type = {"open"}
 						/> ),
 			passShow: <PassPrompt
+							s = {this.props.s}
 							changeTopDrop = {this.props.changeTopDrop}
 							send = {this.props.sendSocket}
 						/>
@@ -145,6 +147,11 @@ class Browser extends React.Component {
 	handleChange(e){
 		this.props.changePath(e.target.value);
 	}
+	saveClick(){
+		var path = document.getElementById(this.state.currentDirId).value;
+		var qtext = document.getElementById("textBoxId").value;
+		this.props.submitQuery({query : qtext, fileIO : bit.F_SAVE|bit.F_CSV, savePath : path});
+	}
 
 	render(){
 		var header = [];
@@ -152,11 +159,7 @@ class Browser extends React.Component {
 			header.push( <><span>Double click a file you want to query</span><br/></> );
 		if (this.props.type === "save")
 			header.push( <><span>Save queries on page to their own csv file. A number will be added to file name if more than 1.</span>
-				<button className="saveButton topButton popButton dropContent" onClick={()=>{
-					var path = document.getElementById(this.state.currentDirId).value;
-					var qtext = document.getElementById("textBoxId").value;
-					this.props.submitQuery({query : qtext, fileIO : bit.F_SAVE|bit.F_CSV, savePath : path});
-				}}>save</button><br/></> );
+				<button className="saveButton topButton popButton dropContent" onClick={this.saveClick}>save</button><br/></> );
 
 		return (
 		<div id={this.state.outterBoxId} className="fileSelectShow fileBrowser dropContent">
@@ -184,7 +187,11 @@ class Browser extends React.Component {
 		const dirText = document.getElementById(this.state.currentDirId);
 		dirText.addEventListener("keyup", function(event) {
 			if (event.key === "Enter") {
-				that.clickPath(that.props.dirList.path)
+				var txt = dirText.value;
+				if (txt.substr(txt.length-4) === ".csv")
+					that.saveClick();
+				else
+					that.clickPath(that.props.dirList.path);
 			}
 		});
 	}
@@ -225,7 +232,9 @@ class PassPrompt extends React.Component {
 		<h2 className="passPromtText dropContent">Enter encryption password</h2>
 		<input type="password" id="passInput" className="dropContent"></input>
 		<button className="topButton popButton dropContent" onClick={()=>{
-			this.props.send({type : bit.SK_PASS, text : document.getElementById("passInput").value});
+			var passtxt = document.getElementById("passInput").value;
+			this.props.s.lastpass = passtxt;
+			this.props.send({type : bit.SK_PASS, text : passtxt});
 			}} >Submit</button>
 		</div>
 		);
