@@ -285,7 +285,7 @@ static const u32 macsize = sizeof(u32);
 void crypter::chachaEncrypt(dat& d, int i){
 	auto ciphlen = d.z+1+macsize;
 	auto ch = ctxs.data()+i;
-	auto rawResult = (uint8_t*) alloca(ciphlen+noncesize);
+	auto rawResult = (u8*) alloca(ciphlen+noncesize);
 	memcpy(rawResult+noncesize+macsize, d.u.s, d.z+1);
 	auto nonce = (u32*)ch->nonce;
 	auto rnonce = (u32*)rawResult;
@@ -296,7 +296,7 @@ void crypter::chachaEncrypt(dat& d, int i){
 	chacha20_xor(&ch->ctx, rawResult+noncesize, ciphlen);
 	u32 finalSize = encsize(ciphlen+noncesize);
 	auto finalResult = (char*) malloc(finalSize+1);
-	base64_encode((BYTE*)rawResult, (BYTE*)finalResult, ciphlen+noncesize, 0);
+	base64_encode((u8*)rawResult, (u8*)finalResult, ciphlen+noncesize, 0);
 	finalResult[finalSize]=0;
 	d.freedat();
 	d = dat{ {.s= finalResult}, T_STRING|MAL, finalSize };
@@ -306,15 +306,15 @@ void crypter::chachaDecrypt(dat& d, int i){
 	auto ch = ctxs.data()+i;
 	auto rawResult = (char*) alloca(len);
 	//TODO: get exact unpadded decode size
-	u32 decodesize = base64_decode((BYTE*)d.u.s, (BYTE*)rawResult, len);
+	u32 decodesize = base64_decode((u8*)d.u.s, (u8*)rawResult, len);
 	u32 capsize = decodesize - noncesize - macsize;
 	auto nonce = (u32*)ch->nonce;
 	auto rnonce = (u32*)rawResult;
 	*nonce = *rnonce;
 	memcpy(&ch->ctx.key, ch->key, sizeof(ch->ctx.key));
 	chacha20_init_context(&ch->ctx, ch->key, ch->nonce, 1); //find out what counter param does
-	chacha20_xor(&ch->ctx, (uint8_t*) rawResult+noncesize, decodesize - noncesize);
-	uint8_t mac[macsize];
+	chacha20_xor(&ch->ctx, (u8*) rawResult+noncesize, decodesize - noncesize);
+	u8 mac[macsize];
 	u32 finalsize = strnlen(rawResult+macsize+noncesize, capsize);
 	getmac(rawResult+noncesize+macsize, finalsize, rawResult, (char*)ch->key, sizeof(ch->key), mac);
 	d.freedat();
@@ -328,40 +328,40 @@ void crypter::chachaDecrypt(dat& d, int i){
 void sha1(dat& d){
 	SHA1_CTX ctx;
 	sha1_init(&ctx);
-	sha1_update(&ctx, (BYTE*)d.u.s, d.z);
+	sha1_update(&ctx, (u8*)d.u.s, d.z);
 	d.freedat();
-	BYTE rawhash[20];
+	u8 rawhash[20];
 	sha1_final(&ctx, rawhash);
 	d.z = encsize(20);
 	d.u.s = (char*) malloc(d.z+1);
 	d.b = T_STRING|MAL;
-	base64_encode(rawhash, (BYTE*)d.u.s, 20, 0);
+	base64_encode(rawhash, (u8*)d.u.s, 20, 0);
 	d.u.s[d.z] = 0;
 }
 void sha256(dat& d){
 	SHA256_CTX ctx;
 	sha256_init(&ctx);
-	sha256_update(&ctx, (BYTE*)d.u.s, d.z);
+	sha256_update(&ctx, (u8*)d.u.s, d.z);
 	d.freedat();
-	BYTE rawhash[32];
+	u8 rawhash[32];
 	sha256_final(&ctx, rawhash);
 	d.z = encsize(32);
 	d.u.s = (char*) malloc(d.z+1);
 	d.b = T_STRING|MAL;
-	base64_encode(rawhash, (BYTE*)d.u.s, 32, 0);
+	base64_encode(rawhash, (u8*)d.u.s, 32, 0);
 	d.u.s[d.z] = 0;
 }
 void md5(dat& d){
 	MD5_CTX ctx;
 	md5_init(&ctx);
-	md5_update(&ctx, (BYTE*)d.u.s, d.z);
+	md5_update(&ctx, (u8*)d.u.s, d.z);
 	d.freedat();
-	BYTE rawhash[16];
+	u8 rawhash[16];
 	md5_final(&ctx, rawhash);
 	d.z = encsize(16);
 	d.u.s = (char*) malloc(d.z+1);
 	d.b = T_STRING|MAL;
-	base64_encode(rawhash, (BYTE*)d.u.s, 16, 0);
+	base64_encode(rawhash, (u8*)d.u.s, 16, 0);
 	d.u.s[d.z] = 0;
 }
 void sip(dat& d){
