@@ -11,7 +11,6 @@
 #include <fstream>
 #include <memory>
 #include <sys/time.h>
-#include <sys/types.h>
 #include <regex>
 #include <stdarg.h>
 #include <boost/algorithm/string.hpp>
@@ -462,7 +461,6 @@ class fileReader {
 	int equoteCount = 0;
 	int memidx = 0;
 	int numrows = 0;
-	bool needStretchyBuf = false;
 	querySpecs *q;
 	public:
 		static char blank;
@@ -479,7 +477,6 @@ class fileReader {
 		vector<andchain> andchains;
 		vector<int> vpTypes;
 		csvEntry* entries;
-		csvEntry* eend;
 		string id;
 		int fileno =0;
 		int numFields =0;
@@ -597,8 +594,8 @@ class resultSpecs {
 class chactx {
 	public:
 	chacha ctx;
-	uint8_t key[32];
-	uint8_t nonce[12];
+	u8 key[32];
+	u8 nonce[12];
 };
 class crypter {
 	public:
