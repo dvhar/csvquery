@@ -223,13 +223,13 @@ export class Help extends React.Component {
 				After running a query, hit the save button. Navigate to where you want to save, type in the file name, and hit the save button to the right. All the queries on the page will run again, but this time they will be saved to csv files. If there are multiple queries on the page, you still only need to specify one file and a number will be added to the filename for each one. The program will infer whether or not to output a header unless you override it with an option. To always output header, add <code>oh</code> to the beginning of the query. To never output header, add <code>noh</code>.
 			<h3>How to use the query language</h3>
 			<hr/>
-			This program uses a custom version of SQL loosely based on TSQL. Some features like Unions, Subqueries, and @variables are not implemented yet.
+			This program uses a custom but incomplete version of SQL that's designed to be easy to use and has some additions to handle csv formatting issues.
 			<br/>
 			<blockquote>
 				<h4>Specifying a file</h4>
 				Click <code>Browse Files</code> to find files, and double click one to add it to the query.
 					<br/>
-				File paths can be saved for later use by running an <code>add {"<alias> <filepath>"}</code> command. You may add file format options (described in the next section) after the filepath so save those too. The <code>drop {"<alias>"}</code> command only deletes the alias, not the file. To view all aliases, type <code>show tables</code>.
+				File paths can be saved for later use by running an <code>add {"<alias> <filepath>"}</code> command. You may add file format options (described in the next section) after the filepath. The <code>drop {"<alias>"}</code> command only deletes the alias, not the file. To view all aliases, type <code>show</code>.
 					<br/><br/>
 					Example of specifying a file by filename and then by saved name:
 					<br/>
@@ -251,11 +251,11 @@ export class Help extends React.Component {
 				<blockquote><code>
 						nh select c1, c2 'food', c3, dogs, cats from '/home/user/pets.csv'
 						<br/>
-						select c1, c2 'food', c3 dogs cats from 'C:\\users\\dave\\pets.csv' nh
+						select c1, c2 'food', c3 dogs, cats from 'C:\\users\dave\pets.csv' nh
 						<br/>
-						c nh select 1, 2 'food', 3 dogs cats from 'C:\\users\\dave\\pets.csv'
+						c nh select 1, 2 'food', 3, dogs, cats from 'C:\\users\dave\pets.csv'
 						<br/>
-						m c nh select 1 2 as 'food' 3 dogs cats from 'C:\\users\\dave\\pets.csv'
+						m c nh select 1 2 as 'food' 3 dogs cats from 'C:\\users\dave\pets.csv'
 			</code></blockquote>
 				<h4>Selecting all columns</h4>
 				<code>select *</code> works how you'd expect. If you don't specify any values at all, it will also select all. It will also select all if you skip the <code>select from</code> part altogether.
@@ -295,10 +295,10 @@ export class Help extends React.Component {
 						Aggregate functions can be used with a <code>group by</code> clause and group by as many values as you want. Without a <code>group by</code> clause, they will aggregate everything into a single row.
 						<br/>
 						<br/>
-					Encryption function only guarantees a unique nonce for every value encrypted while the program is running. Uniqueness cannot be guaranteed between restarts, so avoid using the same password in different sessions. Encryption function uses the chacha20 stream cipher and a 32 bit MtE authenticator. It returns an empty value if ciphertext has been tampered with. It does not hide the length of a value, so it may be best to use other security solutions when possible. If no password is supplied, the program will prompt you for one.
+						<code>Encrypt</code> function only guarantees a unique nonce for every value encrypted while the program is running. Uniqueness cannot be guaranteed between restarts, so avoid using the same password in different sessions. It does not hide the length of a value, so it may be best to use other security solutions when possible. <code>Decrypt</code> function returns an empty value if ciphertext has been tampered with. If no password is supplied, the program will prompt you for one.
 						<br/>
 						<br/>
-						Math functions like asin and log return an empty value when not a real number, such as <code>log(0)</code> or <code>asin(100)</code>. To return <code>nan</code>, <code>inf</code>, or <code>-inf</code> instead, add the option <code>nan</code> to the beginning of the query. Return value will still be empty if function is called on a null value.
+						Math functions like <code>asin</code> and <code>log</code> return an empty value when not a real number, such as <code>log(0)</code> or <code>asin(100)</code>. To return <code>nan</code>, <code>inf</code>, or <code>-inf</code> instead, add the option <code>nan</code> to the beginning of the query. Return value will still be empty if function is called on a null value.
 						<br/>
 						<br/>
 						Format function uses the type of date format string described by the <a href='https://linux.die.net/man/3/strftime' target='_blank'>Linux Manual</a>, with the addition of <code>mmm</code> for milliseconds. It can also take the format code for a preset format from the following table:
@@ -329,7 +329,7 @@ export class Help extends React.Component {
 						select c1, c2, c3, dogs, cats from '/home/user/pets.csv' limit 100
 				</code></blockquote>
 				<h4>Selecting rows that match a certain condition</h4>
-				Use any combinatin of <code>{"<expression> <relational operator> <expression>"}</code>, parentheses, <code>and</code>, <code>or</code>, <code>xor</code>, <code>not</code>, <code>in</code>, and <code>between</code>. Dates are handled nicely, so <code>May 18 1955</code> is the same as <code>5/18/1955</code>. Empty entries can be compared against the keyword <code>null</code>. The <code>in</code> operator can be used with a subquery, though correlated subqueries are not yet supported.
+				Specify conditions you're looking for by using any combinates of conditional statements with parentheses, <code>and</code>, <code>or</code>, and <code>xor</code> operators. Dates are handled nicely, so <code>May 18 1955</code> is the same as <code>5/18/1955</code>. Empty entries can be compared against the keyword <code>null</code>. The <code>in</code> operator can be used with a subquery, though correlated subqueries are not yet supported.
 					<br/><br/>
 				Valid relational operators are <code>is</code>, <code>=</code>,  <code>!=</code>,  <code>{"<>"}</code>,  <code>{">"}</code>,  <code>{"<"}</code>,  <code>{">="}</code>,  <code>{"<="}</code>, <code>like</code>, <code>in</code>, and <code>between</code>. <code>!</code> is evaluated the same as <code>not</code>, and can be put in front of a relational operator or a whole comparison.
 					<br/><br/>
@@ -357,7 +357,7 @@ export class Help extends React.Component {
 						select from '/home/user/pets.csv' order by c2*c3
 				</code></blockquote>
 				<h4>Joining Files</h4>
-				Any number of files can be joined together. <code>left</code> and <code>inner</code> joins are allowed, default is <code>inner</code>. Join conditions can have as many comparisions as you want, and is most efficient when the first comparision las the lowest cardinality.
+				Any number of files can be joined together. <code>left</code> and <code>inner</code> joins are allowed, default is <code>inner</code>. Join conditions can have as many comparisions as you want, combined with <code>and</code>, <code>or</code>, <code>xor</code>, and parentheses.
 					<br/><br/>
 					Examples:
 					<blockquote><code>

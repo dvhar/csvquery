@@ -126,9 +126,11 @@ class Main extends React.Component {
 			case "save":
 				this.setState({saveDirList: dat});
 				break;
+			default:
+				break;
 			}
 		} else {
-			this.setState({topMessage: "error"});
+			this.setState({topMessage: (dat.error ? dat.error : "error")});
 		}});
 	}
 
@@ -212,7 +214,6 @@ class Main extends React.Component {
 			if (window.performance.now() > bugtimer+20000)
 				that.setState({ topMessage : "Query Engine Disconnected!"})
 		},2000);
-		//that.showLoadedQuery(testdata);
 	}
 	componentWillMount() { document.title = 'CSV Query Tool' }
 }
