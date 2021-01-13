@@ -119,8 +119,7 @@ static void serve(){
 			} catch (...) {
 				auto e = EX_STRING;
 				cerr << e << endl;
-				sendMessage(fromjson<i64>(j,"sessionId"), e.c_str());
-				response->write("{}");
+				response->write(json{{"error",e}}.dump());
 			}
 		} else {
 			response->write("{}");
