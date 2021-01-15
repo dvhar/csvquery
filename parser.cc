@@ -12,7 +12,7 @@ preselect         -> <options> <with> | ε
 options           -> [ oh noh nh h ah s p t nan m ] { <options> } | ε
 with              -> with <vars> | ε
 vars              -> <expradd> as alias { [ , and ] vars }
-select            -> select <selections> | ε
+select            -> select { top number } <selections> | ε
 selections        -> {,} <expradd> <selections> | ε
 expradd           -> <exprmult> { [ + - ] <expradd> }
 exprmult          -> <exprneg> { [ * % ^ / ] <exprmult> }
@@ -44,6 +44,7 @@ where             -> where <predicates>
 having            -> having <predicates>
 order             -> order by <expressionlist>
 group             -> group by <expressionlist>
+limit             -> limit number
 */
 
 #define newNode(l) make_unique<node>(l)
