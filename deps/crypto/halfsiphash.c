@@ -153,10 +153,9 @@ int halfsiphash(const uint8_t *in, const size_t inlen, const uint8_t *k,
 
 
 void getmac(char* plaintext, int sp, char* nonce, char* key, int sk, uint8_t* mac){
-	static uint8_t* k = "asdfhjkl";
 	char* tohash = alloca(sp+sk+sizeof(int));		
 	memcpy(tohash, plaintext, sp);
 	memcpy(tohash+sp, key, sk);
 	memcpy(tohash+sp+sk, nonce, sizeof(int));
-	halfsiphash(tohash, sp+sk+sizeof(int), k, mac, sizeof(int));
+	halfsiphash(tohash, sp+sk+sizeof(int), (uint8_t*)key, mac, sizeof(int));
 }
