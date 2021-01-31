@@ -828,7 +828,7 @@ void parser::parseFileOptions(astnode& n) {
 }
 
 //tok2 is join token (join,sjoin,bjoin)
-//tok3 is join details (left/outer or inner)
+//tok3 is join details (left/inner/cross)
 //node1 is file
 //node2 is join condition (predicates)
 //node3 is next join

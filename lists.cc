@@ -140,11 +140,11 @@ const flatmap<string_view, int> functionMap = {
 };
 //use WORD for these?
 const flatmap<string_view, int> joinMap = {
+	{"cross" ,  KW_CROSS},
 	{"inner" ,  KW_INNER},
 	{"left" ,   KW_LEFT},
 	{"join" ,   KW_JOIN},
 	//{"outer" ,  KW_OUTER},
-	//{"cross" ,  KW_CROSS},
 };
 const flatmap<string_view, int> specialMap = {
 	{"=" ,  SP_EQ},
