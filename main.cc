@@ -5,12 +5,14 @@
 
 void initregex();
 void loadconfig();
+int bracecount(string&);
 void help(char* prog){
 	cout << '\n'
 		<< prog << " <file>\n\tRun query from file\n"
 		<< prog << " version\n\tshow version and exit\n"
 		<< prog << " help\n\tshow this help message and exit\n"
 		<< prog << " \"select from 'data.csv'\"\n\tRun query from command line argument\n"
+		<< prog << " \"select from {}\" data.csv\n\tRun query from command line argument and substitute {} with the following argument\n"
 		<< prog << "\n\tRun server to use graphic interface in web browser\n\n"
 		"Flags:\n"
 		"\t-x Don't check for updates when clicking the gui's help button\n"
@@ -27,7 +29,13 @@ void help(char* prog){
 		"\t-h Show this help message and exit\n"
 		"\t-v Show version and exit\n"
 		"\t-f <file> Run a selectAll query on file and output table\n\n"
-		"Config file is " << globalSettings.configfilepath << "\n";
+		"Config file is " << globalSettings.configfilepath << ". These are the settings you can change:\n\n"
+		"\tshow_debug_info:      same as -d and -g\n"
+		"\tcheck_update:         same as -x\n"
+		"\tguess_file_header:    same as -a\n"
+		"\texit_automatically:   same as -e\n"
+		"\ttable_or_csv:         same as -t and -c\n"
+		"\tneed_comma_separator: same as -m\n";
 	exit(0);
 }
 
@@ -89,45 +97,57 @@ int main(int argc, char** argv){
 	runmode = argc > optind ? RUN_SINGLE : RUN_SERVER;
 	auto arg1 = argv[optind];
 
-	//run select * on -f arg
-	if (!querystring.empty()){
-		runmode = RUN_SINGLE;
-		for (int i=optind; i<argc; ++i){
-			querystring += ' ';
-			querystring += argv[i];
-		}
-	}
-
-	//run gui server and exit when done
-	else if (runmode == RUN_SERVER)
-		runServer();
-
-	//show version and exit
-	else if (!strcmp(arg1, "version")){
-		cout << version << endl;
-		return 0;
-	}
-
-	//show help and exit
-	else if (!strcmp(arg1, "help"))
-		help(argv[0]);
-
-	//get query from multiple args
-	else if (argc > optind+1)
-		for (int i=optind; i<argc; ++i){
-			querystring += argv[i];
-			querystring += ' ';
-		}
-
-	//get query from file
-	else if (strlen(arg1) < 30 && boost::filesystem::is_regular_file(arg1))
-		querystring = st(ifstream(arg1).rdbuf());
-
-	//get query from single arg
-	else
-		querystring = string(arg1);
-
 	try {
+
+		//run select * on -f arg
+		if (!querystring.empty()){
+			runmode = RUN_SINGLE;
+			for (int i=optind; i<argc; ++i){
+				querystring += ' ';
+				querystring += argv[i];
+			}
+		}
+
+		//run gui server and exit when done
+		else if (runmode == RUN_SERVER)
+			runServer();
+
+		//show version and exit
+		else if (!strcmp(arg1, "version")){
+			cout << version << endl;
+			return 0;
+		}
+
+		//show help and exit
+		else if (!strcmp(arg1, "help"))
+			help(argv[0]);
+
+		//get query from multiple args or substitute {}
+		else if (argc > optind+1){
+			querystring = argv[optind];
+			int bc = bracecount(querystring);
+			if (bc && (optind + bc != argc-1))
+				error("Query with ", bc, " '{}' pair",(bc>1?"s":"")," must have ",bc," matching argument",(bc>1?"s":""),". Found ",argc-optind-1,'\n');
+			int end = argc - bc;
+			for (int i=optind+1; i<end; ++i){
+				querystring += argv[i];
+				querystring += ' ';
+			}
+			for (int i = end; i < end+bc; i++)
+				boost::replace_first(querystring, "{}", st("'",argv[i],"'"));
+		}
+
+		//get query from file
+		else if (strlen(arg1) < 30 && boost::filesystem::is_regular_file(arg1))
+			querystring = st(ifstream(arg1).rdbuf());
+
+		//get query from single arg
+		else {
+			querystring = string(arg1);
+			int bc = bracecount(querystring);
+			if (bc)
+				error("Query with ", bc, " '{}' pair",(bc>1?"s":"")," must have ",bc," matching argument",(bc>1?"s":""),". Found 0\n");
+		}
 
 		querySpecs q(querystring);
 		if (jsonstdout){
@@ -141,6 +161,14 @@ int main(int argc, char** argv){
 		return 1;
 	}
 	return 0;
+}
+
+int bracecount(string& q){
+	int cnt = 0;
+	i64 idx = -1;
+	while ((idx = q.find("{}",idx+1)) > -1)
+		cnt++;
+	return cnt;
 }
 
 void loadconfig(){
