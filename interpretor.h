@@ -147,7 +147,7 @@ enum {
 	KW_INNER=     KEYWORD|21,
 	KW_OUTER=     KEYWORD|22,
 	KW_LEFT=      KEYWORD|23,
-	KW_RIGHT=     KEYWORD|24,
+	KW_CROSS=     KEYWORD|24,
 	KW_BETWEEN =  RELOP|KEYWORD|25,
 	KW_LIKE =     RELOP|KEYWORD|26,
 	KW_IN =       RELOP|KEYWORD|27,
@@ -329,6 +329,7 @@ class node {
 	int& trivialvalalias(){ return tok4.id; }
 	astnode& nsubexpr(){ return node1; }
 	token& diststartok(){ return tok1; }
+	token& joinDetailsTok(){ return tok3; }
 	astnode& nnextselection(){ return node2; }
 	astnode& nselections(){ return node2; }
 	astnode& nselect(){ return node2; }
