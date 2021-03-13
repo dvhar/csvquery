@@ -984,8 +984,6 @@ void dataTyper::checkFuncSemantics(astnode &n){
 		break;
 	case FN_ENCRYPT:
 	case FN_DECRYPT:
-		if (n->tok4.val.empty())
-			n->tok4.val = q->password;
 		break;
 	}
 }

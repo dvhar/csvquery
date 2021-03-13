@@ -723,7 +723,7 @@ LIKE_:
 		stk0.u.p = iTemp1;
 	} nexti();
 INSUBQUERY_:
-	stk0.u.p = q->subqueries[op->p1].resultSet->contains(stk0);
+	stk0.u.p = q->subqueries[op->p1].resultSet->contains(stk0)^op->p2;
 	nexti();
 
 PUSH_N_:
