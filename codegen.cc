@@ -1004,12 +1004,16 @@ void cgen::genFunction(astnode &n){
 	case FN_ENCRYPT:
 		genExprAll(n->nsubexpr());
 		//TODO: if add block cipher, check here
+		if (n->password().empty())
+			n->password()= q->password;
 		idx = q->crypt.newChacha(n->password());
 		addop1(ENCCHA, idx);
 		break;
 	case FN_DECRYPT:
 		genExprAll(n->nsubexpr());
 		//TODO: if add block cipher, check here
+		if (n->password().empty())
+			n->password()= q->password;
 		idx = q->crypt.newChacha(n->password());
 		addop1(DECCHA, idx);
 		break;
