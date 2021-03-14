@@ -123,15 +123,13 @@ LDDATE_:
 	push();
 	csvTemp = files[op->p1]->entries[op->p2];
 	iTemp1 = dateparse(csvTemp.val, &i64Temp, &iTemp2, csvTemp.size());
-	if (iTemp1) { stk0.setnull(); }
-	else stk0 = dat{ { .i = i64Temp}, T_DATE, (u32) iTemp2 };
+	if (!iTemp1) stk0 = dat{ { .i = i64Temp}, T_DATE, (u32) iTemp2 };
 	nexti();
 LDTEXT_:
 	push();
 	csvTemp = files[op->p1]->entries[op->p2];
 	sizeTemp = csvTemp.size();
-	if (!sizeTemp) { stk0.setnull(); }
-	else stk0 = dat{ { .s = csvTemp.val }, T_STRING, sizeTemp };
+	if (sizeTemp) stk0 = dat{ { .s = csvTemp.val }, T_STRING, sizeTemp };
 	nexti();
 LDFLOAT_:
 	push();
@@ -779,26 +777,29 @@ CVSI_:
 		auto s = stk0.u.s;
 		i64Temp = strtoll(s, &cstrTemp, 10);
 		stk0.freedat();
-		stk0.u.i = i64Temp;
-		stk0.b = T_INT;
-		if (cstrTemp == s){ stk0.setnull(); }
+		if (cstrTemp != s){
+			stk0.u.i = i64Temp;
+			stk0.b = T_INT;
+		}
 	} nexti();
 CVSF_:
 	ifnotnull{
 		fTemp = strtod(stk0.u.s, &cstrTemp);
 		stk0.freedat();
-		stk0.u.f = fTemp;
-		stk0.b = T_FLOAT;
-		if (*cstrTemp){ stk0.setnull(); }
+		if (!*cstrTemp){
+			stk0.u.f = fTemp;
+			stk0.b = T_FLOAT;
+		}
 	} nexti();
 CVSDT_:
 	ifnotnull{
 		iTemp1 = dateparse(stk0.u.s, &i64Temp, &iTemp2, stk0.z);
 		stk0.freedat();
-		stk0.u.i = i64Temp;
-		stk0.b = T_DATE;
-		stk0.z = iTemp2;
-		if (iTemp1) { stk0.setnull(); }
+		if (!iTemp1) {
+			stk0.u.i = i64Temp;
+			stk0.b = T_DATE;
+			stk0.z = iTemp2;
+		}
 	} nexti();
 CVSDR_:
 	ifnotnull{
