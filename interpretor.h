@@ -370,6 +370,7 @@ class node {
 	int& chainSize(){ return info[CHAINSIZE]; }
 	int& chainIdx(){ return info[CHAINIDX]; }
 	int& predFileNum(){ return info[FILENO]; }
+	int& crossFileNum(){ return tok4.id; }
 	int& predValposIdx(){ return info[VALPOSIDX]; }
 	int& relop(){ return tok1.id; }
 	int& logop(){ return tok1.id; }

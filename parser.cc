@@ -832,14 +832,16 @@ void parser::parseFileOptions(astnode& n) {
 //node1 is file
 //node2 is join condition (predicates)
 //node3 is next join
+//	tok4.id is file number for cross join
 astnode parser::parseJoin() {
 	t = q->tok();
 	e("parse join");
 	string s = t.lower();
 	if (joinMap.count(s) == 0)
 		return nullptr;
+	t.id = joinMap.at(s);
 	astnode n = newNode(N_JOIN);
-	if (s == "left" || s == "inner"){
+	if (t.id == KW_LEFT || t.id == KW_INNER || t.id == KW_CROSS){
 		n->tok3 = t;
 		q->nextTok();
 	}
@@ -855,7 +857,8 @@ astnode parser::parseJoin() {
 	t = q->tok();
 	if (t.lower() != "on") error("Expected 'on'. Found: '",t.val,"'");
 	q->nextTok();
-	n->node2 = parsePredicates();
+	if (n->tok3.id != KW_CROSS)
+		n->node2 = parsePredicates();
 	n->node3 = parseJoin();
 	return n;
 }

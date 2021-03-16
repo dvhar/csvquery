@@ -579,6 +579,8 @@ void analyzer::findIndexableJoinValues(astnode &n, int fileno){
 			if (!f)
 				error("Could not find file matching join alias ",n->nfile()->filealias());
 			fileno = f->fileno;
+			if (n->joinDetailsTok().id == KW_CROSS)
+				n->crossFileNum() = fileno;
 		}
 	default:
 		findIndexableJoinValues(n->node1, fileno);

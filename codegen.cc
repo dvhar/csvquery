@@ -234,8 +234,11 @@ void cgen::genJoinSets(astnode &n){
 	joinFileIdx++;
 	vs.setscope(JCOMP_FILTER, V_READ1_SCOPE);
 	genVars(q->tree->npreselect());
-	genJoinPredicates(n->njoinconds());
-	addop(JOINSET_INIT, (joinFileIdx-1)*2, n->tok3.lower() == "left");
+	if (n->joinDetailsTok().id == KW_CROSS)
+		addop(JOINSET_CROSS, joinFileIdx); //TODO: vpidx
+	else
+		genJoinPredicates(n->njoinconds());
+	addop(JOINSET_INIT, (joinFileIdx-1)*2, n->joinDetailsTok().lower() == "left");
 	int goWhenDone = prevJoinRead;
 	prevJoinRead = v.size();
 	wherenot = prevJoinRead;
