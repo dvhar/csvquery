@@ -130,8 +130,8 @@ int main(int argc, char** argv){
 				error("Query with ", bc, " '{}' pair",(bc>1?"s":"")," must have ",bc," matching argument",(bc>1?"s":""),". Found ",argc-optind-1,'\n');
 			int end = argc - bc;
 			for (int i=optind+1; i<end; ++i){
-				querystring += argv[i];
 				querystring += ' ';
+				querystring += argv[i];
 			}
 			for (int i = end; i < end+bc; i++)
 				boost::replace_first(querystring, "{}", st("'",argv[i],"'"));
