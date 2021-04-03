@@ -8,28 +8,29 @@ void loadconfig();
 int bracecount(string&);
 void help(char* prog){
 	cout << '\n'
-		<< prog << " <file>\n\tRun query from file\n"
+		<< prog << " FILE\n\tRun query from FILE\n"
 		<< prog << " version\n\tshow version and exit\n"
 		<< prog << " help\n\tshow this help message and exit\n"
 		<< prog << " \"select from 'data.csv'\"\n\tRun query from command line argument\n"
 		<< prog << " \"select from {}\" data.csv\n\tRun query from command line argument and substitute {} with the following argument\n"
 		<< prog << "\n\tRun server to use graphic interface in web browser\n\n"
 		"Flags:\n"
-		"\t-x Don't check for updates when clicking the gui's help button\n"
-		"\t-m Don't require comma between selections, but do require 'as' for result names\n"
-		"\t-g Don't show debug info in console\n"
-		"\t-d Show debug info in console (default)\n"
-		"\t-e Don't automatically exit 3 minutes after the browser page is closed\n"
-		"\t-a Guess if files have header based on whether or not there are numbers in the first row\n"
-		"\t-t Output results in terminal as table instead of csv format\n"
-		"\t-c Output results in terminal as csv instead of table (default)\n"
-		"\t-y Same as -t but with background colors to help see lines\n"
-		"\t-w Same as -t but no colors\n"
-		"\t-j Return json to stdout (rows limited to 20000 divided by number of columns)\n"
-		"\t-h Show this help message and exit\n"
-		"\t-v Show version and exit\n"
-		"\t-f <file> Run a selectAll query on file and output table\n\n"
-		"Config file is " << globalSettings.configfilepath << ". These are the settings you can change:\n\n"
+		"\t-x    Don't check for updates when clicking the gui's help button\n"
+		"\t-m    Don't require comma between selections, but do require 'as' for result names\n"
+		"\t-g    Don't show debug info in console\n"
+		"\t-d    Show debug info in console (default)\n"
+		"\t-e    Don't automatically exit 3 minutes after the browser page is closed\n"
+		"\t-a    Guess if files have header based on whether or not there are numbers in the first row\n"
+		"\t-t    Output results in terminal as table instead of csv format\n"
+		"\t-c    Output results in terminal as csv instead of table (default)\n"
+		"\t-y    Same as -t but with background colors to help see lines\n"
+		"\t-w    Same as -t but no colors\n"
+		"\t-j    Print json to stdout (rows limited to 20000 divided by number of columns)\n"
+		"\t-h    Show this help message and exit\n"
+		"\t-v    Show version and exit\n"
+		"\t-f FILE    Run a selectAll query on FILE and output table\n"
+		"\t-o FILE    Save query to FILE\n\n"
+		"Config file is " << globalSettings.configfilepath << ". These are the settings you can change:\n"
 		"\tshow_debug_info:      same as -d and -g\n"
 		"\tcheck_update:         same as -x\n"
 		"\tguess_file_header:    same as -a\n"
@@ -43,9 +44,13 @@ int main(int argc, char** argv){
 
 	bool jsonstdout = false;
 	string querystring;
+	string savefile;
 	loadconfig();
-	for(char c; (c = getopt(argc, argv, "hxvgdeajtywcmf:")) != -1;)
+	for(char c; (c = getopt(argc, argv, "hxvgdeajtywcmf:o:")) != -1;)
 		switch(c){
+		case 'o':
+			savefile = optarg;
+			break;
 		case 'x':
 			globalSettings.update = false;
 			break;
@@ -149,7 +154,7 @@ int main(int argc, char** argv){
 				error("Query with ", bc, " '{}' pair",(bc>1?"s":"")," must have ",bc," matching argument",(bc>1?"s":""),". Found 0\n");
 		}
 
-		querySpecs q(querystring);
+		querySpecs q(querystring, savefile);
 		if (jsonstdout){
 			cout << runJsonQuery(q)->tojson().str();
 		} else {
