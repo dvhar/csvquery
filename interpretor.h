@@ -778,7 +778,7 @@ void hideInput();
 void initregex();
 void findExtension(string& fname);
 const char* dateFormatCode(string& s);
-int totalram();
+i64 totalram();
 
 extern int runmode;
 enum runmodes { RUN_SINGLE, RUN_SERVER };
