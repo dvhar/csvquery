@@ -158,8 +158,11 @@ class Browser extends React.Component {
 		if (this.props.type === "open")
 			header.push( <><span>Double click a file you want to query</span><br/></> );
 		if (this.props.type === "save")
-			header.push( <><span>Save queries on page to their own csv file. A number will be added to file name if more than 1.</span>
-				<button className="saveButton topButton popButton dropContent" onClick={this.saveClick}>save</button><br/></> );
+			header.push( <>
+				<span>Save queries on page to their own csv file. A number will be added to file name if more than 1.</span>
+				<br/>
+				<span>To save, type a file path that ends with '.csv' and hit Enter.</span>
+				</> );
 
 		return (
 		<div id={this.state.outterBoxId} className="fileSelectShow fileBrowser dropContent">

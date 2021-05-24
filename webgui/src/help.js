@@ -220,7 +220,7 @@ export class Help extends React.Component {
 			It will show you the first several hundred results in the browser, with 2 options for viewing certain rows or columns. You can click on a column header to sort the displayed results by that column.
 			<h3>How to save files</h3>
 			<hr/>
-				After running a query, hit the save button. Navigate to where you want to save, type in the file name, and hit the save button to the right. All the queries on the page will run again, but this time they will be saved to csv files. If there are multiple queries on the page, you still only need to specify one file and a number will be added to the filename for each one. The program will infer whether or not to output a header unless you override it with an option. To always output header, add <code>oh</code> to the beginning of the query. To never output header, add <code>noh</code>.
+				After running a query, hit the save button. Navigate to where you want to save, type in the file name, and hit Enter. All the queries on the page will run again, but this time they will be saved to csv files. The program will infer whether or not to output a header unless you override it with an option. To always output header, add <code>oh</code> to the beginning of the query. To never output header, add <code>noh</code>.
 			<h3>How to use the query language</h3>
 			<hr/>
 			This program uses a custom but incomplete version of SQL that's designed to be easy to use and has some additions to handle csv formatting issues.

@@ -679,7 +679,8 @@ class querySpecs {
 	int addSubquery(astnode&, int);
 	variable& var(string);
 	~querySpecs();
-	querySpecs(string &s) : queryString(s) {};
+	querySpecs(string &q) : queryString(q) {};
+	querySpecs(string &q, string &f) : queryString(q), savepath(f) {};
 	querySpecs(astnode &n, int sqtype) {
 		tree.reset(n.release());
 		isSubquery = sqtype;
@@ -792,7 +793,7 @@ void hideInput();
 void initregex();
 void findExtension(string& fname);
 const char* dateFormatCode(string& s);
-int totalram();
+i64 totalram();
 
 extern int runmode;
 enum runmodes { RUN_SINGLE, RUN_SERVER };
