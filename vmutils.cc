@@ -291,7 +291,7 @@ void crypter::chachaEncrypt(dat& d, int i){
 	auto rnonce = (u32*)rawResult;
 	*rnonce = *nonce = uniqueNonce32();
 	memcpy(&ch->ctx.key, ch->key, sizeof(ch->ctx.key));
-	chacha20_init_context(&ch->ctx, ch->key, ch->nonce, 1); //find out what counter param does
+	chacha20_init_context(&ch->ctx, ch->key, ch->nonce, 1);
 	getmac(d.u.s, d.z, (char*)ch->nonce, (char*)ch->key, sizeof(ch->key), rawResult+noncesize);
 	chacha20_xor(&ch->ctx, rawResult+noncesize, ciphlen);
 	u32 finalSize = encsize(ciphlen+noncesize);
@@ -312,7 +312,7 @@ void crypter::chachaDecrypt(dat& d, int i){
 	auto rnonce = (u32*)rawResult;
 	*nonce = *rnonce;
 	memcpy(&ch->ctx.key, ch->key, sizeof(ch->ctx.key));
-	chacha20_init_context(&ch->ctx, ch->key, ch->nonce, 1); //find out what counter param does
+	chacha20_init_context(&ch->ctx, ch->key, ch->nonce, 1);
 	chacha20_xor(&ch->ctx, (u8*) rawResult+noncesize, decodesize - noncesize);
 	u8 mac[macsize];
 	u32 finalsize = strnlen(rawResult+macsize+noncesize, capsize);

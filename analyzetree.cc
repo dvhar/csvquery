@@ -185,7 +185,7 @@ void analyzer::recordResultColumns(astnode &n){
 			auto name = n->selectionalias();
 			bool tcol = isTrivialColumn(n);
 			if (name.empty() && (tcol || isTrivialAlias(n)))
-				name = nodeName(n->node1, q);
+				name = nodeName(n->nsubexpr(), q);
 			if (!name.empty())
 				shouldPrintHeader();
 			if (name.empty())
@@ -246,7 +246,7 @@ bool analyzer::findAgrregates(astnode &n){
 		}
 		return false;
 	case N_VALUE:
-		if (n->tok2.id == VARIABLE && (q->var(n->tok1.val).phase & 2))
+		if (n->valtype() == VARIABLE && (q->var(n->varname()).phase & 2))
 			return true;
 		return findAgrregates(n->node1);
 	default:
