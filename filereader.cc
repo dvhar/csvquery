@@ -8,9 +8,9 @@ fileReader::fileReader(string& fname, querySpecs &qs) : filename(fname), q(&qs) 
 	fileno = qs.numFiles;
 	i64 optisize = br.buffsize;
 	if (fileno > 0){
-		int jmegs = max(100, totalram() / 20);
+		i64 jmegs = max((i64)100, totalram() / 20);
 		if (qs.sorting)
-			jmegs = max(100, jmegs/2);
+			jmegs = max((i64)100, jmegs/2);
 		optisize = jmegs * 1024 * 2024;
 	}
 	br.open(fname.c_str(), optisize);	

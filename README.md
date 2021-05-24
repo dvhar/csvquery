@@ -1,4 +1,14 @@
 # CSV query engine for big files
+
+## PreBuild
+If modifying the embedded webpage:
+```
+cd webgui
+npm install
+npm run build
+cd ..
+./deps/embed.sh
+```
 ## Build
 First install `boost` libraries.
 ```

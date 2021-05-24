@@ -29,7 +29,7 @@ namespace bs_sort = boost::sort::parallel;
 #define skipnull() \
 	if (stk0.isnull()){ nexti() };
 #define ifnotnull if (!stk0.isnull())
-#define ifneithernull if (stk0.isnull() || stk1.isnull()) { stk1.setnull(); } else
+#define ifneithernull if (stk0.isnull() || stk1.isnull()) { stk1.freedat(); } else
 
 void vmachine::run(){
 	constexpr void* labels[] = { &&CVER_, &&CVNO_, &&CVIF_, &&CVIS_, &&CVFI_, &&CVFS_, &&CVDRS_, &&CVDTS_, &&CVSI_, &&CVSF_, &&CVSDR_, &&CVSDT_, &&IADD_, &&FADD_, &&TADD_, &&DTADD_, &&DRADD_, &&ISUB_, &&FSUB_, &&DTSUB_, &&DRSUB_, &&IMULT_, &&FMULT_, &&DRMULT_, &&IDIV_, &&FDIV_, &&DRDIV_, &&INEG_, &&FNEG_, &&PNEG_, &&IMOD_, &&FMOD_, &&IPOW_, &&FPOW_, &&JMP_, &&JMPCNT_, &&JMPTRUE_, &&JMPFALSE_, &&JMPNOTNULL_ELSEPOP_, &&RDLINE_, &&RDLINE_ORDERED_, &&PREP_REREAD_, &&PUT_, &&LDPUT_, &&LDPUTALL_, &&PUTVAR_, &&PUTVAR2_, &&LDINT_, &&LDFLOAT_, &&LDTEXT_, &&LDDATE_, &&LDDUR_, &&LDLIT_, &&LDVAR_, &&HOLDVAR_, &&IEQ_, &&FEQ_, &&TEQ_, &&LIKE_, &&ILEQ_, &&FLEQ_, &&TLEQ_, &&ILT_, &&FLT_, &&TLT_, &&PRINTCSV_, &&PRINTJSON_, &&PUSH_, &&PUSH_N_, &&POP_, &&POPCPY_, &&ENDRUN_, &&NULFALSE_, &&DIST_, &&PUTDIST_, &&LDDIST_, &&FUNC_INC_, &&FUNC_ENCCHA_, &&FUNC_DECCHA_, &&SAVESORTN_, &&SAVESORTS_, &&SAVEVALPOS_, &&SAVEPOS_, &&SORT_, &&GETGROUP_, &&ONEGROUP_, &&SUMI_, &&SUMF_, &&AVGI_, &&AVGF_, &&STDVI_, &&STDVF_, &&COUNT_, &&MINI_, &&MINF_, &&MINS_, &&MAXI_, &&MAXF_, &&MAXS_, &&NEXTMAP_, &&NEXTVEC_, &&ROOTMAP_, &&LDMID_, &&LDPUTMID_, &&LDPUTGRP_, &&LDSTDVI_, &&LDSTDVF_, &&LDAVGI_, &&LDAVGF_, &&ADD_GROUPSORT_ROW_, &&FREE_MIDROW_, &&GSORT_, &&READ_NEXT_GROUP_, &&NUL_TO_STR_, &&SORTVALPOS_, &&JOINSET_EQ_AND_, &&JOINSET_EQ_, &&JOINSET_LESS_, &&JOINSET_GRT_, &&JOINSET_LESS_AND_, &&JOINSET_GRT_AND_, &&JOINSET_INIT_, &&JOINSET_TRAV_, &&AND_SET_, &&OR_SET_, &&SAVEANDCHAIN_, &&SORT_ANDCHAIN_, &&FUNC_YEAR_, &&FUNC_MONTH_, &&FUNC_WEEK_, &&FUNC_YDAY_, &&FUNC_MDAY_, &&FUNC_WDAY_, &&FUNC_HOUR_, &&FUNC_MINUTE_, &&FUNC_SECOND_, &&FUNC_WDAYNAME_, &&FUNC_MONTHNAME_, &&FUNC_ABSF_, &&FUNC_ABSI_, &&START_MESSAGE_, &&STOP_MESSAGE_, &&FUNC_CIEL_, &&FUNC_FLOOR_, &&FUNC_ACOS_, &&FUNC_ASIN_, &&FUNC_ATAN_, &&FUNC_COS_, &&FUNC_SIN_, &&FUNC_TAN_, &&FUNC_EXP_, &&FUNC_LOG_, &&FUNC_LOG2_, &&FUNC_LOG10_, &&FUNC_SQRT_, &&FUNC_RAND_, &&FUNC_UPPER_, &&FUNC_LOWER_, &&FUNC_BASE64_ENCODE_, &&FUNC_BASE64_DECODE_, &&FUNC_HEX_ENCODE_, &&FUNC_HEX_DECODE_, &&FUNC_LEN_, &&FUNC_SUBSTR_, &&FUNC_MD5_, &&FUNC_SHA1_, &&FUNC_SHA256_, &&FUNC_ROUND_, &&FUNC_CBRT_, &&FUNC_NOW_, &&FUNC_NOWGM_, &&PRINTCSV_HEADER_, &&FUNC_FORMAT_, &&LDCOUNT_, &&BETWEEN_, &&PRINTBOX_, &&PRINTBTREE_, &&INSUBQUERY_, &&FUNC_SIP_, &&XOR_SET_};
@@ -123,15 +123,13 @@ LDDATE_:
 	push();
 	csvTemp = files[op->p1]->entries[op->p2];
 	iTemp1 = dateparse(csvTemp.val, &i64Temp, &iTemp2, csvTemp.size());
-	if (iTemp1) { stk0.setnull(); }
-	else stk0 = dat{ { .i = i64Temp}, T_DATE, (u32) iTemp2 };
+	if (!iTemp1) stk0 = dat{ { .i = i64Temp}, T_DATE, (u32) iTemp2 };
 	nexti();
 LDTEXT_:
 	push();
 	csvTemp = files[op->p1]->entries[op->p2];
 	sizeTemp = csvTemp.size();
-	if (!sizeTemp) { stk0.setnull(); }
-	else stk0 = dat{ { .s = csvTemp.val }, T_STRING, sizeTemp };
+	if (sizeTemp) stk0 = dat{ { .s = csvTemp.val }, T_STRING, sizeTemp };
 	nexti();
 LDFLOAT_:
 	push();
@@ -723,7 +721,7 @@ LIKE_:
 		stk0.u.p = iTemp1;
 	} nexti();
 INSUBQUERY_:
-	stk0.u.p = q->subqueries[op->p1].resultSet->contains(stk0);
+	stk0.u.p = q->subqueries[op->p1].resultSet->contains(stk0)^op->p2;
 	nexti();
 
 PUSH_N_:
@@ -779,26 +777,29 @@ CVSI_:
 		auto s = stk0.u.s;
 		i64Temp = strtoll(s, &cstrTemp, 10);
 		stk0.freedat();
-		stk0.u.i = i64Temp;
-		stk0.b = T_INT;
-		if (cstrTemp == s){ stk0.setnull(); }
+		if (cstrTemp != s){
+			stk0.u.i = i64Temp;
+			stk0.b = T_INT;
+		}
 	} nexti();
 CVSF_:
 	ifnotnull{
 		fTemp = strtod(stk0.u.s, &cstrTemp);
 		stk0.freedat();
-		stk0.u.f = fTemp;
-		stk0.b = T_FLOAT;
-		if (*cstrTemp){ stk0.setnull(); }
+		if (!*cstrTemp){
+			stk0.u.f = fTemp;
+			stk0.b = T_FLOAT;
+		}
 	} nexti();
 CVSDT_:
 	ifnotnull{
 		iTemp1 = dateparse(stk0.u.s, &i64Temp, &iTemp2, stk0.z);
 		stk0.freedat();
-		stk0.u.i = i64Temp;
-		stk0.b = T_DATE;
-		stk0.z = iTemp2;
-		if (iTemp1) { stk0.setnull(); }
+		if (!iTemp1) {
+			stk0.u.i = i64Temp;
+			stk0.b = T_DATE;
+			stk0.z = iTemp2;
+		}
 	} nexti();
 CVSDR_:
 	ifnotnull{
