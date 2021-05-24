@@ -201,7 +201,7 @@ bool dataTyper::canBeString(astnode &n){
 			return canBeString(n->nsubexpr());
 		}
 	}
-	error("canBeString() function malfunctioned at node ", getnodename(n->label));
+	error("canBeString() function malfunctioned at node ", n->nodelabel());
 	return false;
 }
 
@@ -219,7 +219,7 @@ static bool stillTrivial(astnode &n){
 			return false;
 		break;
 	case N_VALUE:
-		if (n->valtype() != COLUMN && n->valtype() != LITERAL)
+		if (n->valtype() != COLUMN && n->valtype() != LITERAL && n->valtype() != VARIABLE)
 			return false;
 		break;
 	}
@@ -655,7 +655,7 @@ typer dataTyper::typeInnerNodes(astnode &n){
 		innerType = typeFunctionInnerNodes(n);
 		break;
 	default:
-		error("missed a node type: ",getnodename(n->label));
+		error("missed a node type: ",n->nodelabel());
 	}
 	n->datatype = innerType.type;
 	//cerr << "type node " << treeMap[n->label] << " as " << n->datatype << endl;

@@ -260,6 +260,19 @@ extern const flatmap<string_view, int> specialMap;
 extern const flatmap<int, string_view> typeNames;
 extern const flatmap<int, const char*> dateFmtCodes;
 
+static string_view gettypename(int i){
+	try { return typeNames.at(i); } catch (...){ return ""; }}
+static string_view getnodename(int i){
+	try { return treeMap.at(i); } catch (...){ return ""; }}
+static int getkeyword(basic_string_view<char> s){
+	try { return keywordMap.at(s); } catch (...){ return 0; }}
+static int getfunc(basic_string_view<char> s){
+	try { return functionMap.at(s); } catch (...){ return 0; }}
+static int getjoinkw(basic_string_view<char> s){
+	try { return joinMap.at(s); } catch (...){ return 0; }}
+static int getspecial(basic_string_view<char> s){
+	try { return specialMap.at(s); } catch (...){ return 0; }}
+
 extern regex_t leadingZeroString;
 extern regex_t durationPattern;
 extern regex_t intType;
@@ -321,6 +334,7 @@ class node {
 
 	//getters for values of different node types
 	//TODO: organize and document and finish implementing
+	string_view nodelabel(){ return getnodename(label); }
 	string& varname(){ return tok1.val; }
 	astnode& nnextvar(){ return node2; }
 	string& nval(){ return tok1.val; }
@@ -782,19 +796,6 @@ int totalram();
 
 extern int runmode;
 enum runmodes { RUN_SINGLE, RUN_SERVER };
-
-static string_view gettypename(int i){
-	try { return typeNames.at(i); } catch (...){ return ""; }}
-static string_view getnodename(int i){
-	try { return treeMap.at(i); } catch (...){ return ""; }}
-static int getkeyword(basic_string_view<char> s){
-	try { return keywordMap.at(s); } catch (...){ return 0; }}
-static int getfunc(basic_string_view<char> s){
-	try { return functionMap.at(s); } catch (...){ return 0; }}
-static int getjoinkw(basic_string_view<char> s){
-	try { return joinMap.at(s); } catch (...){ return 0; }}
-static int getspecial(basic_string_view<char> s){
-	try { return specialMap.at(s); } catch (...){ return 0; }}
 
 template<typename T>
 static T fromjson(json& j, string&& key){

@@ -137,7 +137,7 @@ void printTree(astnode &n, int ident){
 	ident++;
 	string s = "";
 	for (int i=0;i<ident;i++) s += "  ";
-	perr(st( s , getnodename(n->label) , '\n', s,
+	perr(st( s , n->nodelabel() , '\n', s,
 		ft("[%1% %2% %3% %4%] t:%5% p:%6% k:%7%")
 		% n->tok1.val
 		% n->tok2.val
