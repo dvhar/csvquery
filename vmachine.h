@@ -34,7 +34,7 @@ enum codes : int {
 	ILEQ, FLEQ, TLEQ,
 	ILT, FLT, TLT,
 	PRINTCSV, PRINTJSON, PUSH, PUSH_N, POP, POPCPY, ENDRUN, NULFALSE,
-	DIST_NORM, DIST_AGG, LDDIST,
+	DIST_NOALLOC, DIST_NORM, DIST_AGG, LDDIST,
 	FINC, ENCCHA, DECCHA,
 	SAVESORTN, SAVESORTS, SAVEVALPOS, SAVEPOS, SORT,
 	GETGROUP, ONEGROUP,
@@ -113,22 +113,29 @@ class treeCString {
 			return strcmp(l.s, r.s) < 0;
 		}
 };
-
-extern function<bool(const datunion*, const datunion*)> defaultLess;
-
-class distinctArray {
+class distinctUnionArray {
 	function<bool(const datunion*, const datunion*)>* comparisons;
 	public:
 		datunion* data;
-		distinctArray(){
-			data = nullptr;
-			comparisons = &defaultLess;
-		}
-		distinctArray(datunion* d, decltype(comparisons) c){
+		distinctUnionArray(){}
+		distinctUnionArray(datunion* d, decltype(comparisons) c){
 			data = d;
 			comparisons = c;
 		}
-		friend bool operator<(const distinctArray& r, const distinctArray& l){
+		friend bool operator<(const distinctUnionArray& r, const distinctUnionArray& l){
+			return (*l.comparisons)(l.data, r.data);
+		}
+};
+class distinctDatArray {
+	function<bool(const dat*, const dat*)>* comparisons;
+	public:
+		dat* data;
+		distinctDatArray(){}
+		distinctDatArray(dat* d, decltype(comparisons) c){
+			data = d;
+			comparisons = c;
+		}
+		friend bool operator<(const distinctDatArray& r, const distinctDatArray& l){
 			return (*l.comparisons)(l.data, r.data);
 		}
 };
@@ -239,7 +246,8 @@ class vmachine {
 	ofstream outfile;
 	messager updates;
 	boxprinter termbox;
-	bset<distinctArray> normalDistinct;
+	bset<distinctUnionArray> normalDistinct;
+	bset<distinctDatArray> groupDistinct;
 	//datunion comparers
 	static const function<bool (const datunion, const datunion&)> uLessFuncs[3];
 	static const function<bool (const datunion, const datunion&)> uGrtFuncs[3];
