@@ -60,7 +60,7 @@ const funclist = [
 	["upper","upper case",1],
 	["lower","lower case",1],
 	["len","lenth of text",1],
-	["substr","substring from indexes or pattern matching",3],
+	["substr","substring from index+length or pattern matching",3],
 	["sip","sip hash (outputs a 64bit number)",1],
 	["md5","md5 hash in base64",1],
 	["sha1","sha1 hash in base64",1],
@@ -306,16 +306,14 @@ export class Help extends React.Component {
 						<FmtTable/>
 						<br/>
 					</blockquote>
-				<h4>Selecting rows or aggregates with a distinct value</h4>
-				To only return rows with a distinct value, put the <code>distinct</code> keyword in front of the expression that you want to be distinct. Put <code>hidden</code> after <code>distinct</code> if you don't want that value to show up as a result column.
-					<br/><br/>
+				<h4>Selecting distinct rows or aggregates</h4>
+				To only return distinct rows of data, put the <code>distinct</code> keyword after <code>select</code>.
+					<br/>
 				To calculate aggregate function of distinct values, put the <code>distinct</code> keyword in the function call.
 					<br/><br/>
 					Examples:
 				<blockquote><code>
-						select distinct c3 from '/home/user/pets.csv'
-						<br/>
-						select distinct hidden dogtypes, fluffiness from '/home/user/pets.csv'
+						select distinct dogtypes, fluffiness from '/home/user/pets.csv'
 						<br/>
 						select count(distinct species) from '/home/user/pets.csv'
 				</code></blockquote>
