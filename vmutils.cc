@@ -205,6 +205,22 @@ vmachine::~vmachine(){
 		if (q->sortInfo[i++].second == T_STRING)
 			for (auto u : vec)
 				free(u.s); //c strings allways allocated with c style
+	if (q->distinctFiltering && !(q->grouping && q->sorting)
+			&& *find(q->selectiontypes.begin(), q->selectiontypes.end(), T_STRING) == T_STRING){
+		vector<int> strings;
+		int i = 0;
+		for (auto t : q->selectiontypes){
+			if (t == T_STRING)
+				strings.push_back(i);
+			i++;
+		}
+		for (auto& arr : normalDistinct){
+			for (int idx : strings){
+				free(arr.data[idx].s);
+			}
+			free(arr.data);
+		}
+	}
 }
 querySpecs::~querySpecs(){
 	for (auto &d : dataholder){

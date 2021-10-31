@@ -931,22 +931,22 @@ void cgen::genDistinct(int goWhenNot){
 	if (!q->distinctFiltering) return;
 	auto& n = findFirstNode(q->tree, N_SELECTIONS);
 	e("gen distinct");
-	vector<int> types;
 	if (n) {
 		for (auto nn = n.get(); nn && nn->label == N_SELECTIONS; nn = nn->nnextselection().get()){
 			if (n->startok().id == SP_STAR){
 				for (auto& f: q->filevec)
 					for (auto t : f->types)
-						types.push_back(T_STRING);
+						q->selectiontypes.push_back(T_STRING);
 			} else {
-				types.push_back(nn->datatype);
+				q->selectiontypes.push_back(nn->datatype);
 			}
 		}
 	} else {
 		for (auto& f: q->filevec)
 			for (auto t : f->types)
-				types.push_back(T_STRING);
+				q->selectiontypes.push_back(T_STRING);
 	}
+	auto types = q->selectiontypes;
 	if (q->grouping && q->sorting){
 		addop(DIST_NOALLOC, goWhenNot);
 		q->datArrayLess = [types](const dat*l, const dat*r) -> bool {

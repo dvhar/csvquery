@@ -631,6 +631,7 @@ class querySpecs {
 	vector<dat> dataholder;
 	vector<opcode> bytecode;
 	vector<int> settypes;
+	vector<int> selectiontypes;
 	astnode tree;
 	map<string, shared_ptr<fileReader>> filemap;
 	vector<shared_ptr<fileReader>> filevec;
