@@ -931,7 +931,6 @@ void cgen::genDistinct(int goWhenNot){
 	if (!q->distinctFiltering) return;
 	auto& n = findFirstNode(q->tree, N_SELECTIONS);
 	e("gen distinct");
-	addop(DIST_NORM, goWhenNot);
 	vector<int> types;
 	if (n) {
 		for (auto nn = n.get(); nn && nn->label == N_SELECTIONS; nn = nn->nnextselection().get()){
@@ -948,19 +947,36 @@ void cgen::genDistinct(int goWhenNot){
 			for (auto t : f->types)
 				types.push_back(T_STRING);
 	}
-	q->arrayLess = [types](const datunion*l, const datunion*r) -> bool {
-		int i = 0;
-		int dif = 0;
-		for (auto t : types){
-			if (t == T_STRING && r[i].s && l[i].s){
-				if (dif = strcmp(l[i].s, r[i].s); dif < 0) return true;
-			} else {
-				if (dif = r[i].i - l[i].i; dif < 0) return true;
+	if (q->grouping && q->sorting){
+		addop(DIST_NOALLOC, goWhenNot);
+		q->datArrayLess = [types](const dat*l, const dat*r) -> bool {
+			int i = 0;
+			for (auto t : types){
+				if (t == T_STRING && r[i].u.s && l[i].u.s){
+					if (int dif = strcmp(l[i].u.s, r[i].u.s); dif < 0) return true;
+				} else {
+					if (int dif = r[i].u.i - l[i].u.i; dif < 0) return true;
+				}
+				++i;
 			}
-			++i;
-		}
-		return false;
-	};
+			return false;
+		};
+	} else {
+		addop(DIST_NORM, goWhenNot);
+		q->unionArrayLess = [types](const datunion*l, const datunion*r) -> bool {
+			int i = 0;
+			for (auto t : types){
+				if (t == T_STRING && r[i].s && l[i].s){
+					if (int dif = strcmp(l[i].s, r[i].s); dif < 0) return true;
+				} else {
+					if (int dif = r[i].i - l[i].i; dif < 0) return true;
+				}
+				++i;
+			}
+			return false;
+		};
+	}
+
 }
 
 void cgen::genFunction(astnode &n){
@@ -1218,6 +1234,7 @@ void cgen::genIterateGroups(astnode &n){
 			addop(PUSH_N, 0);
 			int readNext = v.size();
 			addop(READ_NEXT_GROUP, doneReadGroups);
+			genDistinct(readNext);
 			genPrint();
 			addop((q->quantityLimit > 0 ? JMPCNT : JMP), readNext);
 			jumps.setPlace(doneReadGroups, v.size());
@@ -1236,6 +1253,7 @@ void cgen::genUnsortedGroupRow(astnode &n, int nextgroup, int doneGroups){
 	vs.setscope(SELECT_FILTER, V_GROUP_SCOPE);
 	genVars(q->tree->npreselect());
 	genSelect(q->tree->nselect());
+	genDistinct(nextgroup);
 	genPrint();
 	addop((q->quantityLimit > 0 ? JMPCNT : JMP), nextgroup);
 	addop(JMP, doneGroups);

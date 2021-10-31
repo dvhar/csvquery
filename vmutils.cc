@@ -9,9 +9,6 @@
 #include "deps/json/escape.h"
 #include <chrono>
 
-function<bool(const datunion*, const datunion*)> defaultLess = [](const datunion*l, const datunion*r) -> bool {
-	return false;
-};
 string opcode::print(){
 	return (ft("code: %-18s  [%-2d  %-2d  %-2d]")% opMap[code]% p1% p2% p3).str();
 }

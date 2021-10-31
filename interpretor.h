@@ -661,7 +661,8 @@ class querySpecs {
 	bool distinctFiltering =0;
 	bool needPass =0;
 	bool canskip =0;
-	function<bool(const datunion*, const datunion*)> arrayLess;
+	function<bool(const datunion*, const datunion*)> unionArrayLess;
+	function<bool(const dat*, const dat*)> datArrayLess;
 	token tok();
 	token nextTok();
 	token peekTok();

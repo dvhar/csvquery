@@ -338,6 +338,7 @@ flatmap<int, string_view> opMap = {
 	{ENDRUN,"ENDRUN"},
 	{NULFALSE,"NULFALSE"},
 	{DIST_NORM,"DIST_NORM"},
+	{DIST_NOALLOC,"DIST_NOALLOC"},
 	{LDDIST,"LDDIST"},
 	{FINC,"FINC"},
 	{ENCCHA,"ENCCHA"},
