@@ -329,7 +329,7 @@ void dataTyper::typeInitialValue(astnode &n, bool trivial){
 	//cerr << "typed " << n->tok1.val << " as " << n->datatype << endl;
 
 	//see if selecting trivial value (just column or literal)
-	if (n->label == N_SELECTIONS && !q->isSubquery && n->diststartok().id != KW_DISTINCT) trivial = true;
+	if (n->label == N_SELECTIONS && !q->isSubquery) trivial = true;
 	if (trivial && !stillTrivial(n))                trivial = false;
 	if (trivial && n->label == N_VALUE) {
 		if (n->valtype() == COLUMN) {
@@ -997,8 +997,7 @@ void dataTyper::getToptypes(){
 	if (n == nullptr){
 		selectallToptypes();
 	} else while (n){
-		if (n->diststartok().id == KW_DISTINCT && n->diststartok().lower() == "hidden"){
-		} else if (n->diststartok().id == SP_STAR){
+		if (n->startok().id == SP_STAR){
 			selectallToptypes();
 		} else {
 			topitypes.push_back({n->datatype,canBeString(n->nsubexpr())});
@@ -1012,11 +1011,9 @@ void dataTyper::setToptypes(){
 	auto n = findFirstNode(q->tree, N_SELECTIONS).get();
 	int i = 0;
 	while (n){
-		if (!(n->diststartok().id == KW_DISTINCT && n->diststartok().lower() == "hidden")){
-			n->datatype = topftypes[i++];
-			if (n->datatype == T_NULL)
-				error("Subquery has null datatype");
-		}
+		n->datatype = topftypes[i++];
+		if (n->datatype == T_NULL)
+			error("Subquery has null datatype");
 		n = n->nnextselection().get();
 	}
 }

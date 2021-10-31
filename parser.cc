@@ -13,6 +13,7 @@ options           -> [ oh noh nh h ah s p t nan m ] { <options> } | ε
 with              -> with <vars> | ε
 vars              -> <expradd> as alias { [ , and ] vars }
 select            -> select { top number } <selections> | ε
+quantifier        -> top number | distinct | <quantifier> | ε
 selections        -> {,} <expradd> <selections> | ε
 expradd           -> <exprmult> { [ + - ] <expradd> }
 exprmult          -> <exprneg> { [ * % ^ / ] <exprmult> }
@@ -97,7 +98,7 @@ class parser {
 	astnode parseQuery();
 	astnode parseHandleAlias();
 	void parseFileOptions(astnode&);
-	void parseTop(astnode&);
+	void parseQuantifier(astnode&);
 	void parseLimit(astnode&);
 
 	querySpecs* q;
@@ -305,14 +306,13 @@ astnode parser::parseSelect() {
 	astnode n = newNode(N_SELECT);
 	if (t.lower() != "select") error("Expected 'select'. Found '",t.val,"'");
 	q->nextTok();
-	parseTop(n);
+	parseQuantifier(n);
 	n->node2 = parseSelections();
 	return n;
 }
 
 //node1 is expression
 //node2 is next selection
-//tok1 is * or distinct or hidden
 //tok2 is alias
 //later stages:
 //  tok3.id will be midrow index
@@ -335,14 +335,6 @@ astnode parser::parseSelections() {
 		q->nextTok();
 		n->node2 = parseSelections();
 		return n;
-	case KW_DISTINCT:
-		n->tok1 = t;
-		t = q->nextTok();
-		if (t.lower() == "hidden" && !t.quoted) {
-			n->tok1 = t;
-			n->tok1.id = KW_DISTINCT;
-			t = q->nextTok();
-		}
 	//expression
 	case KW_CASE:
 	case WORD_TK:
@@ -701,7 +693,7 @@ astnode parser::parseCaseWhenExpr() {
 }
 
 //row limit at front of query
-void parser::parseTop(astnode& n) {
+void parser::parseQuantifier(astnode& n) {
 	t = q->tok();
 	e("parse top");
 	if (t.lower() == "top") {
@@ -709,6 +701,14 @@ void parser::parseTop(astnode& n) {
 		if (!is_number(t.val)) error("Expected number after 'top'. Found '",t.val,"'");
 		n->tok1.id = atoi(t.val.c_str());
 		q->nextTok();
+		parseQuantifier(n);
+		return;
+	}
+	if (t.lower() == "distinct") {
+		q->distinctFiltering = true;
+		q->nextTok();
+		parseQuantifier(n);
+		return;
 	}
 }
 

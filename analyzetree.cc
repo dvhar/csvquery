@@ -75,14 +75,7 @@ void analyzer::varUsedInFilter(astnode &n){
 		}
 		break;
 	case N_SELECTIONS:
-		t1 = n->diststartok().lower();
-		if (t1 == "hidden" || t1 == "distinct"){
-			setSubtreeVarFilter(n->nsubexpr(), DISTINCT_FILTER);
-			if (t1 != "hidden")
-				setSubtreeVarFilter(n->nsubexpr(), SELECT_FILTER);
-		} else {
-			setSubtreeVarFilter(n->nsubexpr(), SELECT_FILTER);
-		}
+		setSubtreeVarFilter(n->nsubexpr(), SELECT_FILTER);
 		varUsedInFilter(n->nnextselection());
 		break;
 	case N_WHERE:
@@ -160,7 +153,7 @@ void analyzer::selectAllSubquery(){
 		auto prev = findFirstNode(q->tree, N_SELECT).get();
 		auto next = prev->nselections().get();
 		do {
-			if (next->diststartok().id == SP_STAR){
+			if (next->startok().id == SP_STAR){
 				auto&& allcolumns = expandSelectAll();
 				auto nextafter = next->nnextselection().release();
 				prev->nnextselection().reset(allcolumns.first.release());
@@ -174,11 +167,10 @@ void analyzer::selectAllSubquery(){
 
 void analyzer::recordResultColumns(astnode &n){
 	if (n == nullptr) return;
-	string t1 = n->diststartok().lower();
+	string t1 = n->startok().lower();
 	switch (n->label){
 	case N_SELECTIONS:
-		if (t1 == "hidden") {
-		} else if (t1 == "*"){
+		if (t1 == "*"){
 			selectAll();
 		} else {
 			n->selectiondestidx() = q->colspec.count++;
@@ -600,10 +592,6 @@ void analyzer::shouldPrintHeader(){
 void analyzer::setAttributes(astnode& n){
 	if (n == nullptr) return;
 	switch (n->label){
-	case N_SELECTIONS:
-		if (n->diststartok().id == KW_DISTINCT)
-			q->distinctFiltering = 1;
-		break;
 	case N_PRESELECT:
 		q->options = n->optionbits();
 		break;
