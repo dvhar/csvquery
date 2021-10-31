@@ -9,7 +9,8 @@
 /coverage
 
 # production
-#/build
+/build/*png
+/build/*ico
 
 # misc
 .DS_Store
