@@ -9,20 +9,20 @@
     c1+c9 as sf, c1+c7 as si, c7+c9 as if, int+-c5 as ii, int-c5 as ii2 c16, c16+'10
     years', c16-'10 years', '10 years'*-2 from 'test/country.csv' nh
   output: 2.csv
-- title: distinct string, case
-  code: 0
-  query: m select distinct c3 c15 case when c15 like '_F' or c15 like '%O' then 1 when
-    c15 like '_i' then 2 else 0 end from 'test/country.csv' nh
-  output: 3.csv
-- title: distinct var
-  code: 0
-  query: m with c5 as int select top 10 distinct int, int from 'test/country.csv' nh
-  output: 4.csv
-- title: distinct hidden
-  code: 0
-  query: m with c5 as int select top 10 distinct hidden int, int from 'test/country.csv'
-    nh
-  output: 5.csv
+#- title: distinct string, case
+  #code: 0
+  #query: m select distinct c3 c15 case when c15 like '_F' or c15 like '%O' then 1 when
+    #c15 like '_i' then 2 else 0 end from 'test/country.csv' nh
+  #output: 3.csv
+#- title: distinct var
+  #code: 0
+  #query: m with c5 as int select top 10 distinct int, int from 'test/country.csv' nh
+  #output: 4.csv
+#- title: distinct hidden
+  #code: 0
+  #query: m with c5 as int select top 10 distinct hidden int, int from 'test/country.csv'
+    #nh
+  #output: 5.csv
 - title: basic where
   code: 0
   query: m select top 10 c5 c7 c16 from 'test/country.csv' nh where c5%2=0 and c7<200000
@@ -120,21 +120,21 @@
   query: m select j.c3,o.c1,j.c2 from 'test/cities.csv' nh j join 'test/country.csv'
     o nh on j.c3=o.c1 limit 10
   output: 25.csv
-- title: single basic join with vars for where, distinct, joinvals, and selections
-  code: 0
-  query: m noh with j.c3 as v1, o.c1 as v2, j.c2 as dog, o.c2 as cat select distinct v1,v2,dog,cat
-    from 'test/country' o nh join 'test/cities' nh j on v1=v2 where dog like 'm%'
-  output: 26.csv
+#- title: single basic join with vars for where, distinct, joinvals, and selections
+  #code: 0
+  #query: m noh with j.c3 as v1, o.c1 as v2, j.c2 as dog, o.c2 as cat select distinct v1,v2,dog,cat
+    #from 'test/country' o nh join 'test/cities' nh j on v1=v2 where dog like 'm%'
+  #output: 26.csv
 - title: single basic left join with var
   code: 0
   query: m noh with j.c3 as v1 select v1,o.c1,j.c2 from 'test/cities.csv' nh j left join
     'test/country.csv' o nh on v1=o.c1 limit 10
   output: 27.csv
-- title: triple join with distinct
-  code: 0
-  query: m select distinct hidden c1 from 'test/country.csv' nh o join 'test/lang.csv'
-    l nh on o.c1=l.c1 join 'test/cities.csv' j nh on l.c1=j.c3 limit 10
-  output: 28.csv
+#- title: triple join with distinct
+  #code: 0
+  #query: m select distinct hidden c1 from 'test/country.csv' nh o join 'test/lang.csv'
+    #l nh on o.c1=l.c1 join 'test/cities.csv' j nh on l.c1=j.c3 limit 10
+  #output: 28.csv
 - title: sorting group join
   code: 0
   query: m noh with count(*) as k select c1 max(l.c2) k from 'test/country.csv' o nh join 'test/lang.csv'
@@ -145,15 +145,15 @@
   query: m noh with count(*) as k select c1 max(l.c2) k from 'test/country.csv' o nh join 'test/lang.csv' l
     nh on o.c1=l.c1 group by l.c1 order by k desc max(l.c2) desc max(c1) desc having k between 10 and 5
   output: 30.csv
-- title: distinct aggregate
-  code: 0
-  query: m select distinct count(*) c3 from 'test/country' nh group by c3
-  output: 31.csv
-- title: simple join and chain
-  code: 0
-  query: m nh select distinct o.c1 l.c1 from 'test/country.csv' o join 'test/lang.csv'
-    l on o.c1=l.c1 and l.c1 <> GUM and l.c1 like 'g%'
-  output: 32.csv
+#- title: distinct aggregate
+  #code: 0
+  #query: m select distinct count(*) c3 from 'test/country' nh group by c3
+  #output: 31.csv
+#- title: simple join and chain
+  #code: 0
+  #query: m nh select distinct o.c1 l.c1 from 'test/country.csv' o join 'test/lang.csv'
+    #l on o.c1=l.c1 and l.c1 <> GUM and l.c1 like 'g%'
+  #output: 32.csv
 - title: negation type error
   code: 1
   query: m select -c4 from 'test/country.csv'

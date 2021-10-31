@@ -172,9 +172,6 @@ void cgen::genJoiningQuery(astnode &n){
 		addop(PREP_REREAD);
 		jumps.setPlace(reread, v.size());
 		addop(RDLINE_ORDERED, endreread);
-		vs.setscope(DISTINCT_FILTER, V_READ2_SCOPE);
-		genVars(n->npreselect());
-		genDistinct(n->nselect(), reread);
 		vs.setscope(SELECT_FILTER, V_READ2_SCOPE);
 		genVars(n->npreselect());
 		genSelect(n->nselect());
@@ -219,9 +216,6 @@ void cgen::genJoinSets(astnode &n){
 			addop(JMP, prevJoinRead);
 		} else {
 			genWhere(q->tree->nafterfrom());
-			vs.setscope(DISTINCT_FILTER, V_READ1_SCOPE);
-			genVars(q->tree->npreselect());
-			genDistinct(q->tree->nselect(), wherenot);
 			vs.setscope(SELECT_FILTER, V_READ1_SCOPE);
 			genVars(q->tree->npreselect());
 			genSelect(q->tree->nselect());
@@ -469,9 +463,6 @@ void cgen::genNormalQuery(astnode &n){
 	wherenot = normal_read;
 	addop(RDLINE, endfile, 0);
 	genWhere(n->nafterfrom());
-	vs.setscope(DISTINCT_FILTER, V_READ1_SCOPE);
-	genVars(n->npreselect());
-	genDistinct(n->nselect(), normal_read);
 	vs.setscope(SELECT_FILTER, V_READ1_SCOPE);
 	genVars(n->npreselect());
 	genSelect(n->nselect());
@@ -503,9 +494,6 @@ void cgen::genNormalOrderedQuery(astnode &n){
 	genHeader();
 	jumps.setPlace(reread, v.size());
 	addop(RDLINE_ORDERED, endreread);
-	vs.setscope(DISTINCT_FILTER, V_READ2_SCOPE);
-	genVars(n->npreselect());
-	genDistinct(n->nselect(), reread);
 	vs.setscope(SELECT_FILTER, V_READ2_SCOPE);
 	genVars(n->npreselect());
 	genSelect(n->nselect());
@@ -785,20 +773,10 @@ void cgen::genSelections(astnode &n){
 		return;
 	}
 	e("gen selections");
-	string t1 = n->diststartok().lower();
+	string t1 = n->startok().lower();
 	switch (n->label){
 	case N_SELECTIONS:
-		if (t1 == "hidden") {
-
-		} else if (t1 == "distinct") {
-			if (agg_phase == 1){
-				genExprAll(n->nsubexpr());
-			} else {
-				addop1(PUTDIST, n->selectiondistnum());
-			}
-			incSelectCount();
-
-		} else if (t1 == "*") {
+		if (t1 == "*") {
 			genSelectAll();
 
 		} else if (isTrivialColumn(n)) {
@@ -949,18 +927,6 @@ void cgen::genWhere(astnode &nn){
 void cgen::genDistinct(astnode &n, int gotoIfNot){
 	if (n == nullptr) return;
 	e("gen distinct");
-	if (n->label == N_SELECT){
-		genDistinct(n->nselections(), gotoIfNot);
-		return;
-	} else if (n->label != N_SELECTIONS)
-		return;
-	if (n->diststartok().id == KW_DISTINCT){
-		genExprAll(n->nsubexpr());
-		addop2(DIST, gotoIfNot, addBtree(n->datatype, q));
-	} else {
-		//there can be only 1 distinct filter
-		genDistinct(n->nnextselection(), gotoIfNot);
-	}
 }
 
 void cgen::genFunction(astnode &n){
@@ -1234,9 +1200,6 @@ void cgen::genUnsortedGroupRow(astnode &n, int nextgroup, int doneGroups){
 	genPredicates(q->tree->nafterfrom()->nhaving());
 	if (q->havingFiltering)
 		addop(JMPFALSE, nextgroup, 1);
-	vs.setscope(DISTINCT_FILTER, V_GROUP_SCOPE);
-	genVars(q->tree->npreselect());
-	genDistinct(q->tree->nselect(), nextgroup);
 	vs.setscope(SELECT_FILTER, V_GROUP_SCOPE);
 	genVars(q->tree->npreselect());
 	genSelect(q->tree->nselect());
@@ -1251,9 +1214,6 @@ void cgen::genSortedGroupRow(astnode &n, int nextgroup){
 	genPredicates(q->tree->nafterfrom()->nhaving());
 	if (q->havingFiltering)
 		addop(JMPFALSE, nextgroup, 1);
-	vs.setscope(DISTINCT_FILTER, V_GROUP_SCOPE);
-	genVars(q->tree->npreselect());
-	genDistinct(q->tree->nselect(), nextgroup);
 	addop(ADD_GROUPSORT_ROW);
 	vs.setscope(SELECT_FILTER, V_GROUP_SCOPE);
 	genVars(q->tree->npreselect());
