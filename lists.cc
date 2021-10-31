@@ -337,7 +337,7 @@ flatmap<int, string_view> opMap = {
 	{POPCPY,"POPCPY"},
 	{ENDRUN,"ENDRUN"},
 	{NULFALSE,"NULFALSE"},
-	{DIST,"DIST"},
+	{DIST_NORM,"DIST_NORM"},
 	{LDDIST,"LDDIST"},
 	{FINC,"FINC"},
 	{ENCCHA,"ENCCHA"},
