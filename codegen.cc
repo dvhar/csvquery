@@ -38,7 +38,7 @@ class cgen {
 	void genAggSortList(astnode &n);
 	void genVars(astnode &n);
 	void genWhere(astnode &n);
-	void genDistinct(astnode &n, int gotoIfNot);
+	void genDistinct(int goWhenNot);
 	void genGetGroup(astnode &n);
 	void genSelect(astnode &n);
 	void genExprAll(astnode &n);
@@ -466,6 +466,7 @@ void cgen::genNormalQuery(astnode &n){
 	vs.setscope(SELECT_FILTER, V_READ1_SCOPE);
 	genVars(n->npreselect());
 	genSelect(n->nselect());
+	genDistinct(normal_read);
 	genPrint();
 	addop((q->quantityLimit > 0 ? JMPCNT : JMP), normal_read);
 	jumps.setPlace(endfile, v.size());
@@ -915,18 +916,49 @@ void cgen::genSelectAll(){
 //given afterfrom node
 void cgen::genWhere(astnode &nn){
 	auto& n = findFirstNode(nn, N_WHERE);
-	e("gen where");
 	if (n == nullptr) return;
+	e("gen where");
 	vs.setscope(WHERE_FILTER, V_READ1_SCOPE);
 	genVars(q->tree->npreselect());
 	genPredicates(n->nwhere());
 	addop2(JMPFALSE, wherenot, 1);
 }
 
-//given select or selections node
-void cgen::genDistinct(astnode &n, int gotoIfNot){
-	if (n == nullptr) return;
+void cgen::genDistinct(int goWhenNot){
+	if (!q->distinctFiltering) return;
+	auto& n = findFirstNode(q->tree, N_SELECTIONS);
 	e("gen distinct");
+	addop(DIST_NORM, goWhenNot);
+	vector<int> types;
+	if (n) {
+		for (auto nn = n.get(); nn && nn->label == N_SELECTIONS; nn = nn->nnextselection().get()){
+			if (n->startok().id == SP_STAR){
+				for (auto& f: q->filevec)
+					for (auto t : f->types)
+						types.push_back(T_STRING);
+			} else {
+				types.push_back(nn->datatype);
+			}
+		}
+	} else {
+		for (auto& f: q->filevec)
+			for (auto t : f->types)
+				types.push_back(T_STRING);
+	}
+	q->arrayLess = [types](const datunion*l, const datunion*r) -> bool {
+		int i = 0;
+		int dif = 0;
+		bool less = false;
+		for (auto t : types){
+			if (t == T_STRING && r[i].s && l[i].s){
+				if (dif = strcmp(l[i].s, r[i].s); dif < 0) less = true;
+			} else {
+				if (dif = r[i].i - l[i].i; dif < 0) less = true;
+			}
+			++i;
+		}
+		return less;
+	};
 }
 
 void cgen::genFunction(astnode &n){
@@ -945,7 +977,7 @@ void cgen::genFunction(astnode &n){
 				setIndex = addBtree(n->nsubexpr()->datatype, q);
 				separateSets = 0;
 			}
-			addop(DIST, funcDone, setIndex, separateSets);
+			addop(DIST_AGG, funcDone, setIndex, separateSets);
 			addop(LDDIST);
 		}
 	}
