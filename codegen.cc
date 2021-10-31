@@ -175,6 +175,7 @@ void cgen::genJoiningQuery(astnode &n){
 		vs.setscope(SELECT_FILTER, V_READ2_SCOPE);
 		genVars(n->npreselect());
 		genSelect(n->nselect());
+		genDistinct(reread);
 		genPrint();
 		addop((q->quantityLimit > 0 ? JMPCNT : JMP), reread);
 		jumps.setPlace(endreread, v.size());
@@ -219,6 +220,7 @@ void cgen::genJoinSets(astnode &n){
 			vs.setscope(SELECT_FILTER, V_READ1_SCOPE);
 			genVars(q->tree->npreselect());
 			genSelect(q->tree->nselect());
+			genDistinct(prevJoinRead);
 			genPrint();
 			addop((q->quantityLimit > 0 ? JMPCNT : JMP), prevJoinRead);
 		}
@@ -498,6 +500,7 @@ void cgen::genNormalOrderedQuery(astnode &n){
 	vs.setscope(SELECT_FILTER, V_READ2_SCOPE);
 	genVars(n->npreselect());
 	genSelect(n->nselect());
+	genDistinct(reread);
 	genPrint();
 	addop((q->quantityLimit > 0 ? JMPCNT : JMP), reread);
 	jumps.setPlace(endreread, v.size());
@@ -948,16 +951,15 @@ void cgen::genDistinct(int goWhenNot){
 	q->arrayLess = [types](const datunion*l, const datunion*r) -> bool {
 		int i = 0;
 		int dif = 0;
-		bool less = false;
 		for (auto t : types){
 			if (t == T_STRING && r[i].s && l[i].s){
-				if (dif = strcmp(l[i].s, r[i].s); dif < 0) less = true;
+				if (dif = strcmp(l[i].s, r[i].s); dif < 0) return true;
 			} else {
-				if (dif = r[i].i - l[i].i; dif < 0) less = true;
+				if (dif = r[i].i - l[i].i; dif < 0) return true;
 			}
 			++i;
 		}
-		return less;
+		return false;
 	};
 }
 
@@ -1178,7 +1180,6 @@ void cgen::genIterateGroups(astnode &n){
 		vs.setscope(SELECT_FILTER, V_GROUP_SCOPE);
 		genVars(q->tree->npreselect());
 		genSelect(q->tree->nselect());
-		// for debugging:
 		genPrint();
 		return;
 	}
