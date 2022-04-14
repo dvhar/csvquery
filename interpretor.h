@@ -463,19 +463,28 @@ class andchain;
 class querySpecs;
 class fileReader {
 	int fieldsFound;
+	bool done = 0;
+	bool single = false;
 	char* pos1 = 0;
 	char* pos2 = 0;
 	char* terminator = 0;
 	char* buf = 0;
 	char* escapedQuote = 0;
-	bufreader br;
+	char* end = NULL;
+	char* row = NULL;
+	FILE* f = NULL;
+	std::unique_ptr<char[]> realbuf;
 	string filename;
 	vector<unique_ptr<csvEntry[], freeC>> gotrows;
 	fastvector entriesVec;
 	i64 prevpos = 0;
+	int biggestline = 0;
 	int equoteCount = 0;
 	int memidx = 0;
 	int numrows = 0;
+	long long fsize = 0;
+	long long buffsize = 0;
+	long long readsofar = 0;
 	querySpecs *q;
 	public:
 		static char blank;
@@ -500,7 +509,7 @@ class fileReader {
 	inline void getQuotedField();
 	inline void compactQuote();
 	inline bool checkWidth();
-	int size(){ return br.fsize; };
+	inline void refreshBuffer();
 	void inferTypes();
 	int getColIdx(string&);
 	bool readline();

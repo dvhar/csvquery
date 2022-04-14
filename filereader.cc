@@ -2,19 +2,27 @@
 #include <boost/filesystem.hpp>
 #include <sstream>
 #include <string>
+#include <stdio.h>
 #include "interpretor.h"
 
 fileReader::fileReader(string& fname, querySpecs &qs) : filename(fname), q(&qs) {
 	fileno = qs.numFiles;
-	i64 optisize = br.buffsize;
+	i64 optisize = buffsize;
 	if (fileno > 0){
 		i64 jmegs = max((i64)100, totalram() / 20);
 		if (qs.sorting)
 			jmegs = max((i64)100, jmegs/2);
 		optisize = jmegs * 1024 * 2024;
 	}
-	br.open(fname.c_str(), optisize);	
-	small = br.fsize <= br.buffsize;
+	fsize = boost::filesystem::file_size(fname);
+	buffsize = fsize < optisize ? fsize : optisize;
+	small = fsize <= buffsize;
+	f = fopen(fname.c_str(), "rb");
+	realbuf.reset(new char[buffsize+4]);
+	//padding for safe parsing
+	realbuf[0] = realbuf[buffsize+2] =
+	realbuf[1] = realbuf[buffsize+3] = 0;
+	buf = &realbuf[2];
 }
 char fileReader::blank = 0;
 fileReader::~fileReader(){
@@ -45,7 +53,7 @@ bool fileReader::readlineat(i64 position){
 			fill(entriesVec.begin(), entriesVec.end(), csvEntry{&blank,&blank});
 			return 0;
 		}
-		br.seekline(position);
+		fseek(f, pos, SEEK_SET);
 		return readline();
 	}
 }
@@ -58,12 +66,11 @@ bool fileReader::readline(){
 		return 0;
 	} else {
 		pos = prevpos;
-		buf = br.getline();
-		if (br.done) return 1;
+		if (done) return 1;
 	}
 	entriesVec.clear();
 	fieldsFound = equoteCount = 0;
-	pos1 = pos2 = buf;
+	pos1 = pos2 = row;
 	while (1){
 		//trim leading space
 		while (*pos2 && isspace(*pos2)) ++pos2;
@@ -77,6 +84,7 @@ bool fileReader::readline(){
 				pos1 = ++pos2;
 			}
 			if (!*pos2){
+				//TODO: see if multi-line field
 				terminator = pos2;
 				getField();
 				return checkWidth();
@@ -104,6 +112,7 @@ bool fileReader::readline(){
 			case '\0':
 			case '\n':
 			case '\r':
+				//TODO: check for multi-line field
 				getQuotedField();
 				return checkWidth();
 			// "" escaped quote
@@ -154,11 +163,25 @@ inline void fileReader::compactQuote(){
 	escapedQuote = pos2;
 	++equoteCount;
 }
+inline void fileReader::refreshBuffer(){
+	if (readsofar >= fsize){
+		done = true;
+		return;
+	}
+	long long offset = end - row;
+	auto readb = fread(buf+offset, 1, (single ? biggestline-offset : buffsize-offset), f);
+	readsofar += readb;
+	row = buf;
+	end = row + offset + readb;
+}
 inline bool fileReader::checkWidth(){
 	prevpos += (pos2 - buf + 1);
 	if (numFields == 0)
 		numFields = entriesVec.size();
 	entries = entriesVec.data();
+	row = pos2 + 1;
+	if (!row)
+		refreshBuffer();
 	return fieldsFound != numFields;
 }
 inline void fileReader::getField(){
@@ -218,8 +241,10 @@ void fileReader::inferTypes() {
 	prevpos = startData;
 	if (small)
 		fill(entriesVec.begin(), entriesVec.end(), csvEntry{&blank,&blank});
-	else
-		br.seekfull(startData);
+	else {
+		fseek(f, startData, SEEK_SET);
+		done = false;
+	}
 }
 
 int fileReader::getColIdx(string& colname){
@@ -231,7 +256,6 @@ int fileReader::getColIdx(string& colname){
 }
 
 class opener {
-	i64 totalsize = 0;
 	querySpecs *q;
 	public:
 	void openfiles(astnode&);
@@ -277,7 +301,6 @@ void opener::openfiles(astnode &n){
 
 		++q->numFiles;
 		fr->inferTypes();
-		totalsize += fr->size();
 		return;
 	}
 	openfiles(n->node1);
