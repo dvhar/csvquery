@@ -65,7 +65,7 @@ bool bufreader::addrefresh(int rem){
 	return true;
 }
 //return amount needed to add to field pointers to revalidated them
-int bufreader::addline(){
+long long bufreader::addline(){
 	*nl = '\n';
 	nl = (char*) strchr(nl+1, '\n');
 	if (nl){

@@ -483,7 +483,7 @@ class fileReader {
 		bool inmemory =0;
 		bool noheader = false;
 		bool autoheader = false;
-		char delim;
+		char delim = ',';
 		i64 pos =0;
 		vector<string> colnames;
 		vector<int> types;
