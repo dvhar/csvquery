@@ -74,11 +74,14 @@ long long bufreader::addline(){
 		if (linesize > biggestline)
 			biggestline = linesize;
 		return 0;
-	} else {
+	} else if (fsize > buffsize) {
 		long long offset = buf - line;
 		long long rem = end - line;
 		memmove(buf, line, rem);
 		addrefresh(rem);
 		return offset;
+	} else { // TODO: read the rest of malformed line
+		done = true;
+		return 0;
 	}
 }
