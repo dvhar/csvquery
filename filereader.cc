@@ -87,10 +87,20 @@ bool fileReader::readline(){
 			inquote:
 			//go to next quote
 			while(*pos2 && *pos2 != '"') ++pos2;
-			//end of line. TODO: turn this into multi-line field
+			//line ends before reaching closing quote
 			if (!*pos2){
-				getQuotedField();
-				return checkWidth();
+				auto offset = br.addline();
+				for (auto& e : entriesVec){
+					e.terminator += offset;
+					e.val += offset;
+				}
+				pos1 += offset;
+				pos2 += offset;
+				if (br.done){
+					//file ends on unfinished field TODO: find better solution
+					return checkWidth();
+				} else
+					goto inquote;
 			}
 			//nonstandard escape character
 			if (*(pos2-1) == '\\' && !nextIsDelim()){
@@ -257,7 +267,6 @@ void opener::openfiles(astnode &n){
 		fpath = fpath.substr(a, b);
 		q->filemap[fpath] = fr;
 
-		fr->delim = ',';
 		fr->autoheader = globalSettings.autoheader;
 		//global file options
 		if (q->options & O_S) fr->delim = ' ';
