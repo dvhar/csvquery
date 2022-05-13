@@ -143,8 +143,18 @@ class TableGrid extends React.Component {
 	row(row,idx){
 		return( 
 			<tr key={idx} className="tableRow"> 
-				{row.map((name,idx)=>{ 
-					if (this.props.hideColumns[idx]===0) return( <td key={idx} className="tableCell"> {name} </td>) })}
+				{row.map((value,idx)=>{ 
+					if (this.props.hideColumns[idx]===0) {
+						if (value.indexOf('\n') > -1){
+							let arr = value.split('\n');
+							value = [];
+							for (let i = 0; i < arr.length-1; i++)
+								value.push(arr[i], <br/>);
+							value.push(arr[arr.length-1]);
+						}
+						return( <td key={idx} className="tableCell"> {value} </td>);
+					}
+				})}
 			</tr>
 		)
 	}
