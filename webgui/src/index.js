@@ -80,6 +80,7 @@ class Main extends React.Component {
 			fileIO: querySpecs.fileIO || 0, 
 			savePath: querySpecs.savePath || "", 
 			};
+		//postRequest({path:"http://0.0.0.0:3001/query/",body:fullQuery}).then(dat=>{
 		postRequest({path:"/query/",body:fullQuery}).then(dat=>{
 			if ((dat.status & bit.DAT_GOOD) && (!querySpecs.backtrack)){
 				this.setState({ historyPosition : this.state.queryHistory.length,

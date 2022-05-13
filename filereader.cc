@@ -90,12 +90,14 @@ bool fileReader::readline(){
 			//line ends before reaching closing quote
 			if (!*pos2){
 				auto offset = br.addline();
-				for (auto& e : entriesVec){
-					e.terminator += offset;
-					e.val += offset;
+				if (offset) {
+					for (auto& e : entriesVec){
+						e.terminator += offset;
+						e.val += offset;
+					}
+					pos1 += offset;
+					pos2 += offset;
 				}
-				pos1 += offset;
-				pos2 += offset;
 				if (br.done){
 					//file ends on unfinished field TODO: find better solution
 					return checkWidth();
