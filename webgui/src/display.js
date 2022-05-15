@@ -123,7 +123,7 @@ class TableGrid extends React.Component {
 	header(){
 		var names = this.props.table.colnames.map((name,ii)=>{
 			if (this.props.hideColumns[ii]===0) return (
-			<th key={ii} className="tc" onClick={()=>this.sorter(ii)}>
+			<th key={ii} className="tc nameCell" onClick={()=>this.sorter(ii)}>
 				{this.props.table.colnames[ii]}
 			</th>
 		)});

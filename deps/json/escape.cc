@@ -60,21 +60,20 @@ void shorten(string_view input, string& output){
 		input = input.substr(lineend+1);
 	}
 }
-string chopAndEscapeJson(const basic_string_view<char>& input){
+string chopAndEscapeJson(basic_string_view<char>&& input){
 	string output;
 	output.reserve(input.length());
 	if (input.length() <= linelen){
 		shorten(input, output);
 		return output;
 	}
-	string_view rem = input;
 	while (1) {
-		auto lineend = rem.find('\n');
+		auto lineend = input.find('\n');
 		if (lineend != string_view::npos){
-			shorten(rem.substr(0, lineend+1), output);
-			rem = rem.substr(lineend+1);
+			shorten(input.substr(0, lineend+1), output);
+			input = input.substr(lineend+1);
 		} else {
-			shorten(rem, output);
+			shorten(input, output);
 			return output;
 		}
 	}
