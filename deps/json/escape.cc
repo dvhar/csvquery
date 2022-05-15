@@ -1,41 +1,81 @@
 #include "escape.h"
 #include <string>
+using namespace std;
+int linelen = 100;
 
-std::string escapeJSON(const std::basic_string_view<char>& input)
-{
-    std::string output;
-    output.reserve(input.length());
+void addEscapedJSON(const basic_string_view<char>& input, string& output) {
+	for (string::size_type i = 0; i < input.length(); ++i)
+	{
+		switch (input[i]) {
+			case '"':
+				output += "\\\"";
+				break;
+			case '\b':
+				output += "\\b";
+				break;
+			case '\f':
+				output += "\\f";
+				break;
+			case '\n':
+				output += "\\n";
+				break;
+			case '\r':
+				output += "\\r";
+				break;
+			case '\t':
+				output += "\\t";
+				break;
+			case '\\':
+				output += "\\\\";
+				break;
+			default:
+				output += input[i];
+				break;
+		}
 
-    for (std::string::size_type i = 0; i < input.length(); ++i)
-    {
-        switch (input[i]) {
-            case '"':
-                output += "\\\"";
-                break;
-            case '\b':
-                output += "\\b";
-                break;
-            case '\f':
-                output += "\\f";
-                break;
-            case '\n':
-                output += "\\n";
-                break;
-            case '\r':
-                output += "\\r";
-                break;
-            case '\t':
-                output += "\\t";
-                break;
-            case '\\':
-                output += "\\\\";
-                break;
-            default:
-                output += input[i];
-                break;
-        }
-
-    }
-
-    return output;
+	}
+}
+string escapeJSON(const basic_string_view<char>& input){
+	string output;
+	output.reserve(input.length());
+	addEscapedJSON(input, output);
+	return output;
+}
+void shorten(string_view input, string& output){
+	while (1) {
+		if (input.length() <= linelen){
+			addEscapedJSON(input, output);
+			return;
+		}
+		auto lineend = input.rfind(' ', linelen);
+		if (lineend == string::npos){
+			lineend = input.find(' ');
+			if (lineend == string::npos){
+				addEscapedJSON(input, output);
+				return;
+			}
+		}
+		addEscapedJSON(input.substr(0, lineend), output);
+		output += "\\n";
+		input = input.substr(lineend+1);
+	}
+}
+string chopAndEscapeJson(const basic_string_view<char>& input){
+	string output;
+	output.reserve(input.length());
+	if (input.length() <= linelen){
+		shorten(input, output);
+		return output;
+	}
+	string_view rem = input;
+	while (1) {
+		auto lineend = rem.find('\n');
+		if (lineend != string_view::npos){
+			shorten(rem.substr(0, lineend+1), output);
+			rem = rem.substr(lineend+1);
+		} else {
+			shorten(rem, output);
+			return output;
+		}
+	}
 }
