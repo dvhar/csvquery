@@ -93,7 +93,7 @@ code {
 .tableBody td {
   background-color: #FAFAFA; }
 
-.tableCell {
+.tableRow td {
   text-align: center;
   white-space: nowrap;
   min-width: 4em; }

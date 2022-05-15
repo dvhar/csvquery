@@ -123,14 +123,14 @@ class TableGrid extends React.Component {
 	header(){
 		var names = this.props.table.colnames.map((name,ii)=>{
 			if (this.props.hideColumns[ii]===0) return (
-			<th key={ii} className="tableCell" onClick={()=>this.sorter(ii)}>
+			<th key={ii} className="tc" onClick={()=>this.sorter(ii)}>
 				{this.props.table.colnames[ii]}
 			</th>
 		)});
 		var positions = Array.from({length:this.props.table.types.length},(x,i)=>i+1);
 		var info = this.props.table.types.map((name,ii)=>{
 			if (this.props.hideColumns[ii]===0) return (
-			<td key={ii} className="tableCell typeCell" onClick={()=>this.sorter(ii)}>
+			<td key={ii} className="tc typeCell" onClick={()=>this.sorter(ii)}>
 				{`${positions[ii]} `}
 				<span className="noselect">
 				- {t[this.props.table.types[ii]]}
@@ -152,7 +152,7 @@ class TableGrid extends React.Component {
 								value.push(arr[i], <br/>);
 							value.push(arr[arr.length-1]);
 						}
-						return( <td key={idx} className="tableCell"> {value} </td>);
+						return( <td key={idx}>{value}</td>);
 					}
 				})}
 			</tr>
