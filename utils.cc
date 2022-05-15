@@ -360,7 +360,7 @@ stringstream& singleQueryResult::tojson(){
 	j << "],\"colnames\":[";
 	delim = &nocom;
 	for (auto &v : colnames){
-		j << *delim << '"' << escapeJSON(v) << '"';
+		j << *delim << '"' << chopAndEscapeJson(string_view(v)) << '"';
 		delim = &com;
 	}
 	j << "],\"vals\":[";

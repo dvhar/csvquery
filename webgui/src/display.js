@@ -120,11 +120,21 @@ class TableGrid extends React.Component {
 	sorter(ii){
 		sortQuery(this.props.table,ii,this.state.sortWay);this.setState({sortWay:this.state.sortWay*-1});
 	}
+	breaklines(value){
+		if (value.indexOf('\n') > -1){
+			let arr = value.split('\n');
+			value = [];
+			for (let i = 0; i < arr.length-1; i++)
+				value.push(arr[i], <br/>);
+			value.push(arr[arr.length-1]);
+		}
+		return value;
+	}
 	header(){
 		var names = this.props.table.colnames.map((name,ii)=>{
 			if (this.props.hideColumns[ii]===0) return (
 			<th key={ii} className="tc nameCell" onClick={()=>this.sorter(ii)}>
-				{this.props.table.colnames[ii]}
+				{this.breaklines(this.props.table.colnames[ii])}
 			</th>
 		)});
 		var positions = Array.from({length:this.props.table.types.length},(x,i)=>i+1);
@@ -145,14 +155,7 @@ class TableGrid extends React.Component {
 			<tr key={idx} className="tableRow"> 
 				{row.map((value,idx)=>{ 
 					if (this.props.hideColumns[idx]===0) {
-						if (value.indexOf('\n') > -1){
-							let arr = value.split('\n');
-							value = [];
-							for (let i = 0; i < arr.length-1; i++)
-								value.push(arr[i], <br/>);
-							value.push(arr[arr.length-1]);
-						}
-						return( <td key={idx}>{value}</td>);
+						return( <td key={idx}>{this.breaklines(value)}</td>);
 					}
 				})}
 			</tr>
