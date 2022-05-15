@@ -140,21 +140,6 @@ class TableGrid extends React.Component {
 		info.push( <td id="scrollBuffer">____</td> );
 		return[<tr className="tableRow">{names}</tr>,<tr className="tableRow" id="typeHeader">{info}</tr>]
 	}
-	shorten(value) { //TODO: do this in c++ not javascript
-		let j = value.indexOf(' ',100);
-		if (j == -1)
-			return value;
-		var newval = [];
-		let chopped = value;
-		while (j > -1) {
-			chopped = value.substr(0,j);
-			newval.push(chopped, <br/>);
-			value = value.substr(j);
-			j = value.indexOf(' ',100);
-		}
-		newval.push(value);
-		return newval;
-	}
 	row(row,idx){
 		return( 
 			<tr key={idx} className="tableRow"> 
@@ -164,11 +149,9 @@ class TableGrid extends React.Component {
 							let arr = value.split('\n');
 							value = [];
 							for (let i = 0; i < arr.length-1; i++)
-								value.push(this.shorten(arr[i]), <br/>);
-							value.push(this.shorten(arr[arr.length-1]));
+								value.push(arr[i], <br/>);
+							value.push(arr[arr.length-1]);
 						}
-						if (typeof(value) === 'string')
-							value = this.shorten(value);
 						return( <td key={idx} className="tableCell"> {value} </td>);
 					}
 				})}

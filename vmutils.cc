@@ -28,17 +28,12 @@ void dat::appendToJsonBuffer(string &outbuf){
 		break;
 	case T_DATE:
 		outbuf += datestring(u.i);
-		 break;
+		break;
 	case T_DURATION:
-		 outbuf += durstring(*this, nullptr);
-		 break;
+		outbuf += durstring(*this, nullptr);
+		break;
 	case T_STRING:
-		for (auto c = (u8*)u.s; *c; c++) a |= abnormal[*c];
-		if (a & 4) {
-			outbuf += escapeJSON(string_view(u.s));
-		} else {
-			outbuf += u.s;
-		}
+		outbuf += chopAndEscapeJson(string_view(u.s));
 		break;
 	}
 	outbuf += '"';
