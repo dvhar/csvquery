@@ -31,7 +31,7 @@ python3 -m pip install pyyaml
 First install `pyyaml` python library
 ```
 cd build
-./integrationTest.py
+./runTests.py
 ```
 ## Run
 Show usage info:

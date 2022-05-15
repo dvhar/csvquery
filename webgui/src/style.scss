@@ -144,7 +144,7 @@ code {
 .tableBody td {
 	background-color: $bodycell;
 }
-.tableRow td {
+.tableRow td, .nameCell, .typeCell {
 	text-align: center;
 	white-space:nowrap;
 	min-width: 4em;
