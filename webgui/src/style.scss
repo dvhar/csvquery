@@ -1,8 +1,8 @@
 //top bar back gradient
-$ttop: #091928;
-$ttp: #207cca;
-$bbt: #207cca;
-$bbot: #7db9e8;
+$ttop: #090908;
+$ttp: #200c0a;
+$bbt: #200c0a;
+$bbot: #4d0908;
 //top bar buttons
 $top-top: #FFD700;
 $top-bot: #FFFF70;
@@ -15,9 +15,8 @@ $ojgradient2: #f17432;
 $ojgradient3: #ea5507;
 $ojgradient4: #fb955e;
 
-$tablebg: #dfdfdf;
+$tablebg: #0f0f0f;
 $dropdownbg: brown;
-	//background: linear-gradient(to bottom, #3b1212 0%,#71280b 50%,#752201 51%,#bf6e4e 100%);
 
 $loginTopBut: #a6e8a3;
 $topbarbg: $ttop;
@@ -34,9 +33,7 @@ $historyArrows: #ffff99;
 
 html {
 	min-height: 100%;
-	background-color: #ccc9c9;
-	//background: linear-gradient(to bottom, rgba(153,125,96,1) 0%, rgba(218,183,140,1) 45%, rgba(195,169,150,1) 100%);
-	//background-image: url("/bg.jpg");
+	background-color: #0a0908;
 }
 
 //dropdown menu
@@ -55,12 +52,15 @@ html {
 	}
 }
 code {
-	background: white;
-	color: #a10059;
+	background: black;
+	color: #ffccee;
 	font-family: 'Courier New', monospace;
 }
 .dropSelect {
 	top: 0;
+	background: #222222;
+	color: #ffeeaa;
+	border: 2px solid #886611;
 	float: left;
 }
 .dropmenu:hover .dropmenu-content {
@@ -93,22 +93,29 @@ code {
 .queryMenuButton {
 	width: 15em;
 	background-color: $button1;
-	background: linear-gradient(to bottom, #e2e2e2 0%,#dbdbdb 50%,#d1d1d1 51%,#fefefe 100%);
+	color: #eeeeee;
+	background: linear-gradient(to bottom, #666666 0%, #515151 50%, #414141 51%, #666666 100%);
 	border-radius: 4px;
 }
 .queryTextEntry {
+	background: #222222;
+	color: #ffeeaa;
+	border: 2px solid #886611;
 	width: calc(98vw);
 }
 .queryTextContainer {
 	padding: 0.2em;
 }
 .queryRunButton {
-	background: linear-gradient(to bottom, #ffffff 0%,#f1f1f1 50%,#e1e1e1 51%,#f6f6f6 100%);
+	background: linear-gradient(to bottom, #666666 0%, #515151 50%, #414141 51%, #666666 100%);
+	color: #ffffff;
+	border: 2px solid black;
+	font-weight: bold;
 	padding: 0.2em 1em;
 	font-size: medium;
 }
 .queryRunButton:hover {
-	background: linear-gradient(to bottom, #e0f3fa 0%,#d8f0fc 50%,#b8e2f6 51%,#b6dffd 100%);
+  background: linear-gradient(to bottom, #00136a 0%, #08606c 50%, #0832f6 51%, #062f3d 100%);
 }
 .viewContainer {
 	display: inline-block;
@@ -131,8 +138,8 @@ code {
 .tableModButton {
 	width: 15em;
 	padding: .2em .5em;
-	background: linear-gradient(to bottom, #ffffff 0%,#f1f1f1 50%,#e1e1e1 51%,#f6f6f6 100%);
-	//background-color: $button1;
+	background: linear-gradient(to bottom, #666666 0%, #515151 50%, #414141 51%, #666666 100%);
+	color: #eeeeee;
 	border-radius: 4px;
 }
 
@@ -142,7 +149,8 @@ code {
 	//th { background-color: $headcell; }
 }
 .tableBody td {
-	background-color: $bodycell;
+	background-color: #3A3A3A;
+	color: #fff0a6;
 }
 .tableRow td, .nameCell, .typeCell {
 	text-align: center;
@@ -167,11 +175,13 @@ code {
 .tableHeadDiv {
 	overflow: hidden;
 	border-bottom: none;
-	background: linear-gradient(to bottom, #ffffff 0%,#f1f1f1 50%,#e1e1e1 51%,#f6f6f6 100%);
+	color: #fff066;
+	background: linear-gradient(to bottom, #444444 0%, #303030 50%, #202020 51%, #444444 100%);
 }
 .tableQuery {
 	margin: auto;
 	display: table;
+	color: #fff0a6;
 	border-radius: 0.4em;
 	padding: 0.3em 0em 0em 0em;
 }
@@ -186,7 +196,7 @@ code {
 }
 .tableModifiers {
 	border-radius: 1em 1em .3em .3em;
-	background: linear-gradient(to top, #fefcea 0%,#fff5ac 100%);
+	background: linear-gradient(to bottom, #342008 1%, #100c0a 22%, #200c0a 22%, #090908 100%);
 	text-align: center;
 }
 
@@ -207,10 +217,12 @@ code {
 	padding: 0.3em 1em 0em;
 }
 .topButton {
-	background: linear-gradient(to bottom, #ffffff 0%,#f1f1f1 50%,#e1e1e1 51%,#f6f6f6 100%);
+  background: linear-gradient(to bottom, #666666 0%, #515151 50%, #414141 51%, #666666 100%);
+  border: 2px solid black;
+  color: #eeeeee;
 }
 .topButton:hover {
-	background: linear-gradient(to bottom, #e0f3fa 0%,#d8f0fc 50%,#b8e2f6 51%,#b6dffd 100%);
+	background: linear-gradient(to bottom, #00136a 0%, #08606c 50%, #0832f6 51%, #062f3d 100%);
 }
 .popButton {
 	padding: 0.5em;
@@ -294,7 +306,8 @@ code {
 	left: 5%;
 	height: 90%;
 	border: 1px solid black;
-	background-color: beige;
+	color: #ffeeaa;
+	background-color: #2c2c2c;
 	margin: auto;
 	border-radius: 1em;
 	padding: 1em;
