@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <memory>
 #include<boost/filesystem.hpp>
 #define DEFAULT_BUFSIZE  (1024*1024*3)
 

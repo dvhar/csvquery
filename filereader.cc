@@ -348,7 +348,7 @@ bool opener::checkAliases(astnode& n){
 		return false;
 	n->tok2 = n->tok1;
 	ifstream afile(aliasfile);
-	afile >> n->tok1.val;
+	getline(afile, n->tok1.val);
 	afile >> n->optionbits();
 	return true;
 }
