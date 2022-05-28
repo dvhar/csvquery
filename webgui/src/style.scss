@@ -1,35 +1,40 @@
-//top bar back gradient
-$ttop: #090908;
-$ttp: #200c0a;
-$bbt: #200c0a;
-$bbot: #4d0908;
-//top bar buttons
-$top-top: #FFD700;
-$top-bot: #FFFF70;
-$button1: #EEEEEE;
-$headcell: #FAFAFA;
-$bodycell: #FAFAFA;
+$redgrad1: #090908;
+$redgrad2: #200c0a;
+$redgrad3: #200c0a;
+$redgrad4: #4d0908;
 
-$ojgradient1: #feccb1;
-$ojgradient2: #f17432;
-$ojgradient3: #ea5507;
-$ojgradient4: #fb955e;
+$darkgrey1: #0f0f0f;
 
-$tablebg: #0f0f0f;
-$dropdownbg: brown;
-
-$loginTopBut: #a6e8a3;
-$topbarbg: $ttop;
-$loginbg: #fdffe5;
+$topbarbg: $redgrad1;
 $historyArrows: #ffff99;
 
-@mixin sgradient($top,$tp,$bt,$bot) {
-	background: $top;
-	background: linear-gradient(to bottom, $top 1%,$tp 22%,$bt 22%,$bot 100%);
+@mixin foursmooth($colo1,$colo2,$colo3,$colo4) {
+	background: $colo1;
+	background: linear-gradient(to bottom, $colo1 1%, $colo2 22%, $colo3 22%, $colo4 100%);
 }
-@mixin gradient($top,$bot) {
-	background-color:$top;
-	background: linear-gradient(to bottom, $top, $bot); }
+@mixin fourshiney($colo1,$colo2,$colo3,$colo4) {
+	background: $colo1;
+	background: linear-gradient(to bottom, $colo1 0%, $colo2 50%, $colo3 51%, $colo4 100%);
+}
+@mixin redgradient() {
+	@include foursmooth($redgrad1, $redgrad2, $redgrad3, $redgrad4);
+}
+@mixin greybuttongradient() {
+	color: #eeeeee;
+	@include fourshiney(#666666, #515151, #414141, #666666);
+}
+@mixin bluebuttongradient() {
+	color: #eeeeee;
+	@include fourshiney(#00136a, #08606c, #0832f6, #062f3d);
+}
+@mixin browngradient() {
+	color: #fff0a6;
+	@include foursmooth(#342008, #100c0a, #200c0a, #090908);
+}
+@mixin darkgreygradient() {
+	color: #fff066;
+	@include fourshiney(#444444, #303030, #202020, #444444);
+}
 
 html {
 	min-height: 100%;
@@ -43,10 +48,8 @@ html {
 .dropmenu-content{
 	display: none;
 	padding: 1em;
-	//background: $dropdownbg;
 	div {
 		padding: .2em .5em;
-		background-color: $button1;
 		border-radius: 4px;
 		margin: .2em .2em;
 	}
@@ -84,18 +87,15 @@ code {
 	//display: inline-block;
 	min-width: 12em;
 	padding: .2em .2em;
-	//@include sgradient($ojgradient1,$ojgradient2,$ojgradient3,$ojgradient4);
-	@include sgradient($ttop,$ttp,$bbt,$bbot);
+	@include redgradient();
 }
 .commandtitle {
 	margin: auto;
 }
 .queryMenuButton {
 	width: 15em;
-	background-color: $button1;
-	color: #eeeeee;
-	background: linear-gradient(to bottom, #666666 0%, #515151 50%, #414141 51%, #666666 100%);
 	border-radius: 4px;
+	@include greybuttongradient();
 }
 .queryTextEntry {
 	background: #222222;
@@ -107,15 +107,14 @@ code {
 	padding: 0.2em;
 }
 .queryRunButton {
-	background: linear-gradient(to bottom, #666666 0%, #515151 50%, #414141 51%, #666666 100%);
-	color: #ffffff;
+	@include greybuttongradient();
 	border: 2px solid black;
 	font-weight: bold;
 	padding: 0.2em 1em;
 	font-size: medium;
 }
 .queryRunButton:hover {
-  background: linear-gradient(to bottom, #00136a 0%, #08606c 50%, #0832f6 51%, #062f3d 100%);
+	@include bluebuttongradient();
 }
 .viewContainer {
 	display: inline-block;
@@ -126,28 +125,18 @@ code {
 	z-index: 10;
 	display: inline-block;
 	min-width: 12em;
-	//background-color: $button1;
 	padding: .2em .2em;
-	//background: linear-gradient(to bottom, #3b1212 0%,#71280b 50%,#752201 51%,#bf6e4e 100%);
-	//@include gradient($ttop,$bbt);
 }
 .tableModDrop {
-	//background: linear-gradient(to bottom, #3b1212 0%,#71280b 50%,#752201 51%,#bf6e4e 100%);
-	@include sgradient($bbt,$bbot,$bbot,$bbot);
+	@include redgradient();
 }
 .tableModButton {
 	width: 15em;
 	padding: .2em .5em;
-	background: linear-gradient(to bottom, #666666 0%, #515151 50%, #414141 51%, #666666 100%);
-	color: #eeeeee;
+	@include greybuttongradient();
 	border-radius: 4px;
 }
 
-//table display
-.tableHead {
-	//td { background-color: $headcell; }
-	//th { background-color: $headcell; }
-}
 .tableBody td {
 	background-color: #3A3A3A;
 	color: #fff0a6;
@@ -161,7 +150,7 @@ code {
 	color: #333;
 }
 .tableDiv {
-	background: $tablebg;
+	background: $darkgrey1;
 	position: static;
 	top: 3em;
 	max-height: calc(80vh - 100px);
@@ -175,13 +164,11 @@ code {
 .tableHeadDiv {
 	overflow: hidden;
 	border-bottom: none;
-	color: #fff066;
-	background: linear-gradient(to bottom, #444444 0%, #303030 50%, #202020 51%, #444444 100%);
+	@include darkgreygradient();
 }
 .tableQuery {
 	margin: auto;
 	display: table;
-	color: #fff0a6;
 	border-radius: 0.4em;
 	padding: 0.3em 0em 0em 0em;
 }
@@ -196,14 +183,13 @@ code {
 }
 .tableModifiers {
 	border-radius: 1em 1em .3em .3em;
-	background: linear-gradient(to bottom, #342008 1%, #100c0a 22%, #200c0a 22%, #090908 100%);
+	@include browngradient();
 	text-align: center;
 }
 
 //top bar
 .topBar {
 	background: $topbarbg;
-	//background: linear-gradient(to bottom, #3b1212 0%,#71280b 50%,#752201 51%,#bf6e4e 100%);
 	min-height: 2em;
 	padding: 0.2em;
 	display: flex;
@@ -217,12 +203,11 @@ code {
 	padding: 0.3em 1em 0em;
 }
 .topButton {
-  background: linear-gradient(to bottom, #666666 0%, #515151 50%, #414141 51%, #666666 100%);
-  border: 2px solid black;
-  color: #eeeeee;
+	border: 2px solid black;
+	@include greybuttongradient();
 }
 .topButton:hover {
-	background: linear-gradient(to bottom, #00136a 0%, #08606c 50%, #0832f6 51%, #062f3d 100%);
+	@include bluebuttongradient();
 }
 .popButton {
 	padding: 0.5em;
@@ -231,7 +216,7 @@ code {
 //save section
 .fileSelectShow {
 	padding: 0.3em;
-	@include sgradient($bbt,$bbot,$bbot,$bbot);
+	@include redgradient();
 	color: #fff0a6;
 	top: 2.2em;
 	position: absolute;
@@ -264,7 +249,7 @@ code {
 }
 .browseDirs {
 	height: 80%;
-	background: $tablebg;
+	background: $darkgrey1;
 	border: 1px solid black;
 	overflow: auto;
 }
@@ -279,7 +264,7 @@ code {
 	color: lightGreen;
 }
 .browseCurrent {
-	background: $tablebg;
+	background: $darkgrey1;
 	color: #ffffe6;
 	width: -webkit-fill-available;
 	width: -moz-available;
@@ -318,8 +303,8 @@ code {
 }
 
 #scrollBuffer {
-	color: $tablebg;
-	background: $tablebg;
+	color: $darkgrey1;
+	background: $darkgrey1;
 }
 
 .helpTable {
