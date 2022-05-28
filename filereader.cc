@@ -303,7 +303,7 @@ void openfiles(querySpecs &qs){
 shared_ptr<directory> filebrowse(string dir){
 	boost::filesystem::path thisdir(dir);
 	if (!boost::filesystem::exists(thisdir) || !boost::filesystem::is_directory(thisdir)){
-		error(st(dir," is not a directory"));
+		error(dir," is not a directory");
 	}
 	auto resp = make_shared<directory>();
 	vector<string> others;

@@ -231,7 +231,8 @@ code {
 //save section
 .fileSelectShow {
 	padding: 0.3em;
-	background: linear-gradient(to top, #fefcea 0%,#fff5ac 100%);
+	@include sgradient($bbt,$bbot,$bbot,$bbot);
+	color: #fff0a6;
 	top: 2.2em;
 	position: absolute;
 	border: 1px solid black;
@@ -263,21 +264,23 @@ code {
 }
 .browseDirs {
 	height: 80%;
-	background-color: white;
+	background: $tablebg;
 	border: 1px solid black;
 	overflow: auto;
 }
 .browseDir {
 	display: block;
 	width: 100%;
-	color: darkblue;
+	color: lightblue;
 }
 .browseFile {
 	display: block;
 	width: 100%;
-	color: darkGreen;
+	color: lightGreen;
 }
 .browseCurrent {
+	background: $tablebg;
+	color: #ffffe6;
 	width: -webkit-fill-available;
 	width: -moz-available;
 }
