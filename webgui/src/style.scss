@@ -4,9 +4,15 @@ $redgrad3: #200c0a;
 $redgrad4: #4d0908;
 
 $darkgrey1: #0f0f0f;
+$darkgrey2: #222222;
+$darkgrey3: #2c2c2c;
+$darkgrey4: #3A3A3A;
+$lighttext1: lightgoldenrodyellow;
 
 $topbarbg: $redgrad1;
-$historyArrows: #ffff99;
+$yellower: #ffff99;
+$darkyellow: #ffaa0e;
+$darkeryellow: #886611;
 
 @mixin foursmooth($colo1,$colo2,$colo3,$colo4) {
 	background: $colo1;
@@ -28,11 +34,11 @@ $historyArrows: #ffff99;
 	@include fourshiney(#00136a, #08606c, #0832f6, #062f3d);
 }
 @mixin browngradient() {
-	color: #fff0a6;
+	color: $lighttext1;
 	@include foursmooth(#342008, #100c0a, #200c0a, #090908);
 }
 @mixin darkgreygradient() {
-	color: #fff066;
+	color: $yellower;
 	@include fourshiney(#444444, #303030, #202020, #444444);
 }
 
@@ -47,7 +53,7 @@ html {
 }
 .dropmenu-content{
 	display: none;
-	padding: 1em;
+	padding: .5em;
 	div {
 		padding: .2em .5em;
 		border-radius: 4px;
@@ -55,15 +61,16 @@ html {
 	}
 }
 code {
-	background: black;
-	color: #ffccee;
+	background: $darkgrey2;
+	color: $darkyellow;
+	font-weight: bold;
 	font-family: 'Courier New', monospace;
 }
 .dropSelect {
 	top: 0;
-	background: #222222;
-	color: #ffeeaa;
-	border: 2px solid #886611;
+	background: $darkgrey2;
+	color: $lighttext1;
+	border: 2px solid $darkeryellow;
 	float: left;
 }
 .dropmenu:hover .dropmenu-content {
@@ -98,9 +105,9 @@ code {
 	@include greybuttongradient();
 }
 .queryTextEntry {
-	background: #222222;
-	color: #ffeeaa;
-	border: 2px solid #886611;
+	background: $darkgrey2;
+	color: $lighttext1;
+	border: 2px solid $darkeryellow;
 	width: calc(98vw);
 }
 .queryTextContainer {
@@ -108,7 +115,7 @@ code {
 }
 .queryRunButton {
 	@include greybuttongradient();
-	border: 2px solid black;
+	border: 1px solid black;
 	font-weight: bold;
 	padding: 0.2em 1em;
 	font-size: medium;
@@ -138,8 +145,8 @@ code {
 }
 
 .tableBody td {
-	background-color: #3A3A3A;
-	color: #fff0a6;
+	background-color: $darkgrey4;
+	color: $lighttext1;
 }
 .tableRow td, .nameCell, .typeCell {
 	text-align: center;
@@ -199,11 +206,11 @@ code {
 	top: 0;
 }
 .topMessage {
-	color: $historyArrows;
+	color: $yellower;
 	padding: 0.3em 1em 0em;
 }
 .topButton {
-	border: 2px solid black;
+	border: 1px solid black;
 	@include greybuttongradient();
 }
 .topButton:hover {
@@ -217,7 +224,7 @@ code {
 .fileSelectShow {
 	padding: 0.3em;
 	@include redgradient();
-	color: #fff0a6;
+	color: $lighttext1;
 	top: 2.2em;
 	position: absolute;
 	border: 1px solid black;
@@ -270,14 +277,14 @@ code {
 	width: -moz-available;
 }
 .browseEntry:hover {
-	background-color: bisque;
+	background-color: $redgrad4;
 }
 
 //history arrows
 .historyArrows {
 	right: 0;
 	position: inherit;
-	color: $historyArrows;
+	color: $yellower;
 }
 .arrow {
 	font-size: x-large;
@@ -294,12 +301,24 @@ code {
 	left: 5%;
 	height: 90%;
 	border: 1px solid black;
-	color: #ffeeaa;
-	background-color: #2c2c2c;
+	color: $yellower;
+	background-color: $darkgrey3;
 	margin: auto;
 	border-radius: 1em;
 	padding: 1em;
 	overflow-y: scroll;
+	button {
+		border: 1px solid black;
+		padding: 0.3em 1em;
+		@include greybuttongradient();
+	}
+	button:hover {
+		padding: 0.3em 1em;
+		@include bluebuttongradient();
+	}
+	a {
+		color: orangered;
+	}
 }
 
 #scrollBuffer {
