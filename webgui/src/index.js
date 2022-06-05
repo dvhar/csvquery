@@ -29,6 +29,7 @@ class Main extends React.Component {
 			version : "",
 			sessionId : "",
 			lastpass : "",
+			theme : "dark",
 		}
 		this.topDropReset = this.topDropReset.bind(this);
 
