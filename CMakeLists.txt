@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.12)
 
 project(cql LANGUAGES C CXX)
 
-add_compile_options(-O3 -pipe)
+add_compile_options(-O3 -pipe -Wno-deprecated-declarations)
 set(is_win "$<BOOL:${WIN32}>")
 set(is_unix "$<BOOL:${UNIX}>")
 

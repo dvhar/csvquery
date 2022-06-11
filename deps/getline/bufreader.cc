@@ -36,7 +36,7 @@ char* bufreader::getline(){
 				refresh();
 			}
 		} else {
-				refresh();
+			refresh();
 		}
 	}
 	if (linesize > biggestline)
@@ -44,11 +44,10 @@ char* bufreader::getline(){
 	return line;
 }
 
-//return true if success
-bool bufreader::addrefresh(int rem){
+void bufreader::addrefresh(int rem){
 	if (readsofar >= fsize){
 		done = true;
-		return false;
+		return;
 	}
 	auto readb = fread(buf+rem, 1, (single ? biggestline-rem : buffsize-rem), f);
 	readsofar += readb;
@@ -60,9 +59,8 @@ bool bufreader::addrefresh(int rem){
 		linesize = nl - line + 1;
 	} else {
 		done = true;
-		return false;
 	}
-	return true;
+	return;
 }
 //return amount needed to add to field pointers to revalidated them
 long long bufreader::addline(){

@@ -13,16 +13,16 @@ class bufreader {
 	bool single = false;
 	char* buf;
 	std::unique_ptr<char[]> realbuf;
+	int linesize = 0;
 	void refresh();
+	void addrefresh(int);
 	bufreader& operator=(bufreader);
 	public:
 	long long fsize = 0;
 	long long buffsize = DEFAULT_BUFSIZE;
 	bool done = false;
-	int linesize = 0;
 	char* getline();
 	long long addline();
-	bool addrefresh(int);
 	bufreader(){}
 	~bufreader(){if (f) fclose(f);}
 	void open(const char* fname, long long wantsize){
