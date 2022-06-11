@@ -288,6 +288,8 @@ void analyzer::setVarPhase(astnode &n, int phase, int section){
 			case 3: //join conditions
 			case 4: //having conditions
 			case 5: //where conditions
+			// case 6: //order by ?
+			case 7: //group by
 				q->var(n->nval()).phase |= phase;
 				break;
 			}
@@ -314,6 +316,12 @@ void analyzer::setVarPhase(astnode &n, int phase, int section){
 		if (!allAgrregates(n->norderlist()))
 			error("cannot sort aggregate query by non-aggregate value");
 		setVarPhase(n->norderlist(), 2, 6);
+		break;
+	case N_GROUPBY:
+		if (findAgrregates(n->ngrouplist()))
+			//TODO: non-agg vars returned in result are treat like aggs here, fix that
+			error("cannot have aggregate in group by clause");
+		setVarPhase(n->ngrouplist(), 1, 7);
 		break;
 	default:
 		setVarPhase(n->node1, phase, section);
