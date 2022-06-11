@@ -64,7 +64,7 @@ string chopAndEscapeJson(basic_string_view<char>&& input){
 	string output;
 	output.reserve(input.length());
 	if (input.length() <= linelen){
-		shorten(input, output);
+		addEscapedJSON(input, output);
 		return output;
 	}
 	while (1) {

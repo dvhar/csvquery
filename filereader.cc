@@ -174,7 +174,7 @@ inline bool fileReader::checkWidth(){
 	return fieldsFound != numFields;
 }
 inline void fileReader::getField(){
-	while (isspace(*(terminator-1))) --terminator;
+	while (isspace(*(terminator-1)) && terminator>pos1) --terminator;
 	*terminator = '\0';
 	entriesVec.emplace_back(pos1, terminator);
 	++fieldsFound;
