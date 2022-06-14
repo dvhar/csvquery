@@ -496,6 +496,7 @@ class fileReader {
 		string id;
 		int fileno =0;
 		int numFields =0;
+		char spaces[256] = {0};
 	inline char* nextIsDelim();
 	inline void getField();
 	inline void getQuotedField();

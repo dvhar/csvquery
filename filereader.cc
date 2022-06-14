@@ -5,6 +5,7 @@
 #include "interpretor.h"
 
 fileReader::fileReader(string& fname, querySpecs &qs) : filename(fname), q(&qs) {
+	spaces[' '] = spaces['\n'] = spaces['\r'] = spaces['\f'] = spaces['\v'] = 1;
 	fileno = qs.numFiles;
 	i64 optisize = br.buffsize;
 	if (fileno > 0){
@@ -66,7 +67,7 @@ bool fileReader::readline(){
 	pos1 = pos2 = buf;
 	while (1){
 		//trim leading space
-		while (*pos2 && isspace(*pos2) && *pos2 != delim) ++pos2;
+		while (spaces[*pos2]) ++pos2;
 		pos1 = pos2;
 		//non-quoted field
 		if (*pos2 != '"'){
@@ -174,7 +175,7 @@ inline bool fileReader::checkWidth(){
 	return fieldsFound != numFields;
 }
 inline void fileReader::getField(){
-	while (isspace(*(terminator-1)) && terminator>pos1 && *(terminator-1) != delim) --terminator;
+	while (spaces[*(terminator-1)] && terminator>pos1) --terminator;
 	*terminator = '\0';
 	entriesVec.emplace_back(pos1, terminator);
 	++fieldsFound;
@@ -287,6 +288,8 @@ void opener::openfiles(astnode &n){
 		if (fileopts & O_H)  fr->noheader = fr->autoheader = false;
 		if (fileopts & O_NH) fr->noheader = true;
 		if (fileopts & O_AH) fr->autoheader = true;
+		if (fr->delim != '\t')
+			fr->spaces['\t'] = 1;
 
 		++q->numFiles;
 		fr->inferTypes();
