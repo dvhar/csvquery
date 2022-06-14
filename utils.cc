@@ -15,7 +15,8 @@ regex_t floatType;
 regex cInt("^c\\d+$");
 regex posInt("^\\d+$");
 regex colNum("^c?\\d+$");
-regex extPat(".*\\.csv$", regex_constants::icase);
+regex csvPat(".*\\.csv$", regex_constants::icase);
+regex tsvPat(".*\\.tsv$", regex_constants::icase);
 regex hidPat(".*/\\.[^/]+$");
 regex filelike(".*[/\\\\\\.].*");
 int isDuration(const char* s){ return !regexec(&durationPattern, s, 0, NULL, 0); }

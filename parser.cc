@@ -102,7 +102,7 @@ class parser {
 	void parseLimit(astnode&);
 
 	querySpecs* q;
-	bool justfile = false;
+	stack<bool> justfiles;
 	bool needcomma = globalSettings.needcomma;
 	bool firstselection = true;
 	token t;
@@ -130,6 +130,7 @@ void parseQuery(querySpecs &q) {
 //tok1.id is N_HANDLEALIAS
 //tok2 is add/drop/show
 astnode parser::parseQuery() {
+	justfiles.push(false);
 	t = q->tok();
 	e("parse query");
 	astnode n = newNode(N_QUERY);
@@ -142,7 +143,7 @@ astnode parser::parseQuery() {
 		n->node1 = parsePreSelect();
 		n->node3 = parseFrom(false);
 		n->node2 = parseSelect();
-		if (!justfile)
+		if (!justfiles.top())
 			n->node3 = parseFrom(true);
 		n->node4 = parseAfterFrom();
 	}
@@ -154,6 +155,7 @@ astnode parser::parseQuery() {
 		default:
 			error("Unexpected token at and of query: '",t.val,"'");
 	}
+	justfiles.pop();
 	return n;
 }
 
@@ -302,7 +304,7 @@ astnode parser::parseVars() {
 astnode parser::parseSelect() {
 	t = q->tok();
 	e("parse select");
-	if (justfile) return nullptr;
+	if (justfiles.top()) return nullptr;
 	astnode n = newNode(N_SELECT);
 	if (t.lower() != "select") error("Expected 'select'. Found '",t.val,"'");
 	q->nextTok();
@@ -744,7 +746,7 @@ astnode parser::parseFrom(bool withselections) {
 				st(globalSettings.configdir,SLASH,"alias-",t.val,".txt"))){
 			return nullptr;
 		}
-		justfile = true;
+		justfiles.top() = true;
 	} else {
 		if (t.lower() != "from") error("Expected 'from'. Found: '",t.val,"'");
 		t = q->nextTok();

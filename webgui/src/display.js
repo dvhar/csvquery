@@ -232,7 +232,7 @@ export class QueryRender extends React.Component {
 			<div className="tableModifiers">
 				<div className="tableQuery"><div> {this.props.table.query} </div>
 				<TableSelectRows 
-					title = {"Show with column value\u25bc"}
+					title = {"Filter by value\u25bc"}
 					dropAction = {(column,value)=>{this.props.rows.col=column;this.props.rows.val=value;this.forceUpdate();}}
 					table = {this.props.table}
 					firstDropItems = {this.props.table.colnames}

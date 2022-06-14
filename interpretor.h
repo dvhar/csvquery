@@ -280,7 +280,8 @@ extern regex_t floatType;
 extern regex cInt;
 extern regex posInt;
 extern regex colNum;
-extern regex extPat;
+extern regex csvPat;
+extern regex tsvPat;
 extern regex hidPat;
 extern regex filelike;
 

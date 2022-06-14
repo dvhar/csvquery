@@ -159,7 +159,7 @@ static shared_ptr<singleQueryResult> runWebQuery(webquery &wq){
 	q.sessionId = wq.sessionId;
 	if (wq.isSaving()){
 		q.setoutputCsv();
-		bool hascsv = regex_match(wq.savepath, extPat);
+		bool hascsv = regex_match(wq.savepath, csvPat);
 		bool multi = wq.queries.size() > 1;
 		if (multi && !hascsv){
 			q.savepath = st(wq.savepath, '-', wq.whichone+1, ".csv");

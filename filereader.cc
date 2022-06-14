@@ -66,7 +66,7 @@ bool fileReader::readline(){
 	pos1 = pos2 = buf;
 	while (1){
 		//trim leading space
-		while (*pos2 && isspace(*pos2)) ++pos2;
+		while (*pos2 && isspace(*pos2) && *pos2 != delim) ++pos2;
 		pos1 = pos2;
 		//non-quoted field
 		if (*pos2 != '"'){
@@ -174,7 +174,7 @@ inline bool fileReader::checkWidth(){
 	return fieldsFound != numFields;
 }
 inline void fileReader::getField(){
-	while (isspace(*(terminator-1)) && terminator>pos1) --terminator;
+	while (isspace(*(terminator-1)) && terminator>pos1 && *(terminator-1) != delim) --terminator;
 	*terminator = '\0';
 	entriesVec.emplace_back(pos1, terminator);
 	++fieldsFound;
@@ -264,6 +264,8 @@ void opener::openfiles(astnode &n){
 		q->filemap[id] = fr;
 		if (n->tok4.id) q->filemap[n->filealias()] = fr;
 		if (n->tok2.id) q->filemap[n->tok2.val] = fr;
+		if (regex_match(fpath, tsvPat))
+			fr->delim = '\t';
 		int a = fpath.find_last_of("/\\") + 1;
 		int b = fpath.size()-4-a;
 		fpath = fpath.substr(a, b);
@@ -313,7 +315,7 @@ shared_ptr<directory> filebrowse(string dir){
 		} else if (boost::filesystem::is_directory(f.status())){
 			resp->dirs.push_back(S);
 		} else if (boost::filesystem::is_regular_file(f.status())){
-			if (regex_match(S,extPat))
+			if (regex_match(S,csvPat))
 				resp->files.push_back(S);
 			else
 				others.push_back(S);
@@ -330,7 +332,7 @@ shared_ptr<directory> filebrowse(string dir){
 
 void findExtension(string& fname){
 	if (!boost::filesystem::exists(fname)){
-		if (!regex_match(fname,extPat)){
+		if (!regex_match(fname,csvPat)){
 			fname += ".csv";
 			if (!boost::filesystem::exists(fname)){
 				error("Could not find file ",fname);
