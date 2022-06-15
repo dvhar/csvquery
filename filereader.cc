@@ -67,7 +67,7 @@ bool fileReader::readline(){
 	pos1 = pos2 = buf;
 	while (1){
 		//trim leading space
-		while (spaces[*pos2]) ++pos2;
+		while (spaces[(u8)*pos2]) ++pos2;
 		pos1 = pos2;
 		//non-quoted field
 		if (*pos2 != '"'){
@@ -175,7 +175,7 @@ inline bool fileReader::checkWidth(){
 	return fieldsFound != numFields;
 }
 inline void fileReader::getField(){
-	while (spaces[*(terminator-1)] && terminator>pos1) --terminator;
+	while (spaces[(u8)*(terminator-1)] && terminator>pos1) --terminator;
 	*terminator = '\0';
 	entriesVec.emplace_back(pos1, terminator);
 	++fieldsFound;
