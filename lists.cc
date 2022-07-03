@@ -503,7 +503,7 @@ function<i64 (const datunion,const datunion)> datunionDiffs[6] = {
 };
 
 //2d array for ops indexed by operation and datatype. used with operations[][]
-int operations[20][6] = {
+u8 operations[20][6] = {
 	{ 0, IADD, FADD, DTADD, DRADD, TADD },
 	{ 0, ISUB, FSUB, DTSUB, DRSUB, 0 },
 	{ 0, IMULT, FMULT, 0, DRMULT, 0 },
@@ -527,7 +527,7 @@ int operations[20][6] = {
 };
 
 //type conversion opcodes - [from][to]
-int typeConv[6][6] = {
+u8 typeConv[6][6] = {
 	{0, 0,  0,  0,  0,  0 },
 	{0, CVNO, CVIF, CVER, CVER, CVIS },
 	{0, CVFI, CVNO, CVER, CVER, CVFS },

@@ -11,10 +11,10 @@ template<typename T>
 using bset = btree::btree_set<T>;
 using grprow = const unique_ptr<dat[], freeC>;
 
-extern int operations[20][6];
-extern int typeConv[6][6];
+extern u8 operations[20][6];
+extern u8 typeConv[6][6];
 
-enum codes : int {
+enum codes : u8 {
 	CVER, CVNO,
 	CVIF, CVIS, CVFI, CVFS, CVDRS, CVDTS,
 	CVSI, CVSF, CVSDR, CVSDT,
@@ -73,12 +73,12 @@ bool opDoesJump(int opcode);
 //placeholder for jmp positions that can't be determined until later
 class jumpPositions {
 	map<int, int> jumps;
-	int uniqueKey =0;
+	int uniqueKey = -1;
 	public:
 	int newPlaceholder() { return --uniqueKey; };
 	void setPlace(int k, int v) { jumps[k] = v; };
 	void updateBytecode(vector<opcode> &vec);
-	jumpPositions() { uniqueKey = -1; };
+	jumpPositions() {};
 };
 
 //make sure to free manually like normal malloced c strings

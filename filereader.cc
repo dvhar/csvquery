@@ -318,7 +318,7 @@ shared_ptr<directory> filebrowse(string dir){
 		} else if (boost::filesystem::is_directory(f.status())){
 			resp->dirs.push_back(S);
 		} else if (boost::filesystem::is_regular_file(f.status())){
-			if (regex_match(S,csvPat))
+			if (regex_match(S,csvPat) || regex_match(S,tsvPat))
 				resp->files.push_back(S);
 			else
 				others.push_back(S);
