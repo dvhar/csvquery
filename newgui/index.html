@@ -1,0 +1,46 @@
+<html>
+	<head>
+		<link rel="stylesheet" type="text/css" href="style.css"/>
+		<script>
+			//window.setInterval(()=>window.location.reload(),1000); //for testing
+		</script>
+	</head>
+	<body>
+		<div id=topBar>
+			<button id=saveBut>save</button>
+			<button id=browseBut>open</button>
+			<button id=runBut>run query</button>
+			<button id=stopBut>stop query</button>
+			<span id=topMessage>query status updates go here...</span>
+			<span id=history>&#11164 1/1 &#11166</span>
+		</div>
+		<div id=textboxContainer>
+			<textarea id=queryTextEntry rows=5 placeholder="Type query here.
+If running multiple queries, separate them with a semicolon;
+Submit queries by pressing the button or shift-enter"></textarea>
+		</div>
+		{{ following will be static generated for performance }}
+				<br/>
+		<div class=singleResult>
+			<div class=tableControls>
+				<span class=echoQuery>select * from 'example query test.csv'</span>
+				<br/>
+				<button class=controlBut>filter by value</button>
+				<button class=controlBut>hide columns</button>
+				<span class=controlBut>Rows: 2</span>
+			</div>
+			<table class=resultHead id=uniqueId1>
+				<thead id=uniqueId2>
+					<tr class=colnames><th>name1</th><th>name2</th></tr>
+					<tr class=coltypes><td>type1</td><td>type2</td></tr>
+				</thead>
+			</table>
+			<table class=resultBody id=uniqueId3>
+				<tbody id=uniqueId4>
+					<tr><td>val1</td><td>val2</td></tr>
+					<tr><td>val3</td><td>val4</td></tr>
+				</tbody>
+			</table>
+		</div>
+	</body>
+</html>

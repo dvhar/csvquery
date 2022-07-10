@@ -1,0 +1,77 @@
+html {
+  background-color: #0a0908; }
+
+body {
+  margin: 0;
+  text-align: center; }
+
+#topBar {
+  background: black;
+  color: #ffff99;
+  display: flex;
+  padding: .2em; }
+  #topBar button {
+    border: 1px solid black;
+    color: #eeeeee;
+    background: #666666;
+    background: linear-gradient(to bottom, #666666 0%, #515151 50%, #414141 51%, #666666 100%); }
+  #topBar button:hover {
+    color: #eeeeee;
+    background: #00136a;
+    background: linear-gradient(to bottom, #00136a 0%, #08606c 50%, #0832f6 51%, #062f3d 100%); }
+  #topBar span {
+    padding: .2em .6em 0em 1em; }
+
+#textboxContainer {
+  text-align: center;
+  padding: .2em;
+  background: #090908;
+  background: linear-gradient(to bottom, #090908 1%, #200c0a 22%, #200c0a 22%, #4d0908 100%); }
+
+#queryTextEntry {
+  width: 100%;
+  background: #222222;
+  color: lightgoldenrodyellow;
+  border: 2px solid #886611; }
+
+.singleResult {
+  display: inline-block;
+  max-width: calc(100%);
+  background-color: #222222;
+  border-radius: 1em 1em .3em .3em; }
+
+.tableControls {
+  border-radius: 1em 1em .3em .3em;
+  color: lightgoldenrodyellow;
+  background: #342008;
+  background: linear-gradient(to bottom, #342008 1%, #100c0a 22%, #200c0a 22%, #090908 100%);
+  text-align: center; }
+
+.controlBut {
+  padding: .2em .5em;
+  color: #eeeeee;
+  background: #666666;
+  background: linear-gradient(to bottom, #666666 0%, #515151 50%, #414141 51%, #666666 100%);
+  border-radius: 4px; }
+
+.resultHead {
+  overflow: hidden;
+  border-bottom: none;
+  color: #ffff99;
+  background: #444444;
+  background: linear-gradient(to bottom, #444444 0%, #303030 50%, #202020 51%, #444444 100%); }
+
+th, td {
+  text-align: center;
+  white-space: nowrap;
+  min-width: 4em; }
+
+.resultBody {
+  overflow: auto;
+  background: #0f0f0f; }
+  .resultBody td {
+    background-color: #3A3A3A;
+    color: lightgoldenrodyellow; }
+
+table {
+  margin: auto; }
