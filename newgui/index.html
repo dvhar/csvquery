@@ -2,7 +2,8 @@
 	<head>
 		<link rel="stylesheet" type="text/css" href="style.css"/>
 		<script>
-			//window.setInterval(()=>window.location.reload(),1000); //for testing
+			//window.setInterval(()=>window.location.reload(),4000); //for testing
+
 		</script>
 	</head>
 	<body>
@@ -20,7 +21,7 @@ If running multiple queries, separate them with a semicolon;
 Submit queries by pressing the button or shift-enter"></textarea>
 		</div>
 		{{ following will be static generated for performance }}
-				<br/>
+		<br/>
 		<div class=singleResult>
 			<div class=tableControls>
 				<span class=echoQuery>select * from 'example query test.csv'</span>
@@ -29,18 +30,49 @@ Submit queries by pressing the button or shift-enter"></textarea>
 				<button class=controlBut>hide columns</button>
 				<span class=controlBut>Rows: 2</span>
 			</div>
-			<table class=resultHead id=uniqueId1>
-				<thead id=uniqueId2>
-					<tr class=colnames><th>name1</th><th>name2</th></tr>
-					<tr class=coltypes><td>type1</td><td>type2</td></tr>
-				</thead>
-			</table>
-			<table class=resultBody id=uniqueId3>
-				<tbody id=uniqueId4>
-					<tr><td>val1</td><td>val2</td></tr>
-					<tr><td>val3</td><td>val4</td></tr>
-				</tbody>
-			</table>
+			<div class=resultHeadDiv id=uniqueId5>
+				<table class=resultHead id=uniqueId1>
+					<thead id=uniqueId2>
+						<tr class=colnames><th>name1</th><th>name2</th></tr>
+						<tr class=coltypes><td>type1</td><td>type2</td></tr>
+					</thead>
+				</table>
+			</div>
+			<div class=resultBodyDiv id=uniqueId6>
+				<table class=resultBody id=uniqueId3>
+					<tbody id=uniqueId4>
+						<tr><td>val1</td><td>val2</td></tr>
+						<tr><td>val3</td><td>val4 is wider to test resizing</td></tr>
+					</tbody>
+				</table>
+			</div>
 		</div>
 	</body>
 </html>
+
+<script>
+
+//get header table and body table cells to line up and scroll when needed
+function resize(){
+	let tbody = document.getElementById('uniqueId4');
+	let thead = document.getElementById('uniqueId2');
+	let theaddiv = document.getElementById('uniqueId5');
+	let tbodydiv = document.getElementById('uniqueId6');
+	if (tbody.childNodes.length > 1 && tbody.childNodes[1].childNodes.length > 0){
+		let trow = tbody.childNodes[1].childNodes
+		for (let i in trow){
+			let bcell = trow[i];
+			let hcell = thead.childNodes[1].childNodes[i];
+			if (bcell.offsetWidth && hcell.offsetWidth){
+				let newWidth = Math.max(bcell.offsetWidth, hcell.offsetWidth);
+				bcell.style.minWidth = hcell.style.minWidth = `${newWidth+1}px`;
+			}
+		}
+	}
+	let num = (tbody.offsetHeight <= tbodydiv.offsetHeight) ? 4:15;
+	theaddiv.style.maxWidth = tbodydiv.style.maxWidth =  `${Math.min(tbody.offsetWidth+num,window.innerWidth)}px`;
+	tbodydiv.addEventListener('scroll',function(){ theaddiv.scrollLeft = tbodydiv.scrollLeft; });
+
+}
+resize();
+</script>

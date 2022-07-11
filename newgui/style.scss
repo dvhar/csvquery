@@ -128,24 +128,27 @@ body {
 	@include mainbuttongradient-dark();
 	border-radius: 4px;
 }
-.resultHead {
-	overflow: hidden;
-	border-bottom: none;
-	@include greygradient-dark();
-}
 th, td {
 	text-align: center;
 	white-space:nowrap;
 	min-width: 4em;
 }
-.resultBody {
+.resultHeadDiv {
+	margin: auto;
+	overflow: hidden;
+}
+.resultBodyDiv {
+	margin: auto;
 	overflow: auto;
+}
+.resultHead {
+	border-bottom: none;
+	@include greygradient-dark();
+}
+.resultBody {
 	background: $darkgrey1;
 	td {
 		background-color: $darkgrey4;
 		color: $text1-darkbg;
 	}
-}
-table {
-	margin: auto;
 }

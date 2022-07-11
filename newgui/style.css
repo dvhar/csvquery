@@ -54,24 +54,27 @@ body {
   background: linear-gradient(to bottom, #666666 0%, #515151 50%, #414141 51%, #666666 100%);
   border-radius: 4px; }
 
-.resultHead {
-  overflow: hidden;
-  border-bottom: none;
-  color: #ffff99;
-  background: #444444;
-  background: linear-gradient(to bottom, #444444 0%, #303030 50%, #202020 51%, #444444 100%); }
-
 th, td {
   text-align: center;
   white-space: nowrap;
   min-width: 4em; }
 
+.resultHeadDiv {
+  margin: auto;
+  overflow: hidden; }
+
+.resultBodyDiv {
+  margin: auto;
+  overflow: auto; }
+
+.resultHead {
+  border-bottom: none;
+  color: #ffff99;
+  background: #444444;
+  background: linear-gradient(to bottom, #444444 0%, #303030 50%, #202020 51%, #444444 100%); }
+
 .resultBody {
-  overflow: auto;
   background: #0f0f0f; }
   .resultBody td {
     background-color: #3A3A3A;
     color: lightgoldenrodyellow; }
-
-table {
-  margin: auto; }
