@@ -10,6 +10,7 @@
 		<div id=topBar>
 			<button id=saveBut>save</button>
 			<button id=browseBut>open</button>
+			<button id=helpBut>help</button>
 			<button id=runBut>run query</button>
 			<button id=stopBut>stop query</button>
 			<span id=topMessage>query status updates go here...</span>
@@ -17,8 +18,9 @@
 		</div>
 		<div id=textboxContainer>
 			<textarea id=queryTextEntry rows=5 placeholder="Type query here.
+Add files to query by clicking the 'open' button above.
 If running multiple queries, separate them with a semicolon;
-Submit queries by pressing the button or shift-enter"></textarea>
+Run queries by pressing the button above or shift-enter"></textarea>
 		</div>
 		{{ following will be static generated for performance }}
 		<br/>
@@ -33,7 +35,7 @@ Submit queries by pressing the button or shift-enter"></textarea>
 			<div class=resultHeadDiv id=uniqueId5>
 				<table class=resultHead id=uniqueId1>
 					<thead id=uniqueId2>
-						<tr class=colnames><th>name1</th><th>name2</th></tr>
+						<tr class=colnames><th onclick="sorttable(this)">name1</th><th onclick="sorttable(this)">name2</th></tr>
 						<tr class=coltypes><td>type1</td><td>type2</td></tr>
 					</thead>
 				</table>
@@ -51,6 +53,19 @@ Submit queries by pressing the button or shift-enter"></textarea>
 </html>
 
 <script>
+
+const getCellValue = (tr, idx) => tr.children[idx].innerText || tr.children[idx].textContent;
+const comparer = (idx, asc) => (a, b) => ((v1, v2) => 
+	v1 !== '' && v2 !== '' && !isNaN(v1) && !isNaN(v2) ? v1 - v2 : v1.toString().localeCompare(v2)
+	)(getCellValue(asc ? a : b, idx), getCellValue(asc ? b : a, idx));
+
+function sorttable(th){
+	let idx = Array.from(th.parentNode.children).indexOf(th);
+	let tbody = th.closest('.singleResult').querySelector('tbody');
+	Array.from(tbody.querySelectorAll('tr'))
+		.sort(comparer(idx, this.asc = !this.asc))
+		.forEach(tr => tbody.appendChild(tr) );
+}
 
 //get header table and body table cells to line up and scroll when needed
 function resize(){
