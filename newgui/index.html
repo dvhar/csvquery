@@ -3,7 +3,6 @@
 		<link rel="stylesheet" type="text/css" href="style.css"/>
 		<script>
 			//window.setInterval(()=>window.location.reload(),4000); //for testing
-
 		</script>
 	</head>
 	<body>
@@ -32,17 +31,17 @@ Run queries by pressing the button above or shift-enter"></textarea>
 				<button class=controlBut>hide columns</button>
 				<span class=controlBut>Rows: 2</span>
 			</div>
-			<div class=resultHeadDiv id=uniqueId5>
-				<table class=resultHead id=uniqueId1>
-					<thead id=uniqueId2>
+			<div class=resultHeadDiv>
+				<table class=resultHead>
+					<thead>
 						<tr class=colnames><th onclick="sorttable(this)">name1</th><th onclick="sorttable(this)">name2</th></tr>
 						<tr class=coltypes><td>type1</td><td>type2</td></tr>
 					</thead>
 				</table>
 			</div>
-			<div class=resultBodyDiv id=uniqueId6>
-				<table class=resultBody id=uniqueId3>
-					<tbody id=uniqueId4>
+			<div class=resultBodyDiv>
+				<table class=resultBody>
+					<tbody>
 						<tr><td>val1</td><td>val2</td></tr>
 						<tr><td>val3</td><td>val4 is wider to test resizing</td></tr>
 					</tbody>
@@ -67,11 +66,11 @@ function sorttable(th){
 }
 
 //get header table and body table cells to line up and scroll when needed
-function resize(){
-	let tbody = document.getElementById('uniqueId4');
-	let thead = document.getElementById('uniqueId2');
-	let theaddiv = document.getElementById('uniqueId5');
-	let tbodydiv = document.getElementById('uniqueId6');
+function resize(res){
+	let tbody = res.querySelector('tbody');
+	let thead = res.querySelector('thead');
+	let theaddiv = thead.closest('#resultHeadDiv');
+	let tbodydiv = tbody.closest('#resultBodyDiv');
 	if (tbody.childNodes.length > 1 && tbody.childNodes[1].childNodes.length > 0){
 		let trow = tbody.childNodes[1].childNodes
 		for (let i in trow){
@@ -88,5 +87,5 @@ function resize(){
 	tbodydiv.addEventListener('scroll',function(){ theaddiv.scrollLeft = tbodydiv.scrollLeft; });
 
 }
-resize();
+document.querySelectorAll('.singleResult').forEach(res => resize(res));
 </script>
