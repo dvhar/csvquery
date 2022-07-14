@@ -157,9 +157,12 @@ th, td {
 }
 .dropmenucontent{
 	display: none;
+	align-items:flex-start;
+	flex-shrink: 1;
+	padding: .5em;
 	position: absolute;
 }
 .dropmenu:hover .dropmenucontent {
-	display: block;
+	display: flex;
 	@include maincolorgradient-dark();
 }

@@ -84,9 +84,12 @@ th, td {
 
 .dropmenucontent {
   display: none;
+  align-items: flex-start;
+  flex-shrink: 1;
+  padding: .5em;
   position: absolute; }
 
 .dropmenu:hover .dropmenucontent {
-  display: block;
+  display: flex;
   background: #090908;
   background: linear-gradient(to bottom, #090908 1%, #200c0a 22%, #200c0a 22%, #4d0908 100%); }

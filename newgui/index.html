@@ -1,9 +1,6 @@
 <html>
 	<head>
 		<link rel="stylesheet" type="text/css" href="style.css"/>
-		<script>
-			//window.setInterval(()=>window.location.reload(),4000); //for testing
-		</script>
 	</head>
 	<body>
 		<div id=topBar>
@@ -30,13 +27,24 @@ Run queries by pressing the button above or shift-enter"></textarea>
 				<div class=dropmenu>
 					<span class=controlBut>filter by value</span>
 					<div class=dropmenucontent>
-						{dropdowns}
+						<select class=fieldname size=2>
+							<option>name1</option>
+							<option>name2</option>
+						</select>
+						<select class=fieldvalue size=3>
+							<option onclick="restoretable(this)">*</option>
+							<option onclick="filtertable(this)">val1</option>
+							<option onclick="filtertable(this)">val3</option>
+						</select>
 					</div>
 				</div>
 				<div class=dropmenu>
 					<span class=controlBut>hide columns</span>
 					<div class=dropmenucontent>
-						{dropdowns}
+						<select size=2>
+							<option>name1</option>
+							<option>name2</option>
+						</select>
 					</div>
 				</div>
 				<span class=controlBut>Rows: 2</span>
@@ -62,6 +70,25 @@ Run queries by pressing the button above or shift-enter"></textarea>
 </html>
 
 <script>
+	
+function restoretable(opt){
+	let res = opt.closest('.singleResult');
+	let tbody = res.querySelector('tbody');
+	tbody.innerText = '';
+	res.fulldata.rows.forEach(row => tbody.appendChild(row));
+}
+function filtertable(opt){
+	let res = opt.closest('.singleResult');
+	let names = Array.from(res.querySelector('.fieldname').children)
+	let selected = names.filter(o=>o.selected);
+	let idx = selected.length || names.indexOf(selected[0]);
+	let tbody = res.querySelector('tbody');
+	tbody.innerText = '';
+	res.fulldata.rows.forEach(row => {
+		if (row.children[idx].textContent == opt.textContent)
+			tbody.appendChild(row);
+	});
+}
 
 function sorttable(th){
 	const getCellValue = (tr, idx) => tr.children[idx].innerText || tr.children[idx].textContent;
@@ -75,12 +102,12 @@ function sorttable(th){
 		.forEach(tr => tbody.appendChild(tr) );
 }
 
-//get header table and body table cells to line up and scroll when needed
-function resize(res){
+function postProcess(res){
 	let tbody = res.querySelector('tbody');
 	let thead = res.querySelector('thead');
 	let theaddiv = thead.closest('.resultHeadDiv');
 	let tbodydiv = tbody.closest('.resultBodyDiv');
+	//get header table and body table cells to line up and scroll when needed
 	if (tbody.childNodes.length > 1 && tbody.childNodes[1].childNodes.length > 0){
 		let trow = tbody.childNodes[1].childNodes
 		for (let i in trow){
@@ -95,6 +122,11 @@ function resize(res){
 	let num = (tbody.offsetHeight <= tbodydiv.offsetHeight) ? 4:15;
 	theaddiv.style.maxWidth = tbodydiv.style.maxWidth =  `${Math.min(tbody.offsetWidth+num,window.innerWidth)}px`;
 	tbodydiv.addEventListener('scroll',function(){ theaddiv.scrollLeft = tbodydiv.scrollLeft; });
+	// make backup of orig data for filtering and restoring
+	res.fulldata = {
+		rows: Array.from(tbody.children),
+		cols: Array.from(res.querySelector('.colnames').children)
+	};
 }
-document.querySelectorAll('.singleResult').forEach(res => resize(res));
+document.querySelectorAll('.singleResult').forEach(res => postProcess(res));
 </script>
