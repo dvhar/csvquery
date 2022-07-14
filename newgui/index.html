@@ -27,8 +27,18 @@ Run queries by pressing the button above or shift-enter"></textarea>
 			<div class=tableControls>
 				<span class=echoQuery>select * from 'example query test.csv'</span>
 				<br/>
-				<button class=controlBut>filter by value</button>
-				<button class=controlBut>hide columns</button>
+				<div class=dropmenu>
+					<span class=controlBut>filter by value</span>
+					<div class=dropmenucontent>
+						{dropdowns}
+					</div>
+				</div>
+				<div class=dropmenu>
+					<span class=controlBut>hide columns</span>
+					<div class=dropmenucontent>
+						{dropdowns}
+					</div>
+				</div>
 				<span class=controlBut>Rows: 2</span>
 			</div>
 			<div class=resultHeadDiv>
@@ -69,8 +79,8 @@ function sorttable(th){
 function resize(res){
 	let tbody = res.querySelector('tbody');
 	let thead = res.querySelector('thead');
-	let theaddiv = thead.closest('#resultHeadDiv');
-	let tbodydiv = tbody.closest('#resultBodyDiv');
+	let theaddiv = thead.closest('.resultHeadDiv');
+	let tbodydiv = tbody.closest('.resultBodyDiv');
 	if (tbody.childNodes.length > 1 && tbody.childNodes[1].childNodes.length > 0){
 		let trow = tbody.childNodes[1].childNodes
 		for (let i in trow){
@@ -85,7 +95,6 @@ function resize(res){
 	let num = (tbody.offsetHeight <= tbodydiv.offsetHeight) ? 4:15;
 	theaddiv.style.maxWidth = tbodydiv.style.maxWidth =  `${Math.min(tbody.offsetWidth+num,window.innerWidth)}px`;
 	tbodydiv.addEventListener('scroll',function(){ theaddiv.scrollLeft = tbodydiv.scrollLeft; });
-
 }
 document.querySelectorAll('.singleResult').forEach(res => resize(res));
 </script>

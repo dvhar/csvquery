@@ -152,3 +152,14 @@ th, td {
 		color: $text1-darkbg;
 	}
 }
+.dropmenu {
+	display: inline-block;
+}
+.dropmenucontent{
+	display: none;
+	position: absolute;
+}
+.dropmenu:hover .dropmenucontent {
+	display: block;
+	@include maincolorgradient-dark();
+}

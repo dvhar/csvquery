@@ -78,3 +78,15 @@ th, td {
   .resultBody td {
     background-color: #3A3A3A;
     color: lightgoldenrodyellow; }
+
+.dropmenu {
+  display: inline-block; }
+
+.dropmenucontent {
+  display: none;
+  position: absolute; }
+
+.dropmenu:hover .dropmenucontent {
+  display: block;
+  background: #090908;
+  background: linear-gradient(to bottom, #090908 1%, #200c0a 22%, #200c0a 22%, #4d0908 100%); }
