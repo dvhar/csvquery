@@ -27,8 +27,15 @@ Run queries by pressing the button above or shift-enter"></textarea>
 				<div class=dropmenu>
 					<span class=controlBut>filter by value</span>
 					<div class=dropmenucontent>
-						<select class=filtername></select>
-						<select class=filtervalue></select>
+						<select class=filtername size=2>
+							<option onclick="populatefilter(this)">name1</option>
+							<option onclick="populatefilter(this)">name2</option>
+						</select>
+						<select class=filtervalue size=3>
+							<option onclick="restoretable(this)">*</option>
+							<option onclick="filtertable(this)">val1</option>
+							<option onclick="filtertable(this)">val3</option>
+						</select>
 					</div>
 				</div>
 				<div class=dropmenu>
@@ -91,7 +98,6 @@ function filtertable(opt){
 function populatefilter(opt){
 	let res = opt.closest('.singleResult');
 	let idx = getidx(res.fulldata.cols, c=>{return c.textContent == opt.textContent});
-		console.log(idx, opt.textContent);
 	let filtervalues = res.querySelector('.filtervalue');
 	filtervalues.textContent = '';
 	filtervalues.size = res.fulldata.rows.length+1;
@@ -153,28 +159,7 @@ function postProcess(res){
 		rows: Array.from(tbody.children),
 		cols: Array.from(res.querySelector('.colnames').children)
 	};
-	// initialize menus
-	let filternames = res.querySelector('.filtername');
-	filternames.size = res.fulldata.cols.length;
-	res.fulldata.cols.forEach(f => {
-		let opt = document.createElement('option');
-		opt.textContent = f.textContent;
-		opt.onclick = ()=>populatefilter(opt);
-		filternames.appendChild(opt);
-	});
-	let filtervalues = res.querySelector('.filtervalue');
-	filtervalues.size = res.fulldata.rows.length+1;
-	let opt = document.createElement('option');
-	opt.textContent = '*';
-	opt.onclick = ()=>restoretable(opt);
-	filtervalues.appendChild(opt);
-	// todo: only unique values
-	res.fulldata.rows.forEach(r => {
-		let opt = document.createElement('option');
-		opt.textContent = r.children[0].textContent;
-		opt.onclick = ()=>filtertable(opt);
-		filtervalues.appendChild(opt);
-	});
+	// initialize menus statically on backend
 }
 document.querySelectorAll('.singleResult').forEach(res => postProcess(res));
 </script>
