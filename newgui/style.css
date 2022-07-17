@@ -79,17 +79,54 @@ th, td {
     background-color: #3A3A3A;
     color: lightgoldenrodyellow; }
 
-.dropmenu {
+.tableDropmenu {
   display: inline-block; }
 
-.dropmenucontent {
+.tableDropmenuContent {
   display: none;
   align-items: flex-start;
   flex-shrink: 1;
   padding: .5em;
   position: absolute; }
 
-.dropmenu:hover .dropmenucontent {
+.tableDropmenu:hover .tableDropmenuContent {
   display: flex;
   background: #090908;
   background: linear-gradient(to bottom, #090908 1%, #200c0a 22%, #200c0a 22%, #4d0908 100%); }
+
+#history {
+  right: 0;
+  position: fixed; }
+
+.topDropdown {
+  min-width: 40em;
+  max-height: 33em;
+  text-align: left;
+  top: 2.2em;
+  padding: .3em;
+  position: absolute;
+  border: 1px solid black;
+  background: #090908;
+  background: linear-gradient(to bottom, #090908 1%, #200c0a 22%, #200c0a 22%, #4d0908 100%); }
+
+.pathinput {
+  width: 100%;
+  background: #0f0f0f;
+  color: white; }
+
+.filelist {
+  background: #0f0f0f;
+  padding: .2em; }
+
+.filelist span {
+  display: block; }
+
+.filelist span:hover {
+  background: #4d0908;
+  overflow: auto; }
+
+.browsedir {
+  color: lightblue; }
+
+.browsefile {
+  color: lightGreen; }

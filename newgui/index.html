@@ -11,6 +11,19 @@
 			<button id=stopBut>stop query</button>
 			<span id=topMessage>query status updates go here...</span>
 			<span id=history>&#11164 1/1 &#11166</span>
+			<div id=saveDropdown class=topDropdown>
+				<span>Save queries on page to their own csv file. A number will be added to file name if more than 1.</span>
+				<br>
+				<span>To save, type a file path that ends with '.csv' and hit Enter.</span>
+				<br>
+				<input class=pathinput>
+				<div class=filelist>
+					<span class=browsedir><-</span>
+					<span class=browsedir>/home/user/somedir</span>
+					<span class=browsefile>/home/user/file.csv</span>
+					<span class=browsefile>/home/user/file with spaces.csv</span>
+				</div>
+			</div>
 		</div>
 		<div id=textboxContainer>
 			<textarea id=queryTextEntry rows=5 placeholder="Type query here.
@@ -24,9 +37,9 @@ Run queries by pressing the button above or shift-enter"></textarea>
 			<div class=tableControls>
 				<span class=echoQuery>select * from 'example query test.csv'</span>
 				<br/>
-				<div class=dropmenu>
+				<div class=tableDropmenu>
 					<span class=controlBut>filter by value</span>
-					<div class=dropmenucontent>
+					<div class=tableDropmenuContent>
 						<select class=filtername size=2>
 							<option onclick="populatefilter(this)">name1</option>
 							<option onclick="populatefilter(this)">name2</option>
@@ -38,9 +51,9 @@ Run queries by pressing the button above or shift-enter"></textarea>
 						</select>
 					</div>
 				</div>
-				<div class=dropmenu>
+				<div class=tableDropmenu>
 					<span class=controlBut>hide columns</span>
-					<div class=dropmenucontent>
+					<div class=tableDropmenuContent>
 						<select size=2>
 							<option>name1</option>
 							<option>name2</option>
@@ -86,8 +99,7 @@ function restoretable(opt){
 }
 function filtertable(opt){
 	let res = opt.closest('.singleResult');
-	let names = Array.from(res.querySelector('.filtername').children)
-	let idx = getidx(names, (o)=>o.selected);
+	let idx = getidx(Array.from(res.querySelector('.filtername').children), (o)=>o.selected);
 	let tbody = res.querySelector('tbody');
 	tbody.innerText = '';
 	res.fulldata.rows.forEach(row => {
@@ -105,7 +117,7 @@ function populatefilter(opt){
 	newopt.textContent = '*';
 	newopt.onclick = ()=>restoretable(newopt);
 	filtervalues.appendChild(newopt);
-	// todo: only unique values
+	// todo: sorted unique values
 	res.fulldata.rows.forEach(r => {
 		let newopt = document.createElement('option');
 		newopt.textContent = r.children[idx].textContent;

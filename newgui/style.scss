@@ -152,17 +152,55 @@ th, td {
 		color: $text1-darkbg;
 	}
 }
-.dropmenu {
+.tableDropmenu{
 	display: inline-block;
 }
-.dropmenucontent{
+.tableDropmenuContent{
 	display: none;
 	align-items:flex-start;
 	flex-shrink: 1;
 	padding: .5em;
 	position: absolute;
 }
-.dropmenu:hover .dropmenucontent {
+.tableDropmenu:hover .tableDropmenuContent {
 	display: flex;
 	@include maincolorgradient-dark();
+}
+
+#history {
+	right: 0;
+	position: fixed;
+}
+
+.topDropdown {
+	min-width: 40em;
+	max-height: 33em;
+	text-align: left;
+	top: 2.2em;
+	padding: .3em;
+	position: absolute;
+	border: 1px solid black;
+	@include maincolorgradient-dark();
+}
+.pathinput {
+	width: 100%;
+	background: $darkgrey1;
+	color: $lightgrey2;
+}
+.filelist {
+	background: $darkgrey1;
+	padding: .2em;
+}
+.filelist span {
+	display: block;
+}
+.filelist span:hover {
+	background: $redgrad4;
+	overflow: auto;
+}
+.browsedir {
+	color: lightblue;
+}
+.browsefile {
+	color: lightGreen;
 }
