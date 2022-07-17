@@ -3,7 +3,10 @@ html {
 
 body {
   margin: 0;
-  text-align: center; }
+  text-align: center;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale; }
 
 #topBar {
   background: black;
@@ -12,6 +15,7 @@ body {
   padding: .2em; }
   #topBar button {
     border: 1px solid black;
+    padding: .2em;
     color: #eeeeee;
     background: #666666;
     background: linear-gradient(to bottom, #666666 0%, #515151 50%, #414141 51%, #666666 100%); }
@@ -19,14 +23,15 @@ body {
     color: #eeeeee;
     background: #00136a;
     background: linear-gradient(to bottom, #00136a 0%, #08606c 50%, #0832f6 51%, #062f3d 100%); }
-  #topBar span {
-    padding: .2em .6em 0em 1em; }
 
 #textboxContainer {
   text-align: center;
   padding: .2em;
   background: #090908;
   background: linear-gradient(to bottom, #090908 1%, #200c0a 22%, #200c0a 22%, #4d0908 100%); }
+
+#topMessage {
+  transform: translateY(15%); }
 
 #queryTextEntry {
   width: 100%;
@@ -106,6 +111,7 @@ th, td {
   padding: .3em;
   position: absolute;
   border: 1px solid black;
+  color: lightgoldenrodyellow;
   background: #090908;
   background: linear-gradient(to bottom, #090908 1%, #200c0a 22%, #200c0a 22%, #4d0908 100%); }
 
@@ -115,8 +121,7 @@ th, td {
   color: white; }
 
 .filelist {
-  background: #0f0f0f;
-  padding: .2em; }
+  background: #0f0f0f; }
 
 .filelist span {
   display: block; }
@@ -130,3 +135,9 @@ th, td {
 
 .browsefile {
   color: lightGreen; }
+
+.updir {
+  font-weight: 700; }
+
+#saveDropdown {
+  display: none; }
