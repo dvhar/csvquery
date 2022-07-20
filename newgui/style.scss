@@ -178,7 +178,7 @@ th, td {
 	position: fixed;
 }
 
-.topDropdown {
+.fileBrowser {
 	min-width: 40em;
 	max-height: 33em;
 	text-align: left;
@@ -213,9 +213,6 @@ th, td {
 .updir {
 	font-weight: 700;
 }
-#saveDropdown {
+.hidden {
 	display: none;
-}
-#openDropdown {
-	//display: none;
 }
