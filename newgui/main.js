@@ -6,16 +6,31 @@ function getidx(arr, comp){
 	return 0;
 }
 
-function fileclick(clicked, type){
-	// data will be statically initialized
+function fileclick(clicked){
+	// fetch and return data, then:
 	let ret = { //sample return payload
-		path: '/home/user/',
-		parent: '/home/',
-		mode: 'open',
-		files: ['/home/user/file.csv'],
-		dirs: ['/home/user/somedir/']
+		path: '/home/user/somedir/',
+		parent: '/home/user/',
+		files: ['/home/user/somedir/file2.csv','/home/user/somedir/file3.csv'],
+		dirs: ['/home/user/somedir/dir2/','/home/user/somedir/otherdir/']
 	};
-	let browser = opt.closest('.fileBrowser');
+	let browser = clicked.closest('.fileBrowser');
+	let textinput = browser.querySelector('.pathinput');
+	let filelist = clicked.closest('.filelist');
+	let updir = filelist.children[0];
+	textinput.value = ret.path;
+	filelist.innerText = '';
+	const makespan = (path,type) => {
+		let span = document.createElement('span');
+		span.classList.add(type, 'dropdown');
+		span.innerText = path;
+		if (type === 'browseDir')
+			span.onclick = ()=>fileclick(span);
+		filelist.appendChild(span);
+	};
+	filelist.appendChild(updir);
+	ret.dirs.forEach(path => makespan(path, 'browseDir'));
+	ret.files.forEach(path => makespan(path, 'browsefile'));
 }
 
 function restoretable(opt){
