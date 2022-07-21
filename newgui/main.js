@@ -7,6 +7,15 @@ function getidx(arr, comp){
 }
 
 function fileclick(clicked){
+	let querybox = document.querySelector('#queryTextEntry');
+	let browser = clicked.closest('.fileBrowser');
+	let start = querybox.value.substring(0,querybox.selectionStart);
+	let end = querybox.value.substring(querybox.selectionEnd, 10000000);
+	querybox.value = start +" '"+ clicked.innerText +"' "+ end;
+	browser.classList.add('hidden');
+}
+
+function dirclick(clicked){
 	// fetch and return data, then:
 	let ret = { //sample return payload
 		path: '/home/user/somedir/',
@@ -25,7 +34,9 @@ function fileclick(clicked){
 		span.classList.add(type, 'dropdown');
 		span.innerText = path;
 		if (type === 'browseDir')
-			span.onclick = ()=>fileclick(span);
+			span.onclick = ()=>dirclick(span);
+		else if (browser.id === 'openDropdown')
+			span.ondblclick = ()=>fileclick(span);
 		filelist.appendChild(span);
 	};
 	filelist.appendChild(updir);
