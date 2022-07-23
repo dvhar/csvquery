@@ -154,6 +154,25 @@ function showTopDrop(but){
 	});
 }
 
+var historyList = ['select * from previousfile.csv',''];
+var currentHist = historyList.length;
+function historyClick(direction){
+	let querytextEntry = document.querySelector('#queryTextEntry');
+	let histNumber = document.querySelector('#histNumber');
+	if (direction === 1 && currentHist < historyList.length){
+		currentHist++;
+		querytextEntry.value = historyList[currentHist-1];
+		histNumber.innerText = currentHist;
+	}
+	if (direction === -1 && currentHist > 1){
+		if (currentHist === historyList.length)
+			historyList[currentHist-1] = querytextEntry.value;
+		currentHist--;
+		querytextEntry.value = historyList[currentHist-1];
+		histNumber.innerText = currentHist;
+	}
+}
+
 document.querySelectorAll('.singleResult').forEach(res => postProcess(res));
 document.addEventListener('click',e=>{
 	if (e.target.classList.contains('dropbutton'))

@@ -10,7 +10,11 @@
 			<button id=runBut>run query</button>
 			<button id=stopBut>stop query</button>
 			<span id=topMessage>query status updates go here...</span>
-			<span id=history>&#11164 1/1 &#11166</span>
+			<span id=history>
+				<span id=backarrow onclick="historyClick(-1)">&#11164 </span>
+				<span id=histNumber>2</span>/2
+				<span id=forwardArrow onclick="historyClick(1)"> &#11166</span>
+			</span>
 			<div id=saveDropdown class="fileBrowser hidden dropdown">
 				<span>Save queries on page to their own csv file. A number will be added to file name if more than 1.</span>
 				<br>
