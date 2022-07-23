@@ -28,7 +28,7 @@ function dirclick(clicked){
 	let filelist = clicked.closest('.filelist');
 	let updir = filelist.children[0];
 	textinput.value = ret.path;
-	filelist.innerText = '';
+	filelist.innerText = null;
 	const makespan = (path,type) => {
 		let span = document.createElement('span');
 		span.classList.add(type, 'dropdown');
@@ -47,7 +47,7 @@ function dirclick(clicked){
 function restoretable(opt){
 	let res = opt.closest('.singleResult');
 	let tbody = res.querySelector('tbody');
-	tbody.innerText = '';
+	tbody.innerText = null;
 	res.fulldata.rows.forEach(row => tbody.appendChild(row));
 }
 
@@ -55,7 +55,7 @@ function filtertable(opt){
 	let res = opt.closest('.singleResult');
 	let idx = getidx(Array.from(res.querySelector('.filtername').children), (o)=>o.selected);
 	let tbody = res.querySelector('tbody');
-	tbody.innerText = '';
+	tbody.innerText = null;
 	res.fulldata.rows.forEach(row => {
 		if (row.children[idx].textContent == opt.textContent)
 			tbody.appendChild(row);
@@ -64,9 +64,9 @@ function filtertable(opt){
 
 function populatefilter(opt){
 	let res = opt.closest('.singleResult');
-	let idx = getidx(res.fulldata.cols, c=>{return c.textContent == opt.textContent});
+	let idx = getidx(res.fulldata.cols, c=>{return c.innerText == opt.innerText});
 	let filtervalues = res.querySelector('.filtervalue');
-	filtervalues.textContent = '';
+	filtervalues.textContent = null;
 	filtervalues.size = res.fulldata.rows.length+1;
 	let newopt = document.createElement('option');
 	newopt.textContent = '*';
@@ -79,6 +79,15 @@ function populatefilter(opt){
 		newopt.onclick = ()=>filtertable(newopt);
 		filtervalues.appendChild(newopt);
 	});
+}
+
+function toggleColumn(opt,idx){
+	let res = opt.closest('.singleResult');
+	res.fulldata.cols[idx].classList.toggle('hidden');
+	res.fulldata.types[idx].classList.toggle('hidden');
+	res.fulldata.rows.forEach(row => row.childNodes[idx].classList.toggle('hidden'));
+	opt.classList.toggle('hiddenColumn');
+	resize(res);
 }
 
 function sorttable(th){
@@ -124,7 +133,8 @@ function postProcess(res){
 	// make backup of orig data for filtering and restoring
 	res.fulldata = {
 		rows: Array.from(tbody.children),
-		cols: Array.from(res.querySelector('.colnames').children)
+		cols: Array.from(res.querySelector('.colnames').children),
+		types: Array.from(res.querySelector('.coltypes').children)
 	};
 	// initialize menus statically on backend
 }
