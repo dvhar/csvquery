@@ -90,15 +90,16 @@ function toggleColumn(opt,idx){
 	resize(res);
 }
 
-function sorttable(th){
-	const getCellValue = (tr, idx) => tr.children[idx].innerText || tr.children[idx].textContent;
-	const comparer = (idx, asc) => (a, b) => ((v1, v2) => 
+function sorttable(e){
+	let col = e.target;
+	let idx = col.idx;
+	const getCellValue = (tr) => tr.children[idx].innerText || tr.children[idx].textContent;
+	const comparer = (asc) => (a, b) => ((v1, v2) => 
 		v1 !== '' && v2 !== '' && !isNaN(v1) && !isNaN(v2) ? v1 - v2 : v1.toString().localeCompare(v2)
 		)(getCellValue(asc ? a : b, idx), getCellValue(asc ? b : a, idx));
-	let idx = Array.from(th.parentNode.children).indexOf(th);
-	let tbody = th.closest('.singleResult').querySelector('tbody');
+	let tbody = col.closest('.singleResult').querySelector('tbody');
 	Array.from(tbody.querySelectorAll('tr'))
-		.sort(comparer(idx, this.asc = !this.asc))
+		.sort(comparer(this.asc = !this.asc))
 		.forEach(tr => tbody.appendChild(tr) );
 }
 
@@ -130,13 +131,15 @@ function postProcess(res){
 	let theaddiv = thead.closest('.resultHeadDiv');
 	let tbodydiv = tbody.closest('.resultBodyDiv');
 	tbodydiv.addEventListener('scroll',function(){ theaddiv.scrollLeft = tbodydiv.scrollLeft; });
-	// make backup of orig data for filtering and restoring
+	thead.addEventListener('click',sorttable);
 	res.fulldata = {
 		rows: Array.from(tbody.children),
-		cols: Array.from(res.querySelector('.colnames').children),
-		types: Array.from(res.querySelector('.coltypes').children)
+		cols: Array.from(thead.querySelector('.colnames').children),
+		types: Array.from(thead.querySelector('.coltypes').children)
 	};
-	// initialize menus statically on backend
+	res.fulldata.types.forEach((td,i) => td.idx = i);
+	res.fulldata.cols.forEach((tr,i) => tr.idx = i);
+	// initialize menus on backend?
 }
 
 function showTopDrop(but){
