@@ -540,6 +540,7 @@ class dat {
 	static char abnormal[];
 	void appendToCsvBuffer(string&);
 	void appendToJsonBuffer(string&);
+	void appendToHtmlBuffer(string&);
 	string str(){ string st; appendToCsvBuffer(st); return st; }
 	int type() const { return (b & 7); }
 	bool istext() const { return type() == T_STRING; }
@@ -655,6 +656,7 @@ class querySpecs {
 	int isSubquery =0; //1 = in list predicate
 	bool distinctFuncs =0;
 	bool outputjson =0;
+	bool outputhtml =0;
 	bool outputcsv =0;
 	bool outputcsvheader =0;
 	bool outheaderOpt =0;
@@ -673,6 +675,7 @@ class querySpecs {
 	bool numIsCol();
 	void setoutputCsv(){ outputcsv = true; };
 	void setoutputJson(){ outputjson = true; };
+	void setoutputHtml(){ outputhtml = true; };
 	void addVar(string);
 	int getVarIdx(string);
 	int getVarType(string);
@@ -720,7 +723,7 @@ class subquery {
 };
 
 class singleQueryResult {
-	stringstream j;
+	stringstream marshaller;
 	public:
 	int numrows = 0;
 	int rowlimit = 0;
@@ -730,9 +733,10 @@ class singleQueryResult {
 	bool skip = 0;
 	vector<int> types;
 	vector<string> colnames;
-	list<string> Vals; //each string is whole row of encoded json
+	list<string> Vals; //each string is whole row of encoded results
 	string query;
 	stringstream& tojson();
+	string tohtml();
 	singleQueryResult(querySpecs &q){
 		numcols = q.colspec.count;
 		rowlimit = 20000 / numcols;

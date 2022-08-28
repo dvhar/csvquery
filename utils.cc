@@ -4,6 +4,9 @@
 #include <ctype.h>
 #include <thread>
 #include "deps/json/escape.h"
+#include "deps/incbin/incbin.h"
+
+INCBIN(_SINGLERESULT,"../newgui/singleresult.html");
 #define max(a,b) (a) > (b) ? (a) : (b)
 
 string version = "1.60";
@@ -345,34 +348,66 @@ string nodeName(astnode &n, querySpecs* q){
 	return nodeName(n->node1, q);
 }
 
+string escapeHtml(string& input) {
+	dat d = {0};
+	string out;
+	d.u.s = (char*)input.c_str();
+	d.b = T_STRING;
+	d.appendToHtmlBuffer(out);
+	return out;
+}
+
+string singleQueryResult::tohtml(){
+	string tplate((const char*)g_SINGLERESULTData, g_SINGLERESULTSize);
+	boost::replace_first(tplate,"{{ querytext }}", query);
+	boost::replace_all(tplate,"{{ colnum }}", to_string(numcols));
+	boost::replace_all(tplate,"{{ rownum }}", to_string(numrows));
+	stringstream items;
+	for (int i=0; i<colnames.size(); i++)
+		items << "<option onclick=\"populatefilter(this," << i << ")\">" << escapeHtml(colnames[i]) << "</option>" << endl;
+	boost::replace_first(tplate,"{{ populatefilter-names }}", items.str());
+	items.clear();
+	for (int i=0; i<colnames.size(); i++)
+		items << "<option onclick=\"toggleColumn(this," << i << ")\">" << escapeHtml(colnames[i]) << "</option>" << endl;
+	boost::replace_first(tplate,"{{ toggleColumn-names }}", items.str());
+	items.clear();
+	for (auto& name:colnames)
+		items << "<th>" << escapeHtml(name) << "</th>";
+	boost::replace_first(tplate,"{{ th-names }}", items.str());
+	items.clear();
+	for (auto& row:Vals)
+		items << row << endl;
+	boost::replace_first(tplate,"{{ tr-vals }}", items.str());
+	return tplate;
+}
 //nlohmann library can't handle invalid utf-8
 stringstream& singleQueryResult::tojson(){
 	static string_view com = ",";
 	static string_view nocom = "";
-	j << "{\"numrows\":" << numrows
+	marshaller << "{\"numrows\":" << numrows
 		<< ",\"rowlimit\":" << rowlimit
 		<< ",\"numcols\":" << numcols;
 	auto delim = &nocom;
-	j << ",\"types\":[";
+	marshaller << ",\"types\":[";
 	for (auto v : types){
-		j << *delim << v;
+		marshaller << *delim << v;
 		delim = &com;
 	}
-	j << "],\"colnames\":[";
+	marshaller << "],\"colnames\":[";
 	delim = &nocom;
 	for (auto &v : colnames){
-		j << *delim << '"' << chopAndEscapeJson(string_view(v)) << '"';
+		marshaller << *delim << '"' << chopAndEscapeJson(string_view(v)) << '"';
 		delim = &com;
 	}
-	j << "],\"vals\":[";
+	marshaller << "],\"vals\":[";
 	delim = &nocom;
 	for (auto &v : Vals){
-		j << *delim << v;
+		marshaller << *delim << v;
 		delim = &com;
 	}
-	j << "],\"status\":" << status
+	marshaller << "],\"status\":" << status
 		<< ",\"query\":\"" << escapeJSON(query) << "\"}";
-	return j;
+	return marshaller;
 }
 stringstream& returnData::tojson(){
 	static string_view com = ",";

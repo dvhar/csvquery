@@ -33,7 +33,7 @@ enum codes : u8 {
 	IEQ, FEQ, TEQ, LIKE,
 	ILEQ, FLEQ, TLEQ,
 	ILT, FLT, TLT,
-	PRINTCSV, PRINTJSON, PUSH, PUSH_N, POP, POPCPY, ENDRUN, NULFALSE,
+	PRINTCSV, PRINTJSON, PRINTHTML, PUSH, PUSH_N, POP, POPCPY, ENDRUN, NULFALSE,
 	DIST_NOALLOC, DIST_NORM, DIST_AGG, LDDIST,
 	FINC, ENCCHA, DECCHA,
 	SAVESORTN, SAVESORTS, SAVEVALPOS, SAVEPOS, SORT,
@@ -227,7 +227,7 @@ class vmachine {
 	int sortgroupsize =0;
 	int quantityLimit =0;
 	int totalPrinted =0;
-	int numJsonPrinted =0;
+	int numLimitedPrinted =0;
 	int linesRead = 0;
 	int ip = 0;
 	vector<stddev> stdvs;
@@ -240,7 +240,7 @@ class vmachine {
 	forward_list<bset<i64>> joinSetStack;
 	forward_list<unique_ptr<char[], freeC>> groupSortVars;
 	unique_ptr<rowgroup> groupTree;
-	shared_ptr<singleQueryResult> jsonresult;
+	shared_ptr<singleQueryResult> result;
 	string outbuf;
 	ostream csvOutput;
 	ofstream outfile;
@@ -410,7 +410,7 @@ shared_ptr<singleQueryResult> showTables(querySpecs &q);
 
 class qinstance {
 	unique_ptr<vmachine> vm;
-	shared_ptr<singleQueryResult> json;
+	shared_ptr<singleQueryResult> result;
 	querySpecs* q;
 	public:
 	i64 id;
@@ -421,7 +421,7 @@ class qinstance {
 		if (int nonquery = prepareQuery(*q); nonquery){
 			if (nonquery == COMMENTED_OUT){
 			} else if (nonquery == CMD_SHOWTABLES){
-				json = showTables(*q);
+				result = showTables(*q);
 			}
 			id = rng();
 			return id;
@@ -430,11 +430,11 @@ class qinstance {
 		id = vm->id;
 		vm->run();
 		if (q->outputjson)
-			json = vm->getJsonResult();
+			result = vm->getJsonResult();
 		return id;
 	}
 	shared_ptr<singleQueryResult> getResult(){
-		return json;
+		return result;
 	}
 	void stop(){
 		if (vm) vm->endQuery();
@@ -449,6 +449,7 @@ class queryQueue {
 	public:
 	future<void> runquery(querySpecs&);
 	future<shared_ptr<singleQueryResult>> runqueryJson(querySpecs&);
+	future<shared_ptr<singleQueryResult>> runqueryHtml(querySpecs&);
 	void endall();
 	void setPassword(i64 sesid, string& pass);
 };

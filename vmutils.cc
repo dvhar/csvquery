@@ -8,9 +8,98 @@
 //#include "deps/crypto/aes.h"
 #include "deps/json/escape.h"
 #include <chrono>
+#include <ctype.h>
 
 string opcode::print(){
 	return (ft("code: %-18s  [%-2d  %-2d  %-2d]")% opMap[code]% p1% p2% p3).str();
+}
+
+#define UTF_INVALID 0xFFFD
+#define UTF_SIZ     4
+#define BETWEEN(X, A, B)        ((A) <= (X) && (X) <= (B))
+static const unsigned char utfbyte[UTF_SIZ + 1] = {0x80,    0, 0xC0, 0xE0, 0xF0};
+static const unsigned char utfmask[UTF_SIZ + 1] = {0xC0, 0x80, 0xE0, 0xF0, 0xF8};
+static const long utfmin[UTF_SIZ + 1] = {       0,    0,  0x80,  0x800,  0x10000};
+static const long utfmax[UTF_SIZ + 1] = {0x10FFFF, 0x7F, 0x7FF, 0xFFFF, 0x10FFFF};
+long utf8decodebyte(const char c, size_t *i) {
+	for (*i = 0; *i < (UTF_SIZ + 1); ++(*i))
+		if (((unsigned char)c & utfmask[*i]) == utfbyte[*i])
+			return (unsigned char)c & ~utfmask[*i];
+	return 0;
+}
+
+size_t utf8validate(long *u, size_t i) {
+	if (!BETWEEN(*u, utfmin[i], utfmax[i]) || BETWEEN(*u, 0xD800, 0xDFFF))
+		*u = UTF_INVALID;
+	for (i = 1; *u > utfmax[i]; ++i)
+		;
+	return i;
+}
+
+size_t utf8decode(const char *c, long *u, size_t clen) {
+	size_t i, j, len, type;
+	long udecoded;
+
+	*u = UTF_INVALID;
+	if (!clen)
+		return 0;
+	udecoded = utf8decodebyte(c[0], &len);
+	if (!BETWEEN(len, 1, UTF_SIZ))
+		return 1;
+	for (i = 1, j = 1; i < clen && j < len; ++i, ++j) {
+		udecoded = (udecoded << 6) | utf8decodebyte(c[i], &type);
+		if (type)
+			return j;
+	}
+	if (j < len)
+		return 0;
+	*u = udecoded;
+	utf8validate(u, len);
+
+	return len;
+}
+void dat::appendToHtmlBuffer(string &outbuf){
+
+	static char buf[40];
+	char* c = u.s;
+	int utf8charlen;
+	long utf8codepoint = 0;
+	switch (type()) {
+	case T_INT:
+		sprintf(buf,"%lld",u.i);
+		outbuf += buf;
+		break;
+	case T_FLOAT:
+		sprintf(buf,"%.10g",u.f);
+		outbuf += buf;
+		break;
+	case T_DATE:
+		outbuf += datestring(u.i);
+		break;
+	case T_DURATION:
+		outbuf += durstring(*this, nullptr);
+		break;
+	case T_STRING:
+		//TODO: chop
+			while (*c){
+				if (isascii(*c)) {
+					switch(*c){
+						case '<': outbuf += "&lt;"; break;
+						case '>': outbuf += "&gt;"; break;
+						case '"': outbuf += "&quot;"; break;
+						case '\'':outbuf += "&#39;"; break;
+						case '&': outbuf += "&amp;"; break;
+						default:  outbuf += *c;
+					}
+					c++;
+				} else {
+					utf8charlen = utf8decode(c, &utf8codepoint, UTF_SIZ);
+					outbuf += "&#" + to_string(utf8codepoint);
+					c += utf8charlen;
+				}
+			}
+		break;
+	}
 }
 void dat::appendToJsonBuffer(string &outbuf){
 
@@ -173,7 +262,7 @@ vmachine::vmachine(querySpecs &qs) :
 			(virtualSet*) new numericSet());
 
 	if (q->outputjson){
-		jsonresult.reset(new singleQueryResult(qs));
+		result.reset(new singleQueryResult(qs));
 	}
 	if (globalSettings.termbox && !q->isSubquery){
 		termbox.init(q->colspec.types, q->colspec.colnames);
@@ -504,13 +593,13 @@ bool opDoesJump(int opcode){
 shared_ptr<singleQueryResult> vmachine::getJsonResult(){
 	static auto isCommented = regex(".*--.*(\n.*|$)");
 	static auto comment = regex("--.*(\n|$)");
-	jsonresult->types = q->colspec.types;
-	jsonresult->colnames = q->colspec.colnames;
-	jsonresult->query = q->queryString;
+	result->types = q->colspec.types;
+	result->colnames = q->colspec.colnames;
+	result->query = q->queryString;
 	do {
-		jsonresult->query = regex_replace(jsonresult->query, comment, "");
-	} while (regex_match(jsonresult->query, isCommented));
-	return jsonresult;
+		result->query = regex_replace(result->query, comment, "");
+	} while (regex_match(result->query, isCommented));
+	return result;
 }
 
 shared_ptr<singleQueryResult> showTables(querySpecs &q){
@@ -531,7 +620,7 @@ shared_ptr<singleQueryResult> showTables(querySpecs &q){
 	}
 	vector<string> colnames = {"Name","Details"};
 	vector<int> types = {5,5};
-	if (q.outputjson){
+	if (q.outputjson){ // TODO: html
 		auto ret = make_shared<singleQueryResult>();
 		ret->numcols = 2;
 		ret->rowlimit = 10000;
@@ -586,6 +675,24 @@ future<shared_ptr<singleQueryResult>> queryQueue::runqueryJson(querySpecs& q){
 		return ret;
 	});
 }
+// TODO: make this more dry when done
+future<shared_ptr<singleQueryResult>> queryQueue::runqueryHtml(querySpecs& q){
+	return async([&](){
+		q.setoutputHtml();
+		mtx.lock();
+		queries.emplace_back(q);
+		auto& thisq = queries.back();
+		mtx.unlock();
+		auto id = thisq.runq();
+		auto ret = thisq.getResult();
+		perr("Got json result\n");
+		mtx.lock();
+		queries.remove_if([&](qinstance& qi){ return qi.id == id; });
+		mtx.unlock();
+		perr("Remove query from queue\n");
+		return ret;
+	});
+}
 void queryQueue::endall(){
 	mtx.lock();
 	for (auto& qi : queries) qi.stop();
@@ -615,6 +722,10 @@ void runPlainQuery(querySpecs &q){
 }
 shared_ptr<singleQueryResult> runJsonQuery(querySpecs &q){
 	auto r = qrunner.runqueryJson(q);
+	return r.get();
+}
+shared_ptr<singleQueryResult> runHtmlQuery(querySpecs &q){
+	auto r = qrunner.runqueryHtml(q);
 	return r.get();
 }
 void boxprinter::addrow(dat* sourcerow){

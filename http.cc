@@ -173,6 +173,7 @@ static shared_ptr<singleQueryResult> runWebQuery(webquery &wq){
 		}
 	}
 	return runJsonQuery(q);
+	//return runHtmlQuery(q);
 }
 
 void directory::setDir(json& j){

@@ -1,11 +1,3 @@
-function getidx(arr, comp){
-	for (var i in arr){
-			if (comp(arr[i]))
-				return i;
-		}
-	return 0;
-}
-
 function fileclick(clicked){
 	let querybox = document.querySelector('#queryTextEntry');
 	let browser = clicked.closest('.fileBrowser');
@@ -51,9 +43,8 @@ function restoretable(opt){
 	res.fulldata.rows.forEach(row => tbody.appendChild(row));
 }
 
-function filtertable(opt){
+function filtertable(opt, idx){
 	let res = opt.closest('.singleResult');
-	let idx = getidx(Array.from(res.querySelector('.filtername').children), (o)=>o.selected);
 	let tbody = res.querySelector('tbody');
 	tbody.innerText = null;
 	res.fulldata.rows.forEach(row => {
@@ -62,9 +53,8 @@ function filtertable(opt){
 	});
 }
 
-function populatefilter(opt){
+function populatefilter(opt, idx){
 	let res = opt.closest('.singleResult');
-	let idx = getidx(res.fulldata.cols, c=>{return c.innerText == opt.innerText});
 	let filtervalues = res.querySelector('.filtervalue');
 	filtervalues.textContent = null;
 	filtervalues.size = res.fulldata.rows.length+1;
@@ -76,7 +66,7 @@ function populatefilter(opt){
 	res.fulldata.rows.forEach(r => {
 		let newopt = document.createElement('option');
 		newopt.textContent = r.children[idx].textContent;
-		newopt.onclick = ()=>filtertable(newopt);
+		newopt.onclick = ()=>filtertable(newopt,idx);
 		filtervalues.appendChild(newopt);
 	});
 }
@@ -130,7 +120,7 @@ function postProcess(res){
 	let thead = res.querySelector('thead');
 	let theaddiv = thead.closest('.resultHeadDiv');
 	let tbodydiv = tbody.closest('.resultBodyDiv');
-	tbodydiv.addEventListener('scroll',function(){ theaddiv.scrollLeft = tbodydiv.scrollLeft; });
+	tbodydiv.addEventListener('scroll',()=>theaddiv.scrollLeft = tbodydiv.scrollLeft);
 	thead.addEventListener('click',sorttable);
 	res.fulldata = {
 		rows: Array.from(tbody.children),

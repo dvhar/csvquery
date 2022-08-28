@@ -248,6 +248,8 @@ void cgen::genHeader(){
 void cgen::genPrint(){
 	if (q->outputjson)
 		addop(PRINTJSON, q->outputcsv ? 0 : 1);
+	if (q->outputhtml)
+		addop(PRINTHTML, q->outputcsv ? 0 : 1);
 	if (q->outputcsv){
 		if (globalSettings.termbox)
 			addop(PRINTBOX);
