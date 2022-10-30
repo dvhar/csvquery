@@ -144,19 +144,8 @@ function resizeX(res){ //TODO: bug when only 1 row
 }
 function resizeY(res){
 	let wh = window.innerHeight;
-	let wy = window.scrollY;
 	let maxh = wh - 100;
 	let tbodydiv = res.querySelector('.resultBodyDiv');
-	let ty = tbodydiv.offsetTop;
-	if (res.idx > 0){
-		tbodydiv.style.maxHeight = maxh;
-		return;
-	}
-	if (ty > 100){
-		let minh = wh * 0.6;
-		tbodydiv.style.maxHeight = Math.max((wy + wh) - ty, minh);
-		return;
-	}
 	tbodydiv.style.maxHeight = maxh;
 }
 
@@ -213,16 +202,6 @@ function historyClick(direction){
 	}
 }
 
-dirclick({clickData:'/home/d/gits/csvquery/build'}, true);
-document.addEventListener('click',e=>{ //TODO: more efficient click handling
-	if (e.target.classList.contains('dropbutton'))
-		return;
-	let dropdown = e.target.closest('.dropdown');
-	if (dropdown == null){
-		document.querySelectorAll('.dropdown').forEach(dd => dd.classList.add('hidden'));
-	}
-});
-
 function submitQuery(){
 	let query = document.querySelector('#queryTextEntry').value;
 	if (query === ''){
@@ -258,3 +237,52 @@ function submitQuery(){
 		}
 	});
 }
+
+dirclick({clickData:'/home/d/gits/csvquery/build'}, true);
+document.addEventListener('click',e=>{ //TODO: more efficient click handling
+	if (e.target.classList.contains('dropbutton'))
+		return;
+	let dropdown = e.target.closest('.dropdown');
+	if (dropdown == null){
+		document.querySelectorAll('.dropdown').forEach(dd => dd.classList.add('hidden'));
+	}
+});
+const bit = { //TODO: find unused things
+	SK_MSG          : 0,
+	SK_PING         : 1,
+	SK_PONG         : 2,
+	SK_STOP         : 3,
+	SK_DIRLIST      : 4,
+	SK_FILECLICK    : 5,
+	SK_PASS         : 6,
+	SK_ID           : 7,
+};
+//websocket
+var bugtimer = window.performance.now() + 30000;
+var sessionId = null;
+var ws = new WebSocket("ws://localhost:8061/socket/");
+ws.onopen = e=>console.log("OPEN");
+ws.onclose = e=>{console.log("CLOSE"); ws = null; };
+ws.onmessage = e=>{ 
+	console.log(e.data);
+	let dat = JSON.parse(e.data);
+	switch (dat.type) {
+		case bit.SK_PING:
+			bugtimer = window.performance.now() + 20000
+			break;
+		case bit.SK_MSG:
+			//use  dat.text
+			break;
+		case bit.SK_PASS:
+			break;
+		case bit.SK_ID:
+			sessionId = dat.id;
+			console.log("WS session id: ",sessionId);
+			break;
+	}
+}
+ws.onerror = e=>console.log("ERROR: " + e.data);
+window.setInterval(()=>{
+	if (window.performance.now() > bugtimer+20000)
+		console.log("Query Engine Disconnected!");
+},2000);
