@@ -51,21 +51,23 @@ function filtertable(opt, idx){
 		if (row.children[idx].textContent == opt.textContent)
 			tbody.appendChild(row);
 	});
+	resize(res); //TODO: bug wien only 1 row
 }
 
 function populatefilter(opt, idx){
 	let res = opt.closest('.singleResult');
 	let filtervalues = res.querySelector('.filtervalue');
-	filtervalues.textContent = null;
-	filtervalues.size = res.fulldata.rows.length+1;
+	let uniques = new Set();
 	let newopt = document.createElement('option');
+	res.fulldata.rows.forEach(r => uniques.add(r.children[idx].textContent));
+	filtervalues.textContent = null;
+	filtervalues.size = uniques.size+1;
 	newopt.textContent = '*';
 	newopt.onclick = ()=>restoretable(newopt);
 	filtervalues.appendChild(newopt);
-	// todo: sorted unique values
-	res.fulldata.rows.forEach(r => {
+	Array.from(uniques).sort().forEach(u => {
 		let newopt = document.createElement('option');
-		newopt.textContent = r.children[idx].textContent;
+		newopt.textContent = u;
 		newopt.onclick = ()=>filtertable(newopt,idx);
 		filtervalues.appendChild(newopt);
 	});
@@ -166,7 +168,6 @@ function historyClick(direction){
 	}
 }
 
-document.querySelectorAll('.singleResult').forEach(res => postProcess(res));
 document.addEventListener('click',e=>{ //TODO: more efficient click handling
 	if (e.target.classList.contains('dropbutton'))
 		return;
@@ -202,6 +203,11 @@ function submitQuery(){
 		if (res.status >= 400)
 			return {status: res.status};
 		else
-			return res.text()
-	}).then(dat=>console.log('return:',dat));;
+			return res.text();
+	}).then(dat=>{
+		if (!dat.status) {
+			document.querySelector('#results').innerHTML = dat;
+			document.querySelectorAll('.singleResult').forEach(res => postProcess(res));
+		}
+	});
 }

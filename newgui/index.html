@@ -46,51 +46,7 @@ Add files to query by clicking the 'open' button above.
 If running multiple queries, separate them with a semicolon;
 Run queries by pressing the button above or shift-enter"></textarea>
 		</div>
-		{{ following will be static generated for performance }}
-		<br/>
-		<div class=singleResult>
-			<div class=tableControls>
-				<span class=echoQuery>select * from 'example query test.csv'</span>
-				<br/>
-				<div class=tableDropmenu>
-					<span class=controlBut>filter by value</span>
-					<div class=tableDropmenuContent>
-						<select class=filtername size=2>
-							<option onclick="populatefilter(this,0)">name1</option>
-							<option onclick="populatefilter(this,1)">name2</option>
-						</select>
-						<select class=filtervalue>
-						</select>
-					</div>
-				</div>
-				<div class=tableDropmenu>
-					<span class=controlBut>hide columns</span>
-					<div class=tableDropmenuContent>
-						<select size=2>
-							<option onclick="toggleColumn(this,0)">name1</option>
-							<option onclick="toggleColumn(this,1)">name2</option>
-						</select>
-					</div>
-				</div>
-				<span class=controlBut>Rows: 2</span>
-			</div>
-			<div class=resultHeadDiv>
-				<table class=resultHead>
-					<thead>
-						<tr class=colnames><th>name1</th><th>name2</th></tr>
-						<tr class=coltypes><td>type1</td><td>type2</td></tr>
-					</thead>
-				</table>
-			</div>
-			<div class=resultBodyDiv>
-				<table class=resultBody>
-					<tbody>
-						<tr><td>val1</td><td>val2</td></tr>
-						<tr><td>val3</td><td>val4 is wider to test resizing</td></tr>
-					</tbody>
-				</table>
-			</div>
-		</div>
+		<div id=results></div>
 	</body>
 </html>
 <script src="main.js"></script>

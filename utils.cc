@@ -435,12 +435,10 @@ stringstream& returnData::tojson(){
 	return ss;
 }
 string returnData::tohtml(){
-	string page((const char*)g_result_pageData, g_result_pageSize);
 	for (auto &v : entries){
 		ss << v->tohtml();
 	}
-	boost::replace_first(page,"{{ results }}", ss.str());
-	return page;
+	return ss.str();
 }
 
 // https://www.tutorialgateway.org/sql-date-format/

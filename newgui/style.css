@@ -144,3 +144,10 @@ th, td {
 
 .hiddenColumn {
   color: darkred; }
+
+  .filtervalue {
+	  max-height: 30em;
+  }
+  .filtername {
+	  max-height: 30em;
+  }
