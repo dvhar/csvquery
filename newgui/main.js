@@ -67,7 +67,7 @@ function restoretable(opt){
 	let tbody = res.querySelector('tbody');
 	tbody.innerText = null;
 	res.fulldata.rows.forEach(row => tbody.appendChild(row));
-	resize(res);
+	resizeX(res);
 }
 
 function filtertable(opt, idx){
@@ -78,7 +78,7 @@ function filtertable(opt, idx){
 		if (row.children[idx].textContent == opt.textContent)
 			tbody.appendChild(row);
 	});
-	resize(res);
+	resizeX(res);
 }
 
 function populatefilter(opt, idx){
@@ -106,7 +106,7 @@ function toggleColumn(opt,idx){
 	res.fulldata.types[idx].classList.toggle('hidden');
 	res.fulldata.rows.forEach(row => row.childNodes[idx].classList.toggle('hidden'));
 	opt.classList.toggle('hiddenColumn');
-	resize(res);
+	resizeX(res);
 }
 
 function sorttable(e){
@@ -122,7 +122,7 @@ function sorttable(e){
 		.forEach(tr => tbody.appendChild(tr) );
 }
 
-function resize(res){ //TODO: bug when only 1 row
+function resizeX(res){ //TODO: bug when only 1 row
 	let tbody = res.querySelector('tbody');
 	let thead = res.querySelector('thead');
 	let theaddiv = thead.closest('.resultHeadDiv');
@@ -142,9 +142,27 @@ function resize(res){ //TODO: bug when only 1 row
 	let num = (tbody.offsetHeight <= tbodydiv.offsetHeight) ? 4:15;
 	theaddiv.style.maxWidth = tbodydiv.style.maxWidth =  `${Math.min(tbody.offsetWidth+num,window.innerWidth)}px`;
 }
+function resizeY(res){
+	let wh = window.innerHeight;
+	let wy = window.scrollY;
+	let maxh = wh - 100;
+	let tbodydiv = res.querySelector('.resultBodyDiv');
+	let ty = tbodydiv.offsetTop;
+	if (res.idx > 0){
+		tbodydiv.style.maxHeight = maxh;
+		return;
+	}
+	if (ty > 100){
+		let minh = wh * 0.6;
+		tbodydiv.style.maxHeight = Math.max((wy + wh) - ty, minh);
+		return;
+	}
+	tbodydiv.style.maxHeight = maxh;
+}
 
 function postProcess(res){
-	resize(res);
+	resizeY(res);
+	resizeX(res);
 	let tbody = res.querySelector('tbody');
 	let thead = res.querySelector('thead');
 	let theaddiv = thead.closest('.resultHeadDiv');
@@ -233,7 +251,10 @@ function submitQuery(){
 	).then(dat=>{
 		if (dat) {
 			document.querySelector('#results').innerHTML = dat;
-			document.querySelectorAll('.singleResult').forEach(res => postProcess(res));
+			document.querySelectorAll('.singleResult').forEach((res,i) => {
+				res.idx = i;
+				postProcess(res);
+			});
 		}
 	});
 }
