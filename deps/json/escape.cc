@@ -1,7 +1,7 @@
 #include "escape.h"
 #include <string>
 using namespace std;
-int linelen = 100;
+static int linelen = 100;
 
 void addEscapedJSON(const basic_string_view<char>& input, string& output) {
 	for (string::size_type i = 0; i < input.length(); ++i)
@@ -41,7 +41,7 @@ string escapeJSON(const basic_string_view<char>& input){
 	addEscapedJSON(input, output);
 	return output;
 }
-void shorten(string_view input, string& output){
+static void shorten(string_view input, string& output){
 	while (1) {
 		if (input.length() <= linelen){
 			addEscapedJSON(input, output);
