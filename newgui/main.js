@@ -8,34 +8,31 @@ function fileclick(clicked){
 }
 
 function populateDirs(clicked, ret){
-	console.log(clicked.content);
-	if (ret){
-		let browser = clicked.closest('.fileBrowser');
-		let textinput = browser.querySelector('.pathinput');
-		let filelist = clicked.closest('.filelist');
-		textinput.value = ret.path;
-		filelist.innerText = null;
-		const makespan = (path,type,updir=false) => {
-			let span = document.createElement('span');
-			span.classList.add(type, 'dropdown');
-			if (updir) {
-				span.classList.add(type, 'updir');
-				span.innerHTML = '&#8592';
-				span.clickData = path;
-			} else {
-				span.innerText = path;
-				span.clickData = path;
-			}
-			if (type === 'browseDir')
-				span.onclick = ()=>dirclick(span);
-			else if (browser.id === 'openDropdown')
-				span.ondblclick = ()=>fileclick(span);
-			filelist.appendChild(span);
-		};
-		makespan(ret.parent, 'browseDir', true);
-		ret.dirs.forEach(path => makespan(path, 'browseDir'));
-		ret.files.forEach(path => makespan(path, 'browsefile'));
-	}
+	let browser = clicked.closest('.fileBrowser');
+	let textinput = browser.querySelector('.pathinput');
+	let filelist = clicked.closest('.filelist');
+	textinput.value = ret.path;
+	filelist.innerText = null;
+	const makespan = (path,type,updir=false) => {
+		let span = document.createElement('span');
+		span.classList.add(type, 'dropdown');
+		if (updir) {
+			span.classList.add(type, 'updir');
+			span.innerHTML = '&#8592';
+			span.clickData = path;
+		} else {
+			span.innerText = path;
+			span.clickData = path;
+		}
+		if (type === 'browseDir')
+			span.onclick = ()=>dirclick(span);
+		else if (browser.id === 'openDropdown')
+			span.ondblclick = ()=>fileclick(span);
+		filelist.appendChild(span);
+	};
+	makespan(ret.parent, 'browseDir', true);
+	ret.dirs.forEach(path => makespan(path, 'browseDir'));
+	ret.files.forEach(path => makespan(path, 'browsefile'));
 }
 function dirclick(clicked, both=false){
 
@@ -52,14 +49,11 @@ function dirclick(clicked, both=false){
 		headers: new Headers({ "Content-Type": "application/json", }),
 		body: JSON.stringify(payload),
 	});
-	fetch(req).then(res=>{
-		if (res.status >= 400){
-			return false;
-		} else {
-			return res.json();
-		}
-	}).then(ret=>{
-		console.log(ret);
+	fetch(req).then(res=>
+		res.status >= 400 ? false : res.json()
+	).then(ret=>{
+		if (!ret)
+			return;
 		if (both){
 			document.querySelectorAll('.startdir').forEach(fl=>populateDirs(fl, ret));
 		} else {
@@ -73,6 +67,7 @@ function restoretable(opt){
 	let tbody = res.querySelector('tbody');
 	tbody.innerText = null;
 	res.fulldata.rows.forEach(row => tbody.appendChild(row));
+	resize(res);
 }
 
 function filtertable(opt, idx){
@@ -83,7 +78,7 @@ function filtertable(opt, idx){
 		if (row.children[idx].textContent == opt.textContent)
 			tbody.appendChild(row);
 	});
-	resize(res); //TODO: bug wien only 1 row
+	resize(res);
 }
 
 function populatefilter(opt, idx){
@@ -127,7 +122,7 @@ function sorttable(e){
 		.forEach(tr => tbody.appendChild(tr) );
 }
 
-function resize(res){
+function resize(res){ //TODO: bug when only 1 row
 	let tbody = res.querySelector('tbody');
 	let thead = res.querySelector('thead');
 	let theaddiv = thead.closest('.resultHeadDiv');

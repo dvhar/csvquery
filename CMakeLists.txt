@@ -27,6 +27,7 @@ set(sources ${sources}
 	deps/crypto/siphash.c
 	deps/getline/bufreader.cc
 	deps/json/escape.cc
+	deps/html/escape.cc
 )
 
 add_executable(cql ${sources})
