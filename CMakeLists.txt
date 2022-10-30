@@ -5,6 +5,7 @@ project(cql LANGUAGES C CXX)
 add_compile_options(-O3 -pipe -Wno-deprecated-declarations)
 set(is_win "$<BOOL:${WIN32}>")
 set(is_unix "$<BOOL:${UNIX}>")
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON CACHE INTERNAL "")
 
 if(UNIX)
 	set(THREADS_PREFER_PTHREAD_FLAG YES)
