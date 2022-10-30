@@ -181,6 +181,7 @@ function submitQuery(){
 	let query = document.querySelector('#queryTextEntry').value;
 	if (query === ''){
 		console.log("no query text");
+		alert("no query!");
 		return
 	}
 	console.log('query:',query);
@@ -199,13 +200,10 @@ function submitQuery(){
 		headers: new Headers({ "Content-Type": "application/json", }),
 		body: JSON.stringify(payload),
 	});
-	fetch(req).then(res=>{
-		if (res.status >= 400)
-			return {status: res.status};
-		else
-			return res.text();
-	}).then(dat=>{
-		if (!dat.status) {
+	fetch(req).then(
+		res=>res.status >= 400 ? false : res.text()
+	).then(dat=>{
+		if (dat) {
 			document.querySelector('#results').innerHTML = dat;
 			document.querySelectorAll('.singleResult').forEach(res => postProcess(res));
 		}
