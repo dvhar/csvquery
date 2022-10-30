@@ -431,6 +431,8 @@ class qinstance {
 		vm->run();
 		if (q->outputjson)
 			result = vm->getJsonResult();
+		if (q->outputhtml)
+			result = vm->getJsonResult();
 		return id;
 	}
 	shared_ptr<singleQueryResult> getResult(){

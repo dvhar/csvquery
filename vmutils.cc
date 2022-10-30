@@ -261,7 +261,7 @@ vmachine::vmachine(querySpecs &qs) :
 			(virtualSet*) new stringSet() :
 			(virtualSet*) new numericSet());
 
-	if (q->outputjson){
+	if (q->outputjson || q->outputhtml){
 		result.reset(new singleQueryResult(qs));
 	}
 	if (globalSettings.termbox && !q->isSubquery){

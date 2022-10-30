@@ -331,6 +331,7 @@ flatmap<int, string_view> opMap = {
 	{TLT,"TLT"},
 	{PRINTJSON,"PRINTJSON"},
 	{PRINTCSV,"PRINTCSV"},
+	{PRINTHTML,"PRINTHTML"},
 	{PUSH,"PUSH"},
 	{PUSH_N,"PUSH_N"},
 	{POP,"POP"},

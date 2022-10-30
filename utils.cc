@@ -7,6 +7,7 @@
 #include "deps/incbin/incbin.h"
 
 INCBIN(_SINGLERESULT,"../newgui/singleresult.html");
+INCBIN(_result_page,"../newgui/indextemplate.html");
 #define max(a,b) (a) > (b) ? (a) : (b)
 
 string version = "1.60";
@@ -25,6 +26,7 @@ regex filelike(".*[/\\\\\\.].*");
 int isDuration(const char* s){ return !regexec(&durationPattern, s, 0, NULL, 0); }
 int isInt(const char* s){ return !regexec(&intType, s, 0, NULL, 0); }
 int isFloat(const char* s){ return !regexec(&floatType, s, 0, NULL, 0); }
+static const array<string_view,7> typenames = { "Null", "Int", "Float", "Date", "Duration", "Text", "Unknown" };
 
 void initregex(){
 	regcomp(&leadingZeroString, "^0[0-9]+$", REG_EXTENDED);
@@ -366,14 +368,22 @@ string singleQueryResult::tohtml(){
 	for (int i=0; i<colnames.size(); i++)
 		items << "<option onclick=\"populatefilter(this," << i << ")\">" << escapeHtml(colnames[i]) << "</option>" << endl;
 	boost::replace_first(tplate,"{{ populatefilter-names }}", items.str());
+	items.str("");
 	items.clear();
 	for (int i=0; i<colnames.size(); i++)
 		items << "<option onclick=\"toggleColumn(this," << i << ")\">" << escapeHtml(colnames[i]) << "</option>" << endl;
 	boost::replace_first(tplate,"{{ toggleColumn-names }}", items.str());
+	items.str("");
 	items.clear();
 	for (auto& name:colnames)
 		items << "<th>" << escapeHtml(name) << "</th>";
 	boost::replace_first(tplate,"{{ th-names }}", items.str());
+	items.str("");
+	items.clear();
+	for (auto& type:types)
+		items << "<td>" << typenames[type] << "</td>";
+	boost::replace_first(tplate,"{{ td-types }}", items.str());
+	items.str("");
 	items.clear();
 	for (auto& row:Vals)
 		items << row << endl;
@@ -412,17 +422,25 @@ stringstream& singleQueryResult::tojson(){
 stringstream& returnData::tojson(){
 	static string_view com = ",";
 	static string_view nocom = "";
- 	j	<< "{\"entries\":[";
+ 	ss	<< "{\"entries\":[";
 	auto delim = &nocom;
 	for (auto &v : entries){
-		j << *delim << v->tojson().rdbuf();
+		ss << *delim << v->tojson().rdbuf();
 		delim = &com;
 	}
-	j << "],\"status\":" << status
+	ss << "],\"status\":" << status
 		<< ",\"originalQuery\":\"" << escapeJSON(originalQuery)
 		<< "\",\"clipped\":" << (clipped ? "true":"false")
 		<< ",\"message\":\"" << escapeJSON(message) << "\"}";
-	return j;
+	return ss;
+}
+string returnData::tohtml(){
+	string page((const char*)g_result_pageData, g_result_pageSize);
+	for (auto &v : entries){
+		ss << v->tohtml();
+	}
+	boost::replace_first(page,"{{ results }}", ss.str());
+	return page;
 }
 
 // https://www.tutorialgateway.org/sql-date-format/

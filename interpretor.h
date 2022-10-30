@@ -744,7 +744,7 @@ class singleQueryResult {
 	singleQueryResult(){}
 };
 class returnData {
-	stringstream j;
+	stringstream ss;
 	public:
 	list<shared_ptr<singleQueryResult>> entries;
 	int status = 0;
@@ -753,6 +753,7 @@ class returnData {
 	string originalQuery;
 	string message;
 	stringstream& tojson();
+	string tohtml();
 };
 
 class directory {
@@ -785,6 +786,7 @@ void lateAnalyze(querySpecs &q);
 void codeGen(querySpecs &q);
 void runPlainQuery(querySpecs &q);
 shared_ptr<singleQueryResult> runJsonQuery(querySpecs &q);
+shared_ptr<singleQueryResult> runHtmlQuery(querySpecs &q);
 char* durstring(dat& dur, char* str);
 void runServer();
 string handle_err(exception_ptr eptr);

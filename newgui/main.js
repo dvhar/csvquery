@@ -150,24 +150,24 @@ function showTopDrop(but){
 var historyList = ['select * from previousfile.csv',''];
 var currentHist = historyList.length;
 function historyClick(direction){
-	let querytextEntry = document.querySelector('#queryTextEntry');
+	let queryTextEntry = document.querySelector('#queryTextEntry');
 	let histNumber = document.querySelector('#histNumber');
 	if (direction === 1 && currentHist < historyList.length){
 		currentHist++;
-		querytextEntry.value = historyList[currentHist-1];
+		queryTextEntry.value = historyList[currentHist-1];
 		histNumber.innerText = currentHist;
 	}
 	if (direction === -1 && currentHist > 1){
 		if (currentHist === historyList.length)
-			historyList[currentHist-1] = querytextEntry.value;
+			historyList[currentHist-1] = queryTextEntry.value;
 		currentHist--;
-		querytextEntry.value = historyList[currentHist-1];
+		queryTextEntry.value = historyList[currentHist-1];
 		histNumber.innerText = currentHist;
 	}
 }
 
 document.querySelectorAll('.singleResult').forEach(res => postProcess(res));
-document.addEventListener('click',e=>{
+document.addEventListener('click',e=>{ //TODO: more efficient click handling
 	if (e.target.classList.contains('dropbutton'))
 		return;
 	let dropdown = e.target.closest('.dropdown');
@@ -175,3 +175,33 @@ document.addEventListener('click',e=>{
 		document.querySelectorAll('.dropdown').forEach(dd => dd.classList.add('hidden'));
 	}
 });
+
+function submitQuery(){
+	let query = document.querySelector('#queryTextEntry').value;
+	if (query === ''){
+		console.log("no query text");
+		return
+	}
+	console.log('query:',query);
+	let payload = {
+		sessionId: "12345",
+		query,
+		fileIO: 0, 
+		savePath: "", 
+	};
+	var req = new Request("/query/", {
+		method: 'POST',
+		mode: 'cors',
+		cache: "no-cache",
+		redirect: 'follow',
+		referrer: "no-referrer",
+		headers: new Headers({ "Content-Type": "application/json", }),
+		body: JSON.stringify(payload),
+	});
+	fetch(req).then(res=>{
+		if (res.status >= 400)
+			return {status: res.status};
+		else
+			return res.text()
+	}).then(dat=>console.log('return:',dat));;
+}

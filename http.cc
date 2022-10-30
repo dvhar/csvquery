@@ -77,7 +77,7 @@ static void serve(){
 			else if (ret->maxclipped)
 				sendMessage(wq.sessionId, st("Only showing first ",ret->maxclipped," results"));
 			perr("Writing http respons");
-			response->write(ret->tojson().str(), header);
+			response->write(ret->tohtml(), header);
 
 		} catch (...){
 			auto e = EX_STRING;
@@ -172,8 +172,8 @@ static shared_ptr<singleQueryResult> runWebQuery(webquery &wq){
 			q.savepath = wq.savepath;
 		}
 	}
-	return runJsonQuery(q);
-	//return runHtmlQuery(q);
+	//return runJsonQuery(q);
+	return runHtmlQuery(q);
 }
 
 void directory::setDir(json& j){
