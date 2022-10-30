@@ -5,8 +5,11 @@
 #include <fstream>
 #include <string_view>
 using HttpServer = SimpleWeb::Server<SimpleWeb::HTTP>;
+typedef shared_ptr<HttpServer::Response> Response;
+typedef shared_ptr<HttpServer::Request> Request;
 using namespace std;
-static bool rejectNonLocals(shared_ptr<HttpServer::Request>& request){
+
+static bool rejectNonLocals(Request& request){
 	static auto lh = boost::asio::ip::address::from_string("::ffff:127.0.0.1");
 	auto addr = request->remote_endpoint().address();
 	if (!addr.is_loopback() && addr != lh){
@@ -36,7 +39,7 @@ _ib(3)
 #define f3 _f(3)
 
 void embedsite(HttpServer &server){
-	server.default_resource["GET"] = [](shared_ptr<HttpServer::Response> response, shared_ptr<HttpServer::Request> request){ if (rejectNonLocals(request)) return; response->write(f1); };
-	server.resource["^/main.js$"]["GET"] = [](shared_ptr<HttpServer::Response> response, shared_ptr<HttpServer::Request> request){ if (rejectNonLocals(request)) return; response->write(f2); };
-	server.resource["^/style.css$"]["GET"] = [](shared_ptr<HttpServer::Response> response, shared_ptr<HttpServer::Request> request){ if (rejectNonLocals(request)) return; response->write(f3); };
+	server.default_resource["GET"] = [](Response response, Request request){ if (rejectNonLocals(request)) return; response->write(f1); };
+	server.resource["^/main.js$"]["GET"] = [](Response response, Request request){ if (rejectNonLocals(request)) return; response->write(f2); };
+	server.resource["^/style.css$"]["GET"] = [](Response response, Request request){ if (rejectNonLocals(request)) return; response->write(f3); };
 }

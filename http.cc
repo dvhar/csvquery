@@ -7,6 +7,8 @@
 #include <boost/asio/ip/address.hpp>
 #include <boost/filesystem.hpp>
 using HttpServer = SimpleWeb::Server<SimpleWeb::HTTP>;
+typedef shared_ptr<HttpServer::Response> Response;
+typedef shared_ptr<HttpServer::Request> Request;
 
 #if defined _WIN32
 #define openbrowser() system("cmd /c start http://localhost:8060")
@@ -32,7 +34,7 @@ void runServer(){
 	exit(0);
 }
 
-static bool rejectNonLocals(shared_ptr<HttpServer::Request>& request){
+static bool rejectNonLocals(Request& request){
 	static auto lh = boost::asio::ip::address::from_string("::ffff:127.0.0.1");
 	auto addr = request->remote_endpoint().address();
 	if (!addr.is_loopback() && addr != lh){
@@ -56,7 +58,7 @@ static void serve(){
 	header.emplace("Content-Type", "text/plain");
 	embedsite(server);
 
-	server.resource["^/query/$"]["POST"] = [&](shared_ptr<HttpServer::Response> response, shared_ptr<HttpServer::Request> request){
+	server.resource["^/query/$"]["POST"] = [&](Response response, Request request){
 
 		if (rejectNonLocals(request)) return;
 		webquery wq;
@@ -91,7 +93,7 @@ static void serve(){
 	};
 
 	server.resource["^/info$"]["GET"] = 
-	server.resource["^/info$"]["POST"] = [&](shared_ptr<HttpServer::Response> response, shared_ptr<HttpServer::Request> request){
+	server.resource["^/info$"]["POST"] = [&](Response response, Request request){
 
 		if (rejectNonLocals(request)) return;
 		auto params = request->parse_query_string();
