@@ -7,33 +7,65 @@ function fileclick(clicked){
 	browser.classList.add('hidden');
 }
 
-function dirclick(clicked){
-	// fetch and return data, then:
-	let ret = { //sample return payload
-		path: '/home/user/somedir/',
-		parent: '/home/user/',
-		files: ['/home/user/somedir/file2.csv','/home/user/somedir/file3.csv'],
-		dirs: ['/home/user/somedir/dir2/','/home/user/somedir/otherdir/']
+function populateDirs(clicked, ret){
+	console.log(clicked.content);
+	if (ret){
+		let browser = clicked.closest('.fileBrowser');
+		let textinput = browser.querySelector('.pathinput');
+		let filelist = clicked.closest('.filelist');
+		textinput.value = ret.path;
+		filelist.innerText = null;
+		const makespan = (path,type,updir=false) => {
+			let span = document.createElement('span');
+			span.classList.add(type, 'dropdown');
+			if (updir) {
+				span.classList.add(type, 'updir');
+				span.innerHTML = '&#8592';
+				span.clickData = path;
+			} else {
+				span.innerText = path;
+				span.clickData = path;
+			}
+			if (type === 'browseDir')
+				span.onclick = ()=>dirclick(span);
+			else if (browser.id === 'openDropdown')
+				span.ondblclick = ()=>fileclick(span);
+			filelist.appendChild(span);
+		};
+		makespan(ret.parent, 'browseDir', true);
+		ret.dirs.forEach(path => makespan(path, 'browseDir'));
+		ret.files.forEach(path => makespan(path, 'browsefile'));
+	}
+}
+function dirclick(clicked, both=false){
+
+	let payload = {
+		sessionId: "12345",
+		path: clicked.clickData,
+		mode: 'open',
 	};
-	let browser = clicked.closest('.fileBrowser');
-	let textinput = browser.querySelector('.pathinput');
-	let filelist = clicked.closest('.filelist');
-	let updir = filelist.children[0];
-	textinput.value = ret.path;
-	filelist.innerText = null;
-	const makespan = (path,type) => {
-		let span = document.createElement('span');
-		span.classList.add(type, 'dropdown');
-		span.innerText = path;
-		if (type === 'browseDir')
-			span.onclick = ()=>dirclick(span);
-		else if (browser.id === 'openDropdown')
-			span.ondblclick = ()=>fileclick(span);
-		filelist.appendChild(span);
-	};
-	filelist.appendChild(updir);
-	ret.dirs.forEach(path => makespan(path, 'browseDir'));
-	ret.files.forEach(path => makespan(path, 'browsefile'));
+	var req = new Request("/info?info=fileClick", {
+		method: 'POST',
+		cache: "no-cache",
+		redirect: 'follow',
+		referrer: "no-referrer",
+		headers: new Headers({ "Content-Type": "application/json", }),
+		body: JSON.stringify(payload),
+	});
+	fetch(req).then(res=>{
+		if (res.status >= 400){
+			return false;
+		} else {
+			return res.json();
+		}
+	}).then(ret=>{
+		console.log(ret);
+		if (both){
+			document.querySelectorAll('.startdir').forEach(fl=>populateDirs(fl, ret));
+		} else {
+			populateDirs(clicked, ret);
+		}
+	});
 }
 
 function restoretable(opt){
@@ -168,6 +200,7 @@ function historyClick(direction){
 	}
 }
 
+dirclick({clickData:'/home/d/gits/csvquery/build'}, true);
 document.addEventListener('click',e=>{ //TODO: more efficient click handling
 	if (e.target.classList.contains('dropbutton'))
 		return;
