@@ -32,6 +32,11 @@
 					<span syle="display:hidden" class="startdir"></span>
 				</div>
 			</div>
+			<div id=passDropdown class="hidden passPrompt">
+				<h2 class="passPromtText">Enter encryption password</h2>
+				<input type="password" id="passInput"></input>
+				<button class=dropbutton onclick="sendPassword(this)">Submit</button>
+			</div>
 		</div>
 		<div id=textboxContainer>
 			<textarea id=queryTextEntry rows=5 placeholder="Type query here.

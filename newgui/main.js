@@ -1,3 +1,7 @@
+function topMessage(msg){
+	messageDiv.textContent = msg;
+}
+
 function fileclick(clicked){
 	let querybox = document.querySelector('#queryTextEntry');
 	let browser = clicked.closest('.fileBrowser');
@@ -37,7 +41,7 @@ function populateDirs(clicked, ret){
 function dirclick(clicked, both=false){
 
 	let payload = {
-		sessionId: "12345",
+		sessionId: sock.sessionId,
 		path: clicked.clickData,
 		mode: 'open',
 	};
@@ -209,9 +213,8 @@ function submitQuery(){
 		alert("no query!");
 		return
 	}
-	console.log('query:',query);
 	let payload = {
-		sessionId: "12345",
+		sessionId: sock.sessionId,
 		query,
 		fileIO: 0, 
 		savePath: "", 
@@ -238,15 +241,91 @@ function submitQuery(){
 	});
 }
 
-dirclick({clickData:'/home/d/gits/csvquery/build'}, true);
-document.addEventListener('click',e=>{ //TODO: more efficient click handling
-	if (e.target.classList.contains('dropbutton'))
-		return;
-	let dropdown = e.target.closest('.dropdown');
-	if (dropdown == null){
-		document.querySelectorAll('.dropdown').forEach(dd => dd.classList.add('hidden'));
+function shiftEnter(e){
+	if (e.keyCode === 13 && e.shiftKey) {
+		e.preventDefault();
+		submitQuery();
 	}
-});
+}
+
+function showPassprompt(show = true){
+	let prompt = document.getElementById('passDropdown');
+	if (show){
+		prompt.classList.remove('hidden');
+	} else {
+		prompt.classList.add('hidden');
+	}
+}
+
+function sendPassword(elem){
+	let prompt = elem.closest('div');
+	let pass = prompt.querySelector('input').value;
+	sock.sendSock({type: bit.SK_PASS, text: pass});
+	prompt.classList.add('hidden');
+}
+
+function SocketHandler(){
+	this.bugtimer = window.performance.now();
+	this.sessionId = null;
+	this.ws = new WebSocket("ws://localhost:8061/socket/");
+	this.ws.onopen = e=>console.log("OPEN");
+	this.ws.onclose = e=>{console.log("CLOSE"); this.ws = null; };
+	this.ws.onmessage = e=>{ 
+		let dat = JSON.parse(e.data);
+		switch (dat.type) {
+			case bit.SK_PING:
+				bugtimer = window.performance.now();
+				break;
+			case bit.SK_MSG:
+				topMessage(dat.text);
+				break;
+			case bit.SK_PASS:
+				if (this.lastpass){
+					this.sendSock(this.lastpass);
+				} else {
+					topMessage('Enter encryption password');
+					showPassprompt();
+				}
+				break;
+			case bit.SK_ID:
+				this.sessionId = dat.id;
+				console.log("WS session id: ",this.sessionId);
+				break;
+		}
+	}
+	this.ws.onerror = e=>console.log("ERROR: " + e.data);
+	window.setInterval(()=>{
+		if (window.performance.now() > bugtimer+20000)
+			topMessage("Query Engine Disconnected!");
+	},2000);
+	this.sendSock = (data)=>{
+		if (data.type === bit.SK_PASS)
+			this.lastpass = data;
+		this.ws.send(JSON.stringify(data));
+	};
+}
+
+function init(){
+	dirclick({clickData:'/home/d/gits/csvquery/build'}, true);
+	document.addEventListener('click',e=>{ //TODO: more efficient click handling
+		if (e.target.classList.contains('dropbutton'))
+			return;
+		let dropdown = e.target.closest('.dropdown');
+		if (dropdown == null){
+			document.querySelectorAll('.dropdown').forEach(dd => dd.classList.add('hidden'));
+		}
+	});
+	let passDropdown = document.getElementById("passDropdown");
+	passDropdown.onkeydown = (e)=>{
+		if (e.keyCode === 13) {
+			sendPassword(passDropdown);
+		}
+	};
+	document.getElementById('textboxContainer').onkeydown = (e) => shiftEnter(e);
+}
+
+var messageDiv = document.getElementById('topMessage');
+var sock = new SocketHandler();
 const bit = { //TODO: find unused things
 	SK_MSG          : 0,
 	SK_PING         : 1,
@@ -257,32 +336,4 @@ const bit = { //TODO: find unused things
 	SK_PASS         : 6,
 	SK_ID           : 7,
 };
-//websocket
-var bugtimer = window.performance.now() + 30000;
-var sessionId = null;
-var ws = new WebSocket("ws://localhost:8061/socket/");
-ws.onopen = e=>console.log("OPEN");
-ws.onclose = e=>{console.log("CLOSE"); ws = null; };
-ws.onmessage = e=>{ 
-	console.log(e.data);
-	let dat = JSON.parse(e.data);
-	switch (dat.type) {
-		case bit.SK_PING:
-			bugtimer = window.performance.now() + 20000
-			break;
-		case bit.SK_MSG:
-			//use  dat.text
-			break;
-		case bit.SK_PASS:
-			break;
-		case bit.SK_ID:
-			sessionId = dat.id;
-			console.log("WS session id: ",sessionId);
-			break;
-	}
-}
-ws.onerror = e=>console.log("ERROR: " + e.data);
-window.setInterval(()=>{
-	if (window.performance.now() > bugtimer+20000)
-		console.log("Query Engine Disconnected!");
-},2000);
+init();

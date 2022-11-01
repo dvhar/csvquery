@@ -222,3 +222,12 @@ th, td {
 .filtervalue, .filtername {
   max-height: 30em;
 }
+.passPrompt {
+	top: 2.2em;
+	left: 2em;
+	padding: .3em;
+	position: absolute;
+	border: 1px solid black;
+	color: $text1-darkbg;
+	background: darkred;
+}
