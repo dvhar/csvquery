@@ -187,23 +187,31 @@ function showTopDrop(but){
 	});
 }
 
-var historyList = ['select * from previousfile.csv',''];
+var historyList = [];
 var currentHist = historyList.length;
 function historyClick(direction){
-	let queryTextEntry = document.querySelector('#queryTextEntry');
-	let histNumber = document.querySelector('#histNumber');
+	let queryTextEntry = document.getElementById('queryTextEntry');
+	let histNumber = document.getElementById('histNumber');
 	if (direction === 1 && currentHist < historyList.length){
 		currentHist++;
 		queryTextEntry.value = historyList[currentHist-1];
-		histNumber.innerText = currentHist;
+		histNumber.textContent = `${currentHist}/${historyList.length}`;
 	}
 	if (direction === -1 && currentHist > 1){
 		if (currentHist === historyList.length)
 			historyList[currentHist-1] = queryTextEntry.value;
 		currentHist--;
 		queryTextEntry.value = historyList[currentHist-1];
-		histNumber.innerText = currentHist;
+		histNumber.textContent = `${currentHist}/${historyList.length}`;
 	}
+}
+function addHistory(query){
+	if (query && !historyList.includes(query))
+		historyList.push(query);
+	let histNumber = document.getElementById('histNumber');
+	let histLen = historyList.length;
+	currentHist = histLen;
+	histNumber.textContent = `${histLen}/${histLen}`;
 }
 
 function submitQuery(){
@@ -232,6 +240,7 @@ function submitQuery(){
 		res=>res.status >= 400 ? false : res.text()
 	).then(dat=>{
 		if (dat) {
+			addHistory(query);
 			document.querySelector('#results').innerHTML = dat;
 			document.querySelectorAll('.singleResult').forEach((res,i) => {
 				res.idx = i;
@@ -241,12 +250,6 @@ function submitQuery(){
 	});
 }
 
-function shiftEnter(e){
-	if (e.keyCode === 13 && e.shiftKey) {
-		e.preventDefault();
-		submitQuery();
-	}
-}
 
 function showPassprompt(show = true){
 	let prompt = document.getElementById('passDropdown');
@@ -274,7 +277,7 @@ function SocketHandler(){
 		let dat = JSON.parse(e.data);
 		switch (dat.type) {
 			case bit.SK_PING:
-				bugtimer = window.performance.now();
+				this.bugtimer = window.performance.now();
 				break;
 			case bit.SK_MSG:
 				topMessage(dat.text);
@@ -295,7 +298,7 @@ function SocketHandler(){
 	}
 	this.ws.onerror = e=>console.log("ERROR: " + e.data);
 	window.setInterval(()=>{
-		if (window.performance.now() > bugtimer+20000)
+		if (window.performance.now() > this.bugtimer+20000)
 			topMessage("Query Engine Disconnected!");
 	},2000);
 	this.sendSock = (data)=>{
@@ -321,7 +324,13 @@ function init(){
 			sendPassword(passDropdown);
 		}
 	};
-	document.getElementById('textboxContainer').onkeydown = (e) => shiftEnter(e);
+	document.getElementById('textboxContainer').onkeydown = (e) => {
+		if (e.keyCode === 13 && e.shiftKey) {
+			e.preventDefault();
+			submitQuery();
+		}
+	};
+	addHistory('');
 }
 
 var messageDiv = document.getElementById('topMessage');
