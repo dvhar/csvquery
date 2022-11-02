@@ -101,7 +101,7 @@ th, td {
 
 #history {
   right: 0;
-  position: fixed; }
+  position: absolute; }
 
 .fileBrowser {
   min-width: 40em;
