@@ -19,11 +19,11 @@ enum legacy_server {
 	SK_FILECLICK = 5,
 	SK_PASS      = 6,
 	SK_ID        = 7,
+	SK_QUERY     = 8,
 };
 
-void servews();
-void returnPassword(i64 sesid, string pass);
 
+static auto endSemicolon = regex(";\\s*$");
 class webquery {
 	public:
 	vector<string> queries;
@@ -35,3 +35,9 @@ class webquery {
 	i64 sessionId=0;
 	bool isSaving(){ return ((fileIO & F_CSV) != 0); }
 };
+
+extern string queryReturn;
+
+shared_ptr<returnData> runqueries(webquery &wq);
+void servews();
+void returnPassword(i64 sesid, string pass);

@@ -107,7 +107,8 @@ string chopAndEscapeHTML(basic_string_view<char>&& input){
 	while (1) {
 		auto lineend = input.find('\n');
 		if (lineend != string_view::npos){
-			shorten(input.substr(0, lineend+1), output);
+			shorten(input.substr(0, lineend), output);
+			output += "<br>";
 			input = input.substr(lineend+1);
 		} else {
 			shorten(input, output);

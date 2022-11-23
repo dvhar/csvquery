@@ -624,7 +624,7 @@ future<shared_ptr<singleQueryResult>> queryQueue::runqueryHtml(querySpecs& q){
 		mtx.unlock();
 		auto id = thisq.runq();
 		auto ret = thisq.getResult();
-		perr("Got json result\n");
+		perr("Got html result\n");
 		mtx.lock();
 		queries.remove_if([&](qinstance& qi){ return qi.id == id; });
 		mtx.unlock();

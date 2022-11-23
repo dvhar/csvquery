@@ -22,10 +22,11 @@ typedef shared_ptr<HttpServer::Request> Request;
 
 static json state;
 static HttpServer server;
-static shared_ptr<returnData> runqueries(webquery &wq);
+shared_ptr<returnData> runqueries(webquery &wq);
 static shared_ptr<singleQueryResult> runWebQuery(webquery &wq);
 static void serve();
 static SimpleWeb::CaseInsensitiveMultimap header;
+string queryReturn;
 void embedsite(HttpServer&);
 
 void runServer(){
@@ -52,7 +53,6 @@ static void serve(){
 	state["version"] = version;
 	state["notifyUpdate"] = globalSettings.update;
 	state["configpath"] = globalSettings.configfilepath;
-	auto endSemicolon = regex(";\\s*$");
 	server.config.port = 8060;
 	header.emplace("Cache-Control","no-store");
 	header.emplace("Content-Type", "text/plain");
@@ -138,7 +138,7 @@ static void serve(){
 	hs.get();
 }
 
-static shared_ptr<returnData> runqueries(webquery &wq){
+shared_ptr<returnData> runqueries(webquery &wq){
 	boost::split(wq.queries, wq.querystring, boost::is_any_of(";"));
 	auto ret = make_shared<returnData>();
 	for (auto &q: wq.queries){

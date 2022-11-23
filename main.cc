@@ -207,15 +207,17 @@ void loadconfig(){
 			}
 		}
 		cfile.close();
+		defaultoutput = globalSettings.termbox ? "table":"csv";
+	} else {
+		defaultoutput = globalSettings.termbox ? "table":"csv";
+		ofstream cfile(globalSettings.configfilepath);
+		CFG::WriteFile(cfile, opts,
+				version,
+				globalSettings.debug,
+				globalSettings.update,
+				globalSettings.autoheader,
+				globalSettings.autoexit,
+				defaultoutput,
+				globalSettings.needcomma);
 	}
-	defaultoutput = globalSettings.termbox ? "table":"csv";
-	ofstream cfile(globalSettings.configfilepath);
-	CFG::WriteFile(cfile, opts,
-			version,
-			globalSettings.debug,
-			globalSettings.update,
-			globalSettings.autoheader,
-			globalSettings.autoexit,
-			defaultoutput,
-			globalSettings.needcomma);
 }
