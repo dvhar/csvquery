@@ -7,7 +7,6 @@
 #include "deps/incbin/incbin.h"
 
 INCBIN(_SINGLERESULT,"../newgui/singleresult.html");
-INCBIN(_result_page,"../newgui/indextemplate.html");
 #define max(a,b) (a) > (b) ? (a) : (b)
 
 string version = "1.60";
@@ -361,7 +360,7 @@ string escapeHtml(string& input) {
 
 string singleQueryResult::tohtml(){
 	string tplate((const char*)g_SINGLERESULTData, g_SINGLERESULTSize);
-	boost::replace_first(tplate,"{{ querytext }}", query);
+	boost::replace_first(tplate,"{{ querytext }}", escapeHtml(query));
 	boost::replace_all(tplate,"{{ colnum }}", to_string(numcols));
 	boost::replace_all(tplate,"{{ rownum }}", to_string(numrows));
 	stringstream items;

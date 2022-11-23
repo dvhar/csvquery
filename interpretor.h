@@ -69,7 +69,7 @@ class settings_t {
 	public:
 	bool update = 1;
 	bool debug = 0;
-	bool autoheader = 0;
+	bool autoheader = 1;
 	bool autoexit = 1;
 	bool termbox = 0;
 	bool tablecolor = 1;
