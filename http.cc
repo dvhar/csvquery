@@ -22,8 +22,6 @@ typedef shared_ptr<HttpServer::Request> Request;
 
 static json state;
 static HttpServer server;
-shared_ptr<returnData> runqueries(webquery &wq);
-static shared_ptr<singleQueryResult> runWebQuery(webquery &wq);
 static void serve();
 static SimpleWeb::CaseInsensitiveMultimap header;
 string queryReturn;
@@ -58,38 +56,8 @@ static void serve(){
 	header.emplace("Content-Type", "text/plain");
 	embedsite(server);
 
-	server.resource["^/query/$"]["POST"] = [&](Response response, Request request){
-
-		if (rejectNonLocals(request)) return;
-		webquery wq;
-		try {
-			auto&& reqstr = request->content.string();
-			auto j = json::parse(reqstr);
-			wq.savepath = fromjson<string>(j, "savePath");
-			wq.qamount = fromjson<int>(j, "qamount");
-			wq.fileIO = fromjson<int>(j, "fileIO");
-			wq.querystring = regex_replace(fromjson<string>(j,"query"), endSemicolon, "");
-			wq.sessionId = fromjson<i64>(j,"sessionId");
-
-			auto ret = runqueries(wq);
-			ret->status = DAT_GOOD;
-			ret->originalQuery = wq.querystring;
-			if (wq.isSaving())
-				sendMessage(wq.sessionId, "Saved to " + wq.savepath);
-			else if (ret->maxclipped)
-				sendMessage(wq.sessionId, st("Only showing first ",ret->maxclipped," results"));
-			perr("Writing http respons");
-			response->write(ret->tohtml(), header);
-
-		} catch (...){
-			auto e = EX_STRING;
-			cerr << "Error: " << e << endl;
-			returnData ret;
-			ret.status = DAT_ERROR;
-			ret.message = move(e);
-			ret.originalQuery = wq.querystring;
-			response->write(ret.tojson().str());
-		}
+	server.resource["^/result/$"]["GET"] = [&](Response response, Request request){
+			response->write(queryReturn, header);
 	};
 
 	server.resource["^/info$"]["GET"] = 
@@ -136,46 +104,6 @@ static void serve(){
 	ws.get();
 	server.stop();
 	hs.get();
-}
-
-shared_ptr<returnData> runqueries(webquery &wq){
-	boost::split(wq.queries, wq.querystring, boost::is_any_of(";"));
-	auto ret = make_shared<returnData>();
-	for (auto &q: wq.queries){
-		auto&& singleResult = runWebQuery(wq);
-		wq.whichone++;
-		if (singleResult == nullptr)
-			continue;
-		perr("Got result of single query");
-		ret->entries.push_back(singleResult);
-		if (singleResult->clipped)
-			ret->maxclipped = max(ret->maxclipped, singleResult->rowlimit);
-	}
-	perr("Got result of all queries");
-	return ret;
-}
-
-static shared_ptr<singleQueryResult> runWebQuery(webquery &wq){
-	cout << "webquery " << wq.whichone << ": " << wq.queries[wq.whichone] << endl;
-	querySpecs q(wq.queries[wq.whichone]);
-	q.sessionId = wq.sessionId;
-	if (wq.isSaving()){
-		q.setoutputCsv();
-		bool hascsv = regex_match(wq.savepath, csvPat);
-		bool multi = wq.queries.size() > 1;
-		if (multi && !hascsv){
-			q.savepath = st(wq.savepath, '-', wq.whichone+1, ".csv");
-			wq.savepath += ".csv";
-		} else if (multi && hascsv){
-			q.savepath = st(wq.savepath.substr(0, wq.savepath.size()-4), '-', wq.whichone+1, ".csv");
-		} else if (!hascsv){
-			q.savepath = wq.savepath += ".csv";
-		} else {
-			q.savepath = wq.savepath;
-		}
-	}
-	//return runJsonQuery(q);
-	return runHtmlQuery(q);
 }
 
 void directory::setDir(json& j){

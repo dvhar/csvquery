@@ -222,25 +222,27 @@ function submitQuery(){
 		return
 	}
 	let payload = {
+		type: bit.SK_QUERY,
 		sessionId: sock.sessionId,
 		query,
 		fileIO: 0, 
 		savePath: "", 
 	};
-	var req = new Request("/query/", {
-		method: 'POST',
+	sock.send(payload);
+}
+function getResult(){
+	addHistory(document.querySelector('#queryTextEntry').value);
+	var req = new Request("/result/", {
+		method: 'GET',
 		mode: 'cors',
 		cache: "no-cache",
 		redirect: 'follow',
 		referrer: "no-referrer",
-		headers: new Headers({ "Content-Type": "application/json", }),
-		body: JSON.stringify(payload),
 	});
 	fetch(req).then(
 		res=>res.status >= 400 ? false : res.text()
 	).then(dat=>{
 		if (dat) {
-			addHistory(query);
 			document.querySelector('#results').innerHTML = dat;
 			document.querySelectorAll('.singleResult').forEach((res,i) => {
 				res.idx = i;
@@ -263,7 +265,7 @@ function showPassprompt(show = true){
 function sendPassword(elem){
 	let prompt = elem.closest('div');
 	let pass = prompt.querySelector('input').value;
-	sock.sendSock({type: bit.SK_PASS, text: pass});
+	sock.send({type: bit.SK_PASS, text: pass});
 	prompt.classList.add('hidden');
 }
 
@@ -284,7 +286,7 @@ function SocketHandler(){
 				break;
 			case bit.SK_PASS:
 				if (this.lastpass){
-					this.sendSock(this.lastpass);
+					this.send(this.lastpass);
 				} else {
 					topMessage('Enter encryption password');
 					showPassprompt();
@@ -294,6 +296,9 @@ function SocketHandler(){
 				this.sessionId = dat.id;
 				console.log("WS session id: ",this.sessionId);
 				break;
+			case bit.SK_DONE:
+				getResult();
+				break;
 		}
 	}
 	this.ws.onerror = e=>console.log("ERROR: " + e.data);
@@ -301,7 +306,7 @@ function SocketHandler(){
 		if (window.performance.now() > this.bugtimer+20000)
 			topMessage("Query Engine Disconnected!");
 	},2000);
-	this.sendSock = (data)=>{
+	this.send = (data)=>{
 		if (data.type === bit.SK_PASS)
 			this.lastpass = data;
 		this.ws.send(JSON.stringify(data));
@@ -336,13 +341,15 @@ function init(){
 var messageDiv = document.getElementById('topMessage');
 var sock = new SocketHandler();
 const bit = { //TODO: find unused things
-	SK_MSG          : 0,
-	SK_PING         : 1,
-	SK_PONG         : 2,
-	SK_STOP         : 3,
-	SK_DIRLIST      : 4,
-	SK_FILECLICK    : 5,
-	SK_PASS         : 6,
-	SK_ID           : 7,
+	SK_MSG       : 0,
+	SK_PING      : 1,
+	SK_PONG      : 2,
+	SK_STOP      : 3,
+	SK_DIRLIST   : 4,
+	SK_FILECLICK : 5,
+	SK_PASS      : 6,
+	SK_ID        : 7,
+	SK_QUERY     : 8,
+	SK_DONE      : 9
 };
 init();
