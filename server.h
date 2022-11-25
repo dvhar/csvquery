@@ -13,10 +13,7 @@ enum legacy_server {
 
 	SK_MSG       = 0,
 	SK_PING      = 1,
-	SK_PONG      = 2,
 	SK_STOP      = 3,
-	SK_DIRLIST   = 4,
-	SK_FILECLICK = 5,
 	SK_PASS      = 6,
 	SK_ID        = 7,
 	SK_QUERY     = 8,

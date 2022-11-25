@@ -591,36 +591,48 @@ void queryQueue::runquery(querySpecs& q){
 }
 shared_ptr<singleQueryResult> queryQueue::runqueryJson(querySpecs& q){
 	q.setoutputJson();
+	mtx.lock();
 	queries.emplace_back(q);
+	mtx.unlock();
 	auto& thisq = queries.back();
 	auto id = thisq.runq();
 	auto ret = thisq.getResult();
 	perr("Got json result\n");
+	mtx.lock();
 	queries.remove_if([&](qinstance& qi){ return qi.id == id; });
+	mtx.unlock();
 	perr("Remove query from queue\n");
 	return ret;
 }
 // TODO: make this more dry when done
 shared_ptr<singleQueryResult>queryQueue::runqueryHtml(querySpecs& q){
 	q.setoutputHtml();
+	mtx.lock();
 	queries.emplace_back(q);
+	mtx.unlock();
 	auto& thisq = queries.back();
 	auto id = thisq.runq();
 	auto ret = thisq.getResult();
 	perr("Got html result\n");
+	mtx.lock();
 	queries.remove_if([&](qinstance& qi){ return qi.id == id; });
+	mtx.unlock();
 	perr("Remove query from queue\n");
 	return ret;
 }
 void queryQueue::endall(){
+	mtx.lock();
 	for (auto& qi : queries) qi.stop();
+	mtx.unlock();
 }
 void queryQueue::setPassword(i64 sesid, string& pass){
+	mtx.lock();
 	for (auto& qi : queries)
 		if (qi.sesid == sesid){ //TODO: use id not sessionId
 			qi.setPass(pass);
 			break;
 		}
+	mtx.unlock();
 }
 static queryQueue qrunner;
 void stopAllQueries(){
