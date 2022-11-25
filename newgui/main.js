@@ -228,6 +228,7 @@ function submitQuery(){
 		fileIO: 0, 
 		savePath: "", 
 	};
+	changeRunButton(1);
 	sock.send(payload);
 }
 function getResult(){
@@ -269,6 +270,26 @@ function sendPassword(elem){
 	prompt.classList.add('hidden');
 }
 
+function changeRunButton(state){
+	let button = document.getElementById('runBut');
+	if (state === 0){
+		var text = 'Run Query';
+		running = false;
+	} else {
+		var text = 'End Query Early';
+		running = true;
+	}
+	button.textContent = text;
+}
+
+function pressRunButton(){
+	if (running){
+		sock.send({type:bit.SK_STOP});
+	} else {
+		submitQuery();
+	}
+}
+
 function SocketHandler(){
 	this.bugtimer = window.performance.now();
 	this.sessionId = null;
@@ -297,6 +318,7 @@ function SocketHandler(){
 				console.log("WS session id: ",this.sessionId);
 				break;
 			case bit.SK_DONE:
+				changeRunButton(0);
 				getResult();
 				break;
 		}
@@ -338,15 +360,13 @@ function init(){
 	addHistory('');
 }
 
+var running = false;
 var messageDiv = document.getElementById('topMessage');
 var sock = new SocketHandler();
 const bit = { //TODO: find unused things
 	SK_MSG       : 0,
 	SK_PING      : 1,
-	SK_PONG      : 2,
 	SK_STOP      : 3,
-	SK_DIRLIST   : 4,
-	SK_FILECLICK : 5,
 	SK_PASS      : 6,
 	SK_ID        : 7,
 	SK_QUERY     : 8,
