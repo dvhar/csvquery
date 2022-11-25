@@ -585,66 +585,42 @@ shared_ptr<singleQueryResult> showTables(querySpecs &q){
 
 }
 
-future<void> queryQueue::runquery(querySpecs& q){
-	return async([&](){
-		mtx.lock();
-		queries.emplace_back(q);
-		auto& thisq = queries.back();
-		mtx.unlock();
-		auto id = thisq.runq();
-		mtx.lock();
-		queries.remove_if([&](qinstance& qi){ return qi.id == id; });
-		mtx.unlock();
-	});
+void queryQueue::runquery(querySpecs& q){
+	auto qi = qinstance(q);
+	qi.runq();
 }
-future<shared_ptr<singleQueryResult>> queryQueue::runqueryJson(querySpecs& q){
-	return async([&](){
-		q.setoutputJson();
-		mtx.lock();
-		queries.emplace_back(q);
-		auto& thisq = queries.back();
-		mtx.unlock();
-		auto id = thisq.runq();
-		auto ret = thisq.getResult();
-		perr("Got json result\n");
-		mtx.lock();
-		queries.remove_if([&](qinstance& qi){ return qi.id == id; });
-		mtx.unlock();
-		perr("Remove query from queue\n");
-		return ret;
-	});
+shared_ptr<singleQueryResult> queryQueue::runqueryJson(querySpecs& q){
+	q.setoutputJson();
+	queries.emplace_back(q);
+	auto& thisq = queries.back();
+	auto id = thisq.runq();
+	auto ret = thisq.getResult();
+	perr("Got json result\n");
+	queries.remove_if([&](qinstance& qi){ return qi.id == id; });
+	perr("Remove query from queue\n");
+	return ret;
 }
 // TODO: make this more dry when done
-future<shared_ptr<singleQueryResult>> queryQueue::runqueryHtml(querySpecs& q){
-	return async([&](){
-		q.setoutputHtml();
-		mtx.lock();
-		queries.emplace_back(q);
-		auto& thisq = queries.back();
-		mtx.unlock();
-		auto id = thisq.runq();
-		auto ret = thisq.getResult();
-		perr("Got html result\n");
-		mtx.lock();
-		queries.remove_if([&](qinstance& qi){ return qi.id == id; });
-		mtx.unlock();
-		perr("Remove query from queue\n");
-		return ret;
-	});
+shared_ptr<singleQueryResult>queryQueue::runqueryHtml(querySpecs& q){
+	q.setoutputHtml();
+	queries.emplace_back(q);
+	auto& thisq = queries.back();
+	auto id = thisq.runq();
+	auto ret = thisq.getResult();
+	perr("Got html result\n");
+	queries.remove_if([&](qinstance& qi){ return qi.id == id; });
+	perr("Remove query from queue\n");
+	return ret;
 }
 void queryQueue::endall(){
-	mtx.lock();
 	for (auto& qi : queries) qi.stop();
-	mtx.unlock();
 }
 void queryQueue::setPassword(i64 sesid, string& pass){
-	mtx.lock();
 	for (auto& qi : queries)
 		if (qi.sesid == sesid){ //TODO: use id not sessionId
 			qi.setPass(pass);
 			break;
 		}
-	mtx.unlock();
 }
 static queryQueue qrunner;
 void stopAllQueries(){
@@ -656,16 +632,13 @@ void returnPassword(i64 sesid, string pass){
 
 atomic_int vmachine::idCounter(0);
 void runPlainQuery(querySpecs &q){
-	auto r = qrunner.runquery(q);
-	r.get();
+	qrunner.runquery(q);
 }
 shared_ptr<singleQueryResult> runJsonQuery(querySpecs &q){
-	auto r = qrunner.runqueryJson(q);
-	return r.get();
+	return qrunner.runqueryJson(q);
 }
 shared_ptr<singleQueryResult> runHtmlQuery(querySpecs &q){
-	auto r = qrunner.runqueryHtml(q);
-	return r.get();
+	return qrunner.runqueryHtml(q);
 }
 void boxprinter::addrow(dat* sourcerow){
 	if (++numrow > rowlimit)

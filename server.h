@@ -20,24 +20,24 @@ enum legacy_server {
 	SK_PASS      = 6,
 	SK_ID        = 7,
 	SK_QUERY     = 8,
+	SK_DONE      = 9,
 };
 
 
 static auto endSemicolon = regex(";\\s*$");
 class webquery {
 	public:
-	vector<string> queries;
-	int whichone =0;
-	string querystring;
-	string savepath;
-	int qamount =0;
-	int fileIO =0;
-	i64 sessionId=0;
-	bool isSaving(){ return ((fileIO & F_CSV) != 0); }
+		vector<string> queries;
+		int whichone =0;
+		string querystring;
+		string savepath;
+		int fileIO =0;
+		i64 sessionId=0;
+		bool isSaving() const { return ((fileIO & F_CSV) != 0); }
 };
 
 extern string queryReturn;
 
-shared_ptr<returnData> runqueries(webquery &wq);
+void runqueries(webquery &wq);
 void servews();
 void returnPassword(i64 sesid, string pass);

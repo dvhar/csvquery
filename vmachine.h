@@ -446,12 +446,11 @@ class qinstance {
 	}
 };
 class queryQueue {
-	mutex mtx;
 	list<qinstance> queries;
 	public:
-	future<void> runquery(querySpecs&);
-	future<shared_ptr<singleQueryResult>> runqueryJson(querySpecs&);
-	future<shared_ptr<singleQueryResult>> runqueryHtml(querySpecs&);
+	void runquery(querySpecs&);
+	shared_ptr<singleQueryResult> runqueryJson(querySpecs&);
+	shared_ptr<singleQueryResult> runqueryHtml(querySpecs&);
 	void endall();
 	void setPassword(i64 sesid, string& pass);
 };

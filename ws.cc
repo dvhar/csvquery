@@ -6,11 +6,63 @@ using WsClient = SimpleWeb::SocketClient<SimpleWeb::WS>;
 
 static WsServer server;
 static map<i64,shared_ptr<WsServer::Connection>> connections;
-static mutex seslock;
 static void pingbrowsers();
 static atomic_int clientCount{0};
 static auto lh = boost::asio::ip::address::from_string("::ffff:127.0.0.1");
 #define rejectNonlocals() if (auto a=connection->remote_endpoint().address(); !a.is_loopback() && a != lh) return;
+
+shared_ptr<singleQueryResult> runWebQuery(shared_ptr<webquery> wq){
+	cout << "webquery " << wq->whichone << ": " << wq->queries[wq->whichone] << endl;
+	querySpecs q(wq->queries[wq->whichone]);
+	q.sessionId = wq->sessionId;
+	if (wq->isSaving()){
+		q.setoutputCsv();
+		bool hascsv = regex_match(wq->savepath, csvPat);
+		bool multi = wq->queries.size() > 1;
+		if (multi && !hascsv){
+			q.savepath = st(wq->savepath, '-', wq->whichone+1, ".csv");
+			wq->savepath += ".csv";
+		} else if (multi && hascsv){
+			q.savepath = st(wq->savepath.substr(0, wq->savepath.size()-4), '-', wq->whichone+1, ".csv");
+		} else if (!hascsv){
+			q.savepath = wq->savepath += ".csv";
+		} else {
+			q.savepath = wq->savepath;
+		}
+	}
+	//return runJsonQuery(q);
+	return runHtmlQuery(q);
+}
+
+void runqueries(shared_ptr<webquery> wq){
+	boost::split(wq->queries, wq->querystring, boost::is_any_of(";"));
+	returnData ret;
+	ret.originalQuery = wq->querystring;
+	try {
+		for (auto &q: wq->queries){
+			auto&& singleResult = runWebQuery(wq);
+			wq->whichone++;
+			if (singleResult == nullptr)
+				continue;
+			ret.entries.push_back(singleResult);
+			if (singleResult->clipped)
+				ret.maxclipped = max(ret.maxclipped, singleResult->rowlimit);
+		}
+		perr("Got result of all queries");
+		queryReturn = ret.tohtml();
+		if (wq->isSaving())
+			sendMessage(wq->sessionId, "Saved to " + wq->savepath);
+		else if (ret.maxclipped)
+			sendMessage(wq->sessionId, st("Only showing first ",ret.maxclipped," results"));
+		if (auto& c = connections[wq->sessionId]; c){
+			c->send(json{{"type",SK_DONE}}.dump());
+		}
+	} catch(...) {
+		auto e = "Error: "+EX_STRING;
+		cerr << e << endl;
+		sendMessage(wq->sessionId, e);
+	}
+}
 
 void servews(){
 	server.config.port = 8061;
@@ -27,6 +79,16 @@ void servews(){
 		case SK_PASS:
 			returnPassword((i64)connection.get(), fromjson<string>(j,"text"));
 			break;
+		case SK_QUERY: {
+			shared_ptr<webquery> wq = make_shared<webquery>();
+			wq->sessionId = fromjson<i64>(j,"sessionId");
+			wq->savepath = fromjson<string>(j, "savePath");
+			wq->fileIO = fromjson<int>(j, "fileIO");
+			wq->querystring = regex_replace(fromjson<string>(j,"query"), endSemicolon, "");
+			auto th = thread([=](){ runqueries(wq); });
+			th.detach();
+			break;
+		}
 		}
 	};
 
@@ -34,9 +96,7 @@ void servews(){
 		rejectNonlocals();
 		i64 sesid = (i64) connection.get();
 		connection->send(json{{"type",SK_ID},{"id",sesid}}.dump());
-		seslock.lock();
 		connections[sesid] = connection;
-		seslock.unlock();
 		clientCount++;
 		cerr << "opened websocket connection " << sesid << endl;
 	};
@@ -44,9 +104,7 @@ void servews(){
 	wsocket.on_close = [](shared_ptr<WsServer::Connection> connection, int status, const string &) {
 		rejectNonlocals();
 		i64 sesid = (i64) connection.get();
-		seslock.lock();
 		connections.erase(sesid);
-		seslock.unlock();
 		clientCount--;
 		if (clientCount < 0)
 			clientCount = 0;
@@ -84,15 +142,11 @@ static void pingbrowsers(){
 
 void sendMessage(i64 sesid, string message){ sendMessage(sesid, message.c_str()); }
 void sendMessage(i64 sesid, const char* message){
-	seslock.lock();
 	if (auto& c = connections[sesid]; c)
 		c->send(json{{"type",SK_MSG},{"text",message}}.dump());
-	seslock.unlock();
 }
 void sendPassPrompt(i64 sesid){
-	seslock.lock();
 	if (auto& c = connections[sesid]; c)
 		c->send(json{{"type",SK_PASS}}.dump());
-	seslock.unlock();
 	perr("sent pass prompt\n");
 }
