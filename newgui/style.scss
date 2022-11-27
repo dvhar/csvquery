@@ -37,6 +37,7 @@ $codecolor-dark: #ffaa0e;
 	background: $colo1;
 	background: linear-gradient(to bottom, $colo1 0%, $colo2 50%, $colo3 51%, $colo4 100%);
 }
+//https://www.colorzilla.com/gradient-editor/
 //dark mode gradients
 @mixin maincolorgradient-dark() {
 	@include foursmooth($redgrad1, $redgrad2, $redgrad3, $redgrad4);
@@ -56,6 +57,14 @@ $codecolor-dark: #ffaa0e;
 @mixin greygradient-dark() {
 	color: $yellower;
 	@include fourshiney(#444444,#303030,#202020,#444444);
+}
+@mixin runbuttongradient-dark() {
+	color: #eeeeee;
+	@include fourshiney(#4c9828,#29590b,#0f4e00,#206400);
+}
+@mixin stopbuttongradient-dark() {
+	color: #eeeeee;
+	@include fourshiney(#af658a,#72000a,#7a0007,#d16e79);
 }
 //light mode gradients
 @mixin maincolorgradient-light() {
@@ -98,11 +107,20 @@ body {
 	button {
 		border: 1px solid black;
 		padding: .2em;
-		@include mainbuttongradient-dark();
+		font-weight: bold;
 	}
 	button:hover {
 		@include hoverbuttongradient-dark();
 	}
+}
+.plainbut {
+		@include mainbuttongradient-dark();
+}
+.runbut {
+		@include runbuttongradient-dark();
+}
+.stopbut {
+		@include stopbuttongradient-dark();
 }
 #textboxContainer {
 	text-align: center;

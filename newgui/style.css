@@ -16,13 +16,26 @@ body {
   #topBar button {
     border: 1px solid black;
     padding: .2em;
-    color: #eeeeee;
-    background: #666666;
-    background: linear-gradient(to bottom, #666666 0%, #515151 50%, #414141 51%, #666666 100%); }
+    font-weight: bold; }
   #topBar button:hover {
     color: #eeeeee;
     background: #00136a;
     background: linear-gradient(to bottom, #00136a 0%, #08606c 50%, #0832f6 51%, #062f3d 100%); }
+
+.plainbut {
+  color: #eeeeee;
+  background: #666666;
+  background: linear-gradient(to bottom, #666666 0%, #515151 50%, #414141 51%, #666666 100%); }
+
+.runbut {
+  color: #eeeeee;
+  background: #4c9828;
+  background: linear-gradient(to bottom, #4c9828 0%, #29590b 50%, #0f4e00 51%, #206400 100%); }
+
+.stopbut {
+  color: #eeeeee;
+  background: #af658a;
+  background: linear-gradient(to bottom, #af658a 0%, #72000a 50%, #7a0007 51%, #d16e79 100%); }
 
 #textboxContainer {
   text-align: center;
