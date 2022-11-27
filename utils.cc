@@ -4,6 +4,7 @@
 #include <ctype.h>
 #include <thread>
 #include "deps/json/escape.h"
+#include "deps/html/escape.h"
 #include "deps/incbin/incbin.h"
 
 INCBIN(_SINGLERESULT,"../newgui/singleresult.html");
@@ -349,33 +350,24 @@ string nodeName(astnode &n, querySpecs* q){
 	return nodeName(n->node1, q);
 }
 
-string escapeHtml(string& input) {
-	dat d = {0};
-	string out;
-	d.u.s = (char*)input.c_str();
-	d.b = T_STRING;
-	d.appendToHtmlBuffer(out);
-	return out;
-}
-
 string singleQueryResult::tohtml(){
 	string tplate((const char*)g_SINGLERESULTData, g_SINGLERESULTSize);
-	boost::replace_first(tplate,"{{ querytext }}", escapeHtml(query));
+	boost::replace_first(tplate,"{{ querytext }}", chopAndEscapeHTML(query));
 	boost::replace_all(tplate,"{{ colnum }}", to_string(numcols));
 	boost::replace_all(tplate,"{{ rownum }}", to_string(numrows));
 	stringstream items;
-	for (int i=0; i<colnames.size(); i++)
-		items << "<option onclick=\"populatefilter(this," << i << ")\">" << escapeHtml(colnames[i]) << "</option>" << endl;
-	boost::replace_first(tplate,"{{ populatefilter-names }}", items.str());
-	items.str("");
-	items.clear();
-	for (int i=0; i<colnames.size(); i++)
-		items << "<option onclick=\"toggleColumn(this," << i << ")\">" << escapeHtml(colnames[i]) << "</option>" << endl;
-	boost::replace_first(tplate,"{{ toggleColumn-names }}", items.str());
-	items.str("");
-	items.clear();
-	for (auto& name:colnames)
-		items << "<th>" << escapeHtml(name) << "</th>";
+	{
+		stringstream filterlist;
+		stringstream togglelist;
+		for (int i=0; i<colnames.size(); i++){
+			auto name = chopAndEscapeHTML(colnames[i]);
+			filterlist << "<option onclick=\"populatefilter(this," << i << ")\">" << name << "</option>";
+			togglelist << "<option onclick=\"toggleColumn(this," << i << ")\">" << name << "</option>";
+			items << "<th>" << name << "</th>";
+		}
+		boost::replace_first(tplate,"{{ populatefilter-names }}", filterlist.str());
+		boost::replace_first(tplate,"{{ toggleColumn-names }}", togglelist.str());
+	}
 	boost::replace_first(tplate,"{{ th-names }}", items.str());
 	items.str("");
 	items.clear();
@@ -421,7 +413,7 @@ stringstream& singleQueryResult::tojson(){
 stringstream& returnData::tojson(){
 	static string_view com = ",";
 	static string_view nocom = "";
- 	ss	<< "{\"entries\":[";
+	ss	<< "{\"entries\":[";
 	auto delim = &nocom;
 	for (auto &v : entries){
 		ss << *delim << v->tojson().rdbuf();

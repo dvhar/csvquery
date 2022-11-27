@@ -274,9 +274,13 @@ function changeRunButton(state){
 	let button = document.getElementById('runBut');
 	if (state === 0){
 		var text = 'Run Query';
+		button.classList.add('runbut');
+		button.classList.remove('stopbut');
 		running = false;
 	} else {
 		var text = 'End Query Early';
+		button.classList.add('stopbut');
+		button.classList.remove('runbut');
 		running = true;
 	}
 	button.textContent = text;
@@ -294,8 +298,9 @@ function SocketHandler(){
 	this.bugtimer = window.performance.now();
 	this.sessionId = null;
 	this.ws = new WebSocket("ws://localhost:8061/socket/");
-	this.ws.onopen = e=>console.log("OPEN");
-	this.ws.onclose = e=>{console.log("CLOSE"); this.ws = null; };
+	this.ws.onopen = e=>console.log("Websocket opened");
+	this.ws.onclose = e=>{console.log("Websocket closed"); this.ws = null; };
+	this.ws.onerror = e=>console.log("Websocket error: " + e.data);
 	this.ws.onmessage = e=>{ 
 		let dat = JSON.parse(e.data);
 		switch (dat.type) {
@@ -315,7 +320,7 @@ function SocketHandler(){
 				break;
 			case bit.SK_ID:
 				this.sessionId = dat.id;
-				console.log("WS session id: ",this.sessionId);
+				console.log("Websocket session id: ",this.sessionId);
 				break;
 			case bit.SK_DONE:
 				changeRunButton(0);
@@ -323,7 +328,6 @@ function SocketHandler(){
 				break;
 		}
 	}
-	this.ws.onerror = e=>console.log("ERROR: " + e.data);
 	window.setInterval(()=>{
 		if (window.performance.now() > this.bugtimer+20000)
 			topMessage("Query Engine Disconnected!");

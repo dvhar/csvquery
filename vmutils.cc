@@ -609,8 +609,8 @@ shared_ptr<singleQueryResult>queryQueue::runqueryHtml(querySpecs& q){
 	q.setoutputHtml();
 	mtx.lock();
 	queries.emplace_back(q);
-	mtx.unlock();
 	auto& thisq = queries.back();
+	mtx.unlock();
 	auto id = thisq.runq();
 	auto ret = thisq.getResult();
 	perr("Got html result\n");
