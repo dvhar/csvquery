@@ -22,6 +22,7 @@ static bool rejectNonLocals(Request& request){
 #define file1 "../newgui/index.html"
 #define file2 "../newgui/main.js"
 #define file3 "../newgui/style.css"
+#define file4 "../newgui/help.html"
 
 #define testing_site
 #ifdef testing_site
@@ -31,15 +32,18 @@ static bool rejectNonLocals(Request& request){
 _ib(1)
 _ib(2)
 _ib(3)
+_ib(4)
 #define _f(num) string_view((const char*)g##num##Data, g##num##Size)
 #endif
 
 #define f1 _f(1)
 #define f2 _f(2)
 #define f3 _f(3)
+#define f4 _f(4)
 
 void embedsite(HttpServer &server){
 	server.default_resource["GET"] = [](Response response, Request request){ if (rejectNonLocals(request)) return; response->write(f1); };
 	server.resource["^/main.js$"]["GET"] = [](Response response, Request request){ if (rejectNonLocals(request)) return; response->write(f2); };
 	server.resource["^/style.css$"]["GET"] = [](Response response, Request request){ if (rejectNonLocals(request)) return; response->write(f3); };
+	server.resource["^/help.html$"]["GET"] = [](Response response, Request request){ if (rejectNonLocals(request)) return; response->write(f4); };
 }

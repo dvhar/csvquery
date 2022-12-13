@@ -147,10 +147,11 @@ function resizeX(res){ //TODO: bug when only 1 row
 	theaddiv.style.maxWidth = tbodydiv.style.maxWidth =  `${Math.min(tbody.offsetWidth+num,window.innerWidth)}px`;
 }
 function resizeY(res){
-	let wh = window.innerHeight;
-	let maxh = wh - 100;
+	let resultpos = document.getElementById('results').offsetTop;
+	let headerheight = res.querySelector('.resultHeadDiv').offsetHeight;
+	let controlsheight = res.querySelector('.tableControls').offsetHeight;
 	let tbodydiv = res.querySelector('.resultBodyDiv');
-	tbodydiv.style.maxHeight = maxh;
+	tbodydiv.style.maxHeight = window.innerHeight - (resultpos + headerheight + controlsheight);
 }
 
 function postProcess(res){
@@ -180,7 +181,7 @@ function showTopDrop(but){
 	};
 	document.querySelectorAll('.dropdown').forEach(dd => {
 		if (dd.id === butmap[but.id]) {
-			dd.classList.remove('hidden');
+			dd.classList.toggle('hidden');
 		} else {
 			dd.classList.add('hidden');
 		}
@@ -217,8 +218,7 @@ function addHistory(query){
 function submitQuery(){
 	let query = document.querySelector('#queryTextEntry').value;
 	if (query === ''){
-		console.log("no query text");
-		alert("no query!");
+		topMessage("no query!");
 		return
 	}
 	let payload = {
@@ -308,6 +308,8 @@ function SocketHandler(){
 				this.bugtimer = window.performance.now();
 				break;
 			case bit.SK_MSG:
+				if (dat.text.includes('Error:'))
+					changeRunButton(0);
 				topMessage(dat.text);
 				break;
 			case bit.SK_PASS:
@@ -329,8 +331,10 @@ function SocketHandler(){
 		}
 	}
 	window.setInterval(()=>{
-		if (window.performance.now() > this.bugtimer+20000)
+		if (window.performance.now() > this.bugtimer+20000){
 			topMessage("Query Engine Disconnected!");
+			changeRunButton(0);
+		}
 	},2000);
 	this.send = (data)=>{
 		if (data.type === bit.SK_PASS)
