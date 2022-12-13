@@ -1,8 +1,8 @@
-<html>
+<html id=mainhtml>
 	<head>
 		<link rel="stylesheet" type="text/css" href="style.css"/>
 	</head>
-	<body>
+	<body id=mainbody>
 		<div id=topBar>
 			<button id=saveBut class="dropbutton plainbut" onclick="showTopDrop(this)">Save</button>
 			<button id=openBut class="dropbutton plainbut" onclick="showTopDrop(this)">Open</button>
@@ -37,6 +37,7 @@
 				<input type="password" id="passInput"></input>
 				<button class=dropbutton onclick="sendPassword(this)">Submit</button>
 			</div>
+			<iframe id=helpDropdown class="hidden dropdown" src="help.html" title="documentation"></iframe>
 		</div>
 		<div id=textboxContainer>
 			<textarea id=queryTextEntry rows=5 placeholder="Type query here.

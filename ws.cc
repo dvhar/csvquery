@@ -80,6 +80,7 @@ void servews(){
 			returnPassword((i64)connection.get(), fromjson<string>(j,"text"));
 			break;
 		case SK_QUERY: {
+			stopAllQueries(); //TODO: only stop queries for this session
 			shared_ptr<webquery> wq = make_shared<webquery>();
 			wq->sessionId = fromjson<i64>(j,"sessionId");
 			wq->savepath = fromjson<string>(j, "savePath");
