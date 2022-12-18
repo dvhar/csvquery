@@ -28,9 +28,8 @@ class webquery {
 		int whichone =0;
 		string querystring;
 		string savepath;
-		int fileIO =0;
 		i64 sessionId=0;
-		bool isSaving() const { return ((fileIO & F_CSV) != 0); }
+		bool isSaving() const { return !savepath.empty(); }
 };
 
 extern string queryReturn;

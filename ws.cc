@@ -17,15 +17,8 @@ shared_ptr<singleQueryResult> runWebQuery(shared_ptr<webquery> wq){
 	q.sessionId = wq->sessionId;
 	if (wq->isSaving()){
 		q.setoutputCsv();
-		bool hascsv = regex_match(wq->savepath, csvPat);
-		bool multi = wq->queries.size() > 1;
-		if (multi && !hascsv){
-			q.savepath = st(wq->savepath, '-', wq->whichone+1, ".csv");
-			wq->savepath += ".csv";
-		} else if (multi && hascsv){
+		if (wq->queries.size() > 1){
 			q.savepath = st(wq->savepath.substr(0, wq->savepath.size()-4), '-', wq->whichone+1, ".csv");
-		} else if (!hascsv){
-			q.savepath = wq->savepath += ".csv";
 		} else {
 			q.savepath = wq->savepath;
 		}
@@ -50,8 +43,15 @@ void runqueries(shared_ptr<webquery> wq){
 		}
 		perr("Got result of all queries");
 		queryReturn = ret.tohtml();
-		if (wq->isSaving())
-			sendMessage(wq->sessionId, "Saved to " + wq->savepath);
+		if (wq->isSaving()){
+			string target;
+			if (wq->queries.size() > 1){
+				target = st(wq->savepath.substr(0, wq->savepath.size()-4),"-{1..",wq->queries.size(),"}.csv");
+			} else {
+				target = wq->savepath;
+			}
+			sendMessage(wq->sessionId, "Saved to " + target);
+		}
 		else if (ret.maxclipped)
 			sendMessage(wq->sessionId, st("Only showing first ",ret.maxclipped," results"));
 		if (auto& c = connections[wq->sessionId]; c){
@@ -84,7 +84,6 @@ void servews(){
 			shared_ptr<webquery> wq = make_shared<webquery>();
 			wq->sessionId = fromjson<i64>(j,"sessionId");
 			wq->savepath = fromjson<string>(j, "savePath");
-			wq->fileIO = fromjson<int>(j, "fileIO");
 			wq->querystring = regex_replace(fromjson<string>(j,"query"), endSemicolon, "");
 			auto th = thread([=](){ runqueries(wq); });
 			th.detach();

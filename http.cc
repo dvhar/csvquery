@@ -74,7 +74,6 @@ static void serve(){
 			response->write(state.dump(), header);
 		} else if (info == "fileClick"){
 			auto j = json::parse(request->content.string());
-			cerr << j.dump() << endl;
 			string mode = fromjson<string>(j,"mode");
 			try {
 				auto newlist = filebrowse(fromjson<string>(j,"path"));

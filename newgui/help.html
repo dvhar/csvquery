@@ -2,188 +2,308 @@
 	<head>
 		<link rel="stylesheet" type="text/css" href="style.css"/>
 	</head>
+	<script>
+		function showTable(classname){
+			document.querySelectorAll(`.${classname}`).forEach(a=>a.classList.toggle('hidden'));
+		}
+	</script>
 	<body>
 		<div id=helpPage>
 
 			<h3>What this software does</h3>
-			<hr/>
-				Run <code>select</code> queries on csv files, display the results, and save to new csv files. It can handle big csv files that are too big for other programs.
-			<br/>
+			Run <code>select</code> queries on csv files, display the results, and save to new csv files. It can handle big csv files that are too big for other programs.
+			<br>
 			It will show you the first several hundred results in the browser, with 2 options for viewing certain rows or columns. You can click on a column header to sort the displayed results by that column.
+			<hr>
 			<h3>How to save files</h3>
-			<hr/>
-				After running a query, hit the save button. Navigate to where you want to save, type in the file name, and hit Enter. All the queries on the page will run again, but this time they will be saved to csv files. The program will infer whether or not to output a header unless you override it with an option. To always output header, add <code>oh</code> to the beginning of the query. To never output header, add <code>noh</code>.
+			After running a query, hit the save button. Navigate to where you want to save, type in the file name, and hit Enter. All the queries on the page will run again, but this time they will be saved to csv files. The program will infer whether or not to output a header unless you override it with an option. To always output header, add <code>oh</code> to the beginning of the query. To never output header, add <code>noh</code>.
+			<hr>
 			<h3>How to use the query language</h3>
-			<hr/>
 			This program uses a custom but incomplete version of SQL that's designed to be easy to use and has some additions to handle csv formatting issues.
-			<br/>
+			<br>
+			<h4>Specifying a file</h4>
+			Click <code>Open</code> to find files, and double click one to add it to the query.
+			<br>
+			File paths can be saved for later use by running an <code>add &lt;alias&gt; &lt;filepath&gt;</code> command. You may add file format options (described in the next section) after the filepath. The <code>drop &lt;alias&gt;</code> command only deletes the alias, not the file. To view all aliases, type <code>show</code>.
+			<br><br>
+			Example of specifying a file by filename and then by saved name:
+			<br>
 			<blockquote>
-				<h4>Specifying a file</h4>
-				Click <code>Browse Files</code> to find files, and double click one to add it to the query.
-					<br/>
-				File paths can be saved for later use by running an <code>add &lt;alias&gt; &lt;filepath&gt;</code> command. You may add file format options (described in the next section) after the filepath. The <code>drop &lt;alias&gt;</code> command only deletes the alias, not the file. To view all aliases, type <code>show</code>.
-					<br/><br/>
-					Example of specifying a file by filename and then by saved name:
-					<br/>
-				<blockquote><code>
-						select * from '/home/user/pets.csv'
-						<br/>
-						add pets '/home/user/pets.csv'
-						<br/>
-						select * from pets
-						<br/>
-						drop pets
-				</code></blockquote>
-				<h4>Specifying csv delimiters and file header</h4>
-				These characters can be added to the beginning of a query or after the file path to specify file format details: <code>nh</code>, <code>h</code>, <code>ah</code>, <code>s</code>, <code>t</code>, <code>|</code>, and <code>:</code>. The characters <code>nh</code>, <code>h</code>, and <code>ah</code> mean 'no header', 'header', and 'auto header' respectively. Default behavior is to treat the first line of the file as a header. <code>ah</code> will guess if there is a header based on whether or not the first row contains numbers. <code>s</code>, <code>t</code>, <code>|</code>, <code>:</code> mean the delimiter is 'spaces', 'tabs', 'pipes', and 'colons' respectively. Default delimiter is commas. See examples in the next section.
-				<h4>Selecting some columns</h4>
-				Columns can be specified by name or number. Select column numbers by prefacing the number with <code>c</code>, or by using a plain unquoted number if putting a <code>c</code> in front of the whole query. To make commas between selections optional (but require <code>as</code> to rename), put <code>m</code> in front of the query, or set <code>need_comma_separator</code> to <code>false</code> in the config file.
-					<br/><br/>
-					Example: selecting columns 1-3, dogs, and cats from a file with no header and name column 2 as 'food'<br/>
-				<blockquote><code>
-						nh select c1, c2 'food', c3, dogs, cats from '/home/user/pets.csv'
-						<br/>
-						select c1, c2 'food', c3 dogs, cats from 'C:\\users\dave\pets.csv' nh
-						<br/>
-						c nh select 1, 2 'food', 3, dogs, cats from 'C:\\users\dave\pets.csv'
-						<br/>
-						m c nh select 1 2 as 'food' 3 dogs cats from 'C:\\users\dave\pets.csv'
-			</code></blockquote>
-				<h4>Selecting all columns</h4>
-				<code>select *</code> works how you'd expect. If you don't specify any values at all, it will also select all. It will also select all if you skip the <code>select from</code> part altogether.
-					<br/><br/>
-					Examples:
-					<br/>
-				<blockquote><code>
-						select * from '/home/user/pets.csv'
-						<br/>
-						select from '/home/user/pets.csv'
-						<br/>
-						'/home/user/pets.csv'
-				</code></blockquote>
-				<h4>Selecting more complex expressions</h4>
-				Use <code>+ - * / %</code> operators to add, subtract, multiply, divide, and modulus expressions. You can combine them with parentheses. You can also use case expressions.
-					<br/><br/>
-					Examples:
-				<blockquote><code>
-						select birthdate+'3 weeks', c1*c2, c1/c2, c1-c2, c1%2, (c1-23)*(c2+34) from '/home/user/pets.csv'
-						<br/>
-						select case when c1*2&lt;10 then dog when c1*10&gt;=10.2 then cat else monkey end from '/home/user/pets.csv'
-						<br/>
-						select case c1 / c4 when (c3+c3)*2 then dog when c1*10 then cat end from '/home/user/pets.csv'
-				</code></blockquote>
-				<h4>Expression Aliases</h4>
-				Begin a query with <code>with &lt;expression&gt; as &lt;alias&gt;</code> to use that value throughout the query. Separate aliases with <code>,</code> or <code>and</code>.
-					<br/><br/>
-					Example:
-					<br/>
-				<blockquote><code>
-						with age*7 as dogyears, 'Mr.'+name as dogname select dogname, dogyears from '/home/user/pets.csv' order by dogyears
-			</code></blockquote>
-				<h4>Functions</h4>
-					<blockquote>
-						TODO: FuncTable
-						<br/>
-						Aggregate functions can be used with a <code>group by</code> clause and group by as many values as you want. Without a <code>group by</code> clause, they will aggregate everything into a single row.
-						<br/>
-						<br/>
-						<code>Encrypt</code> function only guarantees a unique nonce for every value encrypted while the program is running. Uniqueness cannot be guaranteed between restarts, so avoid using the same password in different sessions. It does not hide the length of a value, so it may be best to use other security solutions when possible. <code>Decrypt</code> function returns an empty value if ciphertext has been tampered with. If no password is supplied, the program will prompt you for one.
-						<br/>
-						<br/>
-						Math functions like <code>asin</code> and <code>log</code> return an empty value when not a real number, such as <code>log(0)</code> or <code>asin(100)</code>. To return <code>nan</code>, <code>inf</code>, or <code>-inf</code> instead, add the option <code>nan</code> to the beginning of the query. Return value will still be empty if function is called on a null value.
-						<br/>
-						<br/>
-						Format function uses the type of date format string described by the <a href='https://linux.die.net/man/3/strftime' target='_blank'>Linux Manual</a>, with the addition of <code>mmm</code> for milliseconds. It can also take the format code for a preset format from the following table:
-						<br/>
-						TODO: FmtTable
-						<br/>
-					</blockquote>
-				<h4>Selecting distinct rows or aggregates</h4>
-				To only return distinct rows of data, put the <code>distinct</code> keyword after <code>select</code>.
-					<br/>
-				To calculate aggregate function of distinct values, put the <code>distinct</code> keyword in the function call.
-					<br/><br/>
-					Examples:
-				<blockquote><code>
-						select distinct dogtypes, fluffiness from '/home/user/pets.csv'
-						<br/>
-						select count(distinct species) from '/home/user/pets.csv'
-				</code></blockquote>
-				<h4>Selecting a number of rows</h4>
-					Use the <code>top</code> keyword after <code>select</code>, or <code>limit</code> at the end of the query. Be careful not to confuse the number after <code>top</code> for part of an expression.
-					<br/><br/>
-					Examples:
-				<blockquote><code>
-						select top 100 c1, c2, c3, dogs, cats from '/home/user/pets.csv'
-						<br/>
-						select c1, c2, c3, dogs, cats from '/home/user/pets.csv' limit 100
-				</code></blockquote>
-				<h4>Selecting rows that match a certain condition</h4>
-				Specify conditions you're looking for by using any combinates of conditional statements with parentheses, <code>and</code>, <code>or</code>, and <code>xor</code> operators. Dates are handled nicely, so <code>May 18 1955</code> is the same as <code>5/18/1955</code>. Empty entries can be compared against the keyword <code>null</code>. The <code>in</code> operator can be used with a subquery, though correlated subqueries are not yet supported.
-					<br/><br/>
-				Valid relational operators are <code>is</code>, <code>=</code>,  <code>!=</code>,  <code>&lt;&gt;</code>,  <code>&gt;</code>,  <code>&lt;</code>,  <code>&gt;=</code>,  <code>&lt;=</code>, <code>like</code>, <code>in</code>, and <code>between</code>. <code>!</code> is evaluated the same as <code>not</code>, and can be put in front of a relational operator or a whole comparison.
-					<br/><br/>
-					Examples:
-				<blockquote><code>
-						select from '/home/user/pets.csv' where dateOfBirth &lt; 'april 10 1980' or age between (c3-19)*1.2 and 30
-						<br/>
-						select from '/home/user/pets.csv' where (c1 &lt; c13 or fuzzy = very) and not (c3 = null or weight &gt;= 50 or name not like 'a_b%')
-						<br/>
-						select from '/home/user/pets.csv' where c1 in (2,3,5,7,11,13,17,19,23)
-						<br/>
-						select from '/home/user/pets.csv' where null not in (c1,c2,c3)
-						<br/>
-						select from '/home/user/pets.csv' where name is not null
-						<br/>
-						select from '/home/user/pets.csv' where species not in (select species from behaviors.csv where prey != humans)
-				</code></blockquote>
-				<h4>Sorting results</h4>
-					Use <code>order by</code> at the end of the query, followed by any number of expressions, each followed optionally by <code>desc</code>. Sorts by ascending values unless <code>desc</code> is specified.
-					<br/><br/>
-					Examples:
-				<blockquote><code>
-						select from '/home/user/pets.csv' where dog = husky order by age, fluffiness desc
-						<br/>
-						select from '/home/user/pets.csv' order by c2*c3
-				</code></blockquote>
-				<h4>Joining Files</h4>
-				Any number of files can be joined together. <code>left</code> and <code>inner</code> joins are allowed, default is <code>inner</code>. Join conditions can have as many comparisions as you want, combined with <code>and</code>, <code>or</code>, <code>xor</code>, and parentheses.
-					<br/><br/>
-					Examples:
-					<blockquote><code>
-						select pet.name, pet.species, code.c1 from '/home/user/pets.csv' pet
-							 left join '/home/user/codes.csv' code
-							 on pet.species = code.species order by pet.age
-						<br/>
-						select pet.name, code.c1, fur.flufftype from '/home/user/pets.csv' pet
-							 inner join '/home/user/fur.csv' fur
-							 on pet.fluffiness = fur.fluff and fur.flufftype &lt;&gt; hairless
-							 left join '/home/user/codes.csv' code
-							 on pet.species = code.species or pet.genus = species.genus
-					</code></blockquote>
+				<code>
+					select * from '/home/user/pets.csv'
+					<br>
+					add pets '/home/user/pets.csv'
+					<br>
+					select * from pets
+					<br>
+					drop pets
+				</code>
 			</blockquote>
-			<h3>Ending queries early, viewing older queries, and exiting</h3>
-			<hr/>
-				If a query is taking too long, hit the button next to <code>submit</code> and the query will end and display the results that it found.
-			<br/>
-			The browser remembers previous queries. In the top-right corner, it will show you which query you are on. You can revisit other queries by hitting the forward and back arrows around the numbers.
-			<br/>
-			To exit the program, just leave the browser page. The program exits if it goes 3 minutes without being viewed in a browser.
-			<h3>Waiting for results to load</h3>
-			<hr/>
-			Browsers can take a while to load big results, even when limiting the number of rows. If the results of a query look similar to the results of the previous query, you can confirm that they are new by checkng the query number in the top-right corner, or by reading the query text in the yellow area above the table.
-			<br/><br/>
-				Another thing that can take a while is files that have tons of columns. The program samples the first 10000 rows to figure out datatypes and this can take a while with very wide files. That process is not yet interuptable by the <code>end query early</code> button.
+			<h4>Specifying csv delimiters and file header</h4>
+			These characters can be added to the beginning of a query or after the file path to specify file format details: <code>nh</code>, <code>h</code>, <code>ah</code>, <code>s</code>, <code>t</code>, <code>|</code>, and <code>:</code>. The characters <code>nh</code>, <code>h</code>, and <code>ah</code> mean 'no header', 'header', and 'auto header' respectively. Default behavior is to guess if there is a header based on whether or not the first row contains numbers. <code>s</code>, <code>t</code>, <code>|</code>, <code>:</code> mean the delimiter is 'spaces', 'tabs', 'pipes', and 'colons' respectively. Default delimiter is commas. See examples in the next section.
+			<h4>Selecting some columns</h4>
+			Columns can be specified by name or number. Select column numbers by prefacing the number with <code>c</code>, or by using a plain unquoted number if putting a <code>c</code> in front of the whole query. To make commas between selections optional (but require <code>as</code> to rename), put <code>m</code> in front of the query, or set <code>need_comma_separator</code> to <code>false</code> in the config file.
+			<br><br>
+			Example: selecting columns 1-3, dogs, and cats from a file, giving column 2 the new name 'food'<br>
+			<blockquote>
+				<code>
+					select c1, c2 'food', c3, dogs, cats from '/home/user/pets.csv'
+					<br>
+					c select 1, 2 'food', 3, dogs, cats from 'C:\\users\dave\pets.csv'
+					<br>
+					m c select 1 2 as 'food' 3 dogs cats from 'C:\\users\dave\pets.csv'
+				</code>
+			</blockquote>
+			<h4>Selecting all columns</h4>
+			<code>select *</code> works how you'd expect. If you don't specify any values at all, it will also select all. It will also select all if you skip the <code>select from</code> part altogether. You can also select all with additional columns.
+			<br><br>
+			Examples:
+			<br>
+			<blockquote>
+				<code>
+					select * from '/home/user/pets.csv'
+					<br>
+					select from '/home/user/pets.csv'
+					<br>
+					'/home/user/pets.csv'
+					<br>
+					select dogs, * from '/home/user/pets.csv'
+				</code>
+			</blockquote>
+			<h4>Selecting more complex expressions</h4>
+			Use <code>+ - * / %</code> operators to add, subtract, multiply, divide, and modulus expressions. You can combine them with parentheses. You can also use case expressions.
+			<br><br>
+			Examples:
+			<blockquote>
+				<code>
+					select birthdate+'3 weeks', c1*c2, c1/c2, c1-c2, c1%2, (c1-23)*(c2+34) from '/home/user/pets.csv'
+					<br>
+					select case when c1*2&lt;10 then dog when c1*10&gt;=10.2 then cat else monkey end from '/home/user/pets.csv'
+					<br>
+					select case c1 / c4 when (c3+c3)*2 then dog when c1*10 then cat end from '/home/user/pets.csv'
+				</code>
+			</blockquote>
+			<h4>Expression Aliases</h4>
+			Begin a query with <code>with &lt;expression&gt; as &lt;alias&gt;</code> to use that value throughout the query. Separate aliases with <code>,</code> or <code>and</code>.
+			<br><br>
+			Example:
+			<br>
+			<blockquote>
+				<code>
+					with age*7 as dogyears, 'Mr.'+name as dogname select dogname, dogyears from '/home/user/pets.csv' order by dogyears
+				</code>
+			</blockquote>
+			<h4>Functions</h4>
+
+			<button class=funcTable onclick="showTable('funcTable')">Show function table</button>
+			<table border=1 class="funcTable hidden">
+				<th>Function</th><th>description</th><th>parameters</th>
+				<tr><td>sum</td><td>aggregate sum</td><td>(&lt;expression&gt;)</td></tr>
+				<tr><td>avg</td><td>aggregate average</td><td>(&lt;expression&gt;)</td></tr>
+				<tr><td>min</td><td>aggregate minimum</td><td>(&lt;expression&gt;)</td></tr>
+				<tr><td>max</td><td>aggregate maximum</td><td>(&lt;expression&gt;)</td></tr>
+				<tr><td>count</td><td>aggregate count</td><td>(&lt;expression&gt; or *)</td></tr>
+				<tr><td>stdev</td><td>aggregate sample standard deviation</td><td>(&lt;expression&gt;)</td></tr>
+				<tr><td>stdevp</td><td>aggregate population standard deviation</td><td>(&lt;expression&gt;)</td></tr>
+				<tr><td>inc</td><td>number that increments each line</td><td>()</td></tr>
+				<tr><td>rand</td><td>random number</td><td>()</td></tr>
+				<tr><td>abs</td><td>absolute value</td><td>(&lt;expression&gt;)</td></tr>
+				<tr><td>coalesce</td><td>first non-null expression</td><td>(&lt;any number of expressions&gt;)</td></tr>
+				<tr><td>now</td><td>current local datetime</td><td>()</td></tr>
+				<tr><td>nowlocal</td><td>current local datetime</td><td>()</td></tr>
+				<tr><td>nowgm</td><td>current GMT datetime</td><td>()</td></tr>
+				<tr><td>year</td><td>year</td><td>(&lt;expression&gt;)</td></tr>
+				<tr><td>month</td><td>month (1-12)</td><td>(&lt;expression>)</td></tr>
+				<tr><td>monthname</td><td>month name</td><td>(&lt;expression&gt;)</td></tr>
+				<tr><td>week</td><td>week of year (1-52)</td><td>(&lt;expression>)</td></tr>
+				<tr><td>dayname</td><td>day name</td><td>(&lt;expression&gt;)</td></tr>
+				<tr><td>dayofyear</td><td>day of year (1-366)</td><td>(&lt;expression>)</td></tr>
+				<tr><td>dayofmonth</td><td>day of month (1-31)</td><td>(&lt;expression>)</td></tr>
+				<tr><td>day</td><td>day of month (same as dayofmonth)</td><td>(&lt;expression>)</td></tr>
+				<tr><td>dayofweek</td><td>day of week (1-7, Sunday=1)</td><td>(&lt;expression>)</td></tr>
+				<tr><td>hour</td><td>hour (0-23)</td><td>(&lt;expression>)</td></tr>
+				<tr><td>minute</td><td>minute (0-59)</td><td>(&lt;expression>)</td></tr>
+				<tr><td>second</td><td>second (0-59)</td><td>(&lt;expression>)</td></tr>
+				<tr><td>format</td><td>format datetime text</td><td>(&lt;expression&gt;, &lt;format string&gt; or &lt;format code&gt;)</td></tr>
+				<tr><td>ceil</td><td>round up</td><td>(&lt;expression&gt;, &lt;optional decimal places&gt;)</td></tr>
+				<tr><td>floor</td><td>round down</td><td>(&lt;expression&gt;, &lt;optional decimal places&gt;)</td></tr>
+				<tr><td>round</td><td>round up or down to nearest</td><td>(&lt;expression&gt;, &lt;optional decimal places&gt;)</td></tr>
+				<tr><td>cos</td><td>trig cosine</td><td>(&lt;expression&gt;)</td></tr>
+				<tr><td>sin</td><td>trig sine</td><td>(&lt;expression&gt;)</td></tr>
+				<tr><td>tan</td><td>trig tangent</td><td>(&lt;expression&gt;)</td></tr>
+				<tr><td>acos</td><td>trig inverse cosine</td><td>(&lt;expression&gt;)</td></tr>
+				<tr><td>asin</td><td>trig inverse sine</td><td>(&lt;expression&gt;)</td></tr>
+				<tr><td>atan</td><td>trig inverse tangent</td><td>(&lt;expression&gt;)</td></tr>
+				<tr><td>exp</td><td>e to the power of number</td><td>(&lt;expression&gt;)</td></tr>
+				<tr><td>pow</td><td>1st expression to the power of second expression</td><td>(&lt;expression&gt;, &lt;expression&gt;)</td></tr>
+				<tr><td>log</td><td>log base e</td><td>(&lt;expression&gt;)</td></tr>
+				<tr><td>log2</td><td>log base 2</td><td>(&lt;expression&gt;)</td></tr>
+				<tr><td>log10</td><td>log base 10</td><td>(&lt;expression&gt;)</td></tr>
+				<tr><td>sqrt</td><td>square root</td><td>(&lt;expression&gt;)</td></tr>
+				<tr><td>cbrt</td><td>cube root</td><td>(&lt;expression&gt;)</td></tr>
+				<tr><td>upper</td><td>upper case</td><td>(&lt;expression&gt;)</td></tr>
+				<tr><td>lower</td><td>lower case</td><td>(&lt;expression&gt;)</td></tr>
+				<tr><td>len</td><td>lenth of text</td><td>(&lt;expression&gt;)</td></tr>
+				<tr><td>substr</td><td>substring from index+length or pattern matching</td><td>(&lt;expression&gt;, &lt;2 numbers&gt; or &lt;regex&gt;)</td></tr>
+				<tr><td>sip</td><td>sip hash (outputs a 64bit number)</td><td>(&lt;expression>)</td></tr>
+				<tr><td>md5</td><td>md5 hash in base64</td><td>(&lt;expression&gt;)</td></tr>
+				<tr><td>sha1</td><td>sha1 hash in base64</td><td>(&lt;expression&gt;)</td></tr>
+				<tr><td>sha256</td><td>sha256 hash in base64</td><td>(&lt;expression&gt;)</td></tr>
+				<tr><td>string</td><td>convert datatype to text</td><td>(&lt;expression&gt;)</td></tr>
+				<tr><td>int</td><td>convert datatype to integer</td><td>(&lt;expression&gt;)</td></tr>
+				<tr><td>float</td><td>convert datatype to floating point number</td><td>(&lt;expression&gt;)</td></tr>
+				<tr><td>date</td><td>convert datatype to datetime</td><td>(&lt;expression&gt;)</td></tr>
+				<tr><td>duration</td><td>convert datatype to duration</td><td>(&lt;expression&gt;)</td></tr>
+				<tr><td>encrypt</td><td>encrypt</td><td>(&lt;expression&gt;, &lt;optional password&gt;)</td></tr>
+				<tr><td>decrypt</td><td>decrypt</td><td>(&lt;expression&gt;, &lt;optional password&gt;)</td></tr>
+				<tr><td>base64_encode</td><td>encode to bas64</td><td>(&lt;expression&gt;)</td></tr>
+				<tr><td>base64_decode</td><td>decode from base64</td><td>(&lt;expression&gt;)</td></tr>
+			</table>
+
+			<br>
+			Aggregate functions can be used with a <code>group by</code> clause and group by as many values as you want. Without a <code>group by</code> clause, they will aggregate everything into a single row.
+			<br>
+			<br>
+			<code>Encrypt</code> function only guarantees a unique nonce for every value encrypted while the program is running. Uniqueness cannot be guaranteed between restarts, so avoid using the same password in different sessions. It does not hide the length of a value, so it may be best to use other security solutions when possible. <code>Decrypt</code> function returns an empty value if ciphertext has been tampered with. If no password is supplied, the program will prompt you for one.
+			<br>
+			<br>
+			Math functions like <code>asin</code> and <code>log</code> return an empty value when not a real number, such as <code>log(0)</code> or <code>asin(100)</code>. To return <code>nan</code>, <code>inf</code>, or <code>-inf</code> instead, add the option <code>nan</code> to the beginning of the query. Return value will still be empty if function is called on a null value.
+			<br>
+			<br>
+			Format function uses the type of date format string described by the <a href='https://linux.die.net/man/3/strftime' target='_blank'>Linux Manual</a>, with the addition of <code>mmm</code> for milliseconds. It can also take the format code for a preset format from the following table:
+			<br>
+
+			<button class=fmtTable onclick="showTable('fmtTable')">Show date format table</button>
+			<table border=1 class="fmtTable hidden">
+				<th>Format code</th><th>Resulting format</th><th>Corresonding format string</th>
+				<tr><td>1</td><td>mm/dd/yy</td><td>%m/%d/%y</td></tr>
+				<tr><td>101</td><td>mm/dd/yyyy</td><td>%m/%d/%Y</td></tr>
+				<tr><td>2</td><td>yy.mm.dd</td><td>%y.%m.%d</td></tr>
+				<tr><td>102</td><td>yyyy.mm.dd</td><td>%Y.%m.%d</td></tr>
+				<tr><td>3</td><td>dd/mm/yy</td><td>%d/%m/%y</td></tr>
+				<tr><td>103</td><td>dd/mm/yyyy</td><td>%d/%m/%Y</td></tr>
+				<tr><td>4</td><td>dd.mm.yy</td><td>%d.%m.%y</td></tr>
+				<tr><td>104</td><td>dd.mm.yyyy</td><td>%d.%m.%Y</td></tr>
+				<tr><td>5</td><td>dd-mm-yy</td><td>%d-%m-%y</td></tr>
+				<tr><td>105</td><td>dd-mm-yyyy</td><td>%d-%m-%Y</td></tr>
+				<tr><td>6</td><td>dd Mon yy</td><td>%d %b %y</td></tr>
+				<tr><td>106</td><td>dd Mon yyyy</td><td>%d %b %Y</td></tr>
+				<tr><td>7</td><td>Mon dd, yy</td><td>%b %d, %y</td></tr>
+				<tr><td>107</td><td>Mon dd, yyyy</td><td>%b %d, %Y</td></tr>
+				<tr><td>8</td><td>hh:mi:ss</td><td>%I:%M:%S</td></tr>
+				<tr><td>108</td><td>hh:mi:ss</td><td>%I:%M:%S</td></tr>
+				<tr><td>9</td><td>Mon dd yy hh:mi:ss:mmmmAM</td><td>%b %d %y %I:%M:%S:mmmm%p</td></tr>
+				<tr><td>109</td><td>Mon dd yyyy hh:mi:ss:mmmmAM</td><td>%b %d %Y %I:%M:%S:mmmm%p</td></tr>
+				<tr><td>10</td><td>mm-dd-yy</td><td>%m-%d-%y</td></tr>
+				<tr><td>110</td><td>mm-dd-yyyy</td><td>%m-%d-%Y</td></tr>
+				<tr><td>11</td><td>yy/mm/dd</td><td>%y/%m/%d</td></tr>
+				<tr><td>111</td><td>yyyy/mm/dd</td><td>%Y/%m/%d</td></tr>
+				<tr><td>12</td><td>yymmdd</td><td>%y%m%d</td></tr>
+				<tr><td>112</td><td>yyyymmdd</td><td>%Y%m%d</td></tr>
+				<tr><td>13</td><td>dd Mon yy hh:mi:ss:mmm(24h)</td><td>%d %b %y %H:%M:%S:mmm</td></tr>
+				<tr><td>113</td><td>dd Mon yyyy hh:mi:ss:mmm(24h)</td><td>%d %b %Y %H:%M:%S:mmm</td></tr>
+				<tr><td>14</td><td>hh:mi:ss:mmm(24h)</td><td>%H:%M:%S:mmm</td></tr>
+				<tr><td>114</td><td>hh:mi:ss:mmm(24h)</td><td>%H:%M:%S:mmm</td></tr>
+				<tr><td>15</td><td>yy-mm-dd</td><td>%y-%m-%d</td></tr>
+				<tr><td>115</td><td>yyyy-mm-dd</td><td>%Y-%m-%d</td></tr>
+				<tr><td>20</td><td>yy-mm-dd hh:mi:ss(24h)</td><td>%y-%m-%d %H:%M:%S</td></tr>
+				<tr><td>120</td><td>yyyy-mm-dd hh:mi:ss(24h)</td><td>%Y-%m-%d %H:%M:%S</td></tr>
+				<tr><td>21</td><td>yy-mm-dd hh:mi:ss.mmm(24h)</td><td>%y-%m-%d %H:%M:%S.mmm</td></tr>
+				<tr><td>121</td><td>yyyy-mm-dd hh:mi:ss.mmm(24h)</td><td>%Y-%m-%d %H:%M:%S.mmm</td></tr>
+				<tr><td>126</td><td>yyyy-mm-ddThh:mi:ss.mmm (no Spaces)</td><td>%Y-%m-%dT%H:%M:%S.mmm</td></tr>
+				<tr><td>127</td><td>yyyy-mm-ddThh:mi:ss.mmmZ (no Spaces)</td><td>%Y-%m-%dT%H:%M:%S.mmmZ</td></tr>
+				<tr><td>130</td><td>dd Mon yyyy hh:mi:ss:mmmAM</td><td>%d %b %Y %I:%M:%S:mmm%p</td></tr>
+				<tr><td>131</td><td>dd/mm/yyyy hh:mi:ss:mmmAM</td><td>%d/%b/%Y %I:%M:%S:mmm%p</td></tr>
+				<tr><td>119</td><td>Mon dd yyyy hh:mi:ssAM</td><td>%b %d %Y %I:%M:%S%p</td></tr>
+				<tr><td>140</td><td>dd Mon yyyy hh:mi:ssAM</td><td>%d %b %Y %I:%M:%S%p</td></tr>
+				<tr><td>141</td><td>dd/mm/yyyy hh:mi:ssAM</td><td>%d/%b/%Y %I:%M:%S%p</td></tr>
+				<tr><td>136</td><td>yyyy-mm-ddThh:mi:ss (no Spaces)</td><td>%Y-%m-%dT%H:%M:%S</td></tr>
+				<tr><td>137</td><td>yyyy-mm-ddThh:mi:ssZ (no Spaces)</td><td>%Y-%m-%dT%H:%M:%SZ</td></tr>
+			</table>
+
+			<br>
+			<h4>Selecting distinct rows or aggregates</h4>
+			To only return distinct rows of data, put the <code>distinct</code> keyword after <code>select</code>.
+			<br>
+			To calculate aggregate function of distinct values, put the <code>distinct</code> keyword in the function call.
+			<br><br>
+			Examples:
+			<blockquote>
+				<code>
+					select distinct dogtypes, fluffiness from '/home/user/pets.csv'
+					<br>
+					select count(distinct species) from '/home/user/pets.csv'
+				</code>
+			</blockquote>
+			<h4>Selecting a number of rows</h4>
+			Use the <code>top</code> keyword after <code>select</code>, or <code>limit</code> at the end of the query. Be careful not to confuse the number after <code>top</code> for part of an expression.
+			<br><br>
+			Examples:
+			<blockquote>
+				<code>
+					select top 100 c1, c2, c3, dogs, cats from '/home/user/pets.csv'
+					<br>
+					select c1, c2, c3, dogs, cats from '/home/user/pets.csv' limit 100
+				</code>
+			</blockquote>
+			<h4>Selecting rows that match a certain condition</h4>
+			Specify conditions you're looking for by using any combination of conditional statements with parentheses, <code>and</code>, <code>or</code>, and <code>xor</code> operators. Dates are handled nicely, so <code>May 18 1955</code> is the same as <code>5/18/1955</code>. Empty entries can be compared against the keyword <code>null</code>. The <code>in</code> operator can be used with a list or subquery, though correlated subqueries are not yet supported.
+			<br><br>
+			Valid relational operators are <code>is</code>, <code>=</code>,  <code>!=</code>,  <code>&lt;&gt;</code>,  <code>&gt;</code>,  <code>&lt;</code>,  <code>&gt;=</code>,  <code>&lt;=</code>, <code>like</code>, <code>in</code>, and <code>between</code>. <code>!</code> is evaluated the same as <code>not</code>, and can be put in front of a relational operator or a whole comparison.
+			<br><br>
+			Examples:
+			<blockquote>
+				<code>
+					select from '/home/user/pets.csv' where dateOfBirth &lt; 'april 10 1980' or age between (c3-19)*1.2 and 30
+					<br>
+					select from '/home/user/pets.csv' where (c1 &lt; c13 or fuzzy = very) and not (c3 = null or weight &gt;= 50 or name not like 'a_b%')
+					<br>
+					select from '/home/user/pets.csv' where c1 in (2,3,5,7,11,13,17,19,23)
+					<br>
+					select from '/home/user/pets.csv' where null not in (c1,c2,c3)
+					<br>
+					select from '/home/user/pets.csv' where name is not null
+					<br>
+					select from '/home/user/pets.csv' where species not in (select species from behaviors.csv where prey != humans)
+				</code>
+			</blockquote>
+			<h4>Sorting results</h4>
+			Use <code>order by</code> at the end of the query, followed by any number of expressions, each followed optionally by <code>desc</code>. Sorts by ascending values unless <code>desc</code> is specified.
+			<br><br>
+			Examples:
+			<blockquote>
+				<code>
+					select from '/home/user/pets.csv' where dog = husky order by age, fluffiness desc
+					<br>
+					select from '/home/user/pets.csv' order by c2*c3
+				</code>
+			</blockquote>
+			<h4>Joining Files</h4>
+			Any number of files can be joined together. <code>left</code> and <code>inner</code> joins are supported, default is <code>inner</code>. Join conditions can have as many comparisions as you want, combined with <code>and</code>, <code>or</code>, <code>xor</code>, and parentheses.
+			<br><br>
+			Examples:
+			<blockquote>
+				<code>
+					select pet.name, pet.species, code.c1 from '/home/user/pets.csv' pet
+					left join '/home/user/codes.csv' code
+					on pet.species = code.species order by pet.age
+					<br>
+					select pet.name, code.c1, fur.flufftype from '/home/user/pets.csv' pet
+					inner join '/home/user/fur.csv' fur
+					on pet.fluffiness = fur.fluff and fur.flufftype &lt;&gt; hairless
+					left join '/home/user/codes.csv' code
+					on pet.species = code.species or pet.genus = species.genus
+				</code>
+			</blockquote>
+			<hr>
 			<h3>Configuration</h3>
-			<hr/>
 			Some settings can be configured by editing the config file this.props.configpath
-			<br/> <br/>
+			<br> <br>
 			<hr/>
 			version this.props.version
 			<hr/>
 			updateMessage
-			<br/><br/>
-			
+			<br><br>
 		</div>
 	</body>
 </html>
