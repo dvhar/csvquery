@@ -287,12 +287,12 @@ bool varScoper::checkDuplicates(int index){
 void strplus(dat &s1, dat &s2){
 	if (s1.isnull()) { s1 = s2; s2.disown(); return; }
 	if (s2.isnull()) return;
-	int newlen = s1.z+s2.z+1;
+	int newlen = s1.z+s2.z;
 	if (s1.ismal()){
-		s1.u.s = (char*) realloc(s1.u.s, newlen);
+		s1.u.s = (char*) realloc(s1.u.s, newlen+1);
 		strcat(s1.u.s+s1.z-1, s2.u.s);
 	} else {
-		char* ns = (char*) malloc(newlen);
+		char* ns = (char*) malloc(newlen+1);
 		strcpy(ns, s1.u.s);
 		strcat(ns+s1.z-1, s2.u.s);
 		s1.u.s = ns;

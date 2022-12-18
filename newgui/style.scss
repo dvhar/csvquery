@@ -238,7 +238,7 @@ th, td {
 	color: darkred;
 }
 .filtervalue, .filtername {
-  max-height: 30em;
+	max-height: 30em;
 }
 .passPrompt {
 	top: 2.2em;
@@ -263,7 +263,7 @@ th, td {
 	overflow-y: scroll;
 }
 #helpPage {
-	color: #ffff99;
+	color: #ffffb9;
 	code {
 		background: $darkgrey2;
 		color: #ffaa0e;
@@ -272,5 +272,11 @@ th, td {
 	}
 	a {
 		color: orangered;
+	}
+	table {
+		border-collapse: collapse;
+		border: 2px solid #664518;
+		padding: 0.2em;
+		color: #ffff99;
 	}
 }

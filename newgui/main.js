@@ -215,7 +215,7 @@ function addHistory(query){
 	histNumber.textContent = `${histLen}/${histLen}`;
 }
 
-function submitQuery(){
+function submitQuery(savefile = ''){
 	let query = document.querySelector('#queryTextEntry').value;
 	if (query === ''){
 		topMessage("no query!");
@@ -225,8 +225,7 @@ function submitQuery(){
 		type: bit.SK_QUERY,
 		sessionId: sock.sessionId,
 		query,
-		fileIO: 0, 
-		savePath: "", 
+		savePath: savefile, 
 	};
 	changeRunButton(1);
 	sock.send(payload);
@@ -292,6 +291,16 @@ function pressRunButton(){
 	} else {
 		submitQuery();
 	}
+}
+
+function saveHandler(e) {
+	if (e.key !== 'Enter')
+		return;
+	let path = e.target.value;
+	if (path.substr(path.length-4) !== ".csv")
+		return;
+	console.log('saving',path);
+	submitQuery(path);
 }
 
 function SocketHandler(){
@@ -365,6 +374,7 @@ function init(){
 			submitQuery();
 		}
 	};
+	document.getElementById('saveinput').addEventListener('keyup', saveHandler);
 	addHistory('');
 }
 
