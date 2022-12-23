@@ -267,7 +267,7 @@ class vmachine {
 	querySpecs* q;
 	void endQuery();
 	void run();
-	shared_ptr<singleQueryResult> getJsonResult();
+	shared_ptr<singleQueryResult> getSingleResult();
 	vmachine(querySpecs &q);
 	~vmachine();
 };
@@ -430,9 +430,9 @@ class qinstance {
 		id = vm->id;
 		vm->run();
 		if (q->outputjson)
-			result = vm->getJsonResult();
+			result = vm->getSingleResult();
 		if (q->outputhtml)
-			result = vm->getJsonResult();
+			result = vm->getSingleResult();
 		return id;
 	}
 	shared_ptr<singleQueryResult> getResult(){

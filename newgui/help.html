@@ -6,6 +6,20 @@
 		function showTable(classname){
 			document.querySelectorAll(`.${classname}`).forEach(a=>a.classList.toggle('hidden'));
 		}
+		function getState(){
+			var req = new Request("/info?info=getState", {
+				method: 'GET',
+				cache: "no-cache",
+				headers: new Headers({ "Content-Type": "application/json", }),
+			});
+			fetch(req).then(res=>
+				res.status >= 400 ? false : res.json()
+			).then(ret=>{
+				if (!ret) return;
+				document.querySelector('#configpath').innerText = ret.configpath;
+				document.querySelector('#version').innerText = ret.version;
+			});
+		}
 	</script>
 	<body>
 		<div id=helpPage>
@@ -297,13 +311,14 @@
 			</blockquote>
 			<hr>
 			<h3>Configuration</h3>
-			Some settings can be configured by editing the config file this.props.configpath
-			<br> <br>
-			<hr/>
-			version this.props.version
-			<hr/>
-			updateMessage
-			<br><br>
+			Some settings can be configured by editing the config file: <span id=configpath ></span>
+			<hr>
+			Version: <span id=version ></span>
+			<br>
+			<span id=updateMsg ></span>
 		</div>
 	</body>
 </html>
+<script>
+	getState();
+</script>

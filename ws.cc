@@ -23,7 +23,6 @@ shared_ptr<singleQueryResult> runWebQuery(shared_ptr<webquery> wq){
 			q.savepath = wq->savepath;
 		}
 	}
-	//return runJsonQuery(q);
 	return runHtmlQuery(q);
 }
 

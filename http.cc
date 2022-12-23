@@ -46,8 +46,7 @@ static bool rejectNonLocals(Request& request){
 static void serve(){
 
 	auto startdir = filebrowse(boost::filesystem::current_path().string());
-	state["openDirList"] = startdir->tojson();
-	state["saveDirList"] = startdir->tojson();
+	state["startDirlist"] = startdir->tojson();
 	state["version"] = version;
 	state["notifyUpdate"] = globalSettings.update;
 	state["configpath"] = globalSettings.configfilepath;

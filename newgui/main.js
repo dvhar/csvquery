@@ -38,18 +38,15 @@ function populateDirs(clicked, ret){
 	ret.dirs.forEach(path => makespan(path, 'browseDir'));
 	ret.files.forEach(path => makespan(path, 'browsefile'));
 }
-function dirclick(clicked, both=false){
 
+function dirclick(clicked){
 	let payload = {
-		sessionId: sock.sessionId,
 		path: clicked.clickData,
 		mode: 'open',
 	};
 	var req = new Request("/info?info=fileClick", {
 		method: 'POST',
 		cache: "no-cache",
-		redirect: 'follow',
-		referrer: "no-referrer",
 		headers: new Headers({ "Content-Type": "application/json", }),
 		body: JSON.stringify(payload),
 	});
@@ -58,11 +55,21 @@ function dirclick(clicked, both=false){
 	).then(ret=>{
 		if (!ret)
 			return;
-		if (both){
-			document.querySelectorAll('.startdir').forEach(fl=>populateDirs(fl, ret));
-		} else {
-			populateDirs(clicked, ret);
-		}
+		populateDirs(clicked, ret);
+	});
+}
+
+function getState(){
+	var req = new Request("/info?info=getState", {
+		method: 'GET',
+		cache: "no-cache",
+		headers: new Headers({ "Content-Type": "application/json", }),
+	});
+	fetch(req).then(res=>
+		res.status >= 400 ? false : res.json()
+	).then(ret=>{
+		if (!ret) return;
+		document.querySelectorAll('.startdir').forEach(fl=>populateDirs(fl, ret.startDirlist));
 	});
 }
 
@@ -301,6 +308,7 @@ function saveHandler(e) {
 		return;
 	console.log('saving',path);
 	submitQuery(path);
+	e.target.closest('.fileBrowser').classList.add('hidden');
 }
 
 function SocketHandler(){
@@ -353,8 +361,8 @@ function SocketHandler(){
 }
 
 function init(){
-	dirclick({clickData:'/home/d/gits/csvquery/build'}, true);
-	document.addEventListener('click',e=>{ //TODO: more efficient click handling
+	getState();
+	document.addEventListener('click',e=>{
 		if (e.target.classList.contains('dropbutton'))
 			return;
 		let dropdown = e.target.closest('.dropdown');
