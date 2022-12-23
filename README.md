@@ -1,14 +1,5 @@
 # CSV query engine for big files
 
-## PreBuild
-If modifying the embedded webpage:
-```
-cd webgui
-npm install
-npm run build
-cd ..
-./deps/embed.sh
-```
 ## Build
 First install `boost` libraries.
 ```
@@ -42,7 +33,7 @@ Run queries from command line:
 ```
 ./cql "select from stuff.csv"
 ```
-Start http server to run queries from web browser gui or to view query language documentation:
+Start http server to run queries from web browser interface or to view query language documentation:
 ```
 ./cql
 ```
