@@ -529,7 +529,7 @@ bool opDoesJump(int opcode){
 	return false;
 }
 
-shared_ptr<singleQueryResult> vmachine::getJsonResult(){
+shared_ptr<singleQueryResult> vmachine::getSingleResult(){
 	static auto isCommented = regex(".*--.*(\n.*|$)");
 	static auto comment = regex("--.*(\n|$)");
 	result->types = q->colspec.types;
@@ -559,7 +559,7 @@ shared_ptr<singleQueryResult> showTables(querySpecs &q){
 	}
 	vector<string> colnames = {"Name","Details"};
 	vector<int> types = {5,5};
-	if (q.outputjson){ // TODO: html
+	if (q.outputhtml){
 		auto ret = make_shared<singleQueryResult>();
 		ret->numcols = 2;
 		ret->rowlimit = 10000;
@@ -568,7 +568,7 @@ shared_ptr<singleQueryResult> showTables(querySpecs &q){
 		ret->types = move(types);
 		for (auto& t : tables){
 			ret->numrows++;
-			ret->Vals.push_back(st( "[\"", escapeJSON(get<0>(t)), "\",\"", escapeJSON(get<1>(t)), "\"]"));
+			ret->Vals.push_back(st("<tr><td>", escapeHTML(get<0>(t)), "</td><td>", escapeHTML(get<1>(t)), "</td></tr>"));
 		}
 		return ret;
 	} else {
