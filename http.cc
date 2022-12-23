@@ -48,7 +48,6 @@ static void serve(){
 	auto startdir = filebrowse(boost::filesystem::current_path().string());
 	state["startDirlist"] = startdir->tojson();
 	state["version"] = version;
-	state["notifyUpdate"] = globalSettings.update;
 	state["configpath"] = globalSettings.configfilepath;
 	server.config.port = 8060;
 	header.emplace("Cache-Control","no-store");

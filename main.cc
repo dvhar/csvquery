@@ -15,7 +15,6 @@ void help(char* prog){
 		<< prog << " \"select from {}\" data.csv\n\tRun query from command line argument and substitute {} with the following argument\n"
 		<< prog << "\n\tRun server to use graphic interface in web browser\n\n"
 		"Flags:\n"
-		"\t-x    Don't check for updates when clicking the gui's help button\n"
 		"\t-m    Don't require comma between selections, but do require 'as' for result names\n"
 		"\t-g    Don't show debug info in console\n"
 		"\t-d    Show debug info in console (default)\n"
@@ -32,7 +31,6 @@ void help(char* prog){
 		"\t-o FILE    Save query to FILE\n\n"
 		"Config file is " << globalSettings.configfilepath << ". These are the settings you can change:\n"
 		"\tshow_debug_info:      same as -d and -g\n"
-		"\tcheck_update:         same as -x\n"
 		"\tguess_file_header:    same as -a\n"
 		"\texit_automatically:   same as -e\n"
 		"\ttable_or_csv:         same as -t and -c\n"
@@ -46,13 +44,10 @@ int main(int argc, char** argv){
 	string querystring;
 	string savefile;
 	loadconfig();
-	for(char c; (c = getopt(argc, argv, "hxvgdeajtywcmf:o:")) != -1;)
+	for(char c; (c = getopt(argc, argv, "hvgdeajtywcmf:o:")) != -1;)
 		switch(c){
 		case 'o':
 			savefile = optarg;
-			break;
-		case 'x':
-			globalSettings.update = false;
 			break;
 		case 'g':
 			globalSettings.debug = false;
@@ -180,7 +175,6 @@ void loadconfig(){
 	vector<string> opts{
 		"version",
 		"show_debug_info",
-		"check_update",
 		"guess_file_header",
 		"exit_automatically",
 		"table_or_csv",
@@ -195,7 +189,6 @@ void loadconfig(){
 			CFG::ReadFile(cfile, opts,
 					confversion,
 					globalSettings.debug,
-					globalSettings.update,
 					globalSettings.autoheader,
 					globalSettings.autoexit,
 					defaultoutput,
@@ -214,7 +207,6 @@ void loadconfig(){
 		CFG::WriteFile(cfile, opts,
 				version,
 				globalSettings.debug,
-				globalSettings.update,
 				globalSettings.autoheader,
 				globalSettings.autoexit,
 				defaultoutput,

@@ -3,6 +3,7 @@
 		<link rel="stylesheet" type="text/css" href="style.css"/>
 	</head>
 	<script>
+		var version;
 		function showTable(classname){
 			document.querySelectorAll(`.${classname}`).forEach(a=>a.classList.toggle('hidden'));
 		}
@@ -18,12 +19,34 @@
 				if (!ret) return;
 				document.querySelector('#configpath').innerText = ret.configpath;
 				document.querySelector('#version').innerText = ret.version;
+				version = ret.version;
 			});
+		}
+		function checkUpdates(button){
+			let messageDiv = document.getElementById('updateMsg');
+			button.style.display = 'none';
+			messageDiv.innerText = 'Checking updates...';
+			let url = new URL(`https://davosaur.com/csv/index.php?d=version`);
+			let resp = fetch(url);
+			resp.then(dat => { if (dat.ok){
+				dat.json().then(v => {
+					if (version && v.version && parseFloat(v.version) > parseFloat(version)){
+						let update = `<a href='https://davosaur.com/csv' target='_blank'>New version available</a>`;
+						let notes = v.notes ? '<br>Update notes: '+v.notes : '';
+						update = `${update}${notes}<hr>`;
+						messageDiv.innerHTML = update;
+					} else {
+						messageDiv.innerHTML = 'Your version is up to date<hr>';
+						setTimeout(()=>messageDiv.innerText='', 10000);
+					}
+				});
+			}})
 		}
 	</script>
 	<body>
 		<div id=helpPage>
-
+			<button onclick="checkUpdates(this)">Check for updates</button>
+			<span id=updateMsg ></span>
 			<h3>What this software does</h3>
 			Run <code>select</code> queries on csv files, display the results, and save to new csv files. It can handle big csv files that are too big for other programs.
 			<br>
@@ -314,8 +337,6 @@
 			Some settings can be configured by editing the config file: <span id=configpath ></span>
 			<hr>
 			Version: <span id=version ></span>
-			<br>
-			<span id=updateMsg ></span>
 		</div>
 	</body>
 </html>
