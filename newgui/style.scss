@@ -42,6 +42,10 @@ $codecolor-dark: #ffaa0e;
 @mixin maincolorgradient-dark() {
 	@include foursmooth($redgrad1, $redgrad2, $redgrad3, $redgrad4);
 }
+@mixin helpbuttongradient-dark() {
+	color: #ffffff;
+	@include fourshiney(#888888,#717171,#616161,#868686);
+}
 @mixin mainbuttongradient-dark() {
 	color: #eeeeee;
 	@include fourshiney(#666666,#515151,#414141,#666666);
@@ -263,7 +267,7 @@ th, td {
 	overflow-y: scroll;
 }
 #helpPage {
-	color: #ffffb9;
+	color: #f5f5d0;
 	code {
 		background: $darkgrey2;
 		color: #ffaa0e;
@@ -278,5 +282,14 @@ th, td {
 		border: 2px solid #664518;
 		padding: 0.2em;
 		color: #ffff99;
+	}
+	h3,h4 {
+		color: #ffeb00;
+	}
+	button {
+		@include helpbuttongradient-dark();
+	}
+	button:hover {
+		@include hoverbuttongradient-dark();
 	}
 }

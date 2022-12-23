@@ -184,7 +184,7 @@ th, td {
   overflow-y: scroll; }
 
 #helpPage {
-  color: #ffffb9; }
+  color: #f5f5d0; }
   #helpPage code {
     background: #222222;
     color: #ffaa0e;
@@ -197,3 +197,13 @@ th, td {
     border: 2px solid #664518;
     padding: 0.2em;
     color: #ffff99; }
+  #helpPage h3, #helpPage h4 {
+    color: #ffeb00; }
+  #helpPage button {
+    color: #ffffff;
+    background: #888888;
+    background: linear-gradient(to bottom, #888888 0%, #717171 50%, #616161 51%, #868686 100%); }
+  #helpPage button:hover {
+    color: #eeeeee;
+    background: #00136a;
+    background: linear-gradient(to bottom, #00136a 0%, #08606c 50%, #0832f6 51%, #062f3d 100%); }
