@@ -597,14 +597,19 @@ astnode parser::parsePredCompare() {
 		//try parsing as predicate
 		t = q->nextTok();
 		bool tryAgain = false;
+		bool ispreds = false;
 		try {
 			n->node1 = parsePredicates();
 			t = q->tok();
-			if (t.id != SP_RPAREN) error("Expected cosing parenthesis. Found: '",t.val,"'");
+			ispreds = true;
 		//if failed, reparse as expression
 		} catch (const std::invalid_argument& e) {
 			q->tokIdx = pos;
 			tryAgain = true;
+		}
+		if (ispreds) {
+			if (t.id != SP_RPAREN) error("Expected cosing parenthesis. Found: '",t.val,"'"); // should not be caught in try block
+			t = q->nextTok();
 		}
 		//return if (more comparisions)
 		if (!tryAgain) {

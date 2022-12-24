@@ -7,7 +7,7 @@
 #include "deps/html/escape.h"
 #include "deps/incbin/incbin.h"
 
-INCBIN(_SINGLERESULT,"../newgui/singleresult.html");
+INCBIN(_SINGLERESULT,"../webgui/singleresult.html");
 #define max(a,b) (a) > (b) ? (a) : (b)
 
 string version = "1.60";

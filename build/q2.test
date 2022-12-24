@@ -1,1 +1,0 @@
-select monthname(c16) from 'test/country' group by month(c16)

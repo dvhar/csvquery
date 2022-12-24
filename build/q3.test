@@ -1,1 +1,0 @@
-select max(c3) min(c3) from 'test/cities' nh having c3 in (select c1 from 'test/country' nh where c1 < CAA)

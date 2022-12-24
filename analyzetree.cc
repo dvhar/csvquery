@@ -429,7 +429,7 @@ void analyzer::findMidrowTargets(astnode &n){
 			q->midcount++;
 			return;
 		} else {
-			findAgrregates(n->nsubexpr());
+			findMidrowTargets(n->nsubexpr());
 		}
 		break;
 	case N_GROUPBY:

@@ -22,10 +22,10 @@ static bool rejectNonLocals(Request& request){
 //uncomment to load files from disk when page loads for testing, else they are embedded during compilation
 //#define testing_site
 
-#define file1 "../newgui/index.html"
-#define file2 "../newgui/main.js"
-#define file3 "../newgui/style.css"
-#define file4 "../newgui/help.html"
+#define file1 "../webgui/index.html"
+#define file2 "../webgui/main.js"
+#define file3 "../webgui/style.css"
+#define file4 "../webgui/help.html"
 
 #ifdef testing_site
 #define _f(num) st(ifstream(file##num).rdbuf())

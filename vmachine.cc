@@ -16,7 +16,7 @@ namespace bs_sort = boost::sort::parallel;
 
 #define debugOpcode
 #ifndef debugOpcode
-#define debugOpcode  perr(st("\nip ",ip," opcode ",opMap[op->code]," stack ",stacktop-stackbot));
+#define debugOpcode  perr(st("\nip ",ip," opcode ",opMap[op->code],"[",op->p1," ",op->p2," ",op->p3,"] stack ",stacktop-stackbot));
 #endif
 //jump to next operation
 #define next() \

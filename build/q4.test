@@ -1,1 +1,0 @@
-select distinct c3 from 'test/cities' nh where c3 in (nh select c1 from l)
