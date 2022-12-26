@@ -260,7 +260,7 @@
 
 			<br>
 			<h4>Selecting distinct rows or aggregates</h4>
-			To only return distinct rows of data, put the <code>distinct</code> keyword after <code>select</code>.
+			To get distinct rows of data, put the <code>distinct</code> keyword after <code>select</code>. To get rows of data with only some distinct values rather than the entire row being distinct, use <code>group by</code>. Note that when grouping, selections that are not distinct or aggregate functions will just be the first value that is found.
 			<br>
 			To calculate aggregate function of distinct values, put the <code>distinct</code> keyword in the function call.
 			<br><br>
@@ -270,6 +270,8 @@
 					select distinct dogtypes, fluffiness from '/home/user/pets.csv'
 					<br>
 					select count(distinct species) from '/home/user/pets.csv'
+					<br>
+					select dogtypes, fluffiness from pets.csv group by dogtypes
 				</code>
 			</blockquote>
 			<h4>Selecting a number of rows</h4>

@@ -19,7 +19,6 @@ void help(char* prog){
 		"\t-g    Don't show debug info in console\n"
 		"\t-d    Show debug info in console (default)\n"
 		"\t-e    Don't automatically exit 3 minutes after the browser page is closed\n"
-		"\t-a    Guess if files have header based on whether or not there are numbers in the first row\n"
 		"\t-t    Output results in terminal as table instead of csv format\n"
 		"\t-c    Output results in terminal as csv instead of table (default)\n"
 		"\t-y    Same as -t but with background colors to help see lines\n"
@@ -44,7 +43,7 @@ int main(int argc, char** argv){
 	string querystring;
 	string savefile;
 	loadconfig();
-	for(char c; (c = getopt(argc, argv, "hvgdeajtywcmf:o:")) != -1;)
+	for(char c; (c = getopt(argc, argv, "hvgdejtywcmf:o:")) != -1;)
 		switch(c){
 		case 'o':
 			savefile = optarg;
@@ -57,9 +56,6 @@ int main(int argc, char** argv){
 			break;
 		case 'e':
 			globalSettings.autoexit = false;
-			break;
-		case 'a':
-			globalSettings.autoheader = true;
 			break;
 		case 'f':
 			globalSettings.termbox = true;
@@ -127,7 +123,7 @@ int main(int argc, char** argv){
 			querystring = argv[optind];
 			int bc = bracecount(querystring);
 			if (bc && (optind + bc != argc-1))
-				error("Query with ", bc, " '{}' pair",(bc>1?"s":"")," must have ",bc," matching argument",(bc>1?"s":""),". Found ",argc-optind-1,'\n');
+				error("Query with ",bc," '{}' pair",(bc>1?"s":"")," must have ",bc," matching argument",(bc>1?"s":""),". Found ",argc-optind-1,'\n');
 			int end = argc - bc;
 			for (int i=optind+1; i<end; ++i){
 				querystring += ' ';
@@ -146,7 +142,7 @@ int main(int argc, char** argv){
 			querystring = string(arg1);
 			int bc = bracecount(querystring);
 			if (bc)
-				error("Query with ", bc, " '{}' pair",(bc>1?"s":"")," must have ",bc," matching argument",(bc>1?"s":""),". Found 0\n");
+				error("Query with ",bc," '{}' pair",(bc>1?"s":"")," must have ",bc," matching argument",(bc>1?"s":""),". Found 0\n");
 		}
 
 		querySpecs q(querystring, savefile);

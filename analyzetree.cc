@@ -15,7 +15,7 @@ class analyzer {
 		void setSubtreeVarFilter(astnode &n, int filter);
 		void propogateVarFilter(string var, int filter);
 		void selectAll();
-		void selectAllSubquery();
+		void selectAllGroupOrSubquery();
 		pair<astnode,node*> expandSelectAll();
 		void recordResultColumns(astnode &n);
 		bool findAgrregates(astnode &n);
@@ -140,8 +140,8 @@ pair<astnode,node*> analyzer::expandSelectAll(){
 	return newselections;
 }
 
-void analyzer::selectAllSubquery(){
-	if (!q->isSubquery) return;
+void analyzer::selectAllGroupOrSubquery(){
+	if (!q->isSubquery && !q->grouping) return;
 	if (auto& selections = findFirstNode(q->tree, N_SELECTIONS); selections == nullptr){
 		if (auto& select = findFirstNode(q->tree, N_SELECT); select){
 			select->nselections() = expandSelectAll().first;
@@ -690,7 +690,7 @@ int earlyAnalyze(querySpecs &q){
 }
 void midAnalyze(querySpecs &q){
 	analyzer an(q);
-	an.selectAllSubquery();
+	an.selectAllGroupOrSubquery();
 }
 void lateAnalyze(querySpecs &q){
 	analyzer an(q);
