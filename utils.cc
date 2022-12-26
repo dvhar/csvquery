@@ -355,30 +355,27 @@ string singleQueryResult::tohtml(){
 	boost::replace_first(tplate,"{{ querytext }}", chopAndEscapeHTML(query));
 	boost::replace_all(tplate,"{{ colnum }}", to_string(numcols));
 	boost::replace_all(tplate,"{{ rownum }}", to_string(numrows));
-	stringstream items;
 	{
 		stringstream filterlist;
 		stringstream togglelist;
+		stringstream namelist;
+		stringstream typelist;
 		for (int i=0; i<colnames.size(); i++){
 			auto name = chopAndEscapeHTML(colnames[i]);
 			filterlist << "<option onclick=\"populatefilter(this," << i << ")\">" << name << "</option>";
 			togglelist << "<option onclick=\"toggleColumn(this," << i << ")\">" << name << "</option>";
-			items << "<th>" << name << "</th>";
+			namelist << "<th>" << name << "</th>";
+			typelist << "<td>" << i+1 << "<span>-" << typenames[types[i]] << "</span></td>";
 		}
 		boost::replace_first(tplate,"{{ populatefilter-names }}", filterlist.str());
 		boost::replace_first(tplate,"{{ toggleColumn-names }}", togglelist.str());
+		boost::replace_first(tplate,"{{ th-names }}", namelist.str());
+		boost::replace_first(tplate,"{{ td-types }}", typelist.str());
 	}
-	boost::replace_first(tplate,"{{ th-names }}", items.str());
-	items.str("");
-	items.clear();
-	for (auto& type:types)
-		items << "<td>" << typenames[type] << "</td>";
-	boost::replace_first(tplate,"{{ td-types }}", items.str());
-	items.str("");
-	items.clear();
+	stringstream rows;
 	for (auto& row:Vals)
-		items << row << endl;
-	boost::replace_first(tplate,"{{ tr-vals }}", items.str());
+		rows << row << endl;
+	boost::replace_first(tplate,"{{ tr-vals }}", rows.str());
 	return tplate;
 }
 //nlohmann library can't handle invalid utf-8

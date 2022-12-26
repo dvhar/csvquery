@@ -172,6 +172,9 @@ th, td {
 .resultHead {
 	border-bottom: none;
 	@include greygradient-dark();
+	span {
+		user-select: none;
+	}
 }
 .resultBody {
 	background: $darkgrey1;

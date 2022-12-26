@@ -90,6 +90,8 @@ th, td {
   color: #ffff99;
   background: #444444;
   background: linear-gradient(to bottom, #444444 0%, #303030 50%, #202020 51%, #444444 100%); }
+  .resultHead span {
+    user-select: none; }
 
 .resultBody {
   background: #0f0f0f; }

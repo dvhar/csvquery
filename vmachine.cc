@@ -1193,6 +1193,8 @@ FUNC_FORMAT_:
 		iTemp1 = strlen(dstr);
 		if (iTemp1)
 			stk0 = dat{ {.s = strdup(dstr)}, T_STRING|MAL, (u32)iTemp1 };
+		else
+			stk0.setnull();
 	}
 	nexti();
 
