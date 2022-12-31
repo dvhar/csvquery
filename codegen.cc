@@ -589,12 +589,15 @@ void cgen::genVars(astnode &n){
 					} else {
 						addop1(LDMID, n->varmididx());
 						addop1(PUTVAR, i);
+						if (q->sorting && q->getVarType(n->varname()) == T_STRING){ //TODO: HOLDVAR innefient, maybe modify LDVAR?
+							addop1(HOLDVAR, i);
+						}
 					}
 				} else {
 					addop1(PUTVAR, i);
-					int vartype = q->getVarType(n->varname());
-					if (agg_phase == 2 && q->sorting && vartype == T_STRING)
+					if (agg_phase == 2 && q->sorting && q->getVarType(n->varname()) == T_STRING){
 						addop1(HOLDVAR, i);
+					}
 				}
 			}
 			genVars(n->nnextvar());
@@ -997,7 +1000,7 @@ void cgen::genFunction(astnode &n){
 				setIndex = addBtree(n->nsubexpr()->datatype, q);
 				separateSets = 0;
 			}
-			addop(DIST_AGG, funcDone, setIndex, separateSets);
+			addop(DIST_FUNC, funcDone, setIndex, separateSets);
 			addop(LDDIST);
 		}
 	}

@@ -517,7 +517,7 @@ bool opDoesJump(int opcode){
 	case RDLINE:
 	case RDLINE_ORDERED:
 	case NULFALSE:
-	case DIST_AGG:
+	case DIST_FUNC:
 	case DIST_NORM:
 	case JMPNOTNULL_ELSEPOP:
 	case NEXTMAP:
