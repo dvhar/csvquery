@@ -589,7 +589,7 @@ void cgen::genVars(astnode &n){
 					} else {
 						addop1(LDMID, n->varmididx());
 						addop1(PUTVAR, i);
-						if (q->sorting && q->getVarType(n->varname()) == T_STRING){ //TODO: HOLDVAR innefient, maybe modify LDVAR?
+						if (q->sorting && q->getVarType(n->varname()) == T_STRING){
 							addop1(HOLDVAR, i);
 						}
 					}
@@ -778,7 +778,7 @@ void cgen::genSelect(astnode &n){
 void cgen::genSelections(astnode &n){
 	if (n == nullptr) {
 		//reached end of selections section of query
-		if (!select_count) genSelectAll();
+		if (!select_count && agg_phase != 1) genSelectAll();
 		return;
 	}
 	e("gen selections");

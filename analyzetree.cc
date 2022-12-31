@@ -5,6 +5,7 @@
 
 class analyzer {
 	int andChainSize;
+	bool onlyAggregate = false; //TODO: why is default parameter overriding not working?
 	public:
 		querySpecs* q;
 		analyzer(querySpecs& qs): q{&qs} {
@@ -19,6 +20,7 @@ class analyzer {
 		pair<astnode,node*> expandSelectAll();
 		void recordResultColumns(astnode &n);
 		bool findAgrregates(astnode &n);
+		bool findOnlyAgrregates(astnode &n);
 		bool allAgrregates(astnode &n);
 		void findMidrowTargets(astnode &n);
 		void setVarPhase(astnode &n, int phase, int section);
@@ -217,6 +219,13 @@ bool analyzer::allAgrregates(astnode &n){
 			return false;
 	return true;
 }
+bool analyzer::findOnlyAgrregates(astnode &n){
+	bool temp = onlyAggregate;
+	onlyAggregate = true;
+	bool ret = findAgrregates(n);
+	onlyAggregate = temp;
+	return ret;
+}
 bool analyzer::findAgrregates(astnode &n){
 	if (n == nullptr) return false;
 	switch (n->label){
@@ -238,8 +247,15 @@ bool analyzer::findAgrregates(astnode &n){
 		}
 		return false;
 	case N_VALUE:
-		if (n->valtype() == VARIABLE && (q->var(n->varname()).phase & 2))
-			return true;
+		if (n->valtype() == VARIABLE){
+			if (onlyAggregate) {
+				if (q->var(n->varname()).phase == 2)
+					return true;
+			} else {
+				if (q->var(n->varname()).phase & 2)
+					return true;
+			}
+		}
 		return findAgrregates(n->node1);
 	default:
 		// no shortcircuit evaluation because need to check semantics
@@ -298,7 +314,7 @@ void analyzer::setVarPhase(astnode &n, int phase, int section){
 		}
 		break;
 	case N_JOIN:
-		if (findAgrregates(n->njoinconds()))
+		if (findOnlyAgrregates(n->njoinconds()))
 			error("cannot have aggregates in 'join' clause");
 		setVarPhase(n->njoinconds(), 1, 3);
 		break;
@@ -308,7 +324,7 @@ void analyzer::setVarPhase(astnode &n, int phase, int section){
 		setVarPhase(n->npredconds(), 2, 4);
 		break;
 	case N_WHERE:
-		if (findAgrregates(n->npredconds()))
+		if (findOnlyAgrregates(n->npredconds()))
 			error("cannot have aggregates in 'where' clause");
 		setVarPhase(n->npredconds(), 1, 5);
 		break;
@@ -318,8 +334,7 @@ void analyzer::setVarPhase(astnode &n, int phase, int section){
 		setVarPhase(n->norderlist(), 2, 6);
 		break;
 	case N_GROUPBY:
-		if (findAgrregates(n->ngrouplist()))
-			//TODO: non-agg vars returned in result are treat like aggs here, fix that
+		if (findOnlyAgrregates(n->ngrouplist()))
 			error("cannot have aggregate in group by clause");
 		setVarPhase(n->ngrouplist(), 1, 7);
 		break;
@@ -433,7 +448,7 @@ void analyzer::findMidrowTargets(astnode &n){
 		}
 		break;
 	case N_GROUPBY:
-		if (findAgrregates(n->ngrouplist()))
+		if (findOnlyAgrregates(n->ngrouplist()))
 			error("Cannot have aggregate function in groupby clause");
 		break;
 	default:
