@@ -11,6 +11,7 @@ class cgen {
 	int wherenot = 0;
 	bool headerdone = false;
 	vector<int> valposTypes;
+	vector<pair<int,int>> dualPhaseGroupVars;
 	vector<opcode>& v;
 	jumpPositions jumps;
 	varScoper vs;
@@ -585,7 +586,12 @@ void cgen::genVars(astnode &n){
 				if (n->phase == (1|2)){
 					//non-aggs in phase2
 					if (agg_phase == 1){
-						addop2(PUTVAR2, i, n->varmididx());
+						if (vs.scopefilter == GROUP_FILTER){ //need to get group before storing it there
+							addop1(PUTVAR, i);
+							dualPhaseGroupVars.push_back({i,n->varmididx()});
+						} else {
+							addop2(PUTVAR2, i, n->varmididx());
+						}
 					} else {
 						addop1(LDMID, n->varmididx());
 						addop1(PUTVAR, i);
@@ -1180,7 +1186,7 @@ void cgen::genTypeConv(astnode &n){
 }
 
 void cgen::genGetGroup(astnode &n){
-	vs.setscope(AGG_FILTER, V_READ1_SCOPE);
+	vs.setscope(GROUP_FILTER, V_READ1_SCOPE);
 	genVars(q->tree->npreselect());
 	if (n == nullptr) return;
 	e("get group");
@@ -1191,6 +1197,9 @@ void cgen::genGetGroup(astnode &n){
 			genExprAll(nn->nsubexpr());
 		}
 		addop1(GETGROUP, depth);
+		for (auto& v : dualPhaseGroupVars){
+			addop2(LDPUTVAR, v.first, v.second);
+		}
 	}
 }
 

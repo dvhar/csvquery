@@ -371,6 +371,7 @@ flatmap<int, string_view> opMap = {
 	{LDMID,"LDMID"},
 	{LDPUTMID,"LDPUTMID"},
 	{LDPUTGRP,"LDPUTGRP"},
+	{LDPUTVAR,"LDPUTVAR"},
 	{LDSTDVI,"LDSTDVI"},
 	{LDSTDVF,"LDSTDVF"},
 	{LDAVGI,"LDAVGI"},

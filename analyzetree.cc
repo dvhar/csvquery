@@ -87,7 +87,7 @@ void analyzer::varUsedInFilter(astnode &n){
 		setSubtreeVarFilter(n->nsubexpr(), ORDER_FILTER);
 		break;
 	case N_GROUPBY:
-		setSubtreeVarFilter(n->nsubexpr(), AGG_FILTER);
+		setSubtreeVarFilter(n->nsubexpr(), GROUP_FILTER);
 		break;
 	case N_HAVING:
 		setSubtreeVarFilter(n->nsubexpr(), HAVING_FILTER);
@@ -367,8 +367,10 @@ void analyzer::setNodePhase(astnode &n, int phase){
 		if ((n->funcid() & AGG_BIT) != 0){
 			//nodes below aggregate are phase 1
 			setNodePhase(n->nsubexpr(), 1);
+			setNodePhase(n->node2, 1);
 		} else {
 			setNodePhase(n->nsubexpr(), phase);
+			setNodePhase(n->node2, phase);
 		}
 		break;
 	case N_VARS:
