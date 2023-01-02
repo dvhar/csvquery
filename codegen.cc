@@ -586,7 +586,7 @@ void cgen::genVars(astnode &n){
 				if (n->phase == (1|2)){
 					//non-aggs in phase2
 					if (agg_phase == 1){
-						if (vs.scopefilter == GROUP_FILTER){ //need to get group before storing it there
+						if (vs.scopefilter == GROUP_FILTER || (vs.scopefilter == WHERE_FILTER && q->grouping)){ //need to get group before storing it there
 							addop1(PUTVAR, i);
 							dualPhaseGroupVars.push_back({i,n->varmididx()});
 						} else {

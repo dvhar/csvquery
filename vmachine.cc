@@ -89,6 +89,7 @@ LDMID_:
 //move var from stack bottom to group row
 LDPUTVAR_:
 	torow[op->p2].mov(stkb(op->p1));
+	torow[op->p2].selfheap();
 	nexti();
 
 //put variable from stack into stackbot
@@ -99,7 +100,7 @@ PUTVAR_:
 //put variable from stack into midrow and stackbot
 PUTVAR2_:
 	if (auto& t = torow[op->p2]; t.isnull() && !stk0.isnull()){
-		t = stk0.heap();
+		t = stk0.getheap();
 	}
 	stkb(op->p1).mov(stk0);
 	pop();
@@ -180,7 +181,7 @@ SAVESORTN_:
 	pop();
 	nexti();
 SAVESORTS_:
-	normalSortVals[op->p1].push_back(stk0.heap().u);
+	normalSortVals[op->p1].push_back(stk0.getheap().u);
 	pop();
 	nexti();
 SAVEANDCHAIN_:
@@ -190,7 +191,7 @@ SAVEANDCHAIN_:
 		int size = chain.values.size();
 		chain.positiions.push_back(file->pos);
 		for (int i=0; i<size; ++i){
-			chain.values[i].push_back(stkt(size-i-1).heap().u);
+			chain.values[i].push_back(stkt(size-i-1).getheap().u);
 		}
 		stacktop -= size;
 	} nexti();
@@ -199,7 +200,7 @@ SAVEVALPOS_:
 		iTemp1 = op->p2-1;
 		auto& f = files[op->p1];
 		for (auto& vpv : f->joinValpos){
-			vpv.push_back(valpos{stkt(iTemp1).heap().u, f->pos});
+			vpv.push_back(valpos{stkt(iTemp1).getheap().u, f->pos});
 			--iTemp1;
 		}
 		stacktop -= op->p2;
@@ -929,7 +930,7 @@ DIST_NORM_:
 	{
 		auto da = (datunion*) calloc(torowSize, sizeof(datunion));
 		for (int i=0; i<torowSize; ++i)
-			da[i] = torow[i].heap().u;
+			da[i] = torow[i].getheap().u;
 		auto treeArray = distinctUnionArray(da, &q->unionArrayLess);
 		if (normalDistinct.insert(treeArray).second){
 			ip++;
@@ -1109,12 +1110,12 @@ FUNC_RAND_:
 	nexti();
 FUNC_UPPER_:
 	ifnotnull {
-		stk0 = stk0.heap();
+		stk0.selfheap();
 		for(auto c = stk0.u.s; *c; ++c) *c = toupper(*c);
 	} nexti();
 FUNC_LOWER_:
 	ifnotnull {
-		stk0 = stk0.heap();
+		stk0.selfheap();
 		for(auto c = stk0.u.s; *c; ++c) *c = tolower(*c);
 	} nexti();
 FUNC_BASE64_ENCODE_:
@@ -1287,7 +1288,7 @@ MINF_:
 MINS_:
 	if (dat& t = torow[op->p1]; t.isnull() || (!stk0.isnull() && strcmp(t.u.s, stk0.u.s) > 0)){
 		t.freedat();
-		t = stk0.heap();
+		t = stk0.getheap();
 	}
 	pop();
 	nexti();
@@ -1304,7 +1305,7 @@ MAXF_:
 MAXS_:
 	if (dat& t = torow[op->p1]; t.isnull() || (!stk0.isnull() && strcmp(t.u.s, stk0.u.s) < 0)){
 		t.freedat();
-		t = stk0.heap();
+		t = stk0.getheap();
 	}
 	pop();
 	nexti();

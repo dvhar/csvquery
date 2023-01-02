@@ -327,7 +327,7 @@ class rowgroup {
 				if (d.istext())
 					meta.mallocedKey = true;
 			}
-			auto key = d.heap();
+			auto key = d.getheap();
 			auto&& inserted = getMap().insert({key, rowgroup()});
 			if (!inserted.second)
 				key.freedat();

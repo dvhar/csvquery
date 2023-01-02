@@ -563,16 +563,17 @@ class dat {
 			return l.u.f < r.u.f;
 		return l.u.i < r.u.i;
 	}
-	dat heap(){
-		dat d;
+	void selfheap(){
 		if (istext() && !ismal()){
-			d.u.s = (char*) malloc(z+1);
-			strcpy(d.u.s, u.s);
-			d.b = b | MAL;
-			d.z = z;
-		} else {
-			d = *this;
+			char* s = (char*) malloc(z+1);
+			strcpy(s, u.s);
+			u.s = s;
+			b |= MAL;
 		}
+	}
+	dat getheap(){
+		dat d = *this;
+		d.selfheap();
 		disown();
 		return d;
 	}
