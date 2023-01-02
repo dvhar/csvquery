@@ -95,8 +95,6 @@ static int ident = 0;
 #endif
 
 #define pushvars() for (auto &i : q->vars) addop(PUSH);
-#define popvars() for (auto &i : q->vars) addop(POP);
-
 
 void jumpPositions::updateBytecode(vector<opcode> &vec) {
 	for (auto &v : vec)
@@ -183,7 +181,6 @@ void cgen::genJoiningQuery(astnode &n){
 		addop(POP); //rereader used 2 stack spaces
 		addop(POP);
 	}
-	popvars();
 	genEndrun();
 }
 //given 'from' node
@@ -476,7 +473,6 @@ void cgen::genNormalQuery(astnode &n){
 	addop((q->quantityLimit > 0 ? JMPCNT : JMP), normal_read);
 	jumps.setPlace(endfile, v.size());
 	addop(STOP_MESSAGE);
-	popvars();
 	genEndrun();
 }
 void cgen::genNormalOrderedQuery(astnode &n){
@@ -510,7 +506,6 @@ void cgen::genNormalOrderedQuery(astnode &n){
 	addop(STOP_MESSAGE);
 	addop(POP); //rereader used 2 stack spaces
 	addop(POP);
-	popvars();
 	genEndrun();
 };
 
@@ -552,7 +547,6 @@ void cgen::genGroupingQuery(astnode &n){
 	agg_phase = 2;
 	addop(STOP_MESSAGE);
 	genIterateGroups(n->nafterfrom()->ngroups());
-	popvars();
 	genEndrun();
 }
 
