@@ -88,8 +88,9 @@ LDMID_:
 	nexti();
 //move var from stack bottom to group row
 LDPUTVAR_:
-	torow[op->p2].mov(stkb(op->p1));
-	torow[op->p2].selfheap();
+	if (auto& t = torow[op->p2]; t.isnull() && !stkb(op->p1).isnull()){
+		t = stkb(op->p1).getheap();
+	}
 	nexti();
 
 //put variable from stack into stackbot

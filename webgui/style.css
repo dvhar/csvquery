@@ -64,6 +64,11 @@
   background: #342008;
   background: linear-gradient(to bottom, #342008 1%, #100c0a 22%, #200c0a 22%, #090908 100%);
   text-align: center; }
+  .tableControls select {
+    max-width: 50em;
+    background: #222222;
+    color: lightgoldenrodyellow;
+    border: 2px solid #886611; }
 
 .controlBut {
   padding: .2em .5em;

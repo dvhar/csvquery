@@ -496,11 +496,11 @@ flatmap<int,int> vmachine::relopIdx = {
 	{SP_LESS,0},{SP_GREAT,1},{SP_LESSEQ,2},{SP_GREATEQ,3},{SP_EQ,4},{SP_NOEQ,5},{KW_LIKE,6}
 };
 //return difference for sort comparers
-function<i64 (const datunion,const datunion)> datunionDiffs[6] = {
-	[](const auto a, const auto b) { return a.i - b.i; },
+function<i64 (const datunion,const datunion)> datunionDiffs[6] = { //Integer case has to avoid overflows
+	[](const auto a, const auto b) { if (a.i < b.i) return -1; return a.i > b.i ? 1:0; },
 	[](const auto a, const auto b) { return a.f - b.f; },
 	[](const auto a, const auto b) { return strcmp(a.s, b.s); },
-	[](const auto a, const auto b) { return b.i - a.i; },
+	[](const auto a, const auto b) { if (a.i > b.i) return -1; return  a.i < b.i ? 1:0; },
 	[](const auto a, const auto b) { return b.f - a.f; },
 	[](const auto a, const auto b) { return strcmp(b.s, a.s); },
 };

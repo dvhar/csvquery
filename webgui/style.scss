@@ -150,6 +150,12 @@ $codecolor-dark: #ffaa0e;
 	border-radius: 1em 1em .3em .3em;
 	@include secondcolorgradient-dark();
 	text-align: center;
+	select {
+		max-width: 50em;
+		background: $darkgrey2;
+		color: $text1-darkbg;
+		border: 2px solid $darkeryellow;
+	}
 }
 .controlBut {
 	padding: .2em .5em;
