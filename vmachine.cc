@@ -109,7 +109,7 @@ PUTVAR2_:
 
 HOLDVAR_:
 	if (stkb(op->p1).ismal()){
-		groupSortVars.emplace_front(stkb(op->p1).u.s);
+		groupSortVars.emplace_back(stkb(op->p1).u.s);
 		stkb(op->p1).disown();
 	} nexti();
 LDVAR_:
@@ -1260,7 +1260,7 @@ STDVF_:
 				torow[op->p1] = {{.i =static_cast<i64>(stdvs.size())},T_INT};
 				stdvs.emplace_back(stk0.u.f);
 			} else
-				stdvs[torow[op->p1].u.i].numbers.push_front(stk0.u.f);
+				stdvs[torow[op->p1].u.i].numbers.push_back(stk0.u.f);
 		}
 	}
 	pop();

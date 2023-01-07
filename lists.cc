@@ -496,13 +496,13 @@ flatmap<int,int> vmachine::relopIdx = {
 	{SP_LESS,0},{SP_GREAT,1},{SP_LESSEQ,2},{SP_GREATEQ,3},{SP_EQ,4},{SP_NOEQ,5},{KW_LIKE,6}
 };
 //return difference for sort comparers
-function<i64 (const datunion,const datunion)> datunionDiffs[6] = { //Integer case has to avoid overflows
-	[](const auto a, const auto b) { if (a.i < b.i) return -1; return a.i > b.i ? 1:0; },
-	[](const auto a, const auto b) { return a.f - b.f; },
-	[](const auto a, const auto b) { return strcmp(a.s, b.s); },
-	[](const auto a, const auto b) { if (a.i > b.i) return -1; return  a.i < b.i ? 1:0; },
-	[](const auto a, const auto b) { return b.f - a.f; },
-	[](const auto a, const auto b) { return strcmp(b.s, a.s); },
+function<double (const datunion,const datunion)> datunionDiffs[6] = { //Integer case has to avoid overflows
+	[](const auto a, const auto b) -> double { if (a.i < b.i) return -1; return (double)(a.i > b.i); },
+	[](const auto a, const auto b) -> double { return a.f - b.f; },
+	[](const auto a, const auto b) -> double { return strcmp(a.s, b.s); },
+	[](const auto a, const auto b) -> double { if (a.i > b.i) return -1; return (double)(a.i < b.i); },
+	[](const auto a, const auto b) -> double { return b.f - a.f; },
+	[](const auto a, const auto b) -> double { return strcmp(b.s, a.s); },
 };
 
 //2d array for ops indexed by operation and datatype. used with operations[][]

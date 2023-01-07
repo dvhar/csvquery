@@ -142,7 +142,7 @@ class distinctDatArray {
 
 class stddev {
 	public:
-	forward_list<double> numbers;
+	deque<double> numbers;
 	stddev(double num){
 		numbers.push_front(num);
 	}
@@ -238,7 +238,7 @@ class vmachine {
 	vector<unique_ptr<dat[], freeC>> groupSorter;
 	vector<int> sortIdxs;
 	forward_list<bset<i64>> joinSetStack;
-	forward_list<unique_ptr<char[], freeC>> groupSortVars;
+	deque<unique_ptr<char[], freeC>> groupSortVars;
 	unique_ptr<rowgroup> groupTree;
 	shared_ptr<singleQueryResult> result;
 	string outbuf;
@@ -371,7 +371,6 @@ class rowgroup {
 class varScoper {
 	public:
 		int scopefilter =0;
-		int policy =0;
 		int scope =0;
 		int fileno =0;
 		//map[scope][index] = already evaluated
@@ -456,7 +455,7 @@ class queryQueue {
 	void setPassword(i64 sesid, string& pass);
 };
 
-extern function<i64 (const datunion,const datunion)> datunionDiffs[6];
+extern function<double (const datunion,const datunion)> datunionDiffs[6];
 class sortcomp {
 	vector<datunion>* vals;
 	int sortcount;

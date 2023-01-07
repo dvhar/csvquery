@@ -608,7 +608,7 @@ astnode parser::parsePredCompare() {
 			tryAgain = true;
 		}
 		if (ispreds) {
-			if (t.id != SP_RPAREN) error("Expected cosing parenthesis. Found: '",t.val,"'"); // should not be caught in try block
+			if (t.id != SP_RPAREN) error("Expected closing parenthesis. Found: '",t.val,"'"); // should not be caught in try block
 			t = q->nextTok();
 		}
 		//return if (more comparisions)
