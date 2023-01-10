@@ -129,7 +129,7 @@ function sorttable(e){
 		)(getCellValue(asc ? a : b, idx), getCellValue(asc ? b : a, idx));
 	let tbody = col.closest('.singleResult').querySelector('tbody');
 	Array.from(tbody.querySelectorAll('tr'))
-		.sort(comparer(this.asc = !this.asc))
+		.sort(comparer(col.asc = !col.asc))
 		.forEach(tr => tbody.appendChild(tr) );
 }
 

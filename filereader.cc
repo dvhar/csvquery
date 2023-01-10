@@ -118,7 +118,7 @@ bool fileReader::readline(){
 			case '\n':
 			case '\r':
 				getQuotedField();
-				return checkWidth();
+				return checkWidth(1);
 			// "" escaped quote
 			case '"':
 				compactQuote();
@@ -167,8 +167,8 @@ inline void fileReader::compactQuote(){
 	escapedQuote = pos2;
 	++equoteCount;
 }
-inline bool fileReader::checkWidth(){
-	prevpos += (pos2 - buf + 1);
+inline bool fileReader::checkWidth(int endOnQuote){
+	prevpos += (pos2 - buf + 1 + endOnQuote);
 	if (numFields == 0)
 		numFields = entriesVec.size();
 	entries = entriesVec.data();

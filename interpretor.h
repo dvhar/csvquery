@@ -500,7 +500,7 @@ class fileReader {
 	inline void getField();
 	inline void getQuotedField();
 	inline void compactQuote();
-	inline bool checkWidth();
+	inline bool checkWidth(int endOnQuote = 0);
 	int size(){ return br.fsize; };
 	void inferTypes();
 	int getColIdx(string&);
