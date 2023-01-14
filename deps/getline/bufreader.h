@@ -55,7 +55,7 @@ class bufreader {
 		done = false;
 		end = line = NULL;
 		single = true;
-		readsofar = 0;
+		readsofar = pos;
 	}
 	long long linepos(){
 		return (long long)(bufpos + (line - buf));

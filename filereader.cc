@@ -105,8 +105,8 @@ bool fileReader::readline(){
 				} else
 					goto inquote;
 			}
-			//nonstandard escape character
-			if (*(pos2-1) == '\\' && !nextIsDelim()){
+			//nonstandard escape character - only use when haven't found normal excape
+			if (*(pos2-1) == '\\' && !nextIsDelim() && !normalescape){
 				compactQuote();
 				++pos2;
 				goto inquote;
@@ -123,6 +123,7 @@ bool fileReader::readline(){
 			case '"':
 				compactQuote();
 				++pos2;
+				normalescape = true;
 				goto inquote;
 			default:
 				//end of field

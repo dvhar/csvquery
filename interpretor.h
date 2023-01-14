@@ -477,6 +477,7 @@ class fileReader {
 	int memidx = 0;
 	int numrows = 0;
 	querySpecs *q;
+	bool normalescape = 0;
 	public:
 		static char blank;
 		bool small =0;
