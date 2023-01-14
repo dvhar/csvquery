@@ -247,14 +247,17 @@ void parser::parseOptions(astnode& n) {
 		if (opts & (O_NH|O_H)) error("Cannot have multiple input header options");
 		opts |= O_AH;
 	} else if (s == "s") {
-		if (opts & (O_P|O_T)) error("Cannot have multiple delimiter options");
+		if (opts & (O_P|O_T|O_SC)) error("Cannot have multiple delimiter options");
 		opts |= O_S;
 	} else if (s == "p") {
-		if (opts & (O_S|O_T)) error("Cannot have multiple delimiter options");
+		if (opts & (O_S|O_T|O_SC)) error("Cannot have multiple delimiter options");
 		opts |= O_P;
 	} else if (s == "t") {
-		if (opts & (O_P|O_S)) error("Cannot have multiple delimiter options");
+		if (opts & (O_P|O_S|O_SC)) error("Cannot have multiple delimiter options");
 		opts |= O_T;
+	} else if (s == "sc") {
+		if (opts & (O_P|O_S|O_T)) error("Cannot have multiple delimiter options");
+		opts |= O_SC;
 	} else if (s == "nan") {
 		opts |= O_NAN;
 	} else if (s == "m") {
@@ -818,14 +821,17 @@ void parser::parseFileOptions(astnode& n) {
 		if (opts & (O_NH|O_H)) error("Cannot have multiple input header options");
 		opts |= O_AH;
 	} else if (s == "s") {
-		if (opts & (O_P|O_T)) error("Cannot have multiple delimiter options");
+		if (opts & (O_P|O_T|O_SC)) error("Cannot have multiple delimiter options");
 		opts |= O_S;
 	} else if (s == "p") {
-		if (opts & (O_S|O_T)) error("Cannot have multiple delimiter options");
+		if (opts & (O_S|O_T|O_SC)) error("Cannot have multiple delimiter options");
 		opts |= O_P;
 	} else if (s == "t") {
-		if (opts & (O_P|O_S)) error("Cannot have multiple delimiter options");
+		if (opts & (O_P|O_S|O_SC)) error("Cannot have multiple delimiter options");
 		opts |= O_T;
+	} else if (s == "sc") {
+		if (opts & (O_P|O_S|O_T)) error("Cannot have multiple delimiter options");
+		opts |= O_SC;
 	} else {
 		return;
 	}

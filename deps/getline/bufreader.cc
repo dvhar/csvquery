@@ -7,6 +7,7 @@ inline void bufreader::refresh(){
 		return;
 	}
 	long long offset = end - line;
+	bufpos = readsofar - offset;
 	auto readb = fread(buf+offset, 1, (single ? biggestline-offset : buffsize-offset), f);
 	readsofar += readb;
 	line = buf;
@@ -49,6 +50,7 @@ void bufreader::addrefresh(int rem){
 		done = true;
 		return;
 	}
+	bufpos = readsofar - rem;
 	auto readb = fread(buf+rem, 1, (single ? biggestline-rem : buffsize-rem), f);
 	readsofar += readb;
 	line = buf;

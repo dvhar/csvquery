@@ -10,6 +10,7 @@ class bufreader {
 	char* line = NULL;
 	int biggestline = 0;
 	long long readsofar = 0;
+	long long bufpos = 0;
 	bool single = false;
 	char* buf;
 	std::unique_ptr<char[]> realbuf;
@@ -46,7 +47,7 @@ class bufreader {
 		done = false;
 		end = line = NULL;
 		single = false;
-		readsofar = 0;
+		readsofar = pos;
 	}
 	//fill buffer to size of biggest line when reread
 	void seekline(long long pos){
@@ -55,5 +56,8 @@ class bufreader {
 		end = line = NULL;
 		single = true;
 		readsofar = 0;
+	}
+	long long linepos(){
+		return (long long)(bufpos + (line - buf));
 	}
 };

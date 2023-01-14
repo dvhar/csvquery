@@ -58,8 +58,8 @@ bool fileReader::readline(){
 		entries = gotrows[memidx++].get();
 		return 0;
 	} else {
-		pos = prevpos;
 		buf = br.getline();
+		pos = br.linepos();
 		if (br.done) return 1;
 	}
 	entriesVec.clear();
@@ -118,7 +118,7 @@ bool fileReader::readline(){
 			case '\n':
 			case '\r':
 				getQuotedField();
-				return checkWidth(1);
+				return checkWidth();
 			// "" escaped quote
 			case '"':
 				compactQuote();
@@ -167,8 +167,7 @@ inline void fileReader::compactQuote(){
 	escapedQuote = pos2;
 	++equoteCount;
 }
-inline bool fileReader::checkWidth(int endOnQuote){
-	prevpos += (pos2 - buf + 1 + endOnQuote);
+inline bool fileReader::checkWidth(){
 	if (numFields == 0)
 		numFields = entriesVec.size();
 	entries = entriesVec.data();
@@ -228,7 +227,6 @@ void fileReader::inferTypes() {
 	for (u32 i=0; i<entriesVec.size(); ++i)
 		if (!types[i])
 			types[i] = T_STRING;
-	prevpos = startData;
 	if (small)
 		fill(entriesVec.begin(), entriesVec.end(), csvEntry{&blank,&blank});
 	else
@@ -277,6 +275,7 @@ void opener::openfiles(astnode &n){
 		if (q->options & O_S) fr->delim = ' ';
 		if (q->options & O_P) fr->delim = '|';
 		if (q->options & O_T) fr->delim = '\t';
+		if (q->options & O_SC) fr->delim = ';';
 		if (q->options & O_H)  fr->noheader = fr->autoheader = false;
 		if (q->options & O_NH) fr->noheader = true;
 		if (q->options & O_AH) fr->autoheader = true;
@@ -285,6 +284,7 @@ void opener::openfiles(astnode &n){
 		if (fileopts & O_S)  fr->delim = ' ';
 		if (fileopts & O_P)  fr->delim = '|';
 		if (fileopts & O_T)  fr->delim = '\t';
+		if (fileopts & O_SC)  fr->delim = ';';
 		if (fileopts & O_H)  fr->noheader = fr->autoheader = false;
 		if (fileopts & O_NH) fr->noheader = true;
 		if (fileopts & O_AH) fr->autoheader = true;

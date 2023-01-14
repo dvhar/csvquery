@@ -241,6 +241,7 @@ enum {
 	O_S = 8,
 	O_P = 16,
 	O_T = 32,
+	O_SC = 1024,
 	O_OH = 64,
 	O_NOH = 128,
 	O_NAN = 256,
@@ -472,7 +473,6 @@ class fileReader {
 	string filename;
 	vector<unique_ptr<csvEntry[], freeC>> gotrows;
 	fastvector entriesVec;
-	i64 prevpos = 0;
 	int equoteCount = 0;
 	int memidx = 0;
 	int numrows = 0;
@@ -500,7 +500,7 @@ class fileReader {
 	inline void getField();
 	inline void getQuotedField();
 	inline void compactQuote();
-	inline bool checkWidth(int endOnQuote = 0);
+	inline bool checkWidth();
 	int size(){ return br.fsize; };
 	void inferTypes();
 	int getColIdx(string&);

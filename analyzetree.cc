@@ -681,7 +681,7 @@ int analyzer::addAlias(astnode& n){
 			findExtension(fpath);
 			ofstream afile(aliasfile);
 			afile << boost::filesystem::canonical(fpath).string() << endl << opts << endl;
-			return CMD_ADDALIAS;
+			return CMD_SHOWTABLES;
 		//drop alias
 		} else if (action == "drop") {
 			string& alias = aliasnode->tok1.val;
