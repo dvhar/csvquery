@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <memory>
-#include<boost/filesystem.hpp>
+#include <stdexcept>
 #define DEFAULT_BUFSIZE  (1024*1024*3)
 
 class bufreader {
@@ -27,14 +27,11 @@ class bufreader {
 	bufreader(){}
 	~bufreader(){if (f) fclose(f);}
 	void open(const char* fname, long long wantsize){
-		fsize = boost::filesystem::file_size(fname);
-		buffsize = fsize < wantsize ? fsize : wantsize;
-		open(fname);
-	}
-	void open(const char* fname){
-		if (fsize == 0)
-			fsize = boost::filesystem::file_size(fname);
 		f = fopen(fname,"rb");
+		if (fseek(f,0,SEEK_END) || (fsize = ftell(f)) == -1 || fseek(f,0,SEEK_SET)){
+			throw std::invalid_argument("Could not open file");
+		}
+		buffsize = fsize < wantsize ? fsize : wantsize;
 		realbuf.reset(new char[buffsize+4]);
 		//padding for safe parsing
 		realbuf[0] = realbuf[buffsize+2] =

@@ -1,3 +1,4 @@
+#include<boost/filesystem.hpp>
 #include "interpretor.h"
 #include "vmachine.h"
 #include "server.h"
