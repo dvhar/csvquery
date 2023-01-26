@@ -4,6 +4,7 @@
 #include <boost/filesystem.hpp>
 
 void initregex();
+void initable();
 void loadconfig();
 int bracecount(string&);
 void help(char* prog){
@@ -90,6 +91,7 @@ int main(int argc, char** argv){
 		}
 
 	initregex();
+	initable();
 	runmode = argc > optind ? RUN_SINGLE : RUN_SERVER;
 	auto arg1 = argv[optind];
 

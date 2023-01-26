@@ -43,18 +43,6 @@ bool is_number(const std::string& s)
         s.end(), [](char c) { return !std::isdigit(c); }) == s.end();
 }
 
-token querySpecs::lastTok() {
-	return tokIdx > 0 ? tokArray[tokIdx-1] : token{};
-}
-token querySpecs::nextTok() {
-	if (tokIdx < tokArray.size()-1) tokIdx++;
-	return tokArray[tokIdx];
-}
-token querySpecs::peekTok() {
-	if (tokIdx < tokArray.size()-1) return tokArray[tokIdx+1];
-	return tokArray[tokIdx];
-}
-token querySpecs::tok() { return tokArray[tokIdx]; }
 variable& querySpecs::var(string name) {
 	for (auto &v : vars)
 		if (name == v.name)
@@ -481,11 +469,6 @@ void perr(string&& message){
 int prepareQuery(querySpecs &q){
 	exception_ptr ex = nullptr;
 	try {
-		scanTokens(q);
-		if (q.canskip && q.tokArray.size() == 1 && q.tokArray[0].id == EOS){
-			perr("Query commented out\n");
-			return COMMENTED_OUT;
-		}
 		parseQuery(q);
 		//return code for operations other than queries
 		if (int nonquery = earlyAnalyze(q); nonquery){
@@ -500,6 +483,10 @@ int prepareQuery(querySpecs &q){
 		codeGen(q);
 	} catch (...){
 		ex = current_exception();
+		if (q.canskip && EX_STRING == "Empty query"){
+			perr("Query commented out\n");
+			return COMMENTED_OUT;
+		}
 	}
 
 	for (auto& sq : q.subqueries){

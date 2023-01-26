@@ -1,4 +1,5 @@
 #include "interpretor.h"
+#include "scanner.h"
 #include <boost/algorithm/string/case_conv.hpp>
 
 template<class T>
@@ -72,81 +73,98 @@ void initable(){
 	tabinit = true;
 }
 
-class stringLookahead {
-	int lastskipped = -2;
-	int *l, *c;
-	string text;
-	public:
-	u32 idx =0;
-	int filderedGetc();
-	int filderedPeek();
-	char* nextCstr();
-	querySpecs* qs;
-	stringLookahead(string s, int* ll, int* cc, querySpecs& q) :
-		text(s), l(ll), c(cc), qs(&q) {};
-};
-int stringLookahead::filderedGetc() {
-	if (idx >= text.length()) { return EOS; }
-	if (idx+1 < text.length()){
-		auto maybecomment = string_view(text.data()+idx, 2);
+int scanner::filderedGetc() {
+	if (idx >= q->queryString.length()) { return EOS; }
+	if (idx+1 < q->queryString.length()){
+		auto maybecomment = string_view(q->queryString.data()+idx, 2);
 		if (maybecomment == "--"){
-			qs->canskip = true;
-			while (idx < text.length() && text[idx] != '\n') {
+			q->canskip = true;
+			while (idx < q->queryString.length() && q->queryString[idx] != '\n') {
 				lastskipped = idx;
 				idx++;
-				*c++;
+				colNo++;
 			}
 		}
 		if (maybecomment == "/*"){
-			qs->canskip = true;
+			q->canskip = true;
 			int oldidx = idx;
-			int endcomment = text.find("*/",idx);
+			int endcomment = q->queryString.find("*/",idx);
 			if (endcomment == -1) error("Comment starting with '/*' was not terminated");
 			lastskipped = endcomment+1;
-			*c += endcomment - oldidx;
+			colNo += endcomment - oldidx;
 			idx = lastskipped+1;
 		}
 	}
-	if (idx >= text.length()) { return EOS; }
+	if (idx >= q->queryString.length()) { return EOS; }
 	idx++;
-	return (int) text[idx-1];
+	return (int) q->queryString[idx-1];
 }
-int stringLookahead::filderedPeek() {
-	if (idx >= text.length()) { return EOS; }
+int scanner::filderedPeek() {
+	if (idx >= q->queryString.length()) { return EOS; }
 	int next = this->filderedGetc();
 	if (lastskipped != idx-1)
 		idx--;
 	return next;
 }
-char* stringLookahead::nextCstr() {
-	if (idx >= text.length()) { return nullptr; }
-	return &text[idx];
+char* scanner::nextCstr() {
+	if (idx >= q->queryString.length()) { return nullptr; }
+	return &q->queryString[idx];
+}
+scanner::scanner(querySpecs &qs) : q(&qs) {
+	initable();
 }
 
-class scanner {
-	int lineNo = 1;
-	int colNo = 1;
-	int waitForQuote = 0;
-	stringLookahead input;
-	public:
-		token scanToken();
-		token scanQuotedToken(int);
-		scanner(querySpecs &q) : input(q.queryString, &lineNo, &colNo, q) {
-			initable();
-		}
-};
+int scanner::getPos() {
+	return currPos;
+}
+void scanner::setPos(int newpos){
+	currPos = idx = newpos;
+	hascurr = hasnext = false;
+}
+token scanner::peekToken() {
+	int peekidx = ringidx^1;
+	if (!hasnext){
+		nextPos = idx;
+		ringbuf[peekidx] = scanAnyToken();
+		hasnext = true;
+	}
+	return ringbuf[peekidx];
+}
+token scanner::nextToken() {
+	ringidx ^= 1;
+	if (!hasnext){
+		currPos = idx;
+		ringbuf[ringidx] = scanAnyToken();
+	} else {
+		currPos = nextPos;
+	}
+	hasnext = false;
+	hascurr = true;
+	return ringbuf[ringidx];
+}
+token scanner::currToken() {
+	if (!hascurr){
+		currPos = idx;
+		ringbuf[ringidx] = scanAnyToken();
+	hascurr = true;
+	}
+	return ringbuf[ringidx];
+}
+token scanner::prevToken() {
+	return ringbuf[ringidx^1]; // TODO: edge case where setPos or peek invalidates this
+}
 
-token scanner::scanToken() {
+token scanner::scanPlainToken() {
 	int state = STATE_INITAL;
 	int nextState, nextchar;
 	string S;
 
 	while ( (state & FINAL) == 0 && state < NUM_STATES ) {
-		nextState = table[state][input.filderedPeek()];
+		nextState = table[state][filderedPeek()];
 		if ((nextState & ERROR_STATE) != 0) {
 		//end of string
 			if (state == 255) return { 255, "END", lineNo, colNo, false };
-			auto err = st("line: ",lineNo," col: ",colNo," char: ",(char)input.filderedPeek());
+			auto err = st("line: ",lineNo," col: ",colNo," char: ",(char)filderedPeek());
 			return { ERROR_STATE, err, lineNo, colNo, false };
 		}
 		if ((nextState & FINAL) != 0) {
@@ -173,7 +191,7 @@ token scanner::scanToken() {
 					//return special token
 					return { sp, S, lineNo, colNo, false };
 				} else {
-					auto err = st("line: ",lineNo," col: ",colNo," char: ",(char)input.filderedPeek());
+					auto err = st("line: ",lineNo," col: ",colNo," char: ",(char)filderedPeek());
 					return { ERROR_STATE, err, lineNo, colNo, false };
 				}
 			} else {
@@ -182,7 +200,7 @@ token scanner::scanToken() {
 
 		} else {
 			state = nextState;
-			nextchar = input.filderedGetc();
+			nextchar = filderedGetc();
 			colNo++;
 			//include whitespace in the token when waiting for a closing quote
 			if (waitForQuote != 0) {
@@ -202,32 +220,26 @@ token scanner::scanToken() {
 
 token scanner::scanQuotedToken(int qtype) {
 	string S;
-	if (auto tokstart = input.nextCstr(); tokstart){
+	if (auto tokstart = nextCstr(); tokstart){
 		int toklen = 0;
 		auto c = tokstart;
 		for (; *c && *c != qtype; ++c, ++toklen)
 			if (*c == '\n'){ lineNo++; colNo=0; }
 		if (*c != qtype)
 			error("Quote was not terminated");
-		input.idx += toklen;
+		idx += toklen;
 		return {WORD_TK, string(tokstart, toklen), lineNo, colNo, true };
 	}
 	error("Quote was not terminated");
 	return {};
 }
 
-void scanTokens(querySpecs &q) {
-	if (q.isSubquery) return;
-	scanner sc(q);
-	while(1) {
-		token t = sc.scanToken();
-		if (t.id == SP_SQUOTE || t.id == SP_DQUOTE) {
-			t = sc.scanQuotedToken(t.val[0]);
-			sc.scanToken(); //end quote
-		}
-		q.tokArray.push_back(t);
-		if (t.id == ERROR_STATE) error("scanner error: ",t.val);
-		if (t.id == EOS) break;
+token scanner::scanAnyToken() {
+	token t = scanPlainToken();
+	if (t.id == SP_SQUOTE || t.id == SP_DQUOTE) {
+		t = scanQuotedToken(t.val[0]);
+		scanPlainToken(); //end quote
 	}
+	return t;
 }
 

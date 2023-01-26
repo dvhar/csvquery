@@ -631,7 +631,6 @@ class querySpecs {
 	string savepath;
 	string queryString;
 	string password;
-	vector<token> tokArray;
 	vector<pair<int,int>> sortInfo; // desc, datatype
 	vector<variable> vars;
 	vector<dat> dataholder;
@@ -649,7 +648,6 @@ class querySpecs {
 	i64 sessionId = 0;
 	int midcount =0;
 	int numFiles =0;
-	u32 tokIdx =0;
 	int options =0;
 	int quantityLimit =0;
 	int posVecs =0;
@@ -671,10 +669,6 @@ class querySpecs {
 	bool canskip =0;
 	function<bool(const datunion*, const datunion*)> unionArrayLess;
 	function<bool(const dat*, const dat*)> datArrayLess;
-	token tok();
-	token nextTok();
-	token peekTok();
-	token lastTok();
 	bool numIsCol();
 	void setoutputCsv(){ outputcsv = true; };
 	void setoutputJson(){ outputjson = true; };
@@ -771,7 +765,6 @@ class directory {
 	json& tojson();
 };
 
-void scanTokens(querySpecs &q);
 void parseQuery(querySpecs &q);
 bool is_number(const std::string& s);
 void printTree(astnode &n, int ident);
