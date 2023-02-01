@@ -1,6 +1,7 @@
 #include "interpretor.h"
 #include "scanner.h"
 #include <boost/algorithm/string/case_conv.hpp>
+#include <cstring>
 
 template<class T>
 constexpr u32 len(T &a) {
@@ -114,11 +115,12 @@ scanner::scanner(querySpecs &qs) : q(&qs) {
 	initable();
 }
 
-int scanner::getPos() {
-	return currPos;
+tuple<int,int,int> scanner::getPos() {
+	return {currPos, lineNo, colNo};
 }
-void scanner::setPos(int newpos){
-	currPos = idx = newpos;
+void scanner::setPos(tuple<int,int,int> newpos){
+	tie(currPos, lineNo, colNo) = newpos;
+	idx = currPos;
 	hascurr = hasnext = false;
 }
 token scanner::peekToken() {
@@ -146,8 +148,16 @@ token scanner::currToken() {
 	if (!hascurr){
 		currPos = idx;
 		ringbuf[ringidx] = scanAnyToken();
-	hascurr = true;
+		hascurr = true;
 	}
+	return ringbuf[ringidx];
+}
+token scanner::fileToken() { // same index as currToken but different scanning rules
+	if (hascurr){
+		token& t = ringbuf[ringidx];
+		setPos({t.pos, t.line, t.col});
+	}
+	ringbuf[ringidx] = scanPathToken();
 	return ringbuf[ringidx];
 }
 token scanner::prevToken() {
@@ -157,15 +167,16 @@ token scanner::prevToken() {
 token scanner::scanPlainToken() {
 	int state = STATE_INITAL;
 	int nextState, nextchar;
+	int pos = idx;
 	string S;
 
 	while ( (state & FINAL) == 0 && state < NUM_STATES ) {
 		nextState = table[state][filderedPeek()];
 		if ((nextState & ERROR_STATE) != 0) {
 		//end of string
-			if (state == 255) return { 255, "END", lineNo, colNo, false };
+			if (state == 255) return { 255, pos, "END", lineNo, colNo, false };
 			auto err = st("line: ",lineNo," col: ",colNo," char: ",(char)filderedPeek());
-			return { ERROR_STATE, err, lineNo, colNo, false };
+			return { ERROR_STATE, pos, err, lineNo, colNo, false };
 		}
 		if ((nextState & FINAL) != 0) {
 			//see if keyword or regular word
@@ -173,10 +184,10 @@ token scanner::scanPlainToken() {
 				string tokStr = boost::to_lower_copy(S);
 				if (keywordMap.count(tokStr) && waitForQuote == 0) {
 					//return keyword token
-					return { getkeyword(tokStr), S, lineNo, colNo, false };
+					return { getkeyword(tokStr), pos, S, lineNo, colNo, false };
 				} else {
 					//return word token
-					return { nextState, S, lineNo, colNo, false };
+					return { nextState, pos, S, lineNo, colNo, false };
 				}
 			//see if special type or something else
 			} else if (nextState == SPECIAL) {
@@ -189,13 +200,13 @@ token scanner::scanPlainToken() {
 						waitForQuote = 0;
 					}
 					//return special token
-					return { sp, S, lineNo, colNo, false };
+					return { sp, pos, S, lineNo, colNo, false };
 				} else {
 					auto err = st("line: ",lineNo," col: ",colNo," char: ",(char)filderedPeek());
-					return { ERROR_STATE, err, lineNo, colNo, false };
+					return { ERROR_STATE, pos, err, lineNo, colNo, false };
 				}
 			} else {
-				return { nextState, S, lineNo, colNo, false };
+				return { nextState, pos, S, lineNo, colNo, false };
 			}
 
 		} else {
@@ -210,16 +221,49 @@ token scanner::scanPlainToken() {
 			}
 			if (nextchar == '\n') { lineNo++; colNo=0; }
 			if (nextchar == EOS) {
-				return { EOS, "END Of INPUT", lineNo, colNo, false };
+				return { EOS, pos, "END Of INPUT", lineNo, colNo, false };
 			}
 		}
 	}
-	return { EOS, "END Of INPUT", lineNo, colNo, false };
+	return { EOS, pos, "END Of INPUT", lineNo, colNo, false };
 
+}
+
+token scanner::scanPathToken() {
+	if (idx>0){
+		// use normal scanning when file path is quoted
+		int quote;
+		quote = q->queryString[idx-1];
+		if (quote=='"' || quote=='\''){
+			idx--;
+			colNo--;
+			return scanAnyToken();
+		}
+	}
+	int pos = idx;
+	char* tokstart = nextCstr();
+	while (*tokstart && isspace(*tokstart))
+		tokstart++;
+	if (!tokstart){
+		return { EOS, pos, "END Of INPUT", lineNo, colNo, false };
+	}
+	char* tokend = strpbrk(tokstart, " \t\n\r\f\v");
+	int len;
+	if (!tokend){
+		len = strlen(tokstart);
+	} else {
+		len = tokend - tokstart;
+	}
+	idx += len +1;
+	colNo += len;
+	string val(tokstart, len);
+	int id = strcasecmp(val.c_str(), "select") ? WORD_TK : KW_SELECT;
+	return {id, pos, val, lineNo, colNo, true };
 }
 
 token scanner::scanQuotedToken(int qtype) {
 	string S;
+	int pos = idx;
 	if (auto tokstart = nextCstr(); tokstart){
 		int toklen = 0;
 		auto c = tokstart;
@@ -228,7 +272,7 @@ token scanner::scanQuotedToken(int qtype) {
 		if (*c != qtype)
 			error("Quote was not terminated");
 		idx += toklen;
-		return {WORD_TK, string(tokstart, toklen), lineNo, colNo, true };
+		return {WORD_TK, pos, string(tokstart, toklen), lineNo, colNo, true };
 	}
 	error("Quote was not terminated");
 	return {};

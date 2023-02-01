@@ -8,12 +8,12 @@ void initable();
 void loadconfig();
 int bracecount(string&);
 void help(char* prog){
-	cout << '\n'
-		<< prog << " FILE\n\tRun query from FILE\n"
+	cout<< prog << " FILE\n\tRun query from FILE\n"
 		<< prog << " version\n\tshow version and exit\n"
 		<< prog << " help\n\tshow this help message and exit\n"
 		<< prog << " \"select from 'data.csv'\"\n\tRun query from command line argument\n"
 		<< prog << " \"select from {}\" data.csv\n\tRun query from command line argument and substitute {} with the following argument\n"
+		<< prog << " \"select from\" ./data.csv\n\tRun query from concatinated command line arguments\n"
 		<< prog << "\n\tRun server to use graphic interface in web browser\n\n"
 		"Flags:\n"
 		"\t-m    Don't require comma between selections, but do require 'as' for result names\n"
@@ -124,8 +124,10 @@ int main(int argc, char** argv){
 		else if (argc > optind+1){
 			querystring = argv[optind];
 			int bc = bracecount(querystring);
-			if (bc && (optind + bc != argc-1))
-				error("Query with ",bc," '{}' pair",(bc>1?"s":"")," must have ",bc," matching argument",(bc>1?"s":""),". Found ",argc-optind-1,'\n');
+			if (bc && (optind + bc != argc-1)){
+				auto s = bc>1 ? "s" : "";
+				error("Query with ",bc," '{}' pair",s," must have ",bc," matching argument",s,". Found ",argc-optind-1,'\n');
+			}
 			int end = argc - bc;
 			for (int i=optind+1; i<end; ++i){
 				querystring += ' ';

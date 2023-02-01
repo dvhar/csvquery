@@ -602,7 +602,7 @@ astnode parser::parsePredCompare() {
 	if (t.id == SP_NEGATE) { negate ^= 1; t = sc.nextToken(); }
 	//more predicates in parentheses
 	if (t.id == SP_LPAREN) {
-		int pos = sc.getPos();
+		auto pos = sc.getPos();
 		//try parsing as predicate
 		t = sc.nextToken();
 		bool tryAgain = false;
@@ -670,7 +670,7 @@ astnode parser::parseSetList(bool interdependant) {
 	t = sc.currToken();
 	e("parse setlist");
 	astnode n = newNode(N_SETLIST);
-	int pos = sc.getPos();
+	auto pos = sc.getPos();
 	try {
 		n->node1 = parseQuery();
 		n->tok1.id = 1;
@@ -750,9 +750,9 @@ astnode parser::parseFrom(bool withselections) {
 
 	if (!withselections){
 		//will be 'select' if using selections, otherwise filepath
-		if (t.id != WORD_TK){
+		if (t.id != WORD_TK && t.val != SLASH){
 			if (t.id != KW_SELECT)
-				error("Expected 'select' or file name. Found: ",t.val);
+				error("Expected 'select' or file name. Found: '",t.val,"'");
 			return nullptr;
 		}
 		//more helpful error messages when query assumes an explicit 'select' statement
@@ -777,17 +777,17 @@ astnode parser::parseFrom(bool withselections) {
 //tok3.id is file options
 //tok4 is alias
 astnode parser::parseFile(bool join) {
-	t = sc.currToken();
+	t = sc.fileToken();
 	e("parse file");
 	astnode n = newNode(N_FILE);
 	bool isfile = false;
 	//subquery
-	if (t.id == SP_LPAREN){
+	if (t.val[0] == '('){
 		error("Subquery as a file is not implemented yet");
 	//file or view
 	} else if (t.id == WORD_TK){
 		isfile = true;
-		boost::replace_first(t.val, "~/", gethome()+"/");
+		boost::replace_first(t.val, st("~",SLASH), gethome()+SLASH);
 		n->tok1 = t;
 		sc.nextToken();
 		parseFileOptions(n);

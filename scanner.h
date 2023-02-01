@@ -18,13 +18,15 @@ class scanner {
 	int filderedGetc();
 	int filderedPeek();
 	char* nextCstr();
+	token scanPathToken();
 	token scanAnyToken();
 	token scanPlainToken();
 	token scanQuotedToken(int);
 	public:
-		int getPos();
-		void setPos(int);
+		tuple<int,int,int> getPos();
+		void setPos(tuple<int,int,int>);
 		token currToken();
+		token fileToken();
 		token nextToken();
 		token peekToken();
 		token prevToken();

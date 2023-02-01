@@ -75,18 +75,15 @@ class settings_t {
 	bool tablelinebg = 0;
 	bool needcomma = 1;
 #ifdef _WIN32
+#define SLASH "\\"
 	string configdir = st(getenv("USERPROFILE"),R"(\AppData\csvquery)");
 	string configfilepath = configdir + R"(\config.txt)";
 #else
+#define SLASH "/"
 	string configdir = st(gethome(),"/.config/csvquery");
 	string configfilepath = configdir + "/config";
 #endif 
 };
-#ifdef _WIN32
-#define SLASH "\\"
-#else
-#define SLASH "/"
-#endif
 
 extern mt19937 rng;
 extern string version;
@@ -293,6 +290,7 @@ struct freeC {
 class token {
 	public:
 	int id =0;
+	int pos =0;
 	string val;
 	int line =0;
 	int col =0;

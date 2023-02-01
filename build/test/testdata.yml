@@ -7,7 +7,7 @@
   code: 0
   query: m with c7 as int select top 10 int, c9, int+c9, int+c1, int+c7 c1+c2 as ss,
     c1+c9 as sf, c1+c7 as si, c7+c9 as if, int+-c5 as ii, int-c5 as ii2 c16, c16+'10
-    years', c16-'10 years', '10 years'*-2 from 'test/country.csv' nh
+    years', c16-'10 years', '10 years'*-2 from test/country.csv nh
   output: 2.csv
 - title: distinct string, case
   code: 0
@@ -154,7 +154,7 @@
   query: m select -c4 from 'test/country.csv'
 - title: function type error
   code: 1
-  query: m select avg(c1) from 'test/country.csv'
+  query: m select avg(c1) from test/country.csv
 - title: datetime functions used normally
   code: 0
   query: m noh with c16-'44y' as d select year(d) month(d) monthname(d) week(d) day(d) dayname(d) dayofyear(d)
@@ -195,13 +195,13 @@
   output: 39.csv
 - title: agg inlist having normal subquery
   code: 0
-  query: m select max(c3) from 'test/cities' nh having max(c3) in (select c1 from 'test/country' nh where c1 < CAA) group by c3
+  query: m select max(c3) from test/cities nh having max(c3) in (select c1 from test/country nh where c1 < CAA) group by c3
   output: 40.csv
 - title: exception in top thread
   code: 1
   query: m select c1 count(*) from 'test/lang' nh group by c1 having c1 in (select c3 from 'test/cities' nh)
 - title: dualphase var used in many places with dualphase and * agg
   code: 0
-  query: with c3 as continent select continent, * from '/home/d/gits/csvquery/build/test/country.csv'
+  query: with c3 as continent select continent, * from test/country.csv
     group by continent order by continent having continent like 'a%' where len(continent) > 4
   output: 41.csv
