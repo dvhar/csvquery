@@ -24,14 +24,14 @@ void help(char* prog){
 		"\t-c    Output results in terminal as csv instead of table (default)\n"
 		"\t-y    Same as -t but with background colors to help see lines\n"
 		"\t-w    Same as -t but no colors\n"
-		"\t-j    Print json to stdout (rows limited to 20000 divided by number of columns)\n"
+		"\t-j    Print json to stdout (limited to first 20000 values)\n"
 		"\t-h    Show this help message and exit\n"
 		"\t-v    Show version and exit\n"
 		"\t-f FILE    Run a selectAll query on FILE and output table\n"
 		"\t-o FILE    Save query to FILE\n\n"
 		"Config file is " << globalSettings.configfilepath << ". These are the settings you can change:\n"
+		"\tguess_file_header:    first row is considered header if no value is a number\n"
 		"\tshow_debug_info:      same as -d and -g\n"
-		"\tguess_file_header:    same as -a\n"
 		"\texit_automatically:   same as -e\n"
 		"\ttable_or_csv:         same as -t and -c\n"
 		"\tneed_comma_separator: same as -m\n";
@@ -173,7 +173,6 @@ int bracecount(string& q){
 
 void loadconfig(){
 	vector<string> opts{
-		"version",
 		"show_debug_info",
 		"guess_file_header",
 		"exit_automatically",
@@ -187,7 +186,6 @@ void loadconfig(){
 		if (cfile.good()){
 			string confversion;
 			CFG::ReadFile(cfile, opts,
-					confversion,
 					globalSettings.debug,
 					globalSettings.autoheader,
 					globalSettings.autoexit,
@@ -205,7 +203,6 @@ void loadconfig(){
 		defaultoutput = globalSettings.termbox ? "table":"csv";
 		ofstream cfile(globalSettings.configfilepath);
 		CFG::WriteFile(cfile, opts,
-				version,
 				globalSettings.debug,
 				globalSettings.autoheader,
 				globalSettings.autoexit,

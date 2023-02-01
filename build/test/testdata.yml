@@ -112,7 +112,7 @@
   output: 24.csv
 - title: single basic join
   code: 0
-  query: m select j.c3,o.c1,j.c2 from 'test/cities.csv' nh j join 'test/country.csv'
+  query: m select j.c3,o.c1,j.c2 from test/cities.csv nh j join test/country.csv
     o nh on j.c3=o.c1 limit 10
   output: 25.csv
 - title: single basic join with vars for where, distinct, joinvals, and selections

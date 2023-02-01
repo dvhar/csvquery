@@ -5,7 +5,7 @@ import yaml
 import os
 
 picky = False
-picks = [3,4] #which tests to run when picky
+picks = [24] #which tests to run when picky
 
 def runtest(test):
     q = test['query']
@@ -38,11 +38,13 @@ def runtest(test):
 
 with open('test/testdata.yml') as testfile:
     tests = yaml.load(testfile, Loader=yaml.FullLoader)
+    i=0
     for test in tests:
         if picky:
             if i in picks:
                 runtest(test)
         else:
             runtest(test)
+        i += 1
 
 print("All tests passed")
