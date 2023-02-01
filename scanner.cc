@@ -1,15 +1,10 @@
 #include "interpretor.h"
 #include "scanner.h"
-#include <boost/algorithm/string/case_conv.hpp>
 #include <cstring>
 
 template<class T>
 constexpr u32 len(T &a) {
     return sizeof(a) / sizeof(typename std::remove_all_extents<T>::type);
-}
-
-string token::lower() {
-	return boost::to_lower_copy(val);
 }
 
 const int specials[] = { '*','=','!','<','>','\'','"','(',')',',','+','-','%','/','^' };
@@ -280,7 +275,7 @@ token scanner::scanQuotedToken(int qtype) {
 
 token scanner::scanAnyToken() {
 	token t = scanPlainToken();
-	if (t.id == SP_SQUOTE || t.id == SP_DQUOTE) {
+	if (t == SP_SQUOTE || t == SP_DQUOTE) {
 		t = scanQuotedToken(t.val[0]);
 		scanPlainToken(); //end quote
 	}

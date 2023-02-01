@@ -698,7 +698,7 @@ void dataTyper::typeCaseFinalNodes(astnode &n, int finaltype){
 
 void dataTyper::typePredCompFinalNodes(astnode &n){
 	if (n == nullptr) return;
-	if (n->tok1.id == SP_LPAREN){
+	if (n->tok1 == SP_LPAREN){
 		typeFinalValues(n->nmorepreds(), -1);
 	} else if (n->tok1.id & RELOP) {
 		typeFinalValues(n->node1, n->datatype);
@@ -958,12 +958,12 @@ void dataTyper::checkFuncSemantics(astnode &n){
 	case FN_STDEV:
 	case FN_STDEVP:
 		if (n1 == T_STRING || n1 == T_DATE || n1 == T_DURATION)
-			error("Cannot use ",n->tok1.val," function with type ",typestr);
+			error("Cannot use ",n->tok1," function with type ",typestr);
 		//TODO: implement stdev and avg for date and duration
 		break;
 	case FN_ABS:
 		if (n1 == T_STRING || n1 == T_DATE)
-			error("Cannot use ",n->tok1.val," function with type ",typestr);
+			error("Cannot use ",n->tok1," function with type ",typestr);
 		break;
 	case FN_SUBSTR:
 		if (n->tok2.quoted){
@@ -978,8 +978,8 @@ void dataTyper::checkFuncSemantics(astnode &n){
 		if (!n->tok2.id) return;
 		n->tok2.id = strtol(n->tok2.val.c_str(), &e, 10);
 		if (*e != 0 || n->tok2.id < 0 || n->tok2.id > 9)
-			error(n->tok1.val," function 2nd value must be integer from -9 to 9");
-		if (n->tok3.id == SP_MINUS)
+			error(n->tok1," function 2nd value must be integer from -9 to 9");
+		if (n->tok3 == SP_MINUS)
 			n->tok2.id *= -1;
 		break;
 	case FN_ENCRYPT:
@@ -997,7 +997,7 @@ void dataTyper::getToptypes(){
 	if (n == nullptr){
 		selectallToptypes();
 	} else while (n){
-		if (n->startok().id == SP_STAR){
+		if (n->startok() == SP_STAR){
 			selectallToptypes();
 		} else {
 			topitypes.push_back({n->datatype,canBeString(n->nsubexpr())});

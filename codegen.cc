@@ -229,7 +229,7 @@ void cgen::genJoinSets(astnode &n){
 	vs.setscope(JCOMP_FILTER, V_READ1_SCOPE);
 	genVars(q->tree->npreselect());
 	genJoinPredicates(n->njoinconds());
-	addop(JOINSET_INIT, (joinFileIdx-1)*2, n->tok3.lower() == "left");
+	addop(JOINSET_INIT, (joinFileIdx-1)*2, n->tok3 == "left");
 	int goWhenDone = prevJoinRead;
 	prevJoinRead = v.size();
 	wherenot = prevJoinRead;
@@ -299,7 +299,7 @@ void cgen::genAndChainSet(astnode &n){
 			addop(JOINSET_GRT_AND, fi, ci);
 			break;
 		default:
-			error("joins with '",n->tok1.val,"' operator in first of 'and' conditions not implemented");
+			error("joins with '",n->tok1,"' operator in first of 'and' conditions not implemented");
 	}
 }
 //given 'predicates' node
@@ -356,7 +356,7 @@ void cgen::genJoinCompare(astnode &n){
 			addop(JOINSET_GRT, joinFileIdx, vpidx, funcTypes[valposTypes[vpidx]]);
 			break;
 		default:
-			error("joins with '",n->tok1.val,"' operator not implemented");
+			error("joins with '",n->tok1,"' operator not implemented");
 	}
 }
 void cgen::genScanJoinFiles(astnode &n){
@@ -662,7 +662,7 @@ void cgen::genValue(astnode &n){
 		addop2(operations[OPLD][n->datatype], q->getFileNo(n->dotsrc()), n->colidx());
 		break;
 	case LITERAL:
-		if (n->tok1.lower() == "null"){
+		if (n->tok1 == "null"){
 			addop0(PUSH);
 		} else {
 			switch (n->datatype){
@@ -782,10 +782,9 @@ void cgen::genSelections(astnode &n){
 		return;
 	}
 	e("gen selections");
-	string t1 = n->startok().lower();
 	switch (n->label){
 	case N_SELECTIONS:
-		if (t1 == "*") {
+		if (n->startok() == "*") {
 			genSelectAll();
 
 		} else if (isTrivialColumn(n)) {
@@ -851,7 +850,7 @@ void cgen::genPredicates(astnode &n){
 		break;
 	}
 	jumps.setPlace(doneAndOr, v.size());
-	if (n->tok2.id == SP_NEGATE)
+	if (n->tok2 == SP_NEGATE)
 		addop0(PNEG);
 }
 
@@ -938,7 +937,7 @@ void cgen::genDistinct(int goWhenNot){
 	e("gen distinct");
 	if (n) {
 		for (auto nn = n.get(); nn && nn->label == N_SELECTIONS; nn = nn->nnextselection().get()){
-			if (n->startok().id == SP_STAR){
+			if (n->startok() == SP_STAR){
 				for (auto& f: q->filevec)
 					for (auto t : f->types)
 						q->selectiontypes.push_back(T_STRING);
@@ -993,7 +992,7 @@ void cgen::genFunction(astnode &n){
 	//stuff common to all aggregate functions
 	if ((n->funcid() & AGG_BIT) != 0 ) {
 		genExprAll(n->nsubexpr());
-		if (n->tok3.val == "distinct" && agg_phase == 1){
+		if (n->tok3 == "distinct" && agg_phase == 1){
 			int setIndex = n->funcdistnum();
 			int separateSets = 1;
 			if (q->grouping == 1){ //when onegroup, btree not indexed by rowgroup

@@ -155,7 +155,7 @@ void analyzer::selectAllGroupOrSubquery(){
 		auto prev = findFirstNode(q->tree, N_SELECT).get();
 		auto next = prev->nselections().get();
 		do {
-			if (next->startok().id == SP_STAR){
+			if (next->startok() == SP_STAR){
 				auto&& allcolumns = expandSelectAll();
 				auto nextafter = next->nnextselection().release();
 				prev->nnextselection().reset(allcolumns.first.release());
@@ -169,10 +169,9 @@ void analyzer::selectAllGroupOrSubquery(){
 
 void analyzer::recordResultColumns(astnode &n){
 	if (n == nullptr) return;
-	string t1 = n->startok().lower();
 	switch (n->label){
 	case N_SELECTIONS:
-		if (t1 == "*"){
+		if (n->startok() == "*"){
 			selectAll();
 		} else {
 			n->selectiondestidx() = q->colspec.count++;
@@ -231,7 +230,7 @@ bool analyzer::findAgrregates(astnode &n){
 	switch (n->label){
 	case N_FUNCTION:
 		if ((n->funcid() & AGG_BIT) != 0){
-			if (n->funcdisttok().lower() == "distinct"){
+			if (n->funcdisttok() == "distinct"){
 				n->funcdistnum() = q->settypes.size();
 				q->settypes.push_back(n->nsubexpr()->datatype == T_STRING);
 				q->distinctFuncs = 1;
@@ -560,7 +559,7 @@ void analyzer::findIndexableJoinValues(astnode &n, int fileno){
 			set_intersection(e1.begin(), e1.end(), e2.begin(), e2.end(),
 					inserter(intersection, intersection.begin()));
 			if (intersection.size())
-				error("Join condition cannot reference same file on both sides of '",n->tok1.val,"'");
+				error("Join condition cannot reference same file on both sides of '",n->tok1,"'");
 			if (e1.size() == 1 && *e1.begin() == fileno){
 				for (auto i : e2)
 					if (i > fileno)
@@ -664,9 +663,9 @@ void analyzer::setAttributes(astnode& n){
 	setAttributes(n->node4);
 }
 int analyzer::addAlias(astnode& n){
-	if (n->tok1.id == N_HANDLEALIAS){
+	if (n->tok1 == N_HANDLEALIAS){
 		auto& aliasnode = n->node1;
-		auto action = aliasnode->tok2.lower();
+		auto& action = aliasnode->tok2;
 		//add alias
 		if (action == "add") {
 			auto& filenode = aliasnode->node1;

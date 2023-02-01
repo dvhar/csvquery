@@ -100,7 +100,7 @@ enum varScopes { V_READ1_SCOPE, V_READ2_SCOPE, V_GROUP_SCOPE, V_SCAN_SCOPE };
 enum subquerytypes { SQ_INLIST=1 };
 
 
-enum {
+enum: const int {
 	RMAL = 8, //regex needs regfree() (dataholder vector only)
 	MAL = 16, //malloced and responsible for freeing c string
 	T_NULL = 0,
@@ -295,7 +295,16 @@ class token {
 	int line =0;
 	int col =0;
 	bool quoted =0;
-	string lower();
+	string lower(){
+		return boost::to_lower_copy(val);
+	}
+	friend ostream& operator<<(ostream& os, token const& t){ 
+        return os << t.val;
+    }
+	bool operator==(const char* cmp){ return strcasecmp(val.c_str(), cmp) == 0; }
+	bool operator!=(const char* cmp){ return !operator==(cmp); }
+	bool operator==(const int cmp){ return id == cmp; }
+	bool operator!=(const int cmp){ return !operator==(cmp); }
 };
 //node info keys
 enum: int {

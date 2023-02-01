@@ -135,13 +135,12 @@ void parseQuery(querySpecs &q) {
 astnode parser::parseQuery() {
 	justfiles.push(false);
 	t = sc.currToken();
-	if (t.id == EOS){
+	if (t == EOS){
 		error("Empty query");
 	}
 	e("parse query");
 	astnode n = newNode(N_QUERY);
-	auto l = t.lower();
-	if (l == "add" || l == "drop" || l == "show"){
+	if (t == "add" || t == "drop" || t == "show"){
 		n->tok2 = t;
 		n->node1 = parseHandleAlias();
 		n->tok1.id = N_HANDLEALIAS;
@@ -159,7 +158,7 @@ astnode parser::parseQuery() {
 		case SP_RPAREN:
 		break;
 		default:
-			error("Unexpected token at and of query: '",t.val,"'");
+			error("Unexpected token at and of query: '",t,"'");
 	}
 	justfiles.pop();
 	return n;
@@ -176,11 +175,11 @@ astnode parser::parseHandleAlias() {
 	t = sc.nextToken();
 	n->tok1 = t;
 	sc.nextToken();
-	if (n->tok2.lower() == "drop" && t.id != WORD_TK)
-			error("Expected file alias after 'drop'. Found '",t.val,"'");
-	if (n->tok2.lower() == "add"){
-		if (t.id != WORD_TK)
-			error("Expected file alias after 'add'. Found '",t.val,"'");
+	if (n->tok2 == "drop" && t != WORD_TK)
+			error("Expected file alias after 'drop'. Found '",t,"'");
+	if (n->tok2 == "add"){
+		if (t != WORD_TK)
+			error("Expected file alias after 'add'. Found '",t,"'");
 		n->node1 = parseFile(false);
 	}
 	return n;
@@ -234,39 +233,38 @@ void parser::parseOptions(astnode& n) {
 	t = sc.currToken();
 	e("parse options");
 	int& opts = n->optionbits();
-	string s = t.lower();
-	if (s == "c") {
+	if (t == "c") {
 		opts |= O_C;
-	} else if (s == "oh") {
+	} else if (t == "oh") {
 		if (opts & O_NOH) error("Cannot have multiple output header options");
 		opts |= O_OH;
-	} else if (s == "noh") {
+	} else if (t == "noh") {
 		if (opts & O_NOH) error("Cannot have multiple output header options");
 		opts |= O_NOH;
-	} else if (s == "nh") {
+	} else if (t == "nh") {
 		if (opts & (O_H|O_AH)) error("Cannot have multiple input header options");
 		opts |= O_NH;
-	} else if (s == "h") {
+	} else if (t == "h") {
 		if (opts & (O_NH|O_AH)) error("Cannot have multiple input header options");
 		opts |= O_H;
-	} else if (s == "ah") {
+	} else if (t == "ah") {
 		if (opts & (O_NH|O_H)) error("Cannot have multiple input header options");
 		opts |= O_AH;
-	} else if (s == "s") {
+	} else if (t == "s") {
 		if (opts & (O_P|O_T|O_SC)) error("Cannot have multiple delimiter options");
 		opts |= O_S;
-	} else if (s == "p") {
+	} else if (t == "p") {
 		if (opts & (O_S|O_T|O_SC)) error("Cannot have multiple delimiter options");
 		opts |= O_P;
-	} else if (s == "t") {
+	} else if (t == "t") {
 		if (opts & (O_P|O_S|O_SC)) error("Cannot have multiple delimiter options");
 		opts |= O_T;
-	} else if (s == "sc") {
+	} else if (t == "sc") {
 		if (opts & (O_P|O_S|O_T)) error("Cannot have multiple delimiter options");
 		opts |= O_SC;
-	} else if (s == "nan") {
+	} else if (t == "nan") {
 		opts |= O_NAN;
-	} else if (s == "m") {
+	} else if (t == "m") {
 		needcomma = false;
 	} else {
 		return;
@@ -279,7 +277,7 @@ void parser::parseOptions(astnode& n) {
 astnode parser::parseWith() {
 	t = sc.currToken();
 	e("parse with");
-	if (t.lower() != "with") { return nullptr; }
+	if (t != "with") { return nullptr; }
 	astnode n = newNode(N_WITH);
 	sc.nextToken();
 	n->node1 = parseVars();
@@ -296,12 +294,12 @@ astnode parser::parseVars() {
 	astnode n = newNode(N_VARS);
 	n->node1 = parseExprAdd();
 	t = sc.currToken();
-	if (t.lower() != "as") error("Expected 'as' after expression. Found '",t.val,"'");
+	if (t != "as") error("Expected 'as' after expression. Found '",t,"'");
 	t = sc.nextToken();
-	if (t.id != WORD_TK) error("Expected variable name. Found '",t.val,"'");
+	if (t != WORD_TK) error("Expected variable name. Found '",t,"'");
 	n->tok1 = t;
 	t = sc.nextToken();
-	if (t.lower() == "and" || t.id == SP_COMMA) {
+	if (t == "and" || t == SP_COMMA) {
 		sc.nextToken();
 		n->node2 = parseVars();
 	}
@@ -315,7 +313,7 @@ astnode parser::parseSelect() {
 	e("parse select");
 	if (justfiles.top()) return nullptr;
 	astnode n = newNode(N_SELECT);
-	if (t.lower() != "select") error("Expected 'select'. Found '",t.val,"'");
+	if (t != "select") error("Expected 'select'. Found '",t,"'");
 	sc.nextToken();
 	parseQuantifier(n);
 	n->node2 = parseSelections();
@@ -331,14 +329,14 @@ astnode parser::parseSelect() {
 astnode parser::parseSelections() {
 	t = sc.currToken();
 	e("parse selections");
-	if (t.lower() == "from"){
+	if (t == "from"){
 		return nullptr;
 	}
 	astnode n = newNode(N_SELECTIONS);
-	if (t.id == SP_COMMA) {
+	if (t == SP_COMMA) {
 		t = sc.nextToken();
 	} else if (needcomma && !firstselection){
-		error("Expected 'from' clause or comma before next selection. Found: '",t.val,"'");
+		error("Expected 'from' clause or comma before next selection. Found: '",t,"'");
 	}
 	switch (t.id) {
 	case SP_STAR:
@@ -352,8 +350,8 @@ astnode parser::parseSelections() {
 	case SP_MINUS:
 	case SP_LPAREN:
 		//alias = expression
-		if (sc.peekToken().id == SP_EQ) {
-			if (t.id != WORD_TK) error("Alias must be a word. Found '",t.val,"'");
+		if (sc.peekToken() == SP_EQ) {
+			if (t != WORD_TK) error("Alias must be a word. Found '",t,"'");
 			n->tok2 = t;
 			sc.nextToken();
 			sc.nextToken();
@@ -362,23 +360,23 @@ astnode parser::parseSelections() {
 		} else {
 			n->node1 = parseExprAdd();
 			t = sc.currToken();
-			if (t.lower() == "as") {
+			if (t == "as") {
 				t = sc.nextToken();
 				n->tok2 = t;
 				sc.nextToken();
-			} else if (t.id == WORD_TK && needcomma){
+			} else if (t == WORD_TK && needcomma){
 				n->tok2 = t;
 				sc.nextToken();
 			}
 		}
-		if (sc.currToken().id == SP_LPAREN)
-			error("Cannot start expression after '", sc.prevToken().val,
+		if (sc.currToken() == SP_LPAREN)
+			error("Cannot start expression after '", sc.prevToken(),
 						"' with parenthesis. Did you misspell a function or forget a comma between selections?");
 		firstselection = false;
 		n->node2 = parseSelections();
 		return n;
 	default:
-		error("Expected a new selection or 'from' clause. Found '",t.val,"'");
+		error("Expected a new selection or 'from' clause. Found '",t,"'");
 	}
 	return nullptr;
 }
@@ -413,7 +411,7 @@ astnode parser::parseExprMult() {
 	t = sc.currToken();
 	switch (t.id) {
 	case SP_STAR:
-		if (sc.peekToken().lower() == "from") { break; }
+		if (sc.peekToken() == "from") { break; }
 	case SP_MOD:
 	case SP_CARROT:
 	case SP_DIV:
@@ -430,7 +428,7 @@ astnode parser::parseExprNeg() {
 	t = sc.currToken();
 	e("parse exprneg");
 	astnode n = newNode(N_EXPRNEG);
-	if (t.id == SP_MINUS) {
+	if (t == SP_MINUS) {
 		n->tok1 = t;
 		sc.nextToken();
 	}
@@ -467,10 +465,10 @@ astnode parser::parseExprCase() {
 			n->tok2 = t2;
 			n->node1 = parseExprAdd();
 			t = sc.currToken();
-			if (t.lower() != "when") error("Expected 'when' after case expression. Found '",t.val,"'");
+			if (t != "when") error("Expected 'when' after case expression. Found '",t,"'");
 			n->node2 = parseCaseWhenExprList();
 			break;
-		default: error("Expected expression or 'when'. Found ",sc.currToken().val);
+		default: error("Expected expression or 'when'. Found ",sc.currToken());
 		}
 
 		switch (sc.currToken().id) {
@@ -481,11 +479,11 @@ astnode parser::parseExprCase() {
 			t = sc.nextToken();
 			n->node3 = parseExprAdd();
 			t = sc.currToken();
-			if (t.lower() != "end") error("Expected 'end' after 'else' expression. Found '",t.val,"'");
+			if (t != "end") error("Expected 'end' after 'else' expression. Found '",t,"'");
 			sc.nextToken();
 			break;
 		default:
-			error("Expected 'end' or 'else' after case expression. Found '",sc.currToken().val,"'");
+			error("Expected 'end' or 'else' after case expression. Found '",sc.currToken(),"'");
 		}
 		break;
 
@@ -498,10 +496,10 @@ astnode parser::parseExprCase() {
 		n->tok1 = t;
 		sc.nextToken();
 		n->node1 = parseExprAdd();
-		if (sc.currToken().id != SP_RPAREN) error("Expected closing parenthesis. Found '",sc.currToken().val,"'");
+		if (sc.currToken() != SP_RPAREN) error("Expected closing parenthesis. Found '",sc.currToken(),"'");
 		sc.nextToken();
 		break;
-	default: error("Expected case, value, or expression. Found ",sc.currToken().val);
+	default: error("Expected case, value, or expression. Found ",sc.currToken());
 	}
 	return n;
 }
@@ -521,7 +519,7 @@ astnode parser::parseValue() {
 	astnode n = newNode(N_VALUE);
 	n->tok1 = t;
 	//see if it's a function
-	if (functionMap.count(t.lower()) && !t.quoted && sc.peekToken().id==SP_LPAREN) {
+	if (functionMap.count(t.lower()) && !t.quoted && sc.peekToken()==SP_LPAREN) {
 		n->tok2.id = FUNCTION;
 		n->node1 = parseFunction();
 	//any non-function value
@@ -539,7 +537,7 @@ astnode parser::parseCaseWhenPredList() {
 	astnode n = newNode(N_CPREDLIST);
 	n->node1 = parseCasePredicate();
 	t = sc.currToken();
-	if (t.lower() == "when") {
+	if (t == "when") {
 		n->node2 = parseCaseWhenPredList();
 	}
 	return n;
@@ -554,7 +552,7 @@ astnode parser::parseCasePredicate() {
 	sc.nextToken(); //eat when token
 	n->node1 = parsePredicates();
 	t = sc.currToken();
-	if (t.lower() != "then") error("Expected 'then' after predicate. Found: '",sc.currToken().val,"'");
+	if (t != "then") error("Expected 'then' after predicate. Found: '",sc.currToken(),"'");
 	sc.nextToken(); //eat then token
 	n->node2 = parseExprAdd();
 	return n;
@@ -573,7 +571,7 @@ astnode parser::parsePredicates() {
 	t = sc.currToken();
 	e("parse predicates");
 	astnode n = newNode(N_PREDICATES);
-	if (t.id == SP_NEGATE) { n->tok2 = t; t = sc.nextToken(); }
+	if (t == SP_NEGATE) { n->tok2 = t; t = sc.nextToken(); }
 	n->node1 = parsePredCompare();
 	t = sc.currToken();
 	if ((t.id & LOGOP) != 0) {
@@ -599,9 +597,9 @@ astnode parser::parsePredCompare() {
 	e("parse predcompare");
 	astnode n = newNode(N_PREDCOMP);
 	int negate = 0;
-	if (t.id == SP_NEGATE) { negate ^= 1; t = sc.nextToken(); }
+	if (t == SP_NEGATE) { negate ^= 1; t = sc.nextToken(); }
 	//more predicates in parentheses
-	if (t.id == SP_LPAREN) {
+	if (t == SP_LPAREN) {
 		auto pos = sc.getPos();
 		//try parsing as predicate
 		t = sc.nextToken();
@@ -617,7 +615,7 @@ astnode parser::parsePredCompare() {
 			tryAgain = true;
 		}
 		if (ispreds) {
-			if (t.id != SP_RPAREN) error("Expected closing parenthesis. Found: '",t.val,"'"); // should not be caught in try block
+			if (t != SP_RPAREN) error("Expected closing parenthesis. Found: '",t,"'"); // should not be caught in try block
 			t = sc.nextToken();
 		}
 		//return if (more comparisions)
@@ -627,35 +625,35 @@ astnode parser::parsePredCompare() {
 		}
 	}
 	//comparison
-	auto nullInList = sc.currToken().lower() == "null";
+	auto nullInList = sc.currToken() == "null";
 	n->node1 = parseExprAdd();
 	t = sc.currToken();
-	if (t.id == SP_NEGATE) {
+	if (t == SP_NEGATE) {
 		negate ^= 1;
 		t = sc.nextToken();
 	}
-	if ((t.id & RELOP) == 0) error("Expected relational operator. Found: '",t.val,"'");
+	if ((t.id & RELOP) == 0) error("Expected relational operator. Found: '",t,"'");
 	t = sc.currToken();
 	n->tok1 = t;
 	t = sc.nextToken();
-	if (t.id == SP_NEGATE) {
+	if (t == SP_NEGATE) {
 		negate ^= 1;
 		t = sc.nextToken();
 	}
-	if (n->tok1.id == KW_LIKE) {
+	if (n->tok1 == KW_LIKE) {
 		n->tok3 = t;
 		t = sc.nextToken();
-	} else if (n->tok1.id == KW_IN) {
-		if (t.id != SP_LPAREN) error("Expected opening parenthesis for expression list. Found: '",t.val,"'");
+	} else if (n->tok1 == KW_IN) {
+		if (t != SP_LPAREN) error("Expected opening parenthesis for expression list. Found: '",t,"'");
 		sc.nextToken();
 		n->node2 = parseSetList(!nullInList);
 		t = sc.currToken();
-		if (t.id != SP_RPAREN) error("Expected closing parenthesis after expression list. Found: '",t.val,"'");
+		if (t != SP_RPAREN) error("Expected closing parenthesis after expression list. Found: '",t,"'");
 		sc.nextToken();
 	} else {
 		n->node2 = parseExprAdd();
 	}
-	if (n->tok1.id == KW_BETWEEN) {
+	if (n->tok1 == KW_BETWEEN) {
 		sc.nextToken();
 		n->node3 = parseExprAdd();
 	}
@@ -689,7 +687,7 @@ astnode parser::parseCaseWhenExprList() {
 	astnode n = newNode(N_CWEXPRLIST);
 	n->node1 = parseCaseWhenExpr();
 	t = sc.currToken();
-	if (t.lower() == "when")
+	if (t == "when")
 		n->node2 = parseCaseWhenExprList();
 	return n;
 }
@@ -712,15 +710,15 @@ astnode parser::parseCaseWhenExpr() {
 void parser::parseQuantifier(astnode& n) {
 	t = sc.currToken();
 	e("parse top");
-	if (t.lower() == "top") {
+	if (t == "top") {
 		t = sc.nextToken();
-		if (!is_number(t.val)) error("Expected number after 'top'. Found '",t.val,"'");
+		if (!is_number(t.val)) error("Expected number after 'top'. Found '",t,"'");
 		n->tok1.id = atoi(t.val.c_str());
 		sc.nextToken();
 		parseQuantifier(n);
 		return;
 	}
-	if (t.lower() == "distinct") {
+	if (t == "distinct") {
 		q->distinctFiltering = true;
 		sc.nextToken();
 		parseQuantifier(n);
@@ -732,9 +730,9 @@ void parser::parseQuantifier(astnode& n) {
 void parser::parseLimit(astnode& n) {
 	t = sc.currToken();
 	e("parse limit");
-	if (t.lower() == "limit") {
+	if (t == "limit") {
 		t = sc.nextToken();
-		if (!is_number(t.val)) error("Expected number after 'limit'. Found '",t.val,"'");
+		if (!is_number(t.val)) error("Expected number after 'limit'. Found '",t,"'");
 		n->tok1.id = atoi(t.val.c_str());
 		sc.nextToken();
 	}
@@ -750,19 +748,19 @@ astnode parser::parseFrom(bool withselections) {
 
 	if (!withselections){
 		//will be 'select' if using selections, otherwise filepath
-		if (t.id != WORD_TK && t.val != SLASH){
-			if (t.id != KW_SELECT)
-				error("Expected 'select' or file name. Found: '",t.val,"'");
+		if (t != WORD_TK && t != SLASH){
+			if (t != KW_SELECT)
+				error("Expected 'select' or file name. Found: '",t,"'");
 			return nullptr;
 		}
 		//more helpful error messages when query assumes an explicit 'select' statement
 		if (!boost::filesystem::exists(t.val) && !boost::filesystem::exists(
-				st(globalSettings.configdir,SLASH,"alias-",t.val,".txt"))){
+				st(globalSettings.configdir,SLASH,"alias-",t,".txt"))){
 			return nullptr;
 		}
 		justfiles.top() = true;
 	} else {
-		if (t.lower() != "from") error("Expected 'from'. Found: '",t.val,"'");
+		if (t != "from") error("Expected 'from'. Found: '",t,"'");
 		t = sc.nextToken();
 	}
 
@@ -785,23 +783,23 @@ astnode parser::parseFile(bool join) {
 	if (t.val[0] == '('){
 		error("Subquery as a file is not implemented yet");
 	//file or view
-	} else if (t.id == WORD_TK){
+	} else if (t == WORD_TK){
 		isfile = true;
 		boost::replace_first(t.val, st("~",SLASH), gethome()+SLASH);
 		n->tok1 = t;
 		sc.nextToken();
 		parseFileOptions(n);
 	} else {
-		error("Expected file. Found: '",t.val,"'");
+		error("Expected file. Found: '",t,"'");
 	}
 	//alias
 	t = sc.currToken();
 	switch (t.id) {
 	case KW_AS:
 		t = sc.nextToken();
-		if (t.id != WORD_TK) error("Expected alias after as. Found: '",t.val,"'");
+		if (t != WORD_TK) error("Expected alias after as. Found: '",t,"'");
 	case WORD_TK:
-		if (auto tl=t.lower(); joinMap.count(tl) || (join && tl=="on")) break;
+		if (joinMap.count(t.lower()) || (join && t == "on")) break;
 		n->tok4 = t;
 		sc.nextToken();
 	}
@@ -816,32 +814,31 @@ void parser::parseFileOptions(astnode& n) {
 	t = sc.currToken();
 	e("parse fileoptions");
 	int& opts = n->optionbits();
-	string s = t.lower();
-	if (s == "nh") {
+	if (t == "nh") {
 		if (opts & (O_H|O_AH)) error("Cannot have multiple input header options");
 		opts |= O_NH;
-	} else if (s == "h") {
+	} else if (t == "h") {
 		if (opts & (O_NH|O_AH)) error("Cannot have multiple input header options");
 		opts |= O_H;
-	} else if (s == "ah") {
+	} else if (t == "ah") {
 		if (opts & (O_NH|O_H)) error("Cannot have multiple input header options");
 		opts |= O_AH;
-	} else if (s == "s") {
+	} else if (t == "s") {
 		if (opts & (O_P|O_T|O_SC)) error("Cannot have multiple delimiter options");
 		opts |= O_S;
-	} else if (s == "p") {
+	} else if (t == "p") {
 		if (opts & (O_S|O_T|O_SC)) error("Cannot have multiple delimiter options");
 		opts |= O_P;
-	} else if (s == "t") {
+	} else if (t == "t") {
 		if (opts & (O_P|O_S|O_SC)) error("Cannot have multiple delimiter options");
 		opts |= O_T;
-	} else if (s == "sc") {
+	} else if (t == "sc") {
 		if (opts & (O_P|O_S|O_T)) error("Cannot have multiple delimiter options");
 		opts |= O_SC;
 	} else {
 		return;
 	}
-	perr ( "SET OPTION " + s);
+	perr ( "SET OPTION " + t.val);
 	sc.nextToken();
 	parseFileOptions(n);
 }
@@ -854,25 +851,23 @@ void parser::parseFileOptions(astnode& n) {
 astnode parser::parseJoin() {
 	t = sc.currToken();
 	e("parse join");
-	string s = t.lower();
-	if (joinMap.count(s) == 0)
+	if (joinMap.count(t.lower()) == 0)
 		return nullptr;
 	astnode n = newNode(N_JOIN);
-	if (s == "left" || s == "inner"){
+	if (t == "left" || t == "inner"){
 		n->tok3 = t;
 		sc.nextToken();
 	}
 	t = sc.currToken();
-	s = t.lower();
-	if (s == "join"){
+	if (t == "join"){
 		n->tok2 = t;
 		t = sc.nextToken();
 	} else {
-		error("Expected 'join'. Found:",sc.currToken().val);
+		error("Expected 'join'. Found:",sc.currToken());
 	}
 	n->node1 = parseFile(true);
 	t = sc.currToken();
-	if (t.lower() != "on") error("Expected 'on'. Found: '",t.val,"'");
+	if (t != "on") error("Expected 'on'. Found: '",t,"'");
 	sc.nextToken();
 	n->node2 = parsePredicates();
 	n->node3 = parseJoin();
@@ -883,7 +878,7 @@ astnode parser::parseJoin() {
 astnode parser::parseWhere() {
 	t = sc.currToken();
 	e("parse where");
-	if (t.lower() != "where") { return nullptr; }
+	if (t != "where") { return nullptr; }
 	astnode n = newNode(N_WHERE);
 	sc.nextToken();
 	n->node1 = parsePredicates();
@@ -894,7 +889,7 @@ astnode parser::parseWhere() {
 astnode parser::parseHaving() {
 	t = sc.currToken();
 	e("parse having");
-	if (t.lower() != "having") { return nullptr; }
+	if (t != "having") { return nullptr; }
 	astnode n = newNode(N_HAVING);
 	sc.nextToken();
 	n->node1 = parsePredicates();
@@ -905,8 +900,8 @@ astnode parser::parseHaving() {
 astnode parser::parseOrder() {
 	t = sc.currToken();
 	e("parse order");
-	if (t.lower() == "order") {
-		if (sc.nextToken().lower() != "by") error("Expected 'by' after 'order'. Found '",sc.currToken().val,"'");
+	if (t == "order") {
+		if (sc.nextToken() != "by") error("Expected 'by' after 'order'. Found '",sc.currToken(),"'");
 		sc.nextToken();
 		astnode n = newNode(N_ORDER);
 		n->node1 = parseExpressionList(false, true);
@@ -932,12 +927,12 @@ astnode parser::parseFunction() {
 	sc.nextToken(); // (
 	t = sc.nextToken();
 	//count(*)
-	if (t.id == SP_STAR && n->tok1.lower() == "count") {
+	if (t == SP_STAR && n->tok1 == "count") {
 		n->tok2 = t;
 		sc.nextToken();
 	//everything else
 	} else {
-		if (t.lower() == "distinct") {
+		if (t == "distinct") {
 			n->tok3 = t;
 			t = sc.nextToken();
 		}
@@ -949,13 +944,13 @@ astnode parser::parseFunction() {
 		case FN_DECRYPT:
 			//first param is expression to en/decrypt
 			n->node1 = parseExprAdd();
-			if (sc.currToken().id == SP_COMMA) {
+			if (sc.currToken() == SP_COMMA) {
 				//second param is password
 				t = sc.nextToken();
 				n->tok4.val = t.val;
 				sc.nextToken();
-			} else if (sc.currToken().id != SP_RPAREN) {
-				error("Expect closing parenthesis or comma after expression in crypto function. Found: '",sc.currToken().val,"'");
+			} else if (sc.currToken() != SP_RPAREN) {
+				error("Expect closing parenthesis or comma after expression in crypto function. Found: '",sc.currToken(),"'");
 			}
 			break;
 
@@ -963,9 +958,9 @@ astnode parser::parseFunction() {
 		case FN_FLOOR:
 		case FN_CEIL:
 			n->node1 = parseExprAdd();
-			if (t = sc.currToken(); t.id == SP_COMMA){
+			if (t = sc.currToken(); t == SP_COMMA){
 				t = sc.nextToken();
-				if (t.id == SP_MINUS){
+				if (t == SP_MINUS){
 					n->tok3 = t;
 					t = sc.nextToken();
 				}
@@ -975,24 +970,24 @@ astnode parser::parseFunction() {
 			break;
 		case FN_POW:
 			n->node1 = parseExprAdd();
-			if (t = sc.currToken(); t.id != SP_COMMA)
-				error("POW function expected comma before second expression. Found: '",t.val,"'");
+			if (t = sc.currToken(); t != SP_COMMA)
+				error("POW function expected comma before second expression. Found: '",t,"'");
 			sc.nextToken();
 			n->node2 = parseExprAdd();
 			break;
 		case FN_FORMAT:
 			n->node1 = parseExprAdd();
-			if (t = sc.currToken(); t.id != SP_COMMA)
-				error("FORMAT function expected comma before date format parameter. Found: '",t.val,"'");
+			if (t = sc.currToken(); t != SP_COMMA)
+				error("FORMAT function expected comma before date format parameter. Found: '",t,"'");
 			n->tok2 = sc.nextToken();
 			sc.nextToken();
 			break;
 		case FN_SUBSTR:
 			n->node1 = parseExprAdd();
-			if (t = sc.currToken(); t.id != SP_COMMA)
-				error("SUBSTR function expected comma before second parameter. Found: '",t.val,"'");
+			if (t = sc.currToken(); t != SP_COMMA)
+				error("SUBSTR function expected comma before second parameter. Found: '",t,"'");
 			n->tok2 = sc.nextToken();
-			if (t = sc.nextToken(); t.id == SP_COMMA){
+			if (t = sc.nextToken(); t == SP_COMMA){
 				n->tok3 = sc.nextToken();
 				sc.nextToken();
 			}
@@ -1006,7 +1001,7 @@ astnode parser::parseFunction() {
 			n->node1 = parseExprAdd();
 		}
 	}
-	if (sc.currToken().id != SP_RPAREN) error("Expected closing parenthesis after function. Found: '",sc.currToken().val,"'");
+	if (sc.currToken() != SP_RPAREN) error("Expected closing parenthesis after function. Found: '",sc.currToken().val,"'");
 	sc.nextToken();
 	return n;
 }
@@ -1015,7 +1010,7 @@ astnode parser::parseFunction() {
 astnode parser::parseGroupby() {
 	t = sc.currToken();
 	e("parse groupby");
-	if (!(t.lower() == "group" && sc.peekToken().lower() == "by")) { return nullptr; }
+	if (!(t == "group" && sc.peekToken() == "by")) { return nullptr; }
 	astnode n = newNode(N_GROUPBY);
 	sc.nextToken();
 	sc.nextToken();
@@ -1037,8 +1032,8 @@ astnode parser::parseExpressionList(bool interdependant, bool sortlist) { //bool
 	astnode n = newNode(label);
 	n->node1 = parseExprAdd();
 	t = sc.currToken();
-	if (sortlist && (t.lower() == "asc" || t.lower() == "desc")){
-		n->tok1.id = t.lower() == "desc";
+	if (sortlist && (t == "asc" || t == "desc")){
+		n->tok1.id = t == "desc";
 		t = sc.nextToken();
 	}
 	n->tok2.id = sortlist;
