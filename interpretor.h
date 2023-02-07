@@ -427,6 +427,8 @@ class variable {
 	int mrindex =0;
 	set<int> filesReferenced;
 	int maxfileno =0;
+	bool operator==(const variable& cmp){ return name == cmp.name; }
+	bool operator!=(const variable& cmp){ return name != cmp.name; }
 };
 
 class csvEntry {

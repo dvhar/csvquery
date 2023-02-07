@@ -330,7 +330,7 @@ void dataTyper::typeInitialValue(astnode &n, bool trivial){
 
 	//see if selecting trivial value (just column or literal)
 	if (n->label == N_SELECTIONS && !q->isSubquery) trivial = true;
-	if (trivial && !stillTrivial(n))                trivial = false;
+	if (trivial && !stillTrivial(n)) trivial = false;
 	if (trivial && n->label == N_VALUE) {
 		if (n->valtype() == COLUMN) {
 			n->datatype = T_STRING;
@@ -341,9 +341,9 @@ void dataTyper::typeInitialValue(astnode &n, bool trivial){
 
 	typeInitialValue(n->node1, trivial);
 	//record variable after typing var leafnodes to avoid recursive definition
-	if (n->label == N_VARS)             q->addVar(thisVar);
+	if (n->label == N_VARS) q->addVar(thisVar);
 	//reset trivial indicator for next selection
-	if (n->label == N_SELECTIONS)       trivial = false;
+	if (n->label == N_SELECTIONS) trivial = false;
 	typeInitialValue(n->node2, trivial);
 	typeInitialValue(n->node3, trivial);
 	typeInitialValue(n->node4, trivial);

@@ -51,6 +51,8 @@ variable& querySpecs::var(string name) {
 	return vars.front();
 }
 void querySpecs::addVar(string name) {
+	if (find(vars.begin(), vars.end(), variable{.name = name}) != vars.end())
+		error("Alias '",name,"' defined more than once");
 	vars.push_back({name,0,0,0,0,{}});
 }
 bool querySpecs::numIsCol() { return (options & O_C) != 0; }
@@ -132,7 +134,7 @@ void printTree(astnode &n, int ident){
 	string s = "";
 	for (int i=0;i<ident;i++) s += "  ";
 	perr(st( s , n->nodelabel() , '\n', s,
-		ft("[%1% %2% %3% %4%] t:%5% p:%6% k:%7%")
+		ft("[t1:%1% t2:%2% t3:%3% t4:%4%] t:%5% p:%6% k:%7%")
 		% n->tok1.val
 		% n->tok2.val
 		% n->tok3.val

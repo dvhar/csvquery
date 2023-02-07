@@ -205,3 +205,11 @@
   query: with c3 as continent select continent, * from test/country.csv
     group by continent order by continent having continent like 'a%' where len(continent) > 4
   output: 41.csv
+- title: dualphase var used in many places with dualphase and * agg with no 'with' section
+  code: 0
+  query: select  c3 continent, * from test/country.csv
+    group by continent order by continent having continent like 'a%' where len(continent) > 4
+  output: 41.csv
+- title: define same variable in two different ways
+  code: 1
+  query: with c4 as dog select c2 dog, dog from test/cities

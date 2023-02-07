@@ -924,7 +924,7 @@ astnode parser::parseFunction() {
 	astnode n = newNode(N_FUNCTION);
 	n->tok1 = t;
 	n->tok1.id = getfunc(t.lower());
-	sc.nextToken(); // (
+	sc.nextToken();
 	t = sc.nextToken();
 	//count(*)
 	if (t == SP_STAR && n->tok1 == "count") {

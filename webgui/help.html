@@ -108,7 +108,7 @@
 				</code>
 			</blockquote>
 			<h4>Selecting more complex expressions</h4>
-			Use <code>+ - * / %</code> operators to add, subtract, multiply, divide, and modulus expressions. You can combine them with parentheses. You can also use case expressions.
+			Use <code>+ - * / %</code> operators to add, subtract, multiply, divide, and modulus values. You can combine them with parentheses. You can also use case expressions.
 			<br><br>
 			Examples:
 			<blockquote>
@@ -120,8 +120,8 @@
 					select case c1 / c4 when (c3+c3)*2 then dog when c1*10 then cat end from '/home/user/pets.csv'
 				</code>
 			</blockquote>
-			<h4>Expression Aliases</h4>
-			Begin a query with <code>with &lt;expression&gt; as &lt;alias&gt;</code> to use that value throughout the query. Separate aliases with <code>,</code> or <code>and</code>.
+			<h4>Value Aliases</h4>
+			To use the same value in multiple places, either rename a selection and use that name, or Begin a query with <code>with &lt;value&gt; as &lt;alias&gt;</code>. Separate aliases in the <code>with</code> clause with <code>,</code> or <code>and</code>.
 			<br><br>
 			Example:
 			<br>
@@ -135,66 +135,66 @@
 			<button class=funcTable onclick="showTable('funcTable')">Show function table</button>
 			<table border=1 class="funcTable hidden">
 				<th>Function</th><th>description</th><th>parameters</th>
-				<tr><td>sum</td><td>aggregate sum</td><td>(&lt;expression&gt;)</td></tr>
-				<tr><td>avg</td><td>aggregate average</td><td>(&lt;expression&gt;)</td></tr>
-				<tr><td>min</td><td>aggregate minimum</td><td>(&lt;expression&gt;)</td></tr>
-				<tr><td>max</td><td>aggregate maximum</td><td>(&lt;expression&gt;)</td></tr>
-				<tr><td>count</td><td>aggregate count</td><td>(&lt;expression&gt; or *)</td></tr>
-				<tr><td>stdev</td><td>aggregate sample standard deviation</td><td>(&lt;expression&gt;)</td></tr>
-				<tr><td>stdevp</td><td>aggregate population standard deviation</td><td>(&lt;expression&gt;)</td></tr>
+				<tr><td>sum</td><td>aggregate sum</td><td>(&lt;value&gt;)</td></tr>
+				<tr><td>avg</td><td>aggregate average</td><td>(&lt;value&gt;)</td></tr>
+				<tr><td>min</td><td>aggregate minimum</td><td>(&lt;value&gt;)</td></tr>
+				<tr><td>max</td><td>aggregate maximum</td><td>(&lt;value&gt;)</td></tr>
+				<tr><td>count</td><td>aggregate count</td><td>(&lt;value&gt; or *)</td></tr>
+				<tr><td>stdev</td><td>aggregate sample standard deviation</td><td>(&lt;numeric value&gt;)</td></tr>
+				<tr><td>stdevp</td><td>aggregate population standard deviation</td><td>(&lt;numeric value&gt;)</td></tr>
 				<tr><td>inc</td><td>number that increments each line</td><td>()</td></tr>
 				<tr><td>rand</td><td>random number</td><td>()</td></tr>
-				<tr><td>abs</td><td>absolute value</td><td>(&lt;expression&gt;)</td></tr>
-				<tr><td>coalesce</td><td>first non-null expression</td><td>(&lt;any number of expressions&gt;)</td></tr>
+				<tr><td>abs</td><td>absolute value</td><td>(&lt;numeric value&gt;)</td></tr>
+				<tr><td>coalesce</td><td>first non-null value</td><td>(&lt;any number of values&gt;)</td></tr>
 				<tr><td>now</td><td>current local datetime</td><td>()</td></tr>
 				<tr><td>nowlocal</td><td>current local datetime</td><td>()</td></tr>
 				<tr><td>nowgm</td><td>current GMT datetime</td><td>()</td></tr>
-				<tr><td>year</td><td>year</td><td>(&lt;expression&gt;)</td></tr>
-				<tr><td>month</td><td>month (1-12)</td><td>(&lt;expression>)</td></tr>
-				<tr><td>monthname</td><td>month name</td><td>(&lt;expression&gt;)</td></tr>
-				<tr><td>week</td><td>week of year (1-52)</td><td>(&lt;expression>)</td></tr>
-				<tr><td>dayname</td><td>day name</td><td>(&lt;expression&gt;)</td></tr>
-				<tr><td>dayofyear</td><td>day of year (1-366)</td><td>(&lt;expression>)</td></tr>
-				<tr><td>dayofmonth</td><td>day of month (1-31)</td><td>(&lt;expression>)</td></tr>
-				<tr><td>day</td><td>day of month (same as dayofmonth)</td><td>(&lt;expression>)</td></tr>
-				<tr><td>dayofweek</td><td>day of week (1-7, Sunday=1)</td><td>(&lt;expression>)</td></tr>
-				<tr><td>hour</td><td>hour (0-23)</td><td>(&lt;expression>)</td></tr>
-				<tr><td>minute</td><td>minute (0-59)</td><td>(&lt;expression>)</td></tr>
-				<tr><td>second</td><td>second (0-59)</td><td>(&lt;expression>)</td></tr>
-				<tr><td>format</td><td>format datetime text</td><td>(&lt;expression&gt;, &lt;format string&gt; or &lt;format code&gt;)</td></tr>
-				<tr><td>ceil</td><td>round up</td><td>(&lt;expression&gt;, &lt;optional decimal places&gt;)</td></tr>
-				<tr><td>floor</td><td>round down</td><td>(&lt;expression&gt;, &lt;optional decimal places&gt;)</td></tr>
-				<tr><td>round</td><td>round up or down to nearest</td><td>(&lt;expression&gt;, &lt;optional decimal places&gt;)</td></tr>
-				<tr><td>cos</td><td>trig cosine</td><td>(&lt;expression&gt;)</td></tr>
-				<tr><td>sin</td><td>trig sine</td><td>(&lt;expression&gt;)</td></tr>
-				<tr><td>tan</td><td>trig tangent</td><td>(&lt;expression&gt;)</td></tr>
-				<tr><td>acos</td><td>trig inverse cosine</td><td>(&lt;expression&gt;)</td></tr>
-				<tr><td>asin</td><td>trig inverse sine</td><td>(&lt;expression&gt;)</td></tr>
-				<tr><td>atan</td><td>trig inverse tangent</td><td>(&lt;expression&gt;)</td></tr>
-				<tr><td>exp</td><td>e to the power of number</td><td>(&lt;expression&gt;)</td></tr>
-				<tr><td>pow</td><td>1st expression to the power of second expression</td><td>(&lt;expression&gt;, &lt;expression&gt;)</td></tr>
-				<tr><td>log</td><td>log base e</td><td>(&lt;expression&gt;)</td></tr>
-				<tr><td>log2</td><td>log base 2</td><td>(&lt;expression&gt;)</td></tr>
-				<tr><td>log10</td><td>log base 10</td><td>(&lt;expression&gt;)</td></tr>
-				<tr><td>sqrt</td><td>square root</td><td>(&lt;expression&gt;)</td></tr>
-				<tr><td>cbrt</td><td>cube root</td><td>(&lt;expression&gt;)</td></tr>
-				<tr><td>upper</td><td>upper case</td><td>(&lt;expression&gt;)</td></tr>
-				<tr><td>lower</td><td>lower case</td><td>(&lt;expression&gt;)</td></tr>
-				<tr><td>len</td><td>lenth of text</td><td>(&lt;expression&gt;)</td></tr>
-				<tr><td>substr</td><td>substring from index+length or pattern matching</td><td>(&lt;expression&gt;, &lt;2 numbers&gt; or &lt;regex&gt;)</td></tr>
-				<tr><td>sip</td><td>sip hash (outputs a 64bit number)</td><td>(&lt;expression>)</td></tr>
-				<tr><td>md5</td><td>md5 hash in base64</td><td>(&lt;expression&gt;)</td></tr>
-				<tr><td>sha1</td><td>sha1 hash in base64</td><td>(&lt;expression&gt;)</td></tr>
-				<tr><td>sha256</td><td>sha256 hash in base64</td><td>(&lt;expression&gt;)</td></tr>
-				<tr><td>string</td><td>convert datatype to text</td><td>(&lt;expression&gt;)</td></tr>
-				<tr><td>int</td><td>convert datatype to integer</td><td>(&lt;expression&gt;)</td></tr>
-				<tr><td>float</td><td>convert datatype to floating point number</td><td>(&lt;expression&gt;)</td></tr>
-				<tr><td>date</td><td>convert datatype to datetime</td><td>(&lt;expression&gt;)</td></tr>
-				<tr><td>duration</td><td>convert datatype to duration</td><td>(&lt;expression&gt;)</td></tr>
-				<tr><td>encrypt</td><td>encrypt</td><td>(&lt;expression&gt;, &lt;optional password&gt;)</td></tr>
-				<tr><td>decrypt</td><td>decrypt</td><td>(&lt;expression&gt;, &lt;optional password&gt;)</td></tr>
-				<tr><td>base64_encode</td><td>encode to bas64</td><td>(&lt;expression&gt;)</td></tr>
-				<tr><td>base64_decode</td><td>decode from base64</td><td>(&lt;expression&gt;)</td></tr>
+				<tr><td>year</td><td>year</td><td>(&lt;datetime value&gt;)</td></tr>
+				<tr><td>month</td><td>month (1-12)</td><td>(&lt;datetime value>)</td></tr>
+				<tr><td>monthname</td><td>month name</td><td>(&lt;datetime value&gt;)</td></tr>
+				<tr><td>week</td><td>week of year (1-52)</td><td>(&lt;datetime value>)</td></tr>
+				<tr><td>dayname</td><td>day name</td><td>(&lt;datetime value&gt;)</td></tr>
+				<tr><td>dayofyear</td><td>day of year (1-366)</td><td>(&lt;datetime value>)</td></tr>
+				<tr><td>dayofmonth</td><td>day of month (1-31)</td><td>(&lt;datetime value>)</td></tr>
+				<tr><td>day</td><td>day of month (same as dayofmonth)</td><td>(&lt;datetime value>)</td></tr>
+				<tr><td>dayofweek</td><td>day of week (1-7, Sunday=1)</td><td>(&lt;datetime value>)</td></tr>
+				<tr><td>hour</td><td>hour (0-23)</td><td>(&lt;datetime value>)</td></tr>
+				<tr><td>minute</td><td>minute (0-59)</td><td>(&lt;datetime value>)</td></tr>
+				<tr><td>second</td><td>second (0-59)</td><td>(&lt;datetime value>)</td></tr>
+				<tr><td>format</td><td>format datetime text</td><td>(&lt;datetime value&gt;, &lt;format string&gt; or &lt;format code&gt;)</td></tr>
+				<tr><td>ceil</td><td>round up</td><td>(&lt;numeric value&gt;, &lt;optional decimal places&gt;)</td></tr>
+				<tr><td>floor</td><td>round down</td><td>(&lt;numeric value&gt;, &lt;optional decimal places&gt;)</td></tr>
+				<tr><td>round</td><td>round up or down to nearest</td><td>(&lt;numeric value&gt;, &lt;optional decimal places&gt;)</td></tr>
+				<tr><td>cos</td><td>trig cosine</td><td>(&lt;numeric value&gt;)</td></tr>
+				<tr><td>sin</td><td>trig sine</td><td>(&lt;numeric value&gt;)</td></tr>
+				<tr><td>tan</td><td>trig tangent</td><td>(&lt;numeric value&gt;)</td></tr>
+				<tr><td>acos</td><td>trig inverse cosine</td><td>(&lt;numeric value&gt;)</td></tr>
+				<tr><td>asin</td><td>trig inverse sine</td><td>(&lt;numeric value&gt;)</td></tr>
+				<tr><td>atan</td><td>trig inverse tangent</td><td>(&lt;numeric value&gt;)</td></tr>
+				<tr><td>exp</td><td>e to the power of number</td><td>(&lt;numeric value&gt;)</td></tr>
+				<tr><td>pow</td><td>1st value to the power of second value</td><td>(&lt;numeric value&gt;, &lt;numeric value&gt;)</td></tr>
+				<tr><td>log</td><td>log base e</td><td>(&lt;numeric value&gt;)</td></tr>
+				<tr><td>log2</td><td>log base 2</td><td>(&lt;numeric value&gt;)</td></tr>
+				<tr><td>log10</td><td>log base 10</td><td>(&lt;numeric value&gt;)</td></tr>
+				<tr><td>sqrt</td><td>square root</td><td>(&lt;numeric value&gt;)</td></tr>
+				<tr><td>cbrt</td><td>cube root</td><td>(&lt;numeric value&gt;)</td></tr>
+				<tr><td>upper</td><td>upper case</td><td>(&lt;value&gt;)</td></tr>
+				<tr><td>lower</td><td>lower case</td><td>(&lt;value&gt;)</td></tr>
+				<tr><td>len</td><td>lenth of text</td><td>(&lt;value&gt;)</td></tr>
+				<tr><td>substr</td><td>substring from index+length or pattern matching</td><td>(&lt;value&gt;, &lt;2 numbers&gt; or &lt;regex&gt;)</td></tr>
+				<tr><td>sip</td><td>sip hash (with numeric output)</td><td>(&lt;value>)</td></tr>
+				<tr><td>md5</td><td>md5 hash in base64</td><td>(&lt;value&gt;)</td></tr>
+				<tr><td>sha1</td><td>sha1 hash in base64</td><td>(&lt;value&gt;)</td></tr>
+				<tr><td>sha256</td><td>sha256 hash in base64</td><td>(&lt;value&gt;)</td></tr>
+				<tr><td>string</td><td>convert datatype to text</td><td>(&lt;value&gt;)</td></tr>
+				<tr><td>int</td><td>convert datatype to integer</td><td>(&lt;value&gt;)</td></tr>
+				<tr><td>float</td><td>convert datatype to floating point number</td><td>(&lt;value&gt;)</td></tr>
+				<tr><td>date</td><td>convert datatype to datetime</td><td>(&lt;value&gt;)</td></tr>
+				<tr><td>duration</td><td>convert datatype to duration</td><td>(&lt;value&gt;)</td></tr>
+				<tr><td>encrypt</td><td>encrypt</td><td>(&lt;value&gt;, &lt;optional password&gt;)</td></tr>
+				<tr><td>decrypt</td><td>decrypt</td><td>(&lt;value&gt;, &lt;optional password&gt;)</td></tr>
+				<tr><td>base64_encode</td><td>encode to bas64</td><td>(&lt;value&gt;)</td></tr>
+				<tr><td>base64_decode</td><td>decode from base64</td><td>(&lt;value&gt;)</td></tr>
 			</table>
 
 			<br>
@@ -275,7 +275,7 @@
 				</code>
 			</blockquote>
 			<h4>Selecting a number of rows</h4>
-			Use the <code>top</code> keyword after <code>select</code>, or <code>limit</code> at the end of the query. Be careful not to confuse the number after <code>top</code> for part of an expression.
+			Use the <code>top</code> keyword after <code>select</code>, or <code>limit</code> at the end of the query. Be careful not to confuse the number after <code>top</code> for part of an value.
 			<br><br>
 			Examples:
 			<blockquote>
@@ -307,7 +307,7 @@
 				</code>
 			</blockquote>
 			<h4>Sorting results</h4>
-			Use <code>order by</code> at the end of the query, followed by any number of expressions, each followed optionally by <code>desc</code>. Sorts by ascending values unless <code>desc</code> is specified.
+			Use <code>order by</code> at the end of the query, followed by any number of values, each followed optionally by <code>desc</code>. Sorts by ascending values unless <code>desc</code> is specified.
 			<br><br>
 			Examples:
 			<blockquote>

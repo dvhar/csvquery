@@ -1,5 +1,6 @@
 #include "interpretor.h"
 #include <boost/filesystem.hpp>
+#include <memory>
 #include<set>
 #include<algorithm>
 
@@ -33,6 +34,7 @@ class analyzer {
 		int phaser(astnode &n);
 		void setAttributes(astnode& n);
 		int addAlias(astnode& n);
+		void organizeVars(astnode& n);
 };
 
 void analyzer::propogateVarFilter(string var, int filter){
@@ -117,21 +119,14 @@ void analyzer::selectAll(){
 }
 
 pair<astnode,node*> analyzer::expandSelectAll(){
-	static array<int,5> branch = { N_EXPRADD, N_EXPRMULT, N_EXPRNEG, N_EXPRCASE, N_VALUE };
 	auto newselections = pair<astnode,node*>(make_unique<node>(N_SELECTIONS),nullptr);
 	node* selection = newselections.first.get();
 	node* last;
 	for (int filenum = 0; filenum < q->filevec.size(); ++filenum){
 		for (int colnum = 1; colnum <= q->filevec[filenum]->numFields; ++colnum){
-			node* thisnode = selection;
-			for (int label : branch){
-				thisnode->nsubexpr() = make_unique<node>(label);
-				thisnode = thisnode->nsubexpr().get();
-				if (label == N_EXPRCASE || label == N_VALUE){
-					thisnode->tok1.id = WORD_TK;
-					thisnode->tok1.val = st("_f",filenum,".c",colnum);
-				}
-			}
+			auto& newval = selection->nsubexpr() = make_unique<node>(N_VALUE);
+			newval->tok1.id = WORD_TK;
+			newval->tok1.val = st("_f",filenum,".c",colnum);
 			selection->nnextselection() = make_unique<node>(N_SELECTIONS);
 			last = selection;
 			selection = selection->nnextselection().get();
@@ -697,11 +692,41 @@ int analyzer::addAlias(astnode& n){
 	return 0;
 }
 
+void analyzer::organizeVars(astnode& n){
+	if (!n || n->label != N_SELECTIONS)
+		return;
+	auto& vartok = n->tok2;
+	if (!vartok.id) //no alias for selection
+		return;
+	// TODO: optimze by returning here if var not referenced anywhere else
+	node* varnode;
+	if (auto& vars = findFirstNode(q->tree, N_VARS)){
+		varnode = vars.get();
+		while (varnode->node2)
+			varnode = varnode->node2.get();
+		varnode->node2 = make_unique<node>(N_VARS);
+		varnode = varnode->node2.get();
+	} else {
+		auto& preselect = findFirstNode(q->tree, N_PRESELECT);
+		auto& with = preselect->node1 = make_unique<node>(N_WITH);
+		auto& newvars = with->node1 = make_unique<node>(N_VARS);
+		varnode = newvars.get();
+	}
+	varnode->tok1 = vartok;
+	varnode->node1 = move(n->node1);
+	auto& refnode = n->node1 = make_unique<node>(N_VALUE);
+	refnode->nval() = vartok.val;
+	refnode->valtype() = VARIABLE;
+	organizeVars(n->node2);
+}
+
+
 int earlyAnalyze(querySpecs &q){
 	analyzer an(q);
 	if (int nonquery = an.addAlias(q.tree); nonquery)
 		return nonquery;
 	an.setAttributes(q.tree);
+	an.organizeVars(findFirstNode(q.tree, N_SELECTIONS));
 	return 0;
 }
 void midAnalyze(querySpecs &q){
