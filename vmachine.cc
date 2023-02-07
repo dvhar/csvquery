@@ -68,7 +68,7 @@ LDPUTGRP_:
 	csvTemp = files[op->p3]->entries[op->p2];
 	sizeTemp = csvTemp.size();
 	if (sizeTemp && torow[op->p1].isnull())
-		torow[op->p1] = { { .s =newStr(csvTemp.val, sizeTemp) }, T_STRING|MAL, sizeTemp };
+		torow[op->p1] = dat{ { .s =newStr(csvTemp.val, sizeTemp) }, T_STRING|MAL, sizeTemp };
 	nexti();
 LDPUTALL_:
 	iTemp1 = op->p1;
@@ -1000,47 +1000,47 @@ FUNC_NOWGM_:
 	secs_to_tm(sec(stk0.u.i), &tmTemp);
 FUNC_YEAR_:
 	get_tm();
-	stk0 = { { .i = tmTemp.tm_year + 1900 }, T_INT };
+	stk0 = dat{ { .i = tmTemp.tm_year + 1900 }, T_INT };
 	nexti();
 FUNC_MONTH_:
 	get_tm();
-	stk0 = { { .i = tmTemp.tm_mon+1 }, T_INT };
+	stk0 = dat{ { .i = tmTemp.tm_mon+1 }, T_INT };
 	nexti();
 FUNC_WEEK_:
 	get_tm();
-	stk0 = { { .i = ((tmTemp.tm_yday+1) / 7) + 1 }, T_INT };
+	stk0 = dat{ { .i = ((tmTemp.tm_yday+1) / 7) + 1 }, T_INT };
 	nexti();
 FUNC_YDAY_:
 	get_tm();
-	stk0 = { { .i = tmTemp.tm_yday+1 }, T_INT };
+	stk0 = dat{ { .i = tmTemp.tm_yday+1 }, T_INT };
 	nexti();
 FUNC_MDAY_:
 	get_tm();
-	stk0 = { { .i = tmTemp.tm_mday }, T_INT };
+	stk0 = dat{ { .i = tmTemp.tm_mday }, T_INT };
 	nexti();
 FUNC_WDAY_:
 	get_tm();
-	stk0 = { { .i = tmTemp.tm_wday+1 }, T_INT };
+	stk0 = dat{ { .i = tmTemp.tm_wday+1 }, T_INT };
 	nexti();
 FUNC_HOUR_:
 	get_tm();
-	stk0 = { { .i = tmTemp.tm_hour }, T_INT };
+	stk0 = dat{ { .i = tmTemp.tm_hour }, T_INT };
 	nexti();
 FUNC_MINUTE_:
 	get_tm();
-	stk0 = { { .i = tmTemp.tm_min }, T_INT };
+	stk0 = dat{ { .i = tmTemp.tm_min }, T_INT };
 	nexti();
 FUNC_SECOND_:
 	get_tm();
-	stk0 = { { .i = tmTemp.tm_sec }, T_INT };
+	stk0 = dat{ { .i = tmTemp.tm_sec }, T_INT };
 	nexti();
 FUNC_WDAYNAME_:
 	get_tm();
-	stk0 = { { .s = daynames[tmTemp.tm_wday] }, T_STRING, daylens[tmTemp.tm_wday] };
+	stk0 = dat{ { .s = daynames[tmTemp.tm_wday] }, T_STRING, daylens[tmTemp.tm_wday] };
 	nexti();
 FUNC_MONTHNAME_:
 	get_tm();
-	stk0 = { { .s = monthnames[tmTemp.tm_mon] }, T_STRING, monthlens[tmTemp.tm_mon] };
+	stk0 = dat{ { .s = monthnames[tmTemp.tm_mon] }, T_STRING, monthlens[tmTemp.tm_mon] };
 	nexti();
 FUNC_ROUND_:
 	ifnotnull stk0.u.f = round(stk0.u.f, op->p1);
