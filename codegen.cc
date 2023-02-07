@@ -666,11 +666,11 @@ void cgen::genValue(astnode &n){
 			addop0(PUSH);
 		} else {
 			switch (n->datatype){
-			case T_INT:      lit = parseIntDat(n->nval().c_str());      break;
-			case T_FLOAT:    lit = parseFloatDat(n->nval().c_str());    break;
-			case T_DATE:     lit = parseDateDat(n->nval().c_str());     break;
-			case T_DURATION: lit = parseDurationDat(n->nval().c_str()); break;
-			case T_STRING:   lit = parseStringDat(n->nval().c_str());   break;
+			case T_INT:      lit = parseIntDat(n->val().c_str());      break;
+			case T_FLOAT:    lit = parseFloatDat(n->val().c_str());    break;
+			case T_DATE:     lit = parseDateDat(n->val().c_str());     break;
+			case T_DURATION: lit = parseDurationDat(n->val().c_str()); break;
+			case T_STRING:   lit = parseStringDat(n->val().c_str());   break;
 			}
 			addop1(LDLIT, q->dataholder.size());
 			q->dataholder.push_back(lit);
@@ -682,7 +682,7 @@ void cgen::genValue(astnode &n){
 		vtype = q->getVarType(n->varname());
 		op = typeConv[vtype][n->datatype];
 		if (op == CVER)
-			error("Cannot use alias '",n->nval(),"' of type ",gettypename(vtype)," with incompatible type ",gettypename(n->datatype));
+			error("Cannot use alias '",n->val(),"' of type ",gettypename(vtype)," with incompatible type ",gettypename(n->datatype));
 		if (op != CVNO)
 			addop0(op);
 		break;

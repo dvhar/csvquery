@@ -239,7 +239,7 @@ void dataTyper::typeInitialValue(astnode &n, bool trivial){
 
 	//only do leaf nodes
 	if (n->label == N_VALUE && n->valtype() != FUNCTION){
-		string val = n->nval();
+		string val = n->val();
 		int period;
 		//see if variable
 		for (auto &v : q->vars)
@@ -421,7 +421,7 @@ typer dataTyper::typeValueInnerNodes(astnode &n){
 		break;
 	case VARIABLE:
 		{
-			auto& v = q->var(n->nval());
+			auto& v = q->var(n->val());
 			innerType = {v.type, v.lit};
 		}
 		break;

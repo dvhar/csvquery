@@ -334,7 +334,7 @@ string nodeName(astnode &n, querySpecs* q){
 			return q->filemap[n->dotsrc()]->colnames[n->colidx()];
 		}
 		if (n->valtype() == VARIABLE)
-			return n->nval();
+			return n->val();
 		return "";
 	}
 	return nodeName(n->node1, q);

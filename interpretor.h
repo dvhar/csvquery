@@ -345,7 +345,7 @@ class node {
 	string_view nodelabel(){ return getnodename(label); }
 	string& varname(){ return tok1.val; }
 	astnode& nnextvar(){ return node2; }
-	string& nval(){ return tok1.val; }
+	string& val(){ return tok1.val; }
 	int& valtype(){ return tok2.id; }
 	int& trivialvalcol(){ return tok3.id; }
 	int& trivialvalalias(){ return tok4.id; }

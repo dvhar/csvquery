@@ -35,6 +35,7 @@ class analyzer {
 		void setAttributes(astnode& n);
 		int addAlias(astnode& n);
 		void organizeVars(astnode& n);
+		bool findVarReferences(astnode&, string&);
 };
 
 void analyzer::propogateVarFilter(string var, int filter){
@@ -50,8 +51,8 @@ void analyzer::setSubtreeVarFilter(astnode &n, int filter){
 	switch (n->label){
 	case N_VALUE:
 		if (n->valtype() == VARIABLE){
-			q->var(n->nval()).filter |= filter;
-			propogateVarFilter(n->nval(), filter);
+			q->var(n->val()).filter |= filter;
+			propogateVarFilter(n->val(), filter);
 		} else {
 			setSubtreeVarFilter(n->nsubexpr(), filter);
 		}
@@ -300,7 +301,7 @@ void analyzer::setVarPhase(astnode &n, int phase, int section){
 			case 5: //where conditions
 			// case 6: //order by ?
 			case 7: //group by
-				q->var(n->nval()).phase |= phase;
+				q->var(n->val()).phase |= phase;
 				break;
 			}
 		} else {
@@ -692,13 +693,18 @@ int analyzer::addAlias(astnode& n){
 	return 0;
 }
 
+// use renamed selections as vars
 void analyzer::organizeVars(astnode& n){
 	if (!n || n->label != N_SELECTIONS)
 		return;
 	auto& vartok = n->tok2;
 	if (!vartok.id) //no alias for selection
 		return;
-	// TODO: optimze by returning here if var not referenced anywhere else
+	// optimze by returning here if var not referenced anywhere else
+	if (!(findVarReferences(n->nnextselection(), vartok.val)
+			|| findVarReferences(q->tree->nfrom(), vartok.val)
+			|| findVarReferences(q->tree->nafterfrom(), vartok.val)))
+		return;
 	node* varnode;
 	if (auto& vars = findFirstNode(q->tree, N_VARS)){
 		varnode = vars.get();
@@ -715,11 +721,21 @@ void analyzer::organizeVars(astnode& n){
 	varnode->tok1 = vartok;
 	varnode->node1 = move(n->node1);
 	auto& refnode = n->node1 = make_unique<node>(N_VALUE);
-	refnode->nval() = vartok.val;
+	refnode->val() = vartok.val;
 	refnode->valtype() = VARIABLE;
 	organizeVars(n->node2);
 }
 
+bool analyzer::findVarReferences(astnode &n, string& name){
+	if (!n)
+		return false;
+	if (n->label == N_VALUE && n->val() == name)
+			return true;
+	return findVarReferences(n->node1, name)
+		?: findVarReferences(n->node2, name)
+		?: findVarReferences(n->node3, name)
+		?: findVarReferences(n->node4, name);
+}
 
 int earlyAnalyze(querySpecs &q){
 	analyzer an(q);
