@@ -448,7 +448,7 @@ class queryQueue {
 	list<qinstance> queries;
 	mutex mtx;
 	public:
-	void runquery(querySpecs&);
+	void runPlainQuery(querySpecs&);
 	shared_ptr<singleQueryResult> runqueryJson(querySpecs&);
 	shared_ptr<singleQueryResult> runqueryHtml(querySpecs&);
 	void endall();

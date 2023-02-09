@@ -53,12 +53,10 @@ void vmachine::run(){
 
 	next();
 
-//put data from stack into torow
 PUT_:
 	torow[op->p1].mov(stk0);
 	pop();
 	nexti();
-//put data from filereader directly into torow
 LDPUT_:
 	csvTemp = files[op->p3]->entries[op->p2];
 	torow[op->p1].freedat();
@@ -78,7 +76,6 @@ LDPUTALL_:
 			torow[iTemp1++] = dat{ { .s = e->val }, T_STRING, e->size() };
 		}
 	nexti();
-//put data from midrow to torow
 LDPUTMID_:
 	torow[op->p1].mov(midrow[op->p2]);
 	nexti();
@@ -93,7 +90,6 @@ LDPUTVAR_:
 	}
 	nexti();
 
-//put variable from stack into stackbot
 PUTVAR_:
 	stkb(op->p1).mov(stk0);
 	pop();
@@ -117,7 +113,6 @@ LDVAR_:
 	stk0 = stkb(op->p1);
 	stk0.disown(); //var source still owns c string
 	nexti();
-//load data from filereader to the stack
 LDDUR_:
 	push();
 	parseDuration(files[op->p1]->entries[op->p2].val, stk0);
@@ -153,7 +148,6 @@ LDLIT_:
 	stk0 = q->dataholder[op->p1];
 	nexti();
 
-//read a new line from a file
 RDLINE_:
 	ip = files[op->p2]->readline() ? op->p1 : ip+1;
 	++linesRead;

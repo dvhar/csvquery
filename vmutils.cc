@@ -6,7 +6,6 @@
 #include "deps/crypto/sha256.h"
 #include "deps/crypto/md5.h"
 #include "deps/crypto/siphash.h"
-//#include "deps/crypto/aes.h"
 #include "deps/json/escape.h"
 #include "deps/html/escape.h"
 #include <chrono>
@@ -248,11 +247,12 @@ vmachine::~vmachine(){
 }
 querySpecs::~querySpecs(){
 	for (auto &d : dataholder){
-		d.freedat();
 		if (d.b & RMAL){
 			regfree(d.u.r);
 			delete d.u.r; //regex always allocated with 'new'
-		}
+			d.setnull();
+		} else
+			d.freedat();
 	}
 }
 
@@ -412,7 +412,7 @@ void sip(dat& d){
 	d.u.i = *(i64*)bytes;
 	d.b = T_INT;
 }
-static double dec_places[] = { .000000001,.00000001,.0000001,.000001,.00001,.0001,.001,.01,.1,1,10,100,1000,10000,100000,1000000,10000000,100000000,1000000000,10000000000 };
+static const double dec_places[] = { .000000001,.00000001,.0000001,.000001,.00001,.0001,.001,.01,.1,1,10,100,1000,10000,100000,1000000,10000000,100000000,1000000000,10000000000 };
 double round(double input, int decimals){
 	double m = dec_places[decimals+9];
 	return round(input*m)/m;
@@ -586,8 +586,8 @@ shared_ptr<singleQueryResult> showTables(querySpecs &q){
 
 }
 
-void queryQueue::runquery(querySpecs& q){
-	auto qi = qinstance(q);
+void queryQueue::runPlainQuery(querySpecs& q){
+	qinstance qi(q);
 	qi.runq();
 }
 shared_ptr<singleQueryResult> queryQueue::runqueryJson(querySpecs& q){
@@ -645,7 +645,7 @@ void returnPassword(i64 sesid, string pass){
 
 atomic_int vmachine::idCounter(0);
 void runPlainQuery(querySpecs &q){
-	qrunner.runquery(q);
+	qrunner.runPlainQuery(q);
 }
 shared_ptr<singleQueryResult> runJsonQuery(querySpecs &q){
 	return qrunner.runqueryJson(q);

@@ -698,9 +698,8 @@ void analyzer::organizeVars(astnode& n){
 	if (!n || n->label != N_SELECTIONS)
 		return;
 	auto& vartok = n->tok2;
-	if (!vartok.id) //no alias for selection
+	if (!vartok.id)
 		return;
-	// optimze by returning here if var not referenced anywhere else
 	if (!(findVarReferences(n->nnextselection(), vartok.val)
 			|| findVarReferences(q->tree->nfrom(), vartok.val)
 			|| findVarReferences(q->tree->nafterfrom(), vartok.val)))
