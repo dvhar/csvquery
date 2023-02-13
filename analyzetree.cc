@@ -90,7 +90,7 @@ void analyzer::varUsedInFilter(astnode &n){
 		setSubtreeVarFilter(n->nsubexpr(), ORDER_FILTER);
 		break;
 	case N_GROUPBY:
-		setSubtreeVarFilter(n->nsubexpr(), GROUP_FILTER);
+		setSubtreeVarFilter(n->nsubexpr(), GROUPING_FILTER);
 		break;
 	case N_HAVING:
 		setSubtreeVarFilter(n->nsubexpr(), HAVING_FILTER);

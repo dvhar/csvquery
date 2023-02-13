@@ -580,7 +580,7 @@ void cgen::genVars(astnode &n){
 				if (n->phase == (1|2)){
 					//non-aggs in phase2
 					if (agg_phase == 1){
-						if (vs.scopefilter == GROUP_FILTER || (vs.scopefilter == WHERE_FILTER && q->grouping)){ //need to get group before storing it there
+						if (vs.scopefilter == GROUPING_FILTER || (vs.scopefilter == WHERE_FILTER && q->grouping)){ //need to get group before storing it there
 							addop1(PUTVAR, i);
 							dualPhaseGroupVars.push_back({i,n->varmididx()});
 						} else {
@@ -1179,7 +1179,7 @@ void cgen::genTypeConv(astnode &n){
 }
 
 void cgen::genGetGroup(astnode &n){
-	vs.setscope(GROUP_FILTER, V_READ1_SCOPE);
+	vs.setscope(GROUPING_FILTER, V_READ1_SCOPE);
 	genVars(q->tree->npreselect());
 	if (n == nullptr) return;
 	e("get group");
