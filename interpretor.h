@@ -14,7 +14,6 @@
 #include <regex>
 #include <stdarg.h>
 #include <boost/algorithm/string.hpp>
-#include <boost/container/flat_map.hpp>
 #include <boost/format.hpp>
 #include <forward_list>
 #include <random>
@@ -22,6 +21,7 @@
 #include "deps/crypto/chacha20.h"
 #include "deps/getline/bufreader.h"
 #include "deps/json/json.hpp"
+#include "deps/flatmap/flat_map.hpp"
 
 #ifdef _WIN32
 #include <getopt.h>
@@ -40,7 +40,7 @@ typedef unsigned short u16;
 typedef unsigned char u8;
 typedef i64 dur_t;
 template<typename A, typename B>
-using flatmap = boost::container::flat_map<A,B>;
+using flatmap = fc::vector_map<A,B>;
 using ft = boost::format;
 using json = nlohmann::json;
 using namespace std;
