@@ -10,6 +10,8 @@ typedef shared_ptr<HttpServer::Request> Request;
 using namespace std;
 
 static bool rejectNonLocals(Request& request){
+	if (globalSettings.allowconnections)
+		return false;
 	static auto lh = boost::asio::ip::address::from_string("::ffff:127.0.0.1");
 	auto addr = request->remote_endpoint().address();
 	if (!addr.is_loopback() && addr != lh){

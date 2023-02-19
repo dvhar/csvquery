@@ -27,6 +27,8 @@ void help(char* prog){
 		"\t-j    Print json to stdout (limited to first 20000 values)\n"
 		"\t-h    Show this help message and exit\n"
 		"\t-v    Show version and exit\n"
+		"\t-a    Allow other computers to connect and use the browser interface\n"
+		"\t-l    Only allow connections from this computer (default)\n"
 		"\t-f FILE    Run a selectAll query on FILE and output table\n"
 		"\t-o FILE    Save query to FILE\n\n"
 		"Config file is " << globalSettings.configfilepath << ". These are the settings you can change:\n"
@@ -44,7 +46,7 @@ int main(int argc, char** argv){
 	string querystring;
 	string savefile;
 	loadconfig();
-	for(char c; (c = getopt(argc, argv, "hvgdejtywcmf:o:")) != -1;)
+	for(char c; (c = getopt(argc, argv, "hvgdejtywcmalf:o:")) != -1;)
 		switch(c){
 		case 'o':
 			savefile = optarg;
@@ -82,6 +84,12 @@ int main(int argc, char** argv){
 			break;
 		case 'm':
 			globalSettings.needcomma = false;
+			break;
+		case 'l':
+			globalSettings.allowconnections = false;
+			break;
+		case 'a':
+			globalSettings.allowconnections = true;
 			break;
 		case 'h':
 			help(argv[0]);
@@ -177,7 +185,8 @@ void loadconfig(){
 		"guess_file_header",
 		"exit_automatically",
 		"table_or_csv",
-		"need_comma_separator"
+		"need_comma_separator",
+		"allow_nonlocal_connections"
 	};
 	string defaultoutput;
 	boost::filesystem::create_directories(globalSettings.configdir);
@@ -190,7 +199,8 @@ void loadconfig(){
 					globalSettings.autoheader,
 					globalSettings.autoexit,
 					defaultoutput,
-					globalSettings.needcomma);
+					globalSettings.needcomma,
+					globalSettings.allowconnections);
 			if (defaultoutput == "table")
 				globalSettings.termbox = true;
 			if (confversion >= version){
@@ -207,6 +217,7 @@ void loadconfig(){
 				globalSettings.autoheader,
 				globalSettings.autoexit,
 				defaultoutput,
-				globalSettings.needcomma);
+				globalSettings.needcomma,
+				globalSettings.allowconnections);
 	}
 }

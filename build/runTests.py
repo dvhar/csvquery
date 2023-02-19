@@ -17,10 +17,9 @@ def runtest(test):
     out, err = ret.communicate()
     if ret.returncode != test['code']:
         print(f"Failed! Expected return code {test['code']} but got {ret.returncode}")
-        print(err)
+        # print(err)
         quit()
     if test['code'] == 0:
-        print("---------------------------------------")
         #print(out.decode('UTF-8'))
         with open('test/results/' + test['output'], 'rb') as res:
             expected = res.read()

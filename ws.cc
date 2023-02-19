@@ -1,3 +1,4 @@
+#include "interpretor.h"
 #include "server.h"
 #include "deps/websocket/server_ws.hpp"
 #include "deps/websocket/client_ws.hpp"
@@ -9,7 +10,7 @@ static map<i64,shared_ptr<WsServer::Connection>> connections;
 static void pingbrowsers();
 static atomic_int clientCount{0};
 static auto lh = boost::asio::ip::address::from_string("::ffff:127.0.0.1");
-#define rejectNonlocals() if (auto a=connection->remote_endpoint().address(); !a.is_loopback() && a != lh) return;
+#define rejectNonlocals() if (auto a=connection->remote_endpoint().address(); !globalSettings.allowconnections && !a.is_loopback() && a != lh) return;
 
 shared_ptr<singleQueryResult> runWebQuery(shared_ptr<webquery> wq){
 	cout << "webquery " << wq->whichone << ": " << wq->queries[wq->whichone] << endl;

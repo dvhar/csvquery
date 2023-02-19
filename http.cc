@@ -1,3 +1,4 @@
+#include "interpretor.h"
 #include "server.h"
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/erase.hpp>
@@ -34,6 +35,8 @@ void runServer(){
 }
 
 static bool rejectNonLocals(Request& request){
+	if (globalSettings.allowconnections)
+		return false;
 	static auto lh = boost::asio::ip::address::from_string("::ffff:127.0.0.1");
 	auto addr = request->remote_endpoint().address();
 	if (!addr.is_loopback() && addr != lh){
@@ -94,7 +97,8 @@ static void serve(){
 	};
 
 	perr("starting http server");
-	cout << "Go to http://localhost:8060 to use graphic interface\n";
+	cout << "Go to http://localhost:8060 to use graphic interface\n"
+	     << "Allow connections from other computers: " << (globalSettings.allowconnections ? "true":"false") << endl;
 	auto ws = async(servews);
 	auto hs = async([](){server.start();});
 	openbrowser();
