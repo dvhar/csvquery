@@ -324,6 +324,7 @@ void analyzer::setVarPhase(astnode &n, int phase, int section){
 		setVarPhase(n->npredconds(), 1, 5);
 		break;
 	case N_ORDER:
+		//TODO: enable order  by non-agg
 		if (!allAgrregates(n->norderlist()))
 			error("cannot sort aggregate query by non-aggregate value");
 		setVarPhase(n->norderlist(), 2, 6);
@@ -698,8 +699,10 @@ void analyzer::organizeVars(astnode& n){
 	if (!n || n->label != N_SELECTIONS)
 		return;
 	auto& vartok = n->tok2;
-	if (!vartok.id)
+	if (!vartok.id){
+		organizeVars(n->node2);
 		return;
+	}
 	if (!(findVarReferences(n->nnextselection(), vartok.val)
 			|| findVarReferences(q->tree->nfrom(), vartok.val)
 			|| findVarReferences(q->tree->nafterfrom(), vartok.val)))

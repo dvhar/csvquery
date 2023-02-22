@@ -64,6 +64,7 @@ static int ident = 0;
 	shared_ptr<void> _(nullptr, [&](...){ \
 		ident--; \
 		string spc; \
+		t = sc.currToken(); \
 		for (int i=0; i< ident; i++) spc += "    "; \
 	perr(st(spc,"done ",A, " : '", t.val,"'")); });
 #endif

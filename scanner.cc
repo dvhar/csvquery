@@ -179,7 +179,7 @@ token scanner::scanPlainToken() {
 				string tokStr = boost::to_lower_copy(S);
 				if (keywordMap.count(tokStr) && waitForQuote == 0) {
 					//return keyword token
-					return { getkeyword(tokStr), pos, S, lineNo, colNo, false };
+					return { keywordMap.at(tokStr), pos, S, lineNo, colNo, false };
 				} else {
 					//return word token
 					return { nextState, pos, S, lineNo, colNo, false };
