@@ -352,7 +352,7 @@ astnode parser::parseSelections() {
 	case SP_LPAREN:
 		//alias = expression
 		if (sc.peekToken() == SP_EQ) {
-			if (t != WORD_TK) error("Alias must be a word. Found '",t,"'");
+			if (t.asWord() != WORD_TK) error("Alias must be a word. Found '",t,"'");
 			n->tok2 = t;
 			sc.nextToken();
 			sc.nextToken();
@@ -363,10 +363,10 @@ astnode parser::parseSelections() {
 			t = sc.currToken();
 			if (t == "as") {
 				t = sc.nextToken();
-				n->tok2 = t;
+				n->tok2 = t.asWord();
 				sc.nextToken();
-			} else if (t == WORD_TK && needcomma){
-				n->tok2 = t;
+			} else if (t != "from" && t.toWord() == WORD_TK && needcomma){
+				n->tok2 = t.asWord();
 				sc.nextToken();
 			}
 		}
@@ -633,7 +633,8 @@ astnode parser::parsePredCompare() {
 		negate ^= 1;
 		t = sc.nextToken();
 	}
-	if ((t.id & RELOP) == 0) error("Expected relational operator. Found: '",t,"'");
+	if ((t.id & RELOP)==0 && t!="between" && t!="like" && t!="in")
+		error("Expected relational operator. Found: '",t,"'");
 	t = sc.currToken();
 	n->tok1 = t;
 	t = sc.nextToken();
@@ -641,10 +642,12 @@ astnode parser::parsePredCompare() {
 		negate ^= 1;
 		t = sc.nextToken();
 	}
-	if (n->tok1 == KW_LIKE) {
+	if (n->tok1 == "like") {
+		n->tok1.id = KW_LIKE;
 		n->tok3 = t;
 		t = sc.nextToken();
-	} else if (n->tok1 == KW_IN) {
+	} else if (n->tok1 == "in") {
+		n->tok1.id = KW_IN;
 		if (t != SP_LPAREN) error("Expected opening parenthesis for expression list. Found: '",t,"'");
 		sc.nextToken();
 		n->node2 = parseSetList(!nullInList);
@@ -654,7 +657,8 @@ astnode parser::parsePredCompare() {
 	} else {
 		n->node2 = parseExprAdd();
 	}
-	if (n->tok1 == KW_BETWEEN) {
+	if (n->tok1 == "between") {
+		n->tok1.id = KW_BETWEEN;
 		sc.nextToken();
 		n->node3 = parseExprAdd();
 	}
@@ -750,7 +754,7 @@ astnode parser::parseFrom(bool withselections) {
 	if (!withselections){
 		//will be 'select' if using selections, otherwise filepath
 		if (t != WORD_TK && t != SLASH){
-			if (t != KW_SELECT)
+			if (t != "select")
 				error("Expected 'select' or file name. Found: '",t,"'");
 			return nullptr;
 		}
@@ -795,14 +799,14 @@ astnode parser::parseFile(bool join) {
 	}
 	//alias
 	t = sc.currToken();
-	switch (t.id) {
-	case KW_AS:
+	if (t == "as"){
 		t = sc.nextToken();
 		if (t != WORD_TK) error("Expected alias after as. Found: '",t,"'");
-	case WORD_TK:
-		if (joinMap.count(t.lower()) || (join && t == "on")) break;
-		n->tok4 = t;
-		sc.nextToken();
+	} else if (t == WORD_TK){
+		if (!(joinMap.count(t.lower()) || (join && t == "on"))){
+			n->tok4 = t;
+			sc.nextToken();
+		}
 	}
 	//fileoptions can be before or after alias
 	if (isfile)

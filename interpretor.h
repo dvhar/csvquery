@@ -262,8 +262,6 @@ static string_view gettypename(int i){
 	try { return typeNames.at(i); } catch (...){ return ""; }}
 static string_view getnodename(int i){
 	try { return treeMap.at(i); } catch (...){ return ""; }}
-static int getkeyword(basic_string_view<char> s){
-	try { return keywordMap.at(s); } catch (...){ return 0; }}
 static int getfunc(basic_string_view<char> s){
 	try { return functionMap.at(s); } catch (...){ return 0; }}
 static int getjoinkw(basic_string_view<char> s){
@@ -302,6 +300,17 @@ class token {
 	friend ostream& operator<<(ostream& os, token const& t){ 
         return os << t.val;
     }
+	token toWord(){
+		token t = *this;
+		if (id & KEYBIT)
+			t.id = WORD_TK;
+		return t;
+	}
+	token& asWord(){
+		if (id & KEYBIT)
+			id = WORD_TK;
+		return *this;
+	}
 	bool operator==(const char* cmp){ return strcasecmp(val.c_str(), cmp) == 0; }
 	bool operator!=(const char* cmp){ return !operator==(cmp); }
 	bool operator==(const int cmp){ return id == cmp; }

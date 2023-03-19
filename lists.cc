@@ -47,26 +47,21 @@ const flatmap<string_view, int> keywordMap = {
 	{"or" ,        KW_OR},
 	{"xor" ,       KW_XOR},
 	{"select" ,    KW_SELECT},
-	{"from" ,      KW_FROM},
 	{"having" ,    KW_HAVING},
-	{"as" ,        KW_AS},
 	{"where" ,     KW_WHERE},
 	{"limit" ,     KW_LIMIT},
 	{"order" ,     KW_ORDER},
-	{"by" ,        KW_BY},
-	{"distinct" ,  KW_DISTINCT},
-	{"desc" ,      KW_ORDHOW},
-	{"between" ,   KW_BETWEEN},
-	{"like" ,      KW_LIKE},
 	{"case" ,      KW_CASE},
 	{"when" ,      KW_WHEN},
-	{"then" ,      KW_THEN},
 	{"else" ,      KW_ELSE},
 	{"end" ,       KW_END},
-	{"in" ,        KW_IN},
 	{"group" ,     KW_GROUP},
 	{"not" ,       SP_NEGATE},
 	{"is" ,        SP_EQ}
+	//these given keyword id by parser, not scanner:
+	//{"between" ,   KW_BETWEEN},
+	//{"in" ,        KW_IN},
+	//{"like" ,      KW_LIKE},
 };
 //functions are normal words to avoid taking up too many words
 //use map when parsing not scanning
