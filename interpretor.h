@@ -465,6 +465,7 @@ class fastvector {
 	csvEntry* data(){ return row.get(); };
 	csvEntry* begin(){ return row.get(); };
 	csvEntry* end(){ return row.get()+_size; };
+	csvEntry* capend(){ return row.get()+_cap; };
 	u32 size(){ return _size; };
 	void clear(){ _size = 0; };
 	void emplace_back(char* s, char* t){

@@ -229,7 +229,7 @@ void fileReader::inferTypes() {
 		if (!types[i])
 			types[i] = T_STRING;
 	if (small)
-		fill(entriesVec.begin(), entriesVec.end(), csvEntry{&blank,&blank});
+		fill(entriesVec.begin(), entriesVec.capend(), csvEntry{&blank,&blank});
 	else
 		br.seekfull(startData);
 }
