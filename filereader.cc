@@ -69,8 +69,8 @@ bool fileReader::readline(){
 		//trim leading space
 		while (spaces[(u8)*pos2]) ++pos2;
 		pos1 = pos2;
-		//non-quoted field
-		if (*pos2 != '"'){
+		//non-quoted field, or non-csv file since they generally do not follow csv quoting standards
+		if (*pos2 != '"' || delim != ','){
 			while(*pos2 && *pos2 != delim) ++pos2;
 			if (*pos2 == delim){
 				terminator = pos2;
