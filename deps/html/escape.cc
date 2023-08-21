@@ -1,5 +1,6 @@
 #include "escape.h"
 #include <string>
+#include <algorithm>
 using namespace std;
 static int linelen = 100;
 
@@ -84,9 +85,11 @@ static void shorten(string_view input, string& output){
 			addEscapedHTML(input, output);
 			return;
 		}
-		auto lineend = input.rfind(' ', linelen);
+		auto rightlimit = input.rbegin()+(input.size()-linelen);
+		auto lineend = linelen - distance(rightlimit, find_if(rightlimit, input.rend(), [](char c){return !isalnum(c);}));
 		if (lineend == string::npos){
-			lineend = input.find(' ');
+			auto rightstart = input.begin()+linelen;
+			lineend = distance(rightstart, find_if(rightstart, input.end(), [](char c){return !isalnum(c);}));
 			if (lineend == string::npos){
 				addEscapedHTML(input, output);
 				return;
@@ -94,7 +97,7 @@ static void shorten(string_view input, string& output){
 		}
 		addEscapedHTML(input.substr(0, lineend), output);
 		output += "<br>";
-		input = input.substr(lineend+1);
+		input = input.substr(lineend);
 	}
 }
 string chopAndEscapeHTML(basic_string_view<char>&& input){
