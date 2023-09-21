@@ -86,10 +86,12 @@ static void shorten(string_view input, string& output){
 			return;
 		}
 		auto rightlimit = input.rbegin()+(input.size()-linelen);
-		auto lineend = linelen - distance(rightlimit, find_if(rightlimit, input.rend(), [](char c){return !isalnum(c);}));
+		auto found1 = find_if(rightlimit, input.rend(), [](char c){return !isalnum(c) && ((c&0x80)==0);});
+		auto lineend = found1 == input.rend() ? string::npos : linelen - distance(rightlimit, found1);
 		if (lineend == string::npos){
 			auto rightstart = input.begin()+linelen;
-			lineend = distance(rightstart, find_if(rightstart, input.end(), [](char c){return !isalnum(c);}));
+			auto found2 = find_if(rightstart, input.end(), [](char c){return !isalnum(c) && ((c&0x80)==0);});
+			lineend = found2 == input.end() ? string::npos : distance(input.begin(), found2);
 			if (lineend == string::npos){
 				addEscapedHTML(input, output);
 				return;
