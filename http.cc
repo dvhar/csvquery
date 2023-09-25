@@ -34,18 +34,6 @@ void runServer(){
 	exit(0);
 }
 
-static bool rejectNonLocals(Request& request){
-	if (globalSettings.allowconnections)
-		return false;
-	static auto lh = boost::asio::ip::address::from_string("::ffff:127.0.0.1");
-	auto addr = request->remote_endpoint().address();
-	if (!addr.is_loopback() && addr != lh){
-		cerr << "attempted connection from non-localhost: " << addr << endl;
-		return true;
-	}
-	return false;
-}
-
 static void serve(){
 
 	auto startdir = filebrowse(boost::filesystem::current_path().string());
@@ -53,6 +41,8 @@ static void serve(){
 	state["version"] = version;
 	state["configpath"] = globalSettings.configfilepath;
 	server.config.port = 8060;
+	if (!globalSettings.allowconnections)
+		server.config.address = "127.0.0.1";
 	header.emplace("Cache-Control","no-store");
 	header.emplace("Content-Type", "text/plain");
 	embedsite(server);
@@ -64,7 +54,6 @@ static void serve(){
 	server.resource["^/info$"]["GET"] = 
 	server.resource["^/info$"]["POST"] = [&](Response response, Request request){
 
-		if (rejectNonLocals(request)) return;
 		auto params = request->parse_query_string();
 		auto info = params.find("info")->second;
 

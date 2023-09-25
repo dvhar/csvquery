@@ -9,8 +9,6 @@ static WsServer server;
 static map<i64,shared_ptr<WsServer::Connection>> connections;
 static void pingbrowsers();
 static atomic_int clientCount{0};
-static auto lh = boost::asio::ip::address::from_string("::ffff:127.0.0.1");
-#define rejectNonlocals() if (auto a=connection->remote_endpoint().address(); !globalSettings.allowconnections && !a.is_loopback() && a != lh) return;
 
 shared_ptr<singleQueryResult> runWebQuery(shared_ptr<webquery> wq){
 	cout << "webquery " << wq->whichone << ": " << wq->queries[wq->whichone] << endl;
@@ -66,10 +64,11 @@ void runqueries(shared_ptr<webquery> wq){
 
 void servews(){
 	server.config.port = 8061;
+	if (!globalSettings.allowconnections)
+		server.config.address = "127.0.0.1";
 	auto &wsocket = server.endpoint["^/socket/?$"];
 
 	wsocket.on_message = [](shared_ptr<WsServer::Connection> connection, shared_ptr<WsServer::InMessage> in_message) {
-		rejectNonlocals();
 		auto j = json::parse(in_message->string());
 		switch (fromjson<int>(j,"type")){
 		case SK_STOP:
@@ -93,7 +92,6 @@ void servews(){
 	};
 
 	wsocket.on_open = [](shared_ptr<WsServer::Connection> connection) {
-		rejectNonlocals();
 		i64 sesid = (i64) connection.get();
 		connection->send(json{{"type",SK_ID},{"id",sesid}}.dump());
 		connections[sesid] = connection;
@@ -102,7 +100,6 @@ void servews(){
 	};
 
 	wsocket.on_close = [](shared_ptr<WsServer::Connection> connection, int status, const string &) {
-		rejectNonlocals();
 		i64 sesid = (i64) connection.get();
 		connections.erase(sesid);
 		clientCount--;
@@ -112,7 +109,6 @@ void servews(){
 	};
 
 	wsocket.on_error = [&](shared_ptr<WsServer::Connection> connection, const SimpleWeb::error_code &ec) {
-		rejectNonlocals();
 		cerr << "Error in connection " << (i64)connection.get() << ": "
 			<< ec << ", error message: " << ec.message() << endl;
 		wsocket.on_close(connection, 0, {});

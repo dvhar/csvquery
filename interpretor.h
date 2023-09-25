@@ -91,7 +91,7 @@ extern string version;
 extern settings_t globalSettings;
 
 template<typename... Args>
-static void error(Args&&... A){ throw invalid_argument(st(A...));}
+static void error(Args&&... A){ throw runtime_error(st(A...));}
 
 enum nodetypes { N_QUERY, N_PRESELECT, N_WITH, N_VARS, N_SELECT, N_SELECTIONS, N_FROM, N_AFTERFROM, N_JOINCHAIN, N_JOIN, N_WHERE, N_HAVING, N_ORDER, N_EXPRADD, N_EXPRMULT, N_EXPRNEG, N_EXPRCASE, N_CPREDLIST, N_CPRED, N_CWEXPRLIST, N_CWEXPR, N_PREDICATES, N_PREDCOMP, N_VALUE, N_FUNCTION, N_GROUPBY, N_EXPRESSIONS, N_DEXPRESSIONS, N_TYPECONV, N_FILE, N_SETLIST, N_HANDLEALIAS };
 

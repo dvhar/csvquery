@@ -4,7 +4,7 @@
 using namespace std;
 static int linelen = 100;
 
-
+#define notutf8(C) ((C&0x80)==0)
 #define UTF_INVALID 0xFFFD
 #define UTF_SIZ     4
 #define BETWEEN(X, A, B)        ((A) <= (X) && (X) <= (B))
@@ -86,11 +86,11 @@ static void shorten(string_view input, string& output){
 			return;
 		}
 		auto rightlimit = input.rbegin()+(input.size()-linelen);
-		auto found1 = find_if(rightlimit, input.rend(), [](char c){return !isalnum(c) && ((c&0x80)==0);});
+		auto found1 = find_if(rightlimit, input.rend(), [](char c){return !isalnum(c) && notutf8(c);});
 		auto lineend = found1 == input.rend() ? string::npos : linelen - distance(rightlimit, found1);
 		if (lineend == string::npos){
 			auto rightstart = input.begin()+linelen;
-			auto found2 = find_if(rightstart, input.end(), [](char c){return !isalnum(c) && ((c&0x80)==0);});
+			auto found2 = find_if(rightstart, input.end(), [](char c){return !isalnum(c) && notutf8(c);});
 			lineend = found2 == input.end() ? string::npos : distance(input.begin(), found2);
 			if (lineend == string::npos){
 				addEscapedHTML(input, output);

@@ -611,7 +611,7 @@ astnode parser::parsePredCompare() {
 			t = sc.currToken();
 			ispreds = true;
 		//if failed, reparse as expression
-		} catch (const std::invalid_argument& e) {
+		} catch (...) {
 			sc.setPos(pos);
 			tryAgain = true;
 		}

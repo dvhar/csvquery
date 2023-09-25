@@ -9,18 +9,6 @@ typedef shared_ptr<HttpServer::Response> Response;
 typedef shared_ptr<HttpServer::Request> Request;
 using namespace std;
 
-static bool rejectNonLocals(Request& request){
-	if (globalSettings.allowconnections)
-		return false;
-	static auto lh = boost::asio::ip::address::from_string("::ffff:127.0.0.1");
-	auto addr = request->remote_endpoint().address();
-	if (!addr.is_loopback() && addr != lh){
-		cerr << "attempted connection from non-localhost: " << addr << endl;
-		return true;
-	}
-	return false;
-}
-
 //uncomment to load files from disk when page loads for testing, else they are embedded during compilation
 //#define testing_site
 
@@ -46,8 +34,8 @@ _ib(4)
 #define f4 _f(4)
 
 void embedsite(HttpServer &server){
-	server.default_resource["GET"] = [](Response response, Request request){ if (rejectNonLocals(request)) return; response->write(f1); };
-	server.resource["^/main.js$"]["GET"] = [](Response response, Request request){ if (rejectNonLocals(request)) return; response->write(f2); };
-	server.resource["^/style.css$"]["GET"] = [](Response response, Request request){ if (rejectNonLocals(request)) return; response->write(f3); };
-	server.resource["^/help.html$"]["GET"] = [](Response response, Request request){ if (rejectNonLocals(request)) return; response->write(f4); };
+	server.default_resource["GET"] = [](Response response, Request request){ response->write(f1); };
+	server.resource["^/main.js$"]["GET"] = [](Response response, Request request){ response->write(f2); };
+	server.resource["^/style.css$"]["GET"] = [](Response response, Request request){ response->write(f3); };
+	server.resource["^/help.html$"]["GET"] = [](Response response, Request request){ response->write(f4); };
 }
