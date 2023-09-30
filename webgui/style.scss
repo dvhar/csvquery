@@ -211,7 +211,7 @@ th, td {
 
 .fileBrowser {
 	min-width: 40em;
-	max-height: 33em;
+	max-height: 90vh;
 	text-align: left;
 	top: 2.2em;
 	padding: .3em;
@@ -233,6 +233,9 @@ th, td {
 }
 .filelist span:hover {
 	background: $redgrad4;
+	overflow: auto;
+}
+.scrollcontainer {
 	overflow: auto;
 }
 .browsedir {

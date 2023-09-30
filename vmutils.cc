@@ -17,9 +17,6 @@ string opcode::print(){
 void dat::appendToHtmlBuffer(string &outbuf){
 
 	static char buf[40];
-	char* c = u.s;
-	int utf8charlen;
-	long utf8codepoint = 0;
 	switch (type()) {
 	case T_INT:
 		sprintf(buf,"%lld",u.i);
@@ -43,7 +40,6 @@ void dat::appendToHtmlBuffer(string &outbuf){
 void dat::appendToJsonBuffer(string &outbuf){
 
 	static char buf[40];
-	char a = 0;
 	outbuf += '"';
 	switch (type()) {
 	case T_INT:

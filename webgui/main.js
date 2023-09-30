@@ -13,10 +13,12 @@ function fileclick(clicked){
 
 function populateDirs(clicked, ret){
 	let browser = clicked.closest('.fileBrowser');
-	let textinput = browser.querySelector('.pathinput');
 	let filelist = clicked.closest('.filelist');
+	let scrollcontainer = browser.querySelector('.scrollcontainer');
+	let textinput = browser.querySelector('.pathinput');
 	textinput.value = ret.path;
 	filelist.innerText = null;
+	scrollcontainer.style.height = null;
 	const makespan = (path,type,updir=false) => {
 		let span = document.createElement('span');
 		span.classList.add(type, 'dropdown');
@@ -37,6 +39,8 @@ function populateDirs(clicked, ret){
 	makespan(ret.parent, 'browseDir', true);
 	ret.dirs.forEach(path => makespan(path, 'browseDir'));
 	ret.files.forEach(path => makespan(path, 'browsefile'));
+	let newheight = browser.offsetHeight-scrollcontainer.offsetTop-10;
+	scrollcontainer.style.height = `${newheight}px`
 }
 
 function dirclick(clicked){
