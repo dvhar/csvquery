@@ -384,25 +384,25 @@ JOINSET_EQ_:
 	nexti();
 AND_SET_:
 	{
-		bset<i64> tempset1(move(joinSetStack.front()));
+		bset<i64> tempset1(std::move(joinSetStack.front()));
 		joinSetStack.pop_front();
 		auto& target = joinSetStack.front();
-		bset<i64> tempset2(move(target));
+		bset<i64> tempset2(std::move(target));
 		set_intersection(tempset1.begin(), tempset1.end(), tempset2.begin(), tempset2.end(),
 				inserter(target, target.begin()));
 	} nexti();
 XOR_SET_:
 	{
-		bset<i64> tempset1(move(joinSetStack.front()));
+		bset<i64> tempset1(std::move(joinSetStack.front()));
 		joinSetStack.pop_front();
 		auto& target = joinSetStack.front();
-		bset<i64> tempset2(move(target));
+		bset<i64> tempset2(std::move(target));
 		set_symmetric_difference(tempset1.begin(), tempset1.end(), tempset2.begin(), tempset2.end(),
 				inserter(target, target.begin()));
 	} nexti();
 OR_SET_:
 	{
-		bset<i64> tempset(move(joinSetStack.front()));
+		bset<i64> tempset(std::move(joinSetStack.front()));
 		joinSetStack.pop_front();
 		auto& target = joinSetStack.front();
 		for (auto loc : tempset)
@@ -855,7 +855,7 @@ PRINTHTML_:
 		} while (++iTemp1 < torowSize);
 		hbuf += "</tr>";
 		++numLimitedPrinted;
-		result->Vals.push_back(move(hbuf));
+		result->vals.push_back(std::move(hbuf));
 	} else {
 		result->clipped = result->rowlimit;
 	}
@@ -874,7 +874,7 @@ PRINTJSON_:
 		}
 		jbuf += ']';
 		++numLimitedPrinted;
-		result->Vals.push_back(move(jbuf));
+		result->vals.push_back(std::move(jbuf));
 	} else {
 		result->clipped = result->rowlimit;
 	}

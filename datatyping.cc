@@ -1004,7 +1004,7 @@ void dataTyper::getToptypes(){
 		}
 		n = n->nnextselection().get();
 	}
-	q->thisSq->topinnertypesp.set_value(move(topitypes));
+	q->thisSq->topinnertypesp.set_value(std::move(topitypes));
 }
 void dataTyper::setToptypes(){
 	topftypes = q->thisSq->topfinaltypes.get();

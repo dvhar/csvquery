@@ -1,3 +1,0 @@
-#!/bin/sh
-
-ls | egrep -vi "(rmm|test|dist)" | xargs rm -rf

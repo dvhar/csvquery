@@ -721,7 +721,7 @@ void analyzer::organizeVars(astnode& n){
 		varnode = newvars.get();
 	}
 	varnode->tok1 = vartok;
-	varnode->node1 = move(n->node1);
+	varnode->node1 = std::move(n->node1);
 	auto& refnode = n->node1 = make_unique<node>(N_VALUE);
 	refnode->val() = vartok.val;
 	refnode->valtype() = VARIABLE;

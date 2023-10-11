@@ -369,7 +369,7 @@ void cgen::genScanJoinFiles(astnode &n){
 		normal_read = v.size();
 		addop(RDLINE, afterfile, f->fileno);
 		joinFileIdx++;
-		f->vpTypes = move(valposTypes);
+		f->vpTypes = std::move(valposTypes);
 		valposTypes.clear();
 		vs.setscope(JSCAN_FILTER, V_SCAN_SCOPE);
 		genVars(q->tree->npreselect());

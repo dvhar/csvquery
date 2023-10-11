@@ -1,0 +1,3 @@
+#!/bin/sh
+
+ls | grep -Evi "(clean|test|dist)" | xargs rm -rf

@@ -750,7 +750,7 @@ class singleQueryResult {
 	bool skip = 0;
 	vector<int> types;
 	vector<string> colnames;
-	list<string> Vals; //each string is whole row of encoded results
+	list<string> vals; //each string is whole row of encoded results
 	string query;
 	stringstream& tojson();
 	string tohtml();

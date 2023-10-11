@@ -363,7 +363,7 @@ string singleQueryResult::tohtml(){
 		boost::replace_first(tplate,"{{ td-types }}", typelist.str());
 	}
 	stringstream rows;
-	for (auto& row:Vals)
+	for (auto& row:vals)
 		rows << row << endl;
 	boost::replace_first(tplate,"{{ tr-vals }}", rows.str());
 	return tplate;
@@ -389,7 +389,7 @@ stringstream& singleQueryResult::tojson(){
 	}
 	marshaller << "],\"vals\":[";
 	delim = &nocom;
-	for (auto &v : Vals){
+	for (auto &v : vals){
 		marshaller << *delim << v;
 		delim = &com;
 	}

@@ -1,7 +1,8 @@
 #include "interpretor.h"
 #include "scanner.h"
 #include <boost/algorithm/string/replace.hpp>
-#include<boost/filesystem.hpp>
+#include <boost/filesystem.hpp>
+#include <stack>
 
 /*
 {} = optional

@@ -169,7 +169,7 @@ vmachine::vmachine(querySpecs &qs) :
 	distinctVal{0},
 	torowSize(qs.colspec.count),
 	quantityLimit(qs.quantityLimit),
-	files(move(qs.filevec)),
+	files(std::move(qs.filevec)),
 	csvOutput(0),
 	sessionId(qs.sessionId),
 	id(idCounter++),
@@ -561,11 +561,11 @@ shared_ptr<singleQueryResult> showTables(querySpecs &q){
 		ret->numcols = 2;
 		ret->rowlimit = 10000;
 		ret->query = "show tables";
-		ret->colnames = move(colnames);
-		ret->types = move(types);
+		ret->colnames = std::move(colnames);
+		ret->types = std::move(types);
 		for (auto& t : tables){
 			ret->numrows++;
-			ret->Vals.push_back(st("<tr><td>", escapeHTML(get<0>(t)), "</td><td>", escapeHTML(get<1>(t)), "</td></tr>"));
+			ret->vals.push_back(st("<tr><td>", escapeHTML(get<0>(t)), "</td><td>", escapeHTML(get<1>(t)), "</td></tr>"));
 		}
 		return ret;
 	} else {
