@@ -1,26 +1,29 @@
 # CSV query engine for big files
 
 ## Build
-First install `boost` libraries.
+#### Linux and Mac
+First install `boost` libraries. You may also need `boost-filesystem` if it isn't included.
 ```
 cd build
 cmake ..
 make
 ```
----
-To build on windows using msys2 with mingw64, do this instead of `cmake ..` and `make`:
+#### Windows
+Install msys2.
+In msys2 shell, install dependencies:
 ```
-cmake .. -G "MinGW Makefiles" -DCMAKE_SH="CMAKE_SH-NOTFOUND"
+pacman -Syu git mingw-w64-x86_64-{cmake,boost,toolchain,python-pip}
+```
+Then build it:
+```
+cd build
+cmake .. -G 'MinGW Makefiles'
 mingw32-make.exe
 ```
-Install msys2 dependencies for windows:
-```
-pacman -S mingw-w64-x86_64-cmake mingw-w64-x86_64-boost mingw-w64-x86_64-toolchain mingw-w64-x86_64-python-pip
-python3 -m pip install pyyaml
-```
 ## Test
-First install `pyyaml` python library
+First install `pyyaml` python library if you don't already have it
 ```
+python3 -m pip install pyyaml
 cd build
 ./runTests.py
 ```
@@ -31,7 +34,7 @@ Show usage info:
 ```
 Run queries from command line:
 ```
-./cql "select from stuff.csv"
+./cql "select * from stuff.csv"
 ```
 Start http server to run queries from web browser interface or to view query language documentation:
 ```
