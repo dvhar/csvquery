@@ -178,8 +178,6 @@ void cgen::genJoiningQuery(astnode &n){
 		genPrint();
 		addop((q->quantityLimit > 0 ? JMPCNT : JMP), reread);
 		jumps.setPlace(endreread, v.size());
-		addop(POP); //rereader used 2 stack spaces
-		addop(POP);
 	}
 	genEndrun();
 }
@@ -504,8 +502,6 @@ void cgen::genNormalOrderedQuery(astnode &n){
 	addop((q->quantityLimit > 0 ? JMPCNT : JMP), reread);
 	jumps.setPlace(endreread, v.size());
 	addop(STOP_MESSAGE);
-	addop(POP); //rereader used 2 stack spaces
-	addop(POP);
 	genEndrun();
 };
 

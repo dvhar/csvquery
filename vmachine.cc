@@ -155,8 +155,10 @@ RDLINE_:
 RDLINE_ORDERED_:
 	//stk0 has current read index, stk1 has vector.size()
 	if (stk0.u.i < stk1.u.i){
-		for (auto &f : files)
-			f->readlineat(f->positions[sortIdxs[stk0.u.i++]]);
+		for (auto &f : files){
+			f->readlineat(f->positions[sortIdxs[stk0.u.i]]);
+		}
+		++stk0.u.i;
 		++ip;
 	} else {
 		ip = op->p1;

@@ -16,6 +16,7 @@ void help(char* prog){
 		<< prog << " \"select from\" ./data.csv\n\tRun query from concatinated command line arguments\n"
 		<< prog << "\n\tRun server to use graphic interface in web browser\n\n"
 		"Flags:\n"
+		"\t-b    Don't automatically open webui in browser\n"
 		"\t-m    Don't require comma between selections, but do require 'as' for result names\n"
 		"\t-g    Don't show debug info in console\n"
 		"\t-d    Show debug info in console (default)\n"
@@ -33,6 +34,7 @@ void help(char* prog){
 		"\t-o FILE    Save query to FILE\n\n"
 		"Config file is " << globalSettings.configfilepath << ". These are the settings you can change:\n"
 		"\tguess_file_header:    first row is considered header if no value is a number\n"
+		"\topen_browser:         opposite of -b\n"
 		"\tshow_debug_info:      same as -d and -g\n"
 		"\texit_automatically:   same as -e\n"
 		"\ttable_or_csv:         same as -t and -c\n"
@@ -46,7 +48,7 @@ int main(int argc, char** argv){
 	string querystring;
 	string savefile;
 	loadconfig();
-	for(char c; (c = getopt(argc, argv, "hvgdejtywcmalf:o:")) != -1;)
+	for(char c; (c = getopt(argc, argv, "bhvgdejtywcmalf:o:")) != -1;)
 		switch(c){
 		case 'o':
 			savefile = optarg;
@@ -90,6 +92,9 @@ int main(int argc, char** argv){
 			break;
 		case 'a':
 			globalSettings.allowconnections = true;
+			break;
+		case 'b':
+			globalSettings.browser = false;
 			break;
 		case 'h':
 			help(argv[0]);
@@ -186,7 +191,8 @@ void loadconfig(){
 		"exit_automatically",
 		"table_or_csv",
 		"need_comma_separator",
-		"allow_nonlocal_connections"
+		"allow_nonlocal_connections",
+		"open_browser",
 	};
 	string defaultoutput;
 	boost::filesystem::create_directories(globalSettings.configdir);
@@ -200,7 +206,8 @@ void loadconfig(){
 					globalSettings.autoexit,
 					defaultoutput,
 					globalSettings.needcomma,
-					globalSettings.allowconnections);
+					globalSettings.allowconnections,
+					globalSettings.browser);
 			if (defaultoutput == "table")
 				globalSettings.termbox = true;
 			if (confversion >= version){
@@ -218,6 +225,7 @@ void loadconfig(){
 				globalSettings.autoexit,
 				defaultoutput,
 				globalSettings.needcomma,
-				globalSettings.allowconnections);
+				globalSettings.allowconnections,
+				globalSettings.browser);
 	}
 }

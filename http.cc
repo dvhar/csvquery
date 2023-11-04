@@ -90,7 +90,9 @@ static void serve(){
 	     << "Allow connections from other computers: " << (globalSettings.allowconnections ? "true":"false") << endl;
 	auto ws = async(servews);
 	auto hs = async([](){server.start();});
-	openbrowser();
+	if (globalSettings.browser){
+		openbrowser();
+	}
 	ws.get();
 	server.stop();
 	hs.get();

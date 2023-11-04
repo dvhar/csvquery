@@ -75,6 +75,7 @@ class settings_t {
 	bool tablelinebg = 0;
 	bool needcomma = 1;
 	bool allowconnections = 0;
+	bool browser = 1;
 #ifdef _WIN32
 #define SLASH "\\"
 	string configdir = st(getenv("USERPROFILE"),R"(\AppData\csvquery)");
