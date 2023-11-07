@@ -705,8 +705,10 @@ void analyzer::organizeVars(astnode& n){
 	}
 	if (!(findVarReferences(n->nnextselection(), vartok.val)
 			|| findVarReferences(q->tree->nfrom(), vartok.val)
-			|| findVarReferences(q->tree->nafterfrom(), vartok.val)))
+			|| findVarReferences(q->tree->nafterfrom(), vartok.val))){
+		organizeVars(n->node2);
 		return;
+	}
 	node* varnode;
 	if (auto& vars = findFirstNode(q->tree, N_VARS)){
 		varnode = vars.get();

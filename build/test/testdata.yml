@@ -213,3 +213,7 @@
 - title: define same variable in two different ways
   code: 1
   query: with c4 as dog select c2 dog, dog from test/cities
+- title: var causes offset midrow target with non-agg non-trivial selection
+  code: 0
+  query: with avg(c5) as agg select substr(c1,1,4), c4 dirp, agg from test/cities.csv
+  output: 42.csv

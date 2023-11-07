@@ -806,7 +806,8 @@ void cgen::genSelections(astnode &n){
 
 		} else {
 			genExprAll(n->node1);
-			addop2(PUT, n->tok4.id, agg_phase==1?1:0);
+			int dest = agg_phase == 1 ? n->selectionmididx() : n->selectiondestidx();
+			addop1(PUT, dest);
 			incSelectCount();
 		}
 		break;

@@ -775,8 +775,9 @@ CVSI_:
 	ifnotnull{
 		auto s = stk0.u.s;
 		i64Temp = strtoll(s, &cstrTemp, 10);
+		boolTemp = cstrTemp != s;
 		stk0.freedat();
-		if (cstrTemp != s){
+		if (boolTemp){
 			stk0.u.i = i64Temp;
 			stk0.b = T_INT;
 		}
@@ -784,8 +785,9 @@ CVSI_:
 CVSF_:
 	ifnotnull{
 		fTemp = strtod(stk0.u.s, &cstrTemp);
+		boolTemp = !*cstrTemp;
 		stk0.freedat();
-		if (!*cstrTemp){
+		if (boolTemp){
 			stk0.u.f = fTemp;
 			stk0.b = T_FLOAT;
 		}

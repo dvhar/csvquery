@@ -459,7 +459,7 @@ extern function<double (const datunion,const datunion)> datunionDiffs[6];
 class sortcomp {
 	vector<datunion>* vals;
 	int sortcount;
-	vector<function<i64 (const datunion,const datunion)>> comps;
+	vector<function<double (const datunion,const datunion)>> comps;
 	sortcomp();
 	sortcomp(sortcomp&);
 	public:
@@ -470,7 +470,7 @@ class sortcomp {
 				comps.push_back(datunionDiffs[getSortComparer(vm->q, i)]);
 		}
 		bool operator()(const int a, const int b){
-			i64 dif;
+			double dif;
 			int sortval = 0;
 			do dif = comps[sortval](vals[sortval][a], vals[sortval][b]);
 			while (dif == 0 && ++sortval < sortcount);
@@ -480,7 +480,7 @@ class sortcomp {
 class gsortcomp {
 	int sortcount;
 	int sortidx;
-	vector<function<i64 (const datunion, const datunion)>> comps;
+	vector<function<double (const datunion, const datunion)>> comps;
 	gsortcomp();
 	gsortcomp(gsortcomp&);
 	public:
@@ -491,7 +491,7 @@ class gsortcomp {
 				comps.push_back(datunionDiffs[getSortComparer(vm->q, i)]);
 		}
 		bool operator()(grprow& a, grprow& b){
-			i64 dif;
+			double dif;
 			int sortval = sortidx;
 			do dif = comps[sortval-sortidx](a[sortval].u, b[sortval].u);
 			while (dif == 0 && ++sortval < sortcount+sortidx);
