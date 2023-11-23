@@ -1377,8 +1377,10 @@ STOP_MESSAGE_:
 
 ENDRUN_:
 	updates.stop();
-	csvOutput << outbuf;
-	csvOutput.flush();
+	if (q->outputcsv){
+		csvOutput << outbuf;
+		csvOutput.flush();
+	}
 	return;
 
 //error opcodes

@@ -1,178 +1,178 @@
 ---
 - title: Basic top 10
   code: 0
-  query: m select top 10 from 'test/country.csv' nh
+  query: M select top 10 from 'test/country.csv' NH
   output: 1.csv
 - title: With int and arithmetic
   code: 0
-  query: m with c7 as int select top 10 int, c9, int+c9, int+c1, int+c7 c1+c2 as ss,
+  query: M with c7 as int select top 10 int, c9, int+c9, int+c1, int+c7 c1+c2 as ss,
     c1+c9 as sf, c1+c7 as si, c7+c9 as if, int+-c5 as ii, int-c5 as ii2 c16, c16+'10
-    years', c16-'10 years', '10 years'*-2 from test/country.csv nh
+    years', c16-'10 years', '10 years'*-2 from test/country.csv NH
   output: 2.csv
 - title: distinct string, case
   code: 0
-  query: m select distinct c3 c15 case when c15 like '_F' or c15 like '%O' then 1 when
-    c15 like '_i' then 2 else 0 end from 'test/country.csv' nh
+  query: M select distinct c3 c15 case when c15 like '_F' or c15 like '%O' then 1 when
+    c15 like '_i' then 2 else 0 end from 'test/country.csv' NH
   output: 3.csv
 - title: distinct var
   code: 0
-  query: m with c5 as int select top 10 distinct int, int from 'test/country.csv' nh
+  query: M with c5 as int select top 10 distinct int, int from 'test/country.csv' NH
   output: 4.csv
 - title: basic where
   code: 0
-  query: m select top 10 c5 c7 c16 from 'test/country.csv' nh where c5%2=0 and c7<200000
+  query: M select top 10 c5 c7 c16 from 'test/country.csv' NH where c5%2=0 and c7<200000
     and c16 between '1/1/2020' and '1/1/2040'
   output: 6.csv
 - title: where in
   code: 0
-  query: m select top 10 c1 from 'test/country.csv' nh where c1 in (FRA, FRO, FSM, GAB,
+  query: M select top 10 c1 from 'test/country.csv' NH where c1 in (FRA, FRO, FSM, GAB,
     GBR, GEO, GHA, GIB, GIN)
   output: 7.csv
 - title: where not in
   code: 0
-  query: m select top 10 c1 from 'test/country.csv' nh where c1 not in (AFG, AGO, AIA,
+  query: M select top 10 c1 from 'test/country.csv' NH where c1 not in (AFG, AGO, AIA,
     ALB, 'AND', ANT, ARE, ARG, ARM, ASM)
   output: 8.csv
 - title: order by int desc
   code: 0
-  query: m select top 10 c7 from 'test/country.csv' nh order by c7 desc
+  query: M select top 10 c7 from 'test/country.csv' NH order by c7 desc
   output: 9.csv
 - title: order by float asc
   code: 0
-  query: m select top 10 c9 from 'test/country.csv' nh order by c9 asc where c9 <> 0
+  query: M select top 10 c9 from 'test/country.csv' NH order by c9 asc where c9 <> 0
   output: 10.csv
 - title: order by date desc
   code: 0
-  query: m select top 10 c16 from 'test/country.csv' nh order by c16 desc
+  query: M select top 10 c16 from 'test/country.csv' NH order by c16 desc
   output: 11.csv
 - title: order by string desc
   code: 0
-  query: m select top 10 c1 from 'test/country.csv' nh order by c1 desc
+  query: M select top 10 c1 from 'test/country.csv' NH order by c1 desc
   output: 12.csv
 - title: order by variable desc
   code: 0
-  query: m noh with c1 + dog as ord select top 10 ord from 'test/country.csv' nh order by
+  query: M NOH with c1 + dog as ord select top 10 ord from 'test/country.csv' NH order by
     ord desc
   output: 13.csv
 - title: order by variable asc
   code: 0
-  query: m noh with c1 + dog as ord select top 10 ord from 'test/country.csv' nh order by
+  query: M NOH with c1 + dog as ord select top 10 ord from 'test/country.csv' NH order by
     ord asc
   output: 14.csv
 - title: operations on counts
   code: 0
-  query: m select count(*) /  count(c13) * 2 c4 from 'test/country.csv' nh
+  query: M select count(*) /  count(c13) * 2 c4 from 'test/country.csv' NH
   output: 15.csv
 - title: count with 1 level groups
   code: 0
-  query: m select count(*) c3 from 'test/country.csv' nh group by c3
+  query: M select count(*) c3 from 'test/country.csv' NH group by c3
   output: 16.csv
 - title: count with nested groups
   code: 0
-  query: m select count(*) c3 c4 stdev(c7) from 'test/country.csv' nh group by c3 c4
+  query: M select count(*) c3 c4 stdev(c7) from 'test/country.csv' NH group by c3 c4
   output: 17.csv
 - title: aggregate variable
   code: 0
-  query: m noh with avg(c7) * 2 as dog, stdevp(c9) as cat select avg(c7) dog cat c7 sum(c7)/91
-    from 'test/country' nh
+  query: M NOH with avg(c7) * 2 as dog, stdevp(c9) as cat select avg(c7) dog cat c7 sum(c7)/91
+    from 'test/country' NH
   output: 18.csv
 - title: non-agg phase2 variable
   code: 0
-  query: m noh with avg(c7) * 2 as dog and c3 as 'group' select avg(c7) dog c7 c1 sum(c7)/91
-    'group' from 'test/country' nh group by c3
+  query: M NOH with avg(c7) * 2 as dog and c3 as 'group' select avg(c7) dog c7 c1 sum(c7)/91
+    'group' from 'test/country' NH group by c3
   output: 19.csv
 - title: having agg condition
   code: 0
-  query: m noh select avg(c9) c3 from 'test/country' nh group by c3 having avg(c9) <= 10000
+  query: M NOH select avg(c9) c3 from 'test/country' NH group by c3 having avg(c9) <= 10000
   output: 20.csv
 - title: having agg condition with var
   code: 0
-  query: m noh with avg(c9) as a select a c3 from 'test/country' nh group by c3 having a
+  query: M NOH with avg(c9) as a select a c3 from 'test/country' NH group by c3 having a
     <= 10000
   output: 20.csv
 - title: double group sort with var
   code: 0
-  query: m noh with max(c1) as m1 select max(c3) m1 from 'test/country' nh group by inc()
+  query: M NOH with max(c1) as m1 select max(c3) m1 from 'test/country' NH group by inc()
     order by max(c3) desc m1 asc
   output: 21.csv
 - title: triple group sort with just vars
   code: 0
-  query: m noh with max(c1) as m1, max(c3) as m3, max(c4) as m4 select m3 m4 m1 from 'test/country'
-    nh group by inc() % 20 order by m3 desc m4 asc m1 desc
+  query: M NOH with max(c1) as m1, max(c3) as m3, max(c4) as m4 select m3 m4 m1 from 'test/country'
+    NH group by inc() % 20 order by m3 desc m4 asc m1 desc
   output: 22.csv
 - title: triple plain sort with var
   code: 0
-  query: m noh with c7%10000 as v7 select c3 v7 c9 from 'test/country' nh order by c3 desc v7 desc
+  query: M NOH with c7%10000 as v7 select c3 v7 c9 from 'test/country' NH order by c3 desc v7 desc
     c9 desc
   output: 23.csv
 - title: count distinct with groups
   code: 0
-  query: m select count(distinct c2) c3 from 'test/cities' nh group by c3 order by max(c3)
+  query: M select count(distinct c2) c3 from 'test/cities' NH group by c3 order by max(c3)
     asc limit 10
   output: 24.csv
 - title: single basic join
   code: 0
-  query: m select j.c3,o.c1,j.c2 from test/cities.csv nh j join test/country.csv
-    o nh on j.c3=o.c1 limit 10
+  query: M select j.c3,o.c1,j.c2 from test/cities.csv NH j join test/country.csv
+    o NH on j.c3=o.c1 limit 10
   output: 25.csv
 - title: single basic join with vars for where, distinct, joinvals, and selections
   code: 0
-  query: m noh with j.c3 as v1, o.c1 as v2, j.c2 as dog, o.c2 as cat select distinct v1,v2,dog,cat
-    from 'test/country' o nh join 'test/cities' nh j on v1=v2 where dog like 'm%'
+  query: M NOH with j.c3 as v1, o.c1 as v2, j.c2 as dog, o.c2 as cat select distinct v1,v2,dog,cat
+    from 'test/country' o NH join 'test/cities' NH j on v1=v2 where dog like 'm%'
   output: 26.csv
 - title: single basic left join with var
   code: 0
-  query: m noh with j.c3 as v1 select v1,o.c1,j.c2 from 'test/cities.csv' nh j left join
-    'test/country.csv' o nh on v1=o.c1 limit 10
+  query: M NOH with j.c3 as v1 select v1,o.c1,j.c2 from 'test/cities.csv' NH j left join
+    'test/country.csv' o NH on v1=o.c1 limit 10
   output: 27.csv
 - title: triple join with distinct
   code: 0
-  query: m select distinct * from 'test/country.csv' nh o join 'test/lang.csv'
-    l nh on o.c1=l.c1 join 'test/cities.csv' j nh on l.c1=j.c3 limit 10
+  query: M select distinct * from 'test/country.csv' NH o join 'test/lang.csv'
+    l NH on o.c1=l.c1 join 'test/cities.csv' j NH on l.c1=j.c3 limit 10
   output: 28.csv
 - title: sorting group join
   code: 0
-  query: m noh with count(*) as k select c1 max(l.c2) k from 'test/country.csv' o nh join 'test/lang.csv'
-    l nh on o.c1=l.c1 group by l.c1 order by k desc max(l.c2) desc max(c1) desc limit 10
+  query: M NOH with count(*) as k select c1 max(l.c2) k from 'test/country.csv' o NH join 'test/lang.csv'
+    l NH on o.c1=l.c1 group by l.c1 order by k desc max(l.c2) desc max(c1) desc limit 10
   output: 29.csv
 - title: sorting group join with having var
   code: 0
-  query: m noh with count(*) as k select c1 max(l.c2) k from 'test/country.csv' o nh join 'test/lang.csv' l
-    nh on o.c1=l.c1 group by l.c1 order by k desc max(l.c2) desc max(c1) desc having k between 10 and 5
+  query: M NOH with count(*) as k select c1 max(l.c2) k from 'test/country.csv' o NH join 'test/lang.csv' l
+    NH on o.c1=l.c1 group by l.c1 order by k desc max(l.c2) desc max(c1) desc having k between 10 and 5
   output: 30.csv
 - title: distinct aggregate
   code: 0
-  query: m select distinct count(*) c3 from 'test/country' nh group by c3
+  query: M select distinct count(*) c3 from 'test/country' NH group by c3
   output: 31.csv
 - title: simple join and chain
   code: 0
-  query: m nh select distinct o.c1 l.c1 from 'test/country.csv' o join 'test/lang.csv'
+  query: M NH select distinct o.c1 l.c1 from 'test/country.csv' o join 'test/lang.csv'
     l on o.c1=l.c1 and l.c1 <> GUM and l.c1 like 'g%'
   output: 32.csv
 - title: negation type error
   code: 1
-  query: m select -c4 from 'test/country.csv'
+  query: M select -c4 from 'test/country.csv'
 - title: function type error
   code: 1
-  query: m select avg(c1) from test/country.csv
+  query: M select avg(c1) from test/country.csv
 - title: datetime functions used normally
   code: 0
-  query: m noh with c16-'44y' as d select year(d) month(d) monthname(d) week(d) day(d) dayname(d) dayofyear(d)
-    dayofmonth(d) hour(d) minute(d) second(d) d from 'test/country' nh where len(c16) > 10
+  query: M NOH with c16-'44y' as d select year(d) month(d) monthname(d) week(d) day(d) dayname(d) dayofyear(d)
+    dayofmonth(d) hour(d) minute(d) second(d) d from 'test/country' NH where len(c16) > 10
   output: 33.csv
 - title: math functions used normally
   code: 0
-  query: m noh with float(c5)/1000 as n select c5 n ceil(n) floor(n) round(n) acos(n) asin(n) atan(n) cos(n) sin(n)
-    tan(n) exp(n) log(n) log2(n) log10(n) sqrt(n) cbrt(n) log(0) pow(n,4) from 'test/country' nh limit 10
+  query: M NOH with float(c5)/1000 as n select c5 n ceil(n) floor(n) round(n) acos(n) asin(n) atan(n) cos(n) sin(n)
+    tan(n) exp(n) log(n) log2(n) log10(n) sqrt(n) cbrt(n) log(0) pow(n,4) from 'test/country' NH limit 10
   output: 34.csv
 - title: math functions used normally with nan instead of null
   code: 0
-  query: m noh nan with float(c5)/1000 as n select n acos(n) asin(n) atan(n) log(n) log2(n) log10(n) log(0)
-    pow(n,log(0)) from 'test/country' nh limit 10
+  query: M NOH NAN with float(c5)/1000 as n select n acos(n) asin(n) atan(n) log(n) log2(n) log10(n) log(0)
+    pow(n,log(0)) from 'test/country' NH limit 10
   output: 35.csv
 - title: preset date formats
   code: 0
-  query: m nh with c16 as d select c16 as source format(d,1)as 1 format(d,101) as 101 format(d,2) as 2 format(d,102) as 102
+  query: M NH with c16 as d select c16 as source format(d,1)as 1 format(d,101) as 101 format(d,2) as 2 format(d,102) as 102
     format(d,3) as 3 format(d,103) as 103 format(d,4) as 4 format(d,104) as 104 format(d,5) as 5 format(d,105) as 105
     format(d,6) as 6 format(d,106) as 106 format(d,7) as 7 format(d,107) as 107 format(d,8) as 8 format(d,108) as 108
     format(d,9) as 9 format(d,109) as 109 format(d,10) as 10 format(d,110) as 110 format(d,11) as 11 format(d,111) as 111
@@ -183,23 +183,23 @@
   output: 36.csv
 - title: normal inlist normal subquery
   code: 0
-  query: m select * from 'test/cities' nh where c3 in (select c1 from 'test/country' nh) limit 10
+  query: M select * from 'test/cities' NH where c3 in (select c1 from 'test/country' nh) limit 10
   output: 37.csv
 - title: normal inlist agg subquery
   code: 0
-  query: m select from 'test/cities' nh where c3 in (select min(c1) from 'test/country' nh limit 10)
+  query: M select from 'test/cities' NH where c3 in (select min(c1) from 'test/country' nh limit 10)
   output: 38.csv
 - title: agg inlist where normal subquery
   code: 0
-  query: m select max(c3) min(c3) from 'test/cities' nh where c3 in (select c1 from 'test/country' nh where c1 < CAA)
+  query: M select max(c3) min(c3) from 'test/cities' NH where c3 in (select c1 from 'test/country' nh where c1 < CAA)
   output: 39.csv
 - title: agg inlist having normal subquery
   code: 0
-  query: m select max(c3) from test/cities nh having max(c3) in (select c1 from test/country nh where c1 < CAA) group by c3
+  query: M select max(c3) from test/cities NH having max(c3) in (select c1 from test/country nh where c1 < CAA) group by c3
   output: 40.csv
 - title: exception in top thread
   code: 1
-  query: m select c1 count(*) from 'test/lang' nh group by c1 having c1 in (select c3 from 'test/cities' nh)
+  query: M select c1 count(*) from 'test/lang' NH group by c1 having c1 in (select c3 from 'test/cities' nh)
 - title: dualphase var used in many places with dualphase and * agg
   code: 0
   query: with c3 as continent select continent, * from test/country.csv

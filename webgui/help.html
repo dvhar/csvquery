@@ -53,7 +53,7 @@
 			It will show you the first several hundred results in the browser, with 2 options for viewing certain rows or columns. You can click on a column header to sort the displayed results by that column.
 			<hr>
 			<h3>How to save files</h3>
-			After running a query, hit the save button. Navigate to where you want to save, type in the file name, and hit Enter. All the queries on the page will run again, but this time they will be saved to csv files. The program will infer whether or not to output a header unless you override it with an option. To always output header, add <code>oh</code> to the beginning of the query. To never output header, add <code>noh</code>.
+			After running a query, hit the save button. Navigate to where you want to save, type in the file name, and hit Enter. All the queries on the page will run again, but this time they will be saved to csv files. The program will infer whether or not to output a header unless you override it with an option. To always output header, add <code>OH</code> to the beginning of the query. To never output header, add <code>NOH</code>.
 			<hr>
 			<h3>How to use the query language</h3>
 			This program uses a custom but incomplete version of SQL that's designed to be easy to use and has some additions to handle csv formatting issues.
@@ -77,18 +77,18 @@
 				</code>
 			</blockquote>
 			<h4>Specifying csv delimiters and file header</h4>
-			These characters can be added to the beginning of a query or after the file path to specify file format details: <code>nh</code>, <code>h</code>, <code>ah</code>, <code>s</code>, <code>t</code>, <code>|</code>, and <code>:</code>. The characters <code>nh</code>, <code>h</code>, and <code>ah</code> mean 'no header', 'header', and 'auto header' respectively. Default behavior is to guess if there is a header based on whether or not the first row contains numbers. <code>s</code>, <code>t</code>, <code>|</code>, <code>:</code> mean the delimiter is 'spaces', 'tabs', 'pipes', and 'colons' respectively. Default delimiter is commas. See examples in the next section.
+			These characters can be added to the beginning of a query or after the file path to specify file format details: <code>NH</code>, <code>H</code>, <code>AH</code>, <code>S</code>, <code>T</code>, <code>|</code>, and <code>:</code>. The characters <code>NH</code>, <code>H</code>, and <code>AH</code> mean 'no header', 'header', and 'auto header' respectively. Default behavior is to guess if there is a header based on whether or not the first row contains numbers. <code>S</code>, <code>T</code>, <code>|</code>, <code>:</code> mean the delimiter is 'spaces', 'tabs', 'pipes', and 'colons' respectively. Default delimiter is commas. See examples in the next section.
 			<h4>Selecting some columns</h4>
-			Columns can be specified by name or number. Select column numbers by prefacing the number with <code>c</code>, or by using a plain unquoted number if putting a <code>c</code> in front of the whole query. To make commas between selections optional (but require <code>as</code> to rename), put <code>m</code> in front of the query, or set <code>need_comma_separator</code> to <code>false</code> in the config file.
+			Columns can be specified by name or number. Select column numbers by prefacing the number with <code>c</code>, or by using a plain unquoted number if putting a <code>C</code> in front of the whole query. To make commas between selections optional (but require <code>as</code> to rename), put <code>M</code> in front of the query, or set <code>need_comma_separator</code> to <code>false</code> in the config file.
 			<br><br>
 			Example: selecting columns 1-3, dogs, and cats from a file, giving column 2 the new name 'food'<br>
 			<blockquote>
 				<code>
 					select c1, c2 'food', c3, dogs, cats from '/home/user/pets.csv'
 					<br>
-					c select 1, 2 'food', 3, dogs, cats from 'C:\\users\dave\pets.csv'
+					C select 1, 2 'food', 3, dogs, cats from 'C:\\users\dave\pets.csv'
 					<br>
-					m c select 1 2 as 'food' 3 dogs cats from 'C:\\users\dave\pets.csv'
+					M C select 1 2 as 'food' 3 dogs cats from 'C:\\users\dave\pets.csv'
 				</code>
 			</blockquote>
 			<h4>Selecting all columns</h4>

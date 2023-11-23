@@ -235,38 +235,38 @@ void parser::parseOptions(astnode& n) {
 	t = sc.currToken();
 	e("parse options");
 	int& opts = n->optionbits();
-	if (t == "c") {
+	if (t.val == "C") {
 		opts |= O_C;
-	} else if (t == "oh") {
+	} else if (t.val == "OH") {
 		if (opts & O_NOH) error("Cannot have multiple output header options");
 		opts |= O_OH;
-	} else if (t == "noh") {
+	} else if (t.val == "NOH") {
 		if (opts & O_NOH) error("Cannot have multiple output header options");
 		opts |= O_NOH;
-	} else if (t == "nh") {
+	} else if (t.val == "NH") {
 		if (opts & (O_H|O_AH)) error("Cannot have multiple input header options");
 		opts |= O_NH;
-	} else if (t == "h") {
+	} else if (t.val == "H") {
 		if (opts & (O_NH|O_AH)) error("Cannot have multiple input header options");
 		opts |= O_H;
-	} else if (t == "ah") {
+	} else if (t.val == "AH") {
 		if (opts & (O_NH|O_H)) error("Cannot have multiple input header options");
 		opts |= O_AH;
-	} else if (t == "s") {
+	} else if (t.val == "S") {
 		if (opts & (O_P|O_T|O_SC)) error("Cannot have multiple delimiter options");
 		opts |= O_S;
-	} else if (t == "p") {
+	} else if (t.val == "P") {
 		if (opts & (O_S|O_T|O_SC)) error("Cannot have multiple delimiter options");
 		opts |= O_P;
-	} else if (t == "t") {
+	} else if (t.val == "T") {
 		if (opts & (O_P|O_S|O_SC)) error("Cannot have multiple delimiter options");
 		opts |= O_T;
-	} else if (t == "sc") {
+	} else if (t.val == "SC") {
 		if (opts & (O_P|O_S|O_T)) error("Cannot have multiple delimiter options");
 		opts |= O_SC;
-	} else if (t == "nan") {
+	} else if (t.val == "NAN") {
 		opts |= O_NAN;
-	} else if (t == "m") {
+	} else if (t.val == "M") {
 		needcomma = false;
 	} else {
 		return;
@@ -820,25 +820,25 @@ void parser::parseFileOptions(astnode& n) {
 	t = sc.currToken();
 	e("parse fileoptions");
 	int& opts = n->optionbits();
-	if (t == "nh") {
+	if (t.val == "NH") {
 		if (opts & (O_H|O_AH)) error("Cannot have multiple input header options");
 		opts |= O_NH;
-	} else if (t == "h") {
+	} else if (t.val == "H") {
 		if (opts & (O_NH|O_AH)) error("Cannot have multiple input header options");
 		opts |= O_H;
-	} else if (t == "ah") {
+	} else if (t.val == "AH") {
 		if (opts & (O_NH|O_H)) error("Cannot have multiple input header options");
 		opts |= O_AH;
-	} else if (t == "s") {
+	} else if (t.val == "S") {
 		if (opts & (O_P|O_T|O_SC)) error("Cannot have multiple delimiter options");
 		opts |= O_S;
-	} else if (t == "p") {
+	} else if (t.val == "P") {
 		if (opts & (O_S|O_T|O_SC)) error("Cannot have multiple delimiter options");
 		opts |= O_P;
-	} else if (t == "t") {
+	} else if (t.val == "T") {
 		if (opts & (O_P|O_S|O_SC)) error("Cannot have multiple delimiter options");
 		opts |= O_T;
-	} else if (t == "sc") {
+	} else if (t.val == "SC") {
 		if (opts & (O_P|O_S|O_T)) error("Cannot have multiple delimiter options");
 		opts |= O_SC;
 	} else {
