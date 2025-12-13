@@ -32,7 +32,6 @@ class webquery {
 		bool isSaving() const { return !savepath.empty(); }
 };
 
-extern string queryReturn;
 
 void runqueries(webquery &wq);
 void servews();
