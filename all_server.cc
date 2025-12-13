@@ -20,6 +20,7 @@
 
 // For SHA1 (websocket handshake)
 #include "deps/crypto/sha1.h"
+#include "deps/crypto/base64.h"
 
 using namespace std;
 
@@ -173,20 +174,11 @@ static void send_response(SOCKET client, int code, const char* status,
 }
 
 // ------------- WebSocket Support (Raw) -------------
-// Simple base64 encoding (for handshake)
 static string base64_encode(const unsigned char* data, size_t len) {
-    static const char* table = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
-    string ret;
-    for (size_t i = 0; i < len; i += 3) {
-        unsigned char b[3] = {0, 0, 0};
-        size_t n = min(len - i, (size_t)3);
-        for (size_t j = 0; j < n; ++j) b[j] = data[i + j];
-        ret += table[b[0] >> 2];
-        ret += table[((b[0] & 3) << 4) | (b[1] >> 4)];
-        ret += (n > 1) ? table[((b[1] & 0xf) << 2) | (b[2] >> 6)] : '=';
-        ret += (n > 2) ? table[b[2] & 0x3f] : '=';
-    }
-    return ret;
+    size_t out_len = encsize(len);
+    vector<BYTE> out(out_len + 1); // +1 for null terminator, just in case
+    size_t real_len = base64_encode(data, out.data(), len, 0); // 0 = no newline
+    return string(reinterpret_cast<char*>(out.data()), real_len);
 }
 
 // WebSocket handshake
@@ -276,13 +268,34 @@ static atomic<i64> next_ws_id{1};
 static atomic<int> ws_client_count{0};
 
 // --------- WebSocket Message Protocol -------------
-#define SK_STOP 1
-#define SK_PASS 2
-#define SK_QUERY 3
-#define SK_ID 4
-#define SK_MSG 5
-#define SK_DONE 6
-#define SK_PING 7
+#define SK_MSG 0
+#define SK_PING 1
+#define SK_STOP 3
+#define SK_PASS 6
+#define SK_ID 7
+#define SK_QUERY 8
+#define SK_DONE 9
+
+// ----------- WebSocket Ping Thread ---------------
+static void websocket_ping_thread() {
+    int deathcount = 0;
+    while (true) {
+        this_thread::sleep_for(chrono::seconds(1));
+        {
+            lock_guard<mutex> lock(ws_mutex);
+            string ping_msg = json{{"type",SK_PING}}.dump();
+            for (const auto& [wsid, client] : ws_clients) {
+                websocket_send_frame(client, 0x1, ping_msg); // 0x1 = text
+            }
+        }
+        if (ws_client_count > 0)
+            deathcount = 0;
+        else if (++deathcount >= 180 && globalSettings.autoexit) {
+            stopAllQueries();
+            exit(0);
+        }
+    }
+}
 
 // Forward declarations for functions used from your codebase
 // (implementations must be linked elsewhere!)
@@ -507,6 +520,9 @@ void run_raw_http_server(int port = 8060) {
     cout << "Allow connections from other computers: " << (globalSettings.allowconnections ? "true":"false") << endl;
     if (globalSettings.browser)
         openbrowser();
+
+    // Start websocket ping thread
+    thread(websocket_ping_thread).detach();
 
     while (true) {
         sockaddr_in client_addr;

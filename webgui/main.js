@@ -319,7 +319,7 @@ function SocketHandler(){
 	this.bugtimer = window.performance.now();
 	this.sessionId = null;
 	let ip = window.location.host;
-	this.ws = new WebSocket(`ws://${ip.substring(0,ip.indexOf(':'))}:8061/socket/`);
+	this.ws = new WebSocket(`ws://${ip.substring(0,ip.indexOf(':'))}:8060/socket/`);
 	this.ws.onopen = e=>console.log("Websocket opened");
 	this.ws.onclose = e=>{console.log("Websocket closed"); this.ws = null; };
 	this.ws.onerror = e=>console.log("Websocket error: " + e.data);
