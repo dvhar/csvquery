@@ -2,7 +2,6 @@
 
 ## Build
 #### Linux and Mac
-First install `boost` libraries. You may also need `boost-filesystem` if it isn't included.
 ```
 cd build
 cmake ..
@@ -12,7 +11,7 @@ make
 Install msys2.
 In msys2 shell, install dependencies:
 ```
-pacman -Syu git mingw-w64-x86_64-{cmake,boost,toolchain,python-pip}
+pacman -Syu git mingw-w64-x86_64-{cmake,toolchain,python-pip}
 ```
 Then build it:
 ```

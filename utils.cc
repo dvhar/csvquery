@@ -265,15 +265,14 @@ void printTree(astnode &n, int ident){
 	ident++;
 	string s = "";
 	for (int i=0;i<ident;i++) s += "  ";
-	perr(st( s , n->nodelabel() , '\n', s,
-		ft("[t1:%1% t2:%2% t3:%3% t4:%4%] t:%5% p:%6% k:%7%")
-		% n->tok1.val
-		% n->tok2.val
-		% n->tok3.val
-		% n->tok4.val
-		% n->datatype
-		% n->phase
-		% n->keep));
+	perr(st(s , n->nodelabel() , '\n', s,
+		"[t1:", n->tok1.val,
+        " t2:", n->tok2.val,
+        " t3:", n->tok3.val,
+        " t4:", n->tok4.val,
+        "] t:", n->datatype,
+        " p:", n->phase,
+        " k:", n->keep));
 	printTree(n->node1,ident);
 	printTree(n->node2,ident);
 	printTree(n->node3,ident);

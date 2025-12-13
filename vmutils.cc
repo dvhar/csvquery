@@ -10,7 +10,8 @@
 #include <chrono>
 
 string opcode::print(){
-	return (ft("code: %-18s  [%-2d  %-2d  %-2d]")% opMap[code]% p1% p2% p3).str();
+  return st("code: ", left, setw(18), setfill(' '), opMap[code], right,
+   "  [", setw(2), p1, "  ", setw(2), p2, "  ", setw(2), p3, "]");
 }
 void dat::appendToHtmlBuffer(string &outbuf){
 

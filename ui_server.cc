@@ -558,7 +558,7 @@ shared_ptr<singleQueryResult> runWebQuery(shared_ptr<webquery> wq){
 	return runHtmlQuery(q);
 }
 void runqueries(shared_ptr<webquery> wq){
-	boost::split(wq->queries, wq->querystring, boost::is_any_of(";"));
+	split(wq->queries, wq->querystring, is_any_of(";"));
 	returnData ret;
 	ret.originalQuery = wq->querystring;
 	try {

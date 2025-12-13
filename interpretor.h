@@ -13,9 +13,6 @@
 #include <sys/time.h>
 #include <regex>
 #include <stdarg.h>
-#include <boost/algorithm/string.hpp>
-#include <boost/format.hpp>
-#include <forward_list>
 #include <random>
 #include "deps/dateparse/dateparse.h"
 #include "deps/crypto/chacha20.h"
@@ -24,7 +21,6 @@
 #include "deps/flatmap/flat_map.hpp"
 
 #ifdef _WIN32
-#include <getopt.h>
 #include <tre/regex.h>
 #else
 #include <regex.h>
@@ -41,7 +37,6 @@ typedef unsigned char u8;
 typedef i64 dur_t;
 template<typename A, typename B>
 using flatmap = fc::vector_map<A,B>;
-using ft = boost::format;
 using json = nlohmann::json;
 using namespace std;
 class node;
@@ -86,6 +81,20 @@ class settings_t {
 	string configfilepath = configdir + "/config";
 #endif 
 };
+
+std::string replace_all(const std::string& str, const std::string& from, const std::string& to);
+std::string replace_first(const std::string& str, const std::string& from, const std::string& to);
+std::string to_lower_copy(const std::string& str);
+bool fs_exists(const std::string& path);
+std::string fs_canonical(const std::string& path);
+bool fs_remove(const std::string& path);
+bool fs_is_directory(const std::string& path);
+bool fs_is_regular_file(const std::string& path);
+std::string fs_current_path();
+bool fs_create_directories(const std::string& path);
+std::string fs_basename(const std::string& path);
+std::vector<std::string> fs_directory_iterator(const std::string& dir);
+std::string fs_parent_path(const std::string& path);
 
 extern mt19937 rng;
 extern string version;
@@ -296,7 +305,7 @@ class token {
 	int col =0;
 	bool quoted =0;
 	string lower(){
-		return boost::to_lower_copy(val);
+		return to_lower_copy(val);
 	}
 	friend ostream& operator<<(ostream& os, token const& t){ 
         return os << t.val;
@@ -751,7 +760,7 @@ class singleQueryResult {
 	bool skip = 0;
 	vector<int> types;
 	vector<string> colnames;
-	list<string> vals; //each string is whole row of encoded results
+	vector<string> vals; //each string is whole row of encoded results
 	string query;
 	stringstream& tojson();
 	string tohtml();
@@ -764,7 +773,7 @@ class singleQueryResult {
 class returnData {
 	stringstream ss;
 	public:
-	list<shared_ptr<singleQueryResult>> entries;
+	vector<shared_ptr<singleQueryResult>> entries;
 	int status = 0;
 	int maxclipped = 0;
 	bool clipped = 0;
@@ -821,19 +830,6 @@ void initregex();
 void findExtension(string& fname);
 const char* dateFormatCode(string& s);
 i64 totalram();
-std::string replace_all(const std::string& str, const std::string& from, const std::string& to);
-std::string replace_first(const std::string& str, const std::string& from, const std::string& to);
-std::string to_lower_copy(const std::string& str);
-bool fs_exists(const std::string& path);
-std::string fs_canonical(const std::string& path);
-bool fs_remove(const std::string& path);
-bool fs_is_directory(const std::string& path);
-bool fs_is_regular_file(const std::string& path);
-std::string fs_current_path();
-bool fs_create_directories(const std::string& path);
-std::string fs_basename(const std::string& path);
-std::vector<std::string> fs_directory_iterator(const std::string& dir);
-std::string fs_parent_path(const std::string& path);
 
 extern int runmode;
 enum runmodes { RUN_SINGLE, RUN_SERVER };
@@ -846,3 +842,37 @@ static T fromjson(json& j, string&& key){
 		return T{};
 	}
 }
+
+class is_any_of {
+public:
+    explicit is_any_of(const std::string& delims) : m_delims(delims) {}
+    bool operator()(char c) const { return m_delims.find(c) != std::string::npos; }
+private:
+    std::string m_delims;
+};
+
+template<typename Predicate>
+void split(std::vector<std::string>& result,
+           const std::string& input,
+           Predicate pred,
+           bool compress = true) { // compress: skip consecutive delimiters
+    result.clear();
+    std::string token;
+    for (size_t i = 0; i < input.size(); ++i) {
+        if (pred(input[i])) {
+            if (!token.empty() || !compress) {
+                result.push_back(token);
+            }
+            token.clear();
+            if (compress) {
+                while (i + 1 < input.size() && pred(input[i + 1])) { ++i; }
+            }
+        } else {
+            token += input[i];
+        }
+    }
+    if (!token.empty() || !compress) {
+        result.push_back(token);
+    }
+}
+

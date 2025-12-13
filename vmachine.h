@@ -6,6 +6,7 @@
 #include <math.h>
 #include <mutex>
 #include <future>
+#include <list>
 
 template<typename T>
 using bset = btree::btree_set<T>;
@@ -195,7 +196,7 @@ class boxprinter {
 	vector<int> types;
 	vector<size_t> widths;
 	vector<string> names;
-	list<vector<string>> datarows;
+	vector<vector<string>> datarows;
 	public:
 	void init(vector<int>& types_, vector<string>& names_){
 		active = 1;

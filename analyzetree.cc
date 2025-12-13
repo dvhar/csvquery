@@ -1,5 +1,4 @@
 #include "interpretor.h"
-#include <boost/filesystem.hpp>
 #include <memory>
 #include<set>
 #include<algorithm>
