@@ -1,11 +1,12 @@
 // http_server.cc - HTTP and WebSocket server in one (raw sockets)
 #include "deps/incbin/incbin.h"
+#include "deps/crypto/sha1.h"
+#include "deps/crypto/base64.h"
 #include "interpretor.h"
 #include "server.h"
 #include <cstring>
 #include <string>
 #include <string_view>
-#include <fstream>
 #include <memory>
 #include <iostream>
 #include <sstream>
@@ -17,10 +18,6 @@
 #include <chrono>
 #include <regex>
 #include <algorithm>
-
-// For SHA1 (websocket handshake)
-#include "deps/crypto/sha1.h"
-#include "deps/crypto/base64.h"
 
 using namespace std;
 
@@ -42,27 +39,36 @@ typedef int socklen_t;
 #endif
 
 // ------------ Embedded Static Files ---------------
+//uncomment to load files from disk when page loads for testing, else they are embedded during compilation
+//#define testing_site
+
 #define file1 "../webgui/index.html"
 #define file2 "../webgui/main.js"
 #define file3 "../webgui/style.css"
 #define file4 "../webgui/help.html"
+#ifdef testing_site
+#define _f(num) st(ifstream(file##num).rdbuf())
+using page_str = string;
+#else
 #define _ib(num) INCBIN(num,file##num);
 _ib(1)
 _ib(2)
 _ib(3)
 _ib(4)
 #define _f(num) string_view((const char*)g##num##Data, g##num##Size)
+using page_str = string_view;
+#endif
 
 struct Route {
     const char* path;
-    string_view (*handler)();
+    page_str (*handler)();
     const char* mime;
 };
 
-static string_view get_f1() { return _f(1); }
-static string_view get_f2() { return _f(2); }
-static string_view get_f3() { return _f(3); }
-static string_view get_f4() { return _f(4); }
+static page_str get_f1() { return _f(1); }
+static page_str get_f2() { return _f(2); }
+static page_str get_f3() { return _f(3); }
+static page_str get_f4() { return _f(4); }
 
 static Route static_routes[] = {
     {"/", get_f1, "text/html"},
@@ -173,7 +179,7 @@ static void send_response(SOCKET client, int code, const char* status,
         send(client, body.data(), body.size(), 0);
 }
 
-// ------------- WebSocket Support (Raw) -------------
+// ------------- WebSocket Support -------------------
 static string base64_encode(const unsigned char* data, size_t len) {
     size_t out_len = encsize(len);
     vector<BYTE> out(out_len + 1); // +1 for null terminator, just in case
@@ -181,7 +187,6 @@ static string base64_encode(const unsigned char* data, size_t len) {
     return string(reinterpret_cast<char*>(out.data()), real_len);
 }
 
-// WebSocket handshake
 static void websocket_handshake(SOCKET client, const HttpRequest& req) {
     auto it = req.headers.find("Sec-WebSocket-Key");
     if (it == req.headers.end()) {
@@ -205,7 +210,6 @@ static void websocket_handshake(SOCKET client, const HttpRequest& req) {
     send(client, response.c_str(), response.size(), 0);
 }
 
-// WebSocket frame read/write
 static string websocket_read_frame(SOCKET client, int& opcode, bool& closed) {
     unsigned char hdr[2];
     int n = recv(client, (char*)hdr, 2, MSG_WAITALL);
@@ -276,7 +280,6 @@ static atomic<int> ws_client_count{0};
 #define SK_QUERY 8
 #define SK_DONE 9
 
-// ----------- WebSocket Ping Thread ---------------
 static void websocket_ping_thread() {
     int deathcount = 0;
     while (true) {
@@ -297,17 +300,14 @@ static void websocket_ping_thread() {
     }
 }
 
-// Forward declarations for functions used from your codebase
-// (implementations must be linked elsewhere!)
 extern void stopAllQueries();
 extern void returnPassword(i64 sessionId, string pass);
-extern void runqueries(shared_ptr<webquery> wq); // takes sessionId, savepath, querystring
+extern void runqueries(shared_ptr<webquery> wq);
 extern string version;
 extern shared_ptr<directory> filebrowse(string);
 extern string fs_current_path();
 extern regex endSemicolon;
 
-// --------- sendMessage/sendPassPrompt for WS ------
 void sendMessage(i64 wsid, string&& message) {
     lock_guard<mutex> lock(ws_mutex);
     auto it = ws_clients.find(wsid);
@@ -325,7 +325,6 @@ void sendPassPrompt(i64 wsid) {
     }
 }
 
-// ------------- WebSocket Main Loop -----------------
 static void websocket_main_loop(SOCKET client, i64 wsid) {
     ws_client_count++;
     try {
@@ -481,7 +480,7 @@ static void handle_request(SOCKET client) {
 }
 
 // --------------- Server entry point -------------------
-void run_raw_http_server(int port = 8060) {
+void run_http_server(int port = 8060) {
 #ifdef _WIN32
     WSADATA wsa;
     WSAStartup(MAKEWORD(2, 2), &wsa);
@@ -603,6 +602,6 @@ void runqueries(shared_ptr<webquery> wq){
 
 void runServer(){
     globalSettings.termbox = false;
-    run_raw_http_server();
+    run_http_server();
     exit(0);
 }
