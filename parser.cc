@@ -760,7 +760,7 @@ astnode parser::parseFrom(bool withselections) {
 			return nullptr;
 		}
 		//more helpful error messages when query assumes an explicit 'select' statement
-		if (!boost::filesystem::exists(t.val) && !boost::filesystem::exists(
+		if (!fs_exists(t.val) && !fs_exists(
 				st(globalSettings.configdir,SLASH,"alias-",t,".txt"))){
 			return nullptr;
 		}
@@ -791,7 +791,7 @@ astnode parser::parseFile(bool join) {
 	//file or view
 	} else if (t == WORD_TK){
 		isfile = true;
-		boost::replace_first(t.val, st("~",SLASH), gethome()+SLASH);
+        t.val = replace_first(t.val, st("~",SLASH), gethome()+SLASH);
 		n->tok1 = t;
 		sc.nextToken();
 		parseFileOptions(n);

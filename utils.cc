@@ -1,11 +1,19 @@
 #include "interpretor.h"
 #include <chrono>
 #include <stdlib.h>
-#include <ctype.h>
 #include <thread>
 #include "deps/json/escape.h"
 #include "deps/html/escape.h"
 #include "deps/incbin/incbin.h"
+#include <string>
+#include <algorithm> // for std::transform
+#include <cctype>    // for std::tolower
+#include <sys/stat.h>
+#include <string>
+#include <limits.h>
+#include <unistd.h>
+#include <cstdio>
+#include <dirent.h>
 
 INCBIN(_SINGLERESULT,"../webgui/singleresult.html");
 #define max(a,b) (a) > (b) ? (a) : (b)
@@ -27,6 +35,130 @@ int isDuration(const char* s){ return !regexec(&durationPattern, s, 0, NULL, 0);
 int isInt(const char* s){ return !regexec(&intType, s, 0, NULL, 0); }
 int isFloat(const char* s){ return !regexec(&floatType, s, 0, NULL, 0); }
 static const array<string_view,7> typenames = { "Null", "Int", "Float", "Date", "Duration", "Text", "Unknown" };
+
+std::vector<std::string> fs_directory_iterator(const std::string& dir) {
+    std::vector<std::string> files;
+    DIR* dp = opendir(dir.c_str());
+    if (!dp) return files;
+    struct dirent* ep;
+    while ((ep = readdir(dp))) {
+        if (std::string(ep->d_name) == "." || std::string(ep->d_name) == "..") continue;
+        files.push_back(dir + "/" + ep->d_name);
+    }
+    closedir(dp);
+    return files;
+}
+
+std::string fs_parent_path(const std::string& path) {
+    if (path.empty()) return "";
+    size_t end = path.size();
+    while (end > 1 && path[end - 1] == '/')
+        --end;
+    size_t pos = path.rfind('/', end - 1);
+    if (pos == std::string::npos) {
+        return "";
+    }
+    if (pos == 0)
+        return "/";
+    return path.substr(0, pos);
+}
+
+std::string fs_basename(const std::string& path) {
+    size_t slash = path.find_last_of('/');
+    if (slash == std::string::npos) return path;
+    std::string filename = path.substr(slash + 1);
+    size_t dot = filename.find_last_of('.');
+    if (dot == std::string::npos) return filename;
+    return filename.substr(0, dot);
+}
+
+bool fs_create_directories(const std::string& path) {
+    std::istringstream iss(path);
+    std::string token, built;
+    bool success = true;
+    while (std::getline(iss, token, '/')) {
+        if (token.empty()) continue;
+        built += "/" + token;
+        if (!fs_exists(built)) {
+            if (mkdir(built.c_str(), 0755) != 0) {
+                if (errno != EEXIST) {
+                    success = false;
+                    break;
+                }
+            }
+        }
+    }
+    return success;
+}
+
+std::string fs_current_path() {
+    char buf[PATH_MAX];
+    if (getcwd(buf, sizeof(buf))) {
+        return std::string(buf);
+    } else {
+        return ""; // or handle error
+    }
+}
+
+bool fs_is_regular_file(const std::string& path) {
+    struct stat info;
+    if (stat(path.c_str(), &info) != 0) return false;
+    return S_ISREG(info.st_mode);
+}
+
+bool fs_is_directory(const std::string& path) {
+    struct stat info;
+    if (stat(path.c_str(), &info) != 0) return false;
+    return S_ISDIR(info.st_mode);
+}
+
+bool fs_remove(const std::string& path) {
+    return std::remove(path.c_str()) == 0;
+}
+
+bool fs_exists(const std::string& path) {
+    struct stat info;
+    return stat(path.c_str(), &info) == 0;
+}
+
+std::string fs_canonical(const std::string& path) {
+    char resolved[PATH_MAX];
+    if (realpath(path.c_str(), resolved)) {
+        return std::string(resolved);
+    } else {
+        return ""; // or throw, or handle error
+    }
+}
+
+std::string replace_all(const std::string& str, const std::string& from, const std::string& to) {
+    if (from.empty()) return str;
+    std::string result = str;
+    size_t pos = 0;
+    while ((pos = result.find(from, pos)) != std::string::npos) {
+        result.replace(pos, from.length(), to);
+        pos += to.length();
+    }
+    return result;
+}
+
+// Replace the first occurrence of 'from' with 'to' in 'str'
+std::string replace_first(const std::string& str, const std::string& from, const std::string& to) {
+    if (from.empty()) return str;
+    std::string result = str;
+    size_t pos = result.find(from);
+    if (pos != std::string::npos) {
+        result.replace(pos, from.length(), to);
+    }
+    return result;
+}
+
+// Return a lower-case copy of the input string
+std::string to_lower_copy(const std::string& str) {
+    std::string result = str;
+    std::transform(result.begin(), result.end(), result.begin(),
+                   [](unsigned char c) { return std::tolower(c); });
+    return result;
+}
 
 void initregex(){
 	regcomp(&leadingZeroString, "^0[0-9]+$", REG_EXTENDED);
@@ -342,9 +474,9 @@ string nodeName(astnode &n, querySpecs* q){
 
 string singleQueryResult::tohtml(){
 	string tplate((const char*)g_SINGLERESULTData, g_SINGLERESULTSize);
-	boost::replace_first(tplate,"{{ querytext }}", chopAndEscapeHTML(query));
-	boost::replace_all(tplate,"{{ colnum }}", to_string(numcols));
-	boost::replace_all(tplate,"{{ rownum }}", to_string(numrows));
+	tplate = replace_first(tplate,"{{ querytext }}", chopAndEscapeHTML(query));
+	tplate = replace_all(tplate,"{{ colnum }}", to_string(numcols));
+	tplate = replace_all(tplate,"{{ rownum }}", to_string(numrows));
 	{
 		stringstream filterlist;
 		stringstream togglelist;
@@ -357,15 +489,15 @@ string singleQueryResult::tohtml(){
 			namelist << "<th>" << name << "</th>";
 			typelist << "<td>" << i+1 << "<span>-" << typenames[types[i]] << "</span></td>";
 		}
-		boost::replace_first(tplate,"{{ populatefilter-names }}", filterlist.str());
-		boost::replace_first(tplate,"{{ toggleColumn-names }}", togglelist.str());
-		boost::replace_first(tplate,"{{ th-names }}", namelist.str());
-		boost::replace_first(tplate,"{{ td-types }}", typelist.str());
+        tplate = replace_first(tplate,"{{ populatefilter-names }}", filterlist.str());
+        tplate = replace_first(tplate,"{{ toggleColumn-names }}", togglelist.str());
+        tplate = replace_first(tplate,"{{ th-names }}", namelist.str());
+        tplate = replace_first(tplate,"{{ td-types }}", typelist.str());
 	}
 	stringstream rows;
 	for (auto& row:vals)
 		rows << row << endl;
-	boost::replace_first(tplate,"{{ tr-vals }}", rows.str());
+	tplate = replace_first(tplate,"{{ tr-vals }}", rows.str());
 	return tplate;
 }
 //nlohmann library can't handle invalid utf-8

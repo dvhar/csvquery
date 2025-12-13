@@ -672,19 +672,19 @@ int analyzer::addAlias(astnode& n){
 			if (regex_match(alias,filelike))
 				error("File alias cannot have dots or slashes");
 			string aliasfile = st(globalSettings.configdir,"/alias-",alias,".txt");
-			if (boost::filesystem::exists(aliasfile))
+			if (fs_exists(aliasfile))
 				error(alias," alias already exists");
 			findExtension(fpath);
 			ofstream afile(aliasfile);
-			afile << boost::filesystem::canonical(fpath).string() << endl << opts << endl;
+			afile << fs_canonical(fpath) << endl << opts << endl;
 			return CMD_SHOWTABLES;
 		//drop alias
 		} else if (action == "drop") {
 			string& alias = aliasnode->tok1.val;
 			string aliasfile = st(globalSettings.configdir,"/alias-",alias,".txt");
-			if (!boost::filesystem::exists(aliasfile))
+			if (!fs_exists(aliasfile))
 				error(alias," alias does not exist");
-			boost::filesystem::remove(aliasfile);
+			fs_remove(aliasfile);
 			return CMD_DROPALIAS;
 		//show aliases - maybe do this in vm
 		} else if (action == "show") {

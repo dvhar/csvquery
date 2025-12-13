@@ -1,4 +1,3 @@
-#include<boost/filesystem.hpp>
 #include "interpretor.h"
 #include "vmachine.h"
 #include "server.h"
@@ -9,14 +8,6 @@
 #include "deps/json/escape.h"
 #include "deps/html/escape.h"
 #include <chrono>
-
-inline std::string get_basename(const boost::filesystem::path& p) {
-#if BOOST_VERSION < 107200  // Boost 1.72.0
-    return boost::filesystem::basename(p);
-#else
-    return p.filename().string();
-#endif
-}
 
 string opcode::print(){
 	return (ft("code: %-18s  [%-2d  %-2d  %-2d]")% opMap[code]% p1% p2% p3).str();
@@ -459,8 +450,8 @@ dat prepareLike(astnode &n){
 	reg.u.r = new regex_t;
 	reg.b = RMAL;
 	string s = n->tok3.val;
-	boost::replace_all(s, "_", ".");
-	boost::replace_all(s, "%", ".*");
+	s = replace_all(s, "_", ".");
+	s = replace_all(s, "%", ".*");
 	if (regcomp(reg.u.r, ("^"+s+"$").c_str(), REG_EXTENDED|REG_ICASE))
 		error("Could not parse 'like' pattern");
 	return reg;
@@ -547,13 +538,13 @@ shared_ptr<singleQueryResult> vmachine::getSingleResult(){
 
 shared_ptr<singleQueryResult> showTables(querySpecs &q){
 
-	boost::filesystem::path thisdir(globalSettings.configdir);
+	string thisdir(globalSettings.configdir);
 	auto tables = vector<tuple<string,string>>();
 	regex re(".*alias-.*");
-	for (auto& f : boost::filesystem::directory_iterator(thisdir)){
-		auto&& aliasfile = f.path().string();
+	for (auto& f : fs_directory_iterator(thisdir)){
+		auto&& aliasfile = f;
 		if (regex_match(aliasfile,re)){
-			string alias = get_basename(f.path());
+			string alias = fs_basename(f);
 			alias = alias.substr(6, alias.size()-4);
 			ifstream afile(aliasfile);
 			string apath;

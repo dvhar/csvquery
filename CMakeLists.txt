@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.17)
 
 project(cql LANGUAGES C CXX)
 
@@ -10,9 +10,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON CACHE INTERNAL "")
 if(UNIX)
 	set(THREADS_PREFER_PTHREAD_FLAG YES)
 	find_package(Threads REQUIRED)
-	find_package(Boost REQUIRED COMPONENTS system)
 endif()
-find_package(Boost REQUIRED COMPONENTS filesystem)
 
 file(GLOB sources CONFIGURE_DEPENDS "*.cc")
 set(sources ${sources}
@@ -33,8 +31,6 @@ set(sources ${sources}
 add_executable(cql ${sources})
 target_compile_features(cql PRIVATE cxx_std_17)
 target_link_libraries(cql PRIVATE
-	Boost::filesystem
-	"$<${is_unix}:Boost::system>"
 	"$<${is_unix}:Threads::Threads>"
 	"$<${is_win}:tre>"
 	"$<${is_win}:wsock32>"

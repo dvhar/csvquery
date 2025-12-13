@@ -147,11 +147,11 @@ int main(int argc, char** argv){
 				querystring += argv[i];
 			}
 			for (int i = end; i < end+bc; i++)
-				boost::replace_first(querystring, "{}", st("'",argv[i],"'"));
+              querystring = replace_first(querystring, "{}", st("'",argv[i],"'"));
 		}
 
 		//get query from file
-		else if (strlen(arg1) < 30 && boost::filesystem::is_regular_file(arg1))
+		else if (strlen(arg1) < 30 && fs_is_regular_file(arg1))
 			querystring = st(ifstream(arg1).rdbuf());
 
 		//get query from single arg
@@ -195,8 +195,8 @@ void loadconfig(){
 		"open_browser",
 	};
 	string defaultoutput;
-	boost::filesystem::create_directories(globalSettings.configdir);
-	if (boost::filesystem::is_regular_file(globalSettings.configfilepath)){
+	fs_create_directories(globalSettings.configdir);
+	if (fs_is_regular_file(globalSettings.configfilepath)){
 		ifstream cfile(globalSettings.configfilepath);
 		if (cfile.good()){
 			string confversion;

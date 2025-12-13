@@ -176,7 +176,7 @@ token scanner::scanPlainToken() {
 		if ((nextState & FINAL) != 0) {
 			//see if keyword or regular word
 			if (nextState == WORD_TK) {
-				string tokStr = boost::to_lower_copy(S);
+				string tokStr = to_lower_copy(S);
 				if (keywordMap.count(tokStr) && waitForQuote == 0) {
 					//return keyword token
 					return { keywordMap.at(tokStr), pos, S, lineNo, colNo, false };

@@ -307,18 +307,18 @@ void openfiles(querySpecs &qs){
 }
 
 shared_ptr<directory> filebrowse(string dir){
-	boost::filesystem::path thisdir(dir);
-	if (!boost::filesystem::exists(thisdir) || !boost::filesystem::is_directory(thisdir)){
+	string thisdir(dir);
+	if (!fs_exists(thisdir) || !fs_is_directory(thisdir)){
 		error(dir," is not a directory");
 	}
 	auto resp = make_shared<directory>();
 	vector<string> others;
-	for (auto& f : boost::filesystem::directory_iterator(thisdir)){
-		auto&& S = f.path().string();
+	for (auto& f : fs_directory_iterator(thisdir)){
+		auto&& S = f;
 		if (regex_match(S,hidPat)){
-		} else if (boost::filesystem::is_directory(f.status())){
+		} else if (fs_is_directory(f)){
 			resp->dirs.push_back(S);
-		} else if (boost::filesystem::is_regular_file(f.status())){
+		} else if (fs_is_regular_file(f)){
 			if (regex_match(S,csvPat) || regex_match(S,tsvPat))
 				resp->files.push_back(S);
 			else
@@ -329,16 +329,16 @@ shared_ptr<directory> filebrowse(string dir){
 	sort(resp->files.begin(), resp->files.end());
 	sort(others.begin(), others.end());
 	resp->files.insert(resp->files.end(), others.begin(), others.end());
-	resp->parent = thisdir.parent_path().string();
-	resp->fpath = thisdir.string();
+	resp->parent = fs_parent_path(thisdir);
+	resp->fpath = thisdir;
 	return resp;
 }
 
 void findExtension(string& fname){
-	if (!boost::filesystem::exists(fname)){
+	if (!fs_exists(fname)){
 		if (!regex_match(fname,csvPat)){
 			fname += ".csv";
-			if (!boost::filesystem::exists(fname)){
+			if (!fs_exists(fname)){
 				error("Could not find file ",fname);
 			}
 		} else {
@@ -350,7 +350,7 @@ bool opener::checkAliases(astnode& n){
 	if (regex_match(n->tok1.val,filelike))
 		return false;
 	string aliasfile = st(globalSettings.configdir,SLASH,"alias-",n->tok1.val,".txt");
-	if (!boost::filesystem::exists(aliasfile))
+	if (!fs_exists(aliasfile))
 		return false;
 	n->tok2 = n->tok1;
 	ifstream afile(aliasfile);
