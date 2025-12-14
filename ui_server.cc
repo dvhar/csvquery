@@ -1,3 +1,18 @@
+#ifdef _WIN32
+#include <winsock2.h>
+#include <ws2tcpip.h>
+#pragma comment(lib, "ws2_32.lib")
+typedef int socklen_t;
+#else
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <unistd.h>
+#include <arpa/inet.h>
+#define SOCKET int
+#define INVALID_SOCKET -1
+#define SOCKET_ERROR -1
+#define closesocket close
+#endif
 // http_server.cc - HTTP and WebSocket server in one (raw sockets)
 #include "deps/incbin/incbin.h"
 #include "deps/crypto/sha1.h"
@@ -21,22 +36,6 @@
 
 using namespace std;
 
-// Platform networking headers
-#ifdef _WIN32
-#include <winsock2.h>
-#include <ws2tcpip.h>
-#pragma comment(lib, "ws2_32.lib")
-typedef int socklen_t;
-#else
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <unistd.h>
-#include <arpa/inet.h>
-#define SOCKET int
-#define INVALID_SOCKET -1
-#define SOCKET_ERROR -1
-#define closesocket close
-#endif
 
 // ------------ Embedded Static Files ---------------
 //uncomment to load files from disk when page loads for testing, else they are embedded during compilation

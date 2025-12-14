@@ -80,7 +80,11 @@ bool fs_create_directories(const std::string& path) {
         if (token.empty()) continue;
         built += "/" + token;
         if (!fs_exists(built)) {
+#if defined(_WIN32)
+            if (mkdir(built.c_str()) != 0) {
+#else
             if (mkdir(built.c_str(), 0755) != 0) {
+#endif
                 if (errno != EEXIST) {
                     success = false;
                     break;
@@ -123,11 +127,19 @@ bool fs_exists(const std::string& path) {
 
 std::string fs_canonical(const std::string& path) {
     char resolved[PATH_MAX];
+#if defined(_WIN32)
+    if (_fullpath(resolved, path.c_str(), PATH_MAX)) {
+        return std::string(resolved);
+    } else {
+        return "";
+    }
+#else
     if (realpath(path.c_str(), resolved)) {
         return std::string(resolved);
     } else {
-        return ""; // or throw, or handle error
+        return "";
     }
+#endif
 }
 
 std::string replace_all(const std::string& str, const std::string& from, const std::string& to) {
