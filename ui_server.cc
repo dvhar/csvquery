@@ -9,8 +9,6 @@ typedef int socklen_t;
 #include <unistd.h>
 #include <arpa/inet.h>
 #define SOCKET int
-#define INVALID_SOCKET -1
-#define SOCKET_ERROR -1
 #define closesocket close
 #endif
 #include "deps/incbin/incbin.h"
@@ -332,7 +330,6 @@ static void websocket_main_loop(SOCKET client, i64 wsid) {
             } else if (opcode == 0x9) { // PING
                 websocket_send_frame(client, 0xA, payload); // PONG
             } else if (opcode == 0x1) { // TEXT
-                // Parse as JSON, handle as in ws.cpp
                 try {
                     auto j = json::parse(payload);
                     int type = fromjson<int>(j,"type");
@@ -350,13 +347,12 @@ static void websocket_main_loop(SOCKET client, i64 wsid) {
                         th.detach();
                     }
                 } catch (...) {
-                    // Ignore parse errors / bad messages
+                   cerr << EX_STRING << '\n';
                 }
             }
-            // else ignore
         }
     } catch (...) {
-        // Handle unexpected exceptions per client
+         cerr << EX_STRING << '\n';
     }
     {
         lock_guard<mutex> lock(ws_mutex);
@@ -476,7 +472,7 @@ void run_http_server(int port = 8060) {
     state["configpath"] = globalSettings.configfilepath;
 
     SOCKET server = socket(AF_INET, SOCK_STREAM, 0);
-    if (server == INVALID_SOCKET) {
+    if (server == -1) {
         cerr << "Could not create socket\n";
         return;
     }
@@ -488,13 +484,13 @@ void run_http_server(int port = 8060) {
     addr.sin_addr.s_addr = INADDR_ANY;
     addr.sin_port = htons(port);
 
-    if (bind(server, (sockaddr*)&addr, sizeof(addr)) == SOCKET_ERROR) {
+    if (::bind(server, (sockaddr*)&addr, sizeof(addr)) == -1) {
         cerr << "Could not bind\n";
         closesocket(server);
         return;
     }
 
-    if (listen(server, 10) == SOCKET_ERROR) {
+    if (listen(server, 10) == -1) {
         cerr << "Could not listen\n";
         closesocket(server);
         return;
@@ -510,8 +506,7 @@ void run_http_server(int port = 8060) {
         sockaddr_in client_addr;
         socklen_t client_len = sizeof(client_addr);
         SOCKET client = accept(server, (sockaddr*)&client_addr, &client_len);
-
-        if (client == INVALID_SOCKET) continue;
+        if (client == -1) continue;
 
         thread([client]() {
             handle_request(client);
