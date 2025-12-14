@@ -42,7 +42,7 @@ std::vector<std::string> fs_directory_iterator(const std::string& dir) {
     if (!dp) return files;
     struct dirent* ep;
     while ((ep = readdir(dp))) {
-        if (std::string(ep->d_name) == "." || std::string(ep->d_name) == "..") continue;
+        if (std::string_view(ep->d_name) == "." || std::string_view(ep->d_name) == "..") continue;
         files.push_back(dir + "/" + ep->d_name);
     }
     closedir(dp);

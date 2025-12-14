@@ -13,7 +13,6 @@ typedef int socklen_t;
 #define SOCKET_ERROR -1
 #define closesocket close
 #endif
-// http_server.cc - HTTP and WebSocket server in one (raw sockets)
 #include "deps/incbin/incbin.h"
 #include "deps/crypto/sha1.h"
 #include "deps/crypto/base64.h"
@@ -37,7 +36,6 @@ typedef int socklen_t;
 using namespace std;
 
 
-// ------------ Embedded Static Files ---------------
 //uncomment to load files from disk when page loads for testing, else they are embedded during compilation
 //#define testing_site
 
@@ -77,7 +75,6 @@ static Route static_routes[] = {
     {nullptr, nullptr, nullptr}
 };
 
-// ------------- App State and Helpers ---------------
 static json state;
 static string queryReturn;
 
@@ -110,7 +107,6 @@ void openbrowser() {
 #endif
 }
 
-// ------------- HTTP Parsing Helpers ---------------
 struct HttpRequest {
     string method, path, version;
     map<string,string> headers;
@@ -162,7 +158,6 @@ static HttpRequest parse_http_request(const char* buffer) {
     return req;
 }
 
-// ------------- HTTP Response Helper ---------------
 static void send_response(SOCKET client, int code, const char* status, 
                          const char* mime, string_view body, 
                          const map<string,string>& extra_headers = {}) {
@@ -178,7 +173,6 @@ static void send_response(SOCKET client, int code, const char* status,
         send(client, body.data(), body.size(), 0);
 }
 
-// ------------- WebSocket Support -------------------
 static string base64_encode(const unsigned char* data, size_t len) {
     size_t out_len = encsize(len);
     vector<BYTE> out(out_len + 1); // +1 for null terminator, just in case
@@ -264,13 +258,11 @@ static void websocket_send_frame(SOCKET client, int opcode, const string& data) 
     send(client, (const char*)frame.data(), frame.size(), 0);
 }
 
-// --------- WebSocket Session Management -----------
 static mutex ws_mutex;
 static map<i64, SOCKET> ws_clients;
 static atomic<i64> next_ws_id{1};
 static atomic<int> ws_client_count{0};
 
-// --------- WebSocket Message Protocol -------------
 #define SK_MSG 0
 #define SK_PING 1
 #define SK_STOP 3
@@ -374,7 +366,6 @@ static void websocket_main_loop(SOCKET client, i64 wsid) {
     if (ws_client_count < 0) ws_client_count = 0;
 }
 
-// ------------- HTTP /info and /result logic --------------
 static mutex global_mutex; // To guard state
 
 static void handle_info(SOCKET client, const HttpRequest& req) {
@@ -428,7 +419,6 @@ static void handle_result(SOCKET client, const HttpRequest& req) {
     send_response(client, 200, "OK", "text/plain", queryReturn, headers);
 }
 
-// ------------- Main request handler ---------------------
 static void handle_request(SOCKET client) {
     char buffer[8192];
     int bytes = recv(client, buffer, sizeof(buffer) - 1, 0);
@@ -437,7 +427,6 @@ static void handle_request(SOCKET client) {
 
     HttpRequest req = parse_http_request(buffer);
 
-    // --------- WebSocket Upgrade ---------
     if ((req.path == "/socket" || req.path == "/socket/") && 
         req.headers.count("Upgrade") && 
         req.headers.at("Upgrade") == "websocket")
@@ -457,19 +446,16 @@ static void handle_request(SOCKET client) {
         return;
     }
 
-    // --------- Static files ---------
     for (int i = 0; static_routes[i].path; i++) {
         if (req.path == static_routes[i].path) {
             send_response(client, 200, "OK", static_routes[i].mime, static_routes[i].handler());
             return;
         }
     }
-    // --------- /result/ ---------
     if (req.path == "/result/") {
         handle_result(client, req);
         return;
     }
-    // --------- /info ---------
     if (req.path == "/info") {
         handle_info(client, req);
         return;
@@ -478,7 +464,6 @@ static void handle_request(SOCKET client) {
     send_response(client, 404, "Not Found", "text/plain", "Not Found");
 }
 
-// --------------- Server entry point -------------------
 void run_http_server(int port = 8060) {
 #ifdef _WIN32
     WSADATA wsa;
@@ -519,7 +504,6 @@ void run_http_server(int port = 8060) {
     if (globalSettings.browser)
         openbrowser();
 
-    // Start websocket ping thread
     thread(websocket_ping_thread).detach();
 
     while (true) {
@@ -529,7 +513,6 @@ void run_http_server(int port = 8060) {
 
         if (client == INVALID_SOCKET) continue;
 
-        // Handle each client in a new thread
         thread([client]() {
             handle_request(client);
             closesocket(client);
