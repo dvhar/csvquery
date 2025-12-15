@@ -686,7 +686,7 @@ void boxprinter::print(){
 		rowseps << '+' << string(w,'-');
 	rowseps << "+";
 	string rowsep = rowseps.str();
-	int i,j=0;
+	int i=0,j=0;
 	bool bg = globalSettings.tablelinebg;
 	if (bg) cout << bg1;
 	cout << '+' << string(totalwidth,'-') << '+' << clearcolor << '\n';
