@@ -763,7 +763,7 @@ class singleQueryResult {
 	vector<string> vals; //each string is whole row of encoded results
 	string query;
 	stringstream& tojson();
-	string tohtml();
+	string tohtml(bool echo);
 	singleQueryResult(querySpecs &q){
 		numcols = q.colspec.count;
 		rowlimit = 20000 / numcols;

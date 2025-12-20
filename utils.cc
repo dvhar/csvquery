@@ -483,9 +483,10 @@ string nodeName(astnode &n, querySpecs* q){
 	return nodeName(n->node1, q);
 }
 
-string singleQueryResult::tohtml(){
+string singleQueryResult::tohtml(bool echo){
 	string tplate((const char*)g_SINGLERESULTData, g_SINGLERESULTSize);
-	tplate = replace_first(tplate,"{{ querytext }}", chopAndEscapeHTML(query));
+	tplate = replace_first(tplate,"{{ querytext }}",
+        echo ? "<span class=echoQuery>"+chopAndEscapeHTML(query)+"</span></br>" : "");
 	tplate = replace_all(tplate,"{{ colnum }}", to_string(numcols));
 	tplate = replace_all(tplate,"{{ rownum }}", to_string(numrows));
 	{
@@ -557,7 +558,7 @@ stringstream& returnData::tojson(){
 }
 string returnData::tohtml(){
 	for (auto &v : entries){
-		ss << v->tohtml();
+		ss << v->tohtml(entries.size() > 1);
 	}
 	return ss.str();
 }
