@@ -618,6 +618,8 @@ void analyzer::setAttributes(astnode& n){
 	case N_SELECT:
 		if (n->quantlimit())
 			q->quantityLimit = n->quantlimit();
+		if (n->distinctFlag())
+			q->distinctFiltering = true;
 		break;
 	case N_AFTERFROM:
 		if (n->quantlimit())

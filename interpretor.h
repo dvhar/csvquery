@@ -436,6 +436,7 @@ class node {
 	int& colidx(){ return tok1.id; }
 	int& casewhentype(){ return tok3.id; }
 	int& optionbits(){ return tok3.id; }
+	int& distinctFlag(){ return tok2.id; }
 };
 class variable {
 	public:

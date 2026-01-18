@@ -308,6 +308,7 @@ astnode parser::parseVars() {
 
 //node2 is selections (same as N_SELECTIONS)
 //tok1.id is quantityLimit
+//tok2.id is distinct flag
 astnode parser::parseSelect() {
 	t = sc.currToken();
 	e("parse select");
@@ -723,7 +724,7 @@ void parser::parseQuantifier(astnode& n) {
 		return;
 	}
 	if (t == "distinct") {
-		q->distinctFiltering = true;
+		n->distinctFlag() = 1;
 		sc.nextToken();
 		parseQuantifier(n);
 		return;
