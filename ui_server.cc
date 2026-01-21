@@ -481,7 +481,7 @@ void run_http_server(int port = 8060) {
 
     sockaddr_in addr = {};
     addr.sin_family = AF_INET;
-    addr.sin_addr.s_addr = INADDR_ANY;
+    addr.sin_addr.s_addr = globalSettings.allowconnections? htonl(INADDR_ANY) : htonl(INADDR_LOOPBACK);
     addr.sin_port = htons(port);
 
     if (::bind(server, (sockaddr*)&addr, sizeof(addr)) == -1) {
