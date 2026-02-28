@@ -39,3 +39,6 @@ Start http server to run queries from web browser interface or to view query lan
 ```
 ./cql
 ```
+Here are two 11GB files being joined on a computer with 8GB of ram, though it would have worked fine with 2GB:
+<img src="https://github.com/user-attachments/assets/7043c3cc-afae-401b-b63b-fab1a091f7a6"/>
+

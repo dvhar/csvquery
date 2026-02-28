@@ -386,25 +386,25 @@ JOINSET_EQ_:
 	nexti();
 AND_SET_:
 	{
-		bset<i64> tempset1(std::move(joinSetStack.front()));
+		set<i64> tempset1(std::move(joinSetStack.front()));
 		joinSetStack.pop_front();
 		auto& target = joinSetStack.front();
-		bset<i64> tempset2(std::move(target));
+		set<i64> tempset2(std::move(target));
 		set_intersection(tempset1.begin(), tempset1.end(), tempset2.begin(), tempset2.end(),
 				inserter(target, target.begin()));
 	} nexti();
 XOR_SET_:
 	{
-		bset<i64> tempset1(std::move(joinSetStack.front()));
+		set<i64> tempset1(std::move(joinSetStack.front()));
 		joinSetStack.pop_front();
 		auto& target = joinSetStack.front();
-		bset<i64> tempset2(std::move(target));
+		set<i64> tempset2(std::move(target));
 		set_symmetric_difference(tempset1.begin(), tempset1.end(), tempset2.begin(), tempset2.end(),
 				inserter(target, target.begin()));
 	} nexti();
 OR_SET_:
 	{
-		bset<i64> tempset(std::move(joinSetStack.front()));
+		set<i64> tempset(std::move(joinSetStack.front()));
 		joinSetStack.pop_front();
 		auto& target = joinSetStack.front();
 		for (auto loc : tempset)

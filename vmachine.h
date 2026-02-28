@@ -238,7 +238,7 @@ class vmachine {
 	vector<shared_ptr<fileReader>> files;
 	vector<unique_ptr<dat[], freeC>> groupSorter;
 	vector<int> sortIdxs;
-	forward_list<bset<i64>> joinSetStack;
+	forward_list<set<i64>> joinSetStack;
 	deque<unique_ptr<char[], freeC>> groupSortVars;
 	unique_ptr<rowgroup> groupTree;
 	shared_ptr<singleQueryResult> result;
