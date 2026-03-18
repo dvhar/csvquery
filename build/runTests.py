@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import subprocess
+import tempfile
 import yaml
 import os
 
@@ -28,9 +29,16 @@ def runtest(test):
             #print(expected.decode('utf-8'))
             if out != expected:
                 print(f"Failed. Expected from {test['output']}:")
-                print(expected.decode('utf-8'))
-                print('Got instead:')
-                print(out.decode('utf-8'))
+                # Write expected and actual output to temp files
+                expected_path = 'test/results/' + test['output']
+                with tempfile.NamedTemporaryFile(delete=False, mode='wb') as outf:
+                    outf.write(out)
+                    outf.flush()
+                    out_path = outf.name
+
+                # Run icdiff (make sure it's installed and in your PATH)
+                print(f"\ndiff between:\nExpected: {expected_path}\nActual: {out_path}\n")
+                subprocess.run(['diff', expected_path, out_path])
                 quit()
     print("---------------------------------------")
     print(f"Success! return code: {ret.returncode}")
