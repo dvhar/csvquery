@@ -18,7 +18,7 @@
 INCBIN(_SINGLERESULT,"../webgui/singleresult.html");
 #define max(a,b) (a) > (b) ? (a) : (b)
 
-string version = "1.60";
+string version = "2.00";
 int runmode;
 regex_t leadingZeroString;
 regex_t durationPattern;
