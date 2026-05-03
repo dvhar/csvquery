@@ -1,2 +1,0 @@
-#!/bin/sh
-echo style.scss|entr sh -c "sassc style.scss| tee style.css"
