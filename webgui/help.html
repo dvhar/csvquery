@@ -7,6 +7,7 @@
 		function showTable(classname){
 			document.querySelectorAll(`.${classname}`).forEach(a=>a.classList.toggle('hidden'));
 		}
+
 		function getState(){
 			var req = new Request("/info?info=getState", {
 				method: 'GET',
@@ -22,6 +23,7 @@
 				version = ret.version;
 			});
 		}
+
 		function checkUpdates(button){
 			let messageDiv = document.getElementById('updateMsg');
 			button.style.display = 'none';
@@ -42,305 +44,816 @@
 				});
 			}})
 		}
+
+		function searchHelp(query){
+			query = query.toLowerCase().trim();
+			let sections = document.querySelectorAll('.help-section');
+			if (!query) {
+				sections.forEach(s => { s.style.display = ''; s.classList.remove('search-match'); });
+				return;
+			}
+			// Split into tokens; match if every token is found as a substring in section text
+			let tokens = query.split(/\s+/).filter(t => t.length > 0);
+			sections.forEach(section => {
+				let text = section.textContent.toLowerCase();
+				// Remove the section's own heading from its body text for matching
+				// (we match against all text including headings)
+				let match = tokens.every(token => text.includes(token));
+				section.style.display = match ? '' : 'none';
+				if (match) section.classList.add('search-match');
+				else section.classList.remove('search-match');
+			});
+		}
+
+		function toggleSidebar(){
+			document.getElementById('sidebar').classList.toggle('hidden');
+		}
+
+		function scrollToSection(id){
+			const el = document.getElementById(id);
+			if (el) {
+				el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+			}
+		}
+
+		function toggleCollapsible(btn){
+			let content = btn.nextElementSibling;
+			content.classList.toggle('hidden');
+			btn.classList.toggle('collapsed');
+			let arrow = btn.querySelector('.arrow');
+			if (arrow) arrow.textContent = content.classList.contains('hidden') ? '[+]' : '[-]';
+		}
+
+
 	</script>
+	<style>
+		/* Help page layout */
+		.help-layout {
+			display: flex;
+			flex-direction: row;
+			min-height: 100vh;
+			background-color: #0a0908;
+		}
+
+		/* Sidebar navigation */
+		#sidebar {
+			width: 260px;
+			min-width: 260px;
+			background: #1a1a1a;
+			border-right: 2px solid #332200;
+			padding: 1em 0.8em;
+			overflow-y: auto;
+			position: fixed;
+			top: 0;
+			left: 0;
+			height: 100vh;
+			z-index: 200;
+			transform: translateX(0);
+			transition: transform 0.3s ease;
+		}
+		#sidebar.hidden {
+			transform: translateX(-260px);
+		}
+
+		.sidebar-title {
+			color: #ffeb00;
+			font-size: 1.1em;
+			font-weight: bold;
+			margin-bottom: 0.8em;
+			padding-bottom: 0.5em;
+			border-bottom: 2px solid #332200;
+		}
+
+		.sidebar-nav {
+			list-style: none;
+			padding: 0;
+			margin: 0;
+		}
+
+		.sidebar-nav li {
+			margin: 0.15em 0;
+		}
+
+		.sidebar-nav a {
+			display: block;
+			color: #ccccaa;
+			text-decoration: none;
+			padding: 0.35em 0.6em;
+			border-radius: 4px;
+			font-size: 0.92em;
+			transition: background 0.15s, color 0.15s;
+			cursor: pointer;
+		}
+
+		.sidebar-nav a:hover {
+			background: #332200;
+			color: #ffeb00;
+		}
+
+		/* Sidebar search */
+		.sidebar-search {
+			margin-bottom: 1em;
+		}
+
+		.sidebar-search input {
+			width: 100%;
+			padding: 0.45em 0.6em;
+			background: #222;
+			border: 1px solid #443300;
+			border-radius: 4px;
+			color: #f5f5d0;
+			font-size: 0.9em;
+			box-sizing: border-box;
+		}
+
+		.sidebar-search input::placeholder {
+			color: #666;
+		}
+
+		.sidebar-search input:focus {
+			outline: none;
+			border-color: #ffaa0e;
+		}
+
+		/* Main help content */
+		.help-body {
+			flex: 1;
+			margin-left: 260px;
+			padding: 1.5em 2em;
+			max-width: 900px;
+		}
+
+		/* Mobile toggle button */
+		#sidebarToggle {
+			display: none;
+			position: fixed;
+			top: 0.4em;
+			left: 0.5em;
+			z-index: 300;
+			padding: 0.4em 0.7em;
+			background: #332200;
+			color: #ffeb00;
+			border: 1px solid #664518;
+			border-radius: 4px;
+			cursor: pointer;
+			font-size: 1.2em;
+		}
+
+		/* Section cards */
+		.help-section {
+			margin-bottom: 1.5em;
+			background: #1a1a18;
+			border: 1px solid #332200;
+			border-radius: 8px;
+			padding: 1.2em 1.4em;
+		}
+
+		.help-section h2 {
+			color: #ffeb00;
+			font-size: 1.3em;
+			margin: 0 0 0.6em 0;
+		}
+
+		.help-section h3 {
+			color: #ffaa0e;
+			font-size: 1.05em;
+			margin: 0.8em 0 0.4em 0;
+		}
+
+		/* Description intro */
+		.intro-text {
+			color: #ddd8c0;
+			line-height: 1.65;
+			font-size: 1em;
+			margin-bottom: 0.5em;
+		}
+
+		/* Collapsible section header */
+		.collapsible-header {
+			background: none;
+			border: none;
+			color: #ffaa0e;
+			font-size: 1em;
+			cursor: pointer;
+			padding: 0.4em 0;
+			display: flex;
+			align-items: center;
+			gap: 0.5em;
+			width: 100%;
+			text-align: left;
+			margin-bottom: 0.3em;
+		}
+
+		.collapsible-header:hover {
+			color: #ffeb00;
+		}
+
+		.arrow {
+			display: inline-block;
+			font-size: 0.85em;
+			transition: transform 0.2s;
+			width: 1em;
+			text-align: center;
+		}
+
+		.collapsible-header.collapsed .arrow {
+			transform: rotate(-90deg);
+		}
+
+		/* Code blocks */
+		.code-block {
+			background: #111;
+			border: 1px solid #332200;
+			border-radius: 6px;
+			padding: 0.8em 1em;
+			margin: 0.6em 0;
+			overflow-x: auto;
+		}
+
+		.code-block code {
+			color: #aaddaa;
+			font-family: 'Courier New', Courier, monospace;
+			font-size: 0.92em;
+			line-height: 1.5;
+			display: block;
+			white-space: pre;
+		}
+
+		.code-label {
+			color: #888866;
+			font-size: 0.8em;
+			margin-bottom: 0.3em;
+			text-transform: uppercase;
+			letter-spacing: 0.5px;
+		}
+
+		/* Inline code */
+		#helpPage code {
+			background: #222222;
+			color: #ffaa0e;
+			font-weight: bold;
+			font-family: 'Courier New', monospace;
+			padding: 0.1em 0.35em;
+			border-radius: 3px;
+			font-size: 0.9em;
+		}
+
+		/* Collapsible table buttons */
+		button.funcTable, button.fmtTable {
+			display: block;
+			margin: 0.8em 0;
+			padding: 0.5em 1em;
+		}
+
+		/* Tables */
+		.help-section table {
+			border-collapse: collapse;
+			border: 2px solid #664518;
+			padding: 0.2em;
+			color: #ffff99;
+			width: 100%;
+			margin: 0.5em 0;
+			font-size: 0.9em;
+		}
+
+		.help-section th {
+			background: #332200;
+			color: #ffeb00;
+			padding: 0.5em 0.7em;
+			text-align: left;
+			border: 1px solid #664518;
+		}
+
+		.help-section td {
+			padding: 0.35em 0.7em;
+			border: 1px solid #443300;
+			vertical-align: top;
+		}
+
+		.help-section tr:nth-child(even) td {
+			background: rgba(255,255,255,0.02);
+		}
+
+		.help-section tr:hover td {
+			background: rgba(255,170,14,0.06);
+		}
+
+		/* Links */
+		#helpPage a {
+			color: orangered;
+		}
+		#helpPage a:hover {
+			text-decoration: underline;
+		}
+
+		/* Update message */
+		#updateMsg {
+			margin-left: 0.5em;
+			font-size: 0.9em;
+		}
+		#updateMsg hr {
+			border: none;
+			border-top: 1px solid #332200;
+			margin: 0.4em 0;
+		}
+
+		/* Version and config */
+		.version-line {
+			color: #888;
+			font-size: 0.85em;
+			margin-top: 1.5em;
+			padding-top: 1em;
+			border-top: 1px solid #332200;
+		}
+
+		/* Search highlight */
+		.search-match {
+			outline: 2px solid #ffaa0e44;
+		}
+
+		/* Custom scrollbars matching theme */
+		::-webkit-scrollbar {
+			width: 12px;
+		}
+		::-webkit-scrollbar-track {
+			background: #1a1a18;
+			border-left: 1px solid #332200;
+		}
+		::-webkit-scrollbar-thumb {
+			background: #443300;
+			border-radius: 6px;
+			border: 2px solid #1a1a18;
+		}
+		::-webkit-scrollbar-thumb:hover {
+			background: #664518;
+		}
+
+		/* Firefox scrollbar */
+		* {
+			scrollbar-width: thin;
+			scrollbar-color: #443300 #1a1a18;
+		}
+
+		/* Responsive */
+		@media (max-width: 800px) {
+			#sidebar {
+				position: fixed;
+				z-index: 500;
+				height: 100vh;
+				top: 0;
+			}
+			.help-body {
+				margin-left: 0;
+				padding: 3.2em 1em 1.5em;
+			}
+			#sidebarToggle {
+				display: block;
+			}
+		}
+
+		/* Page header area */
+		.page-header {
+			margin-bottom: 1.2em;
+			padding-bottom: 0.8em;
+			border-bottom: 2px solid #332200;
+		}
+
+		.page-header h1 {
+			color: #ffeb00;
+			font-size: 1.6em;
+			margin: 0 0 0.4em 0;
+		}
+
+		.page-header p {
+			color: #aaa;
+			margin: 0;
+			font-size: 0.95em;
+		}
+
+		/* List styling */
+		.help-section ul, .help-section ol {
+			padding-left: 1.2em;
+			margin: 0.4em 0;
+		}
+
+		.help-section li {
+			color: #ddd8c0;
+			line-height: 1.55;
+			margin: 0.3em 0;
+		}
+	</style>
 	<body>
-		<div id=helpPage>
-			<button onclick="checkUpdates(this)">Check for updates</button>
-			<span id=updateMsg ></span>
-			<h3>What this software does</h3>
-			Run <code>select</code> queries on csv files, display the results, and save to new csv files. It can handle big csv files that are too big for other programs.
-			<br>
-			It will show you the first several hundred results in the browser, with 2 options for viewing certain rows or columns. You can click on a column header to sort the displayed results by that column.
-			<hr>
-			<h3>How to save files</h3>
-			After running a query, hit the save button. Navigate to where you want to save, type in the file name, and hit Enter. All the queries on the page will run again, but this time they will be saved to csv files. The program will infer whether or not to output a header unless you override it with an option. To always output header, add <code>OH</code> to the beginning of the query. To never output header, add <code>NOH</code>.
-			<hr>
-			<h3>How to use the query language</h3>
-			This program uses a custom but incomplete version of SQL that's designed to be easy to use and has some additions to handle csv formatting issues.
-			<br>
-			<h4>Specifying a file</h4>
-			Click <code>Open</code> to find files, and double click one to add it to the query.
-			<br>
-			File paths can be saved for later use by running an <code>add &lt;alias&gt; &lt;filepath&gt;</code> command. You may add file format options (described in the next section) after the filepath. The <code>drop &lt;alias&gt;</code> command only deletes the alias, not the file. To view all aliases, type <code>show</code>.
-			<br><br>
-			Example of specifying a file by filename and then by saved name:
-			<br>
-			<blockquote>
-				<code>
-					select * from '/home/user/pets.csv'
-					<br>
-					add pets '/home/user/pets.csv'
-					<br>
-					select * from pets
-					<br>
-					drop pets
-				</code>
-			</blockquote>
-			<h4>Specifying csv delimiters and file header</h4>
-			These characters can be added to the beginning of a query or after the file path to specify file format details: <code>NH</code>, <code>H</code>, <code>AH</code>, <code>S</code>, <code>T</code>, <code>P</code>, and <code>C</code>. The characters <code>NH</code>, <code>H</code>, and <code>AH</code> mean 'no header', 'header', and 'auto header' respectively. Default behavior is to guess if there is a header based on whether or not the first row contains numbers. <code>S</code>, <code>T</code>, <code>P</code>, <code>C</code> mean the delimiter is 'spaces', 'tabs', 'pipes', and 'colons' respectively. Default delimiter is commas unless it's a .tsv file, in which case it is tabs. See examples in the next section.
-			<h4>Selecting some columns</h4>
-			Columns can be specified by name or number. Select column numbers by prefacing the number with <code>c</code>, or by using a plain unquoted number if putting a <code>C</code> in front of the whole query. To make commas between selections optional (but require <code>as</code> to rename), put <code>M</code> in front of the query, or set <code>need_comma_separator</code> to <code>false</code> in the config file.
-			<br><br>
-			Example: selecting columns 1-3, dogs, and cats from a file, giving column 2 the new name 'food'<br>
-			<blockquote>
-				<code>
-					select c1, c2 'food', c3, dogs, cats from '/home/user/pets.csv'
-					<br>
-					C select 1, 2 'food', 3, dogs, cats from 'C:\\users\dave\pets.csv'
-					<br>
-					M C select 1 2 as 'food' 3 dogs cats from 'C:\\users\dave\pets.csv'
-				</code>
-			</blockquote>
-			<h4>Selecting all columns</h4>
-			<code>select *</code> works how you'd expect. If you don't specify any values at all, it will also select all. It will also select all if you skip the <code>select from</code> part altogether. You can also select all with additional columns.
-			<br><br>
-			Examples:
-			<br>
-			<blockquote>
-				<code>
-					select * from '/home/user/pets.csv'
-					<br>
-					select from '/home/user/pets.csv'
-					<br>
-					'/home/user/pets.csv'
-					<br>
-					select dogs, * from '/home/user/pets.csv'
-				</code>
-			</blockquote>
-			<h4>Selecting more complex expressions</h4>
-			Use <code>+ - * / %</code> operators to add, subtract, multiply, divide, and modulus values. You can combine them with parentheses. You can also use case expressions.
-			<br><br>
-			Examples:
-			<blockquote>
-				<code>
-					select birthdate+'3 weeks', c1*c2, c1/c2, c1-c2, c1%2, (c1-23)*(c2+34) from '/home/user/pets.csv'
-					<br>
-					select case when c1*2&lt;10 then dog when c1*10&gt;=10.2 then cat else monkey end from '/home/user/pets.csv'
-					<br>
-					select case c1 / c4 when (c3+c3)*2 then dog when c1*10 then cat end from '/home/user/pets.csv'
-				</code>
-			</blockquote>
-			<h4>Value Aliases</h4>
-			To use the same value in multiple places, either rename a selection and use that name, or Begin a query with <code>with &lt;value&gt; as &lt;alias&gt;</code>. Separate aliases in the <code>with</code> clause with <code>,</code> or <code>and</code>.
-			<br><br>
-			Example:
-			<br>
-			<blockquote>
-				<code>
-					with age*7 as dogyears, 'Mr.'+name as dogname select dogname, dogyears from '/home/user/pets.csv' order by dogyears
-					<br>
-					select age*7 dogyears from '/home/user/pets.csv' order by dogyears
-				</code>
-			</blockquote>
-			<h4>Functions</h4>
 
-			<button class=funcTable onclick="showTable('funcTable')">Show function table</button>
-			<table border=1 class="funcTable hidden">
-				<th>Function</th><th>description</th><th>parameters</th>
-				<tr><td>sum</td><td>aggregate sum</td><td>(&lt;value&gt;)</td></tr>
-				<tr><td>avg</td><td>aggregate average</td><td>(&lt;value&gt;)</td></tr>
-				<tr><td>min</td><td>aggregate minimum</td><td>(&lt;value&gt;)</td></tr>
-				<tr><td>max</td><td>aggregate maximum</td><td>(&lt;value&gt;)</td></tr>
-				<tr><td>count</td><td>aggregate count</td><td>(&lt;value&gt; or *)</td></tr>
-				<tr><td>stdev</td><td>aggregate sample standard deviation</td><td>(&lt;numeric value&gt;)</td></tr>
-				<tr><td>stdevp</td><td>aggregate population standard deviation</td><td>(&lt;numeric value&gt;)</td></tr>
-				<tr><td>inc</td><td>number that increments each line</td><td>()</td></tr>
-				<tr><td>rand</td><td>random number</td><td>()</td></tr>
-				<tr><td>abs</td><td>absolute value</td><td>(&lt;numeric value&gt;)</td></tr>
-				<tr><td>coalesce</td><td>first non-null value</td><td>(&lt;any number of values&gt;)</td></tr>
-				<tr><td>now</td><td>current local datetime</td><td>()</td></tr>
-				<tr><td>nowlocal</td><td>current local datetime</td><td>()</td></tr>
-				<tr><td>nowgm</td><td>current GMT datetime</td><td>()</td></tr>
-				<tr><td>year</td><td>year</td><td>(&lt;datetime value&gt;)</td></tr>
-				<tr><td>month</td><td>month (1-12)</td><td>(&lt;datetime value>)</td></tr>
-				<tr><td>monthname</td><td>month name</td><td>(&lt;datetime value&gt;)</td></tr>
-				<tr><td>week</td><td>week of year (1-52)</td><td>(&lt;datetime value>)</td></tr>
-				<tr><td>dayname</td><td>day name</td><td>(&lt;datetime value&gt;)</td></tr>
-				<tr><td>dayofyear</td><td>day of year (1-366)</td><td>(&lt;datetime value>)</td></tr>
-				<tr><td>dayofmonth</td><td>day of month (1-31)</td><td>(&lt;datetime value>)</td></tr>
-				<tr><td>day</td><td>day of month (same as dayofmonth)</td><td>(&lt;datetime value>)</td></tr>
-				<tr><td>dayofweek</td><td>day of week (1-7, Sunday=1)</td><td>(&lt;datetime value>)</td></tr>
-				<tr><td>hour</td><td>hour (0-23)</td><td>(&lt;datetime value>)</td></tr>
-				<tr><td>minute</td><td>minute (0-59)</td><td>(&lt;datetime value>)</td></tr>
-				<tr><td>second</td><td>second (0-59)</td><td>(&lt;datetime value>)</td></tr>
-				<tr><td>format</td><td>format datetime text</td><td>(&lt;datetime value&gt;, &lt;format string&gt; or &lt;format code&gt;)</td></tr>
-				<tr><td>ceil</td><td>round up</td><td>(&lt;numeric value&gt;, &lt;optional decimal places&gt;)</td></tr>
-				<tr><td>floor</td><td>round down</td><td>(&lt;numeric value&gt;, &lt;optional decimal places&gt;)</td></tr>
-				<tr><td>round</td><td>round up or down to nearest</td><td>(&lt;numeric value&gt;, &lt;optional decimal places&gt;)</td></tr>
-				<tr><td>cos</td><td>trig cosine</td><td>(&lt;numeric value&gt;)</td></tr>
-				<tr><td>sin</td><td>trig sine</td><td>(&lt;numeric value&gt;)</td></tr>
-				<tr><td>tan</td><td>trig tangent</td><td>(&lt;numeric value&gt;)</td></tr>
-				<tr><td>acos</td><td>trig inverse cosine</td><td>(&lt;numeric value&gt;)</td></tr>
-				<tr><td>asin</td><td>trig inverse sine</td><td>(&lt;numeric value&gt;)</td></tr>
-				<tr><td>atan</td><td>trig inverse tangent</td><td>(&lt;numeric value&gt;)</td></tr>
-				<tr><td>exp</td><td>e to the power of number</td><td>(&lt;numeric value&gt;)</td></tr>
-				<tr><td>pow</td><td>1st value to the power of second value</td><td>(&lt;numeric value&gt;, &lt;numeric value&gt;)</td></tr>
-				<tr><td>log</td><td>log base e</td><td>(&lt;numeric value&gt;)</td></tr>
-				<tr><td>log2</td><td>log base 2</td><td>(&lt;numeric value&gt;)</td></tr>
-				<tr><td>log10</td><td>log base 10</td><td>(&lt;numeric value&gt;)</td></tr>
-				<tr><td>sqrt</td><td>square root</td><td>(&lt;numeric value&gt;)</td></tr>
-				<tr><td>cbrt</td><td>cube root</td><td>(&lt;numeric value&gt;)</td></tr>
-				<tr><td>upper</td><td>upper case</td><td>(&lt;value&gt;)</td></tr>
-				<tr><td>lower</td><td>lower case</td><td>(&lt;value&gt;)</td></tr>
-				<tr><td>len</td><td>lenth of text</td><td>(&lt;value&gt;)</td></tr>
-				<tr><td>substr</td><td>substring from index+length or pattern matching</td><td>(&lt;value&gt;, &lt;2 numbers&gt; or &lt;regex&gt;)</td></tr>
-				<tr><td>sip</td><td>sip hash (with numeric output)</td><td>(&lt;value>)</td></tr>
-				<tr><td>md5</td><td>md5 hash in base64</td><td>(&lt;value&gt;)</td></tr>
-				<tr><td>sha1</td><td>sha1 hash in base64</td><td>(&lt;value&gt;)</td></tr>
-				<tr><td>sha256</td><td>sha256 hash in base64</td><td>(&lt;value&gt;)</td></tr>
-				<tr><td>string</td><td>convert datatype to text</td><td>(&lt;value&gt;)</td></tr>
-				<tr><td>int</td><td>convert datatype to integer</td><td>(&lt;value&gt;)</td></tr>
-				<tr><td>float</td><td>convert datatype to floating point number</td><td>(&lt;value&gt;)</td></tr>
-				<tr><td>date</td><td>convert datatype to datetime</td><td>(&lt;value&gt;)</td></tr>
-				<tr><td>duration</td><td>convert datatype to duration</td><td>(&lt;value&gt;)</td></tr>
-				<tr><td>encrypt</td><td>encrypt</td><td>(&lt;value&gt;, &lt;optional password&gt;)</td></tr>
-				<tr><td>decrypt</td><td>decrypt</td><td>(&lt;value&gt;, &lt;optional password&gt;)</td></tr>
-				<tr><td>base64_encode</td><td>encode to bas64</td><td>(&lt;value&gt;)</td></tr>
-				<tr><td>base64_decode</td><td>decode from base64</td><td>(&lt;value&gt;)</td></tr>
-			</table>
 
-			<br>
-			Aggregate functions can be used with a <code>group by</code> clause and group by as many values as you want. Without a <code>group by</code> clause, they will aggregate everything into a single row.
-			<br>
-			<br>
-			<code>Encrypt</code> function only guarantees a unique nonce for every value encrypted while the program is running. Uniqueness cannot be guaranteed between restarts, so avoid using the same password in different sessions. It does not hide the length of a value, so it may be best to use other security solutions when possible. <code>Decrypt</code> function returns an empty value if ciphertext has been tampered with. If no password is supplied, the program will prompt you for one.
-			<br>
-			<br>
-			Math functions like <code>asin</code> and <code>log</code> return an empty value when not a real number, such as <code>log(0)</code> or <code>asin(100)</code>. To return <code>nan</code>, <code>inf</code>, or <code>-inf</code> instead, add the option <code>nan</code> to the beginning of the query. Return value will still be empty if function is called on a null value.
-			<br>
-			<br>
-			Format function uses the type of date format string described by the <a href='https://linux.die.net/man/3/strftime' target='_blank'>Linux Manual</a>, with the addition of <code>mmm</code> for milliseconds. It can also take the format code for a preset format from the following table:
-			<br>
+		<div class="help-layout">
+			<!-- Sidebar Navigation -->
+			<nav id="sidebar">
+				
 
-			<button class=fmtTable onclick="showTable('fmtTable')">Show date format table</button>
-			<table border=1 class="fmtTable hidden">
-				<th>Format code</th><th>Resulting format</th><th>Corresonding format string</th>
-				<tr><td>1</td><td>mm/dd/yy</td><td>%m/%d/%y</td></tr>
-				<tr><td>101</td><td>mm/dd/yyyy</td><td>%m/%d/%Y</td></tr>
-				<tr><td>2</td><td>yy.mm.dd</td><td>%y.%m.%d</td></tr>
-				<tr><td>102</td><td>yyyy.mm.dd</td><td>%Y.%m.%d</td></tr>
-				<tr><td>3</td><td>dd/mm/yy</td><td>%d/%m/%y</td></tr>
-				<tr><td>103</td><td>dd/mm/yyyy</td><td>%d/%m/%Y</td></tr>
-				<tr><td>4</td><td>dd.mm.yy</td><td>%d.%m.%y</td></tr>
-				<tr><td>104</td><td>dd.mm.yyyy</td><td>%d.%m.%Y</td></tr>
-				<tr><td>5</td><td>dd-mm-yy</td><td>%d-%m-%y</td></tr>
-				<tr><td>105</td><td>dd-mm-yyyy</td><td>%d-%m-%Y</td></tr>
-				<tr><td>6</td><td>dd Mon yy</td><td>%d %b %y</td></tr>
-				<tr><td>106</td><td>dd Mon yyyy</td><td>%d %b %Y</td></tr>
-				<tr><td>7</td><td>Mon dd, yy</td><td>%b %d, %y</td></tr>
-				<tr><td>107</td><td>Mon dd, yyyy</td><td>%b %d, %Y</td></tr>
-				<tr><td>8</td><td>hh:mi:ss</td><td>%I:%M:%S</td></tr>
-				<tr><td>108</td><td>hh:mi:ss</td><td>%I:%M:%S</td></tr>
-				<tr><td>9</td><td>Mon dd yy hh:mi:ss:mmmmAM</td><td>%b %d %y %I:%M:%S:mmmm%p</td></tr>
-				<tr><td>109</td><td>Mon dd yyyy hh:mi:ss:mmmmAM</td><td>%b %d %Y %I:%M:%S:mmmm%p</td></tr>
-				<tr><td>10</td><td>mm-dd-yy</td><td>%m-%d-%y</td></tr>
-				<tr><td>110</td><td>mm-dd-yyyy</td><td>%m-%d-%Y</td></tr>
-				<tr><td>11</td><td>yy/mm/dd</td><td>%y/%m/%d</td></tr>
-				<tr><td>111</td><td>yyyy/mm/dd</td><td>%Y/%m/%d</td></tr>
-				<tr><td>12</td><td>yymmdd</td><td>%y%m%d</td></tr>
-				<tr><td>112</td><td>yyyymmdd</td><td>%Y%m%d</td></tr>
-				<tr><td>13</td><td>dd Mon yy hh:mi:ss:mmm(24h)</td><td>%d %b %y %H:%M:%S:mmm</td></tr>
-				<tr><td>113</td><td>dd Mon yyyy hh:mi:ss:mmm(24h)</td><td>%d %b %Y %H:%M:%S:mmm</td></tr>
-				<tr><td>14</td><td>hh:mi:ss:mmm(24h)</td><td>%H:%M:%S:mmm</td></tr>
-				<tr><td>114</td><td>hh:mi:ss:mmm(24h)</td><td>%H:%M:%S:mmm</td></tr>
-				<tr><td>15</td><td>yy-mm-dd</td><td>%y-%m-%d</td></tr>
-				<tr><td>115</td><td>yyyy-mm-dd</td><td>%Y-%m-%d</td></tr>
-				<tr><td>20</td><td>yy-mm-dd hh:mi:ss(24h)</td><td>%y-%m-%d %H:%M:%S</td></tr>
-				<tr><td>120</td><td>yyyy-mm-dd hh:mi:ss(24h)</td><td>%Y-%m-%d %H:%M:%S</td></tr>
-				<tr><td>21</td><td>yy-mm-dd hh:mi:ss.mmm(24h)</td><td>%y-%m-%d %H:%M:%S.mmm</td></tr>
-				<tr><td>121</td><td>yyyy-mm-dd hh:mi:ss.mmm(24h)</td><td>%Y-%m-%d %H:%M:%S.mmm</td></tr>
-				<tr><td>126</td><td>yyyy-mm-ddThh:mi:ss.mmm (no Spaces)</td><td>%Y-%m-%dT%H:%M:%S.mmm</td></tr>
-				<tr><td>127</td><td>yyyy-mm-ddThh:mi:ss.mmmZ (no Spaces)</td><td>%Y-%m-%dT%H:%M:%S.mmmZ</td></tr>
-				<tr><td>130</td><td>dd Mon yyyy hh:mi:ss:mmmAM</td><td>%d %b %Y %I:%M:%S:mmm%p</td></tr>
-				<tr><td>131</td><td>dd/mm/yyyy hh:mi:ss:mmmAM</td><td>%d/%b/%Y %I:%M:%S:mmm%p</td></tr>
-				<tr><td>119</td><td>Mon dd yyyy hh:mi:ssAM</td><td>%b %d %Y %I:%M:%S%p</td></tr>
-				<tr><td>140</td><td>dd Mon yyyy hh:mi:ssAM</td><td>%d %b %Y %I:%M:%S%p</td></tr>
-				<tr><td>141</td><td>dd/mm/yyyy hh:mi:ssAM</td><td>%d/%b/%Y %I:%M:%S%p</td></tr>
-				<tr><td>136</td><td>yyyy-mm-ddThh:mi:ss (no Spaces)</td><td>%Y-%m-%dT%H:%M:%S</td></tr>
-				<tr><td>137</td><td>yyyy-mm-ddThh:mi:ssZ (no Spaces)</td><td>%Y-%m-%dT%H:%M:%SZ</td></tr>
-			</table>
+				<div class="sidebar-title">Help Contents</div>
+				<div class="sidebar-search">
+					<input type="text" placeholder="Search help..." oninput="searchHelp(this.value)">
+				</div>
+				<ul class="sidebar-nav">
+					<li><a onclick="scrollToSection('sec-intro')">Overview</a></li>
+					<li><a onclick="scrollToSection('sec-save')">Saving Files</a></li>
+					<li><a onclick="scrollToSection('sec-files')">Specifying Files</a></li>
+					<li><a onclick="scrollToSection('sec-delimiters')">Delimiters &amp; Headers</a></li>
+					<li><a onclick="scrollToSection('sec-columns')">Selecting Columns</a></li>
+					<li><a onclick="scrollToSection('sec-allcols')">Select All Columns</a></li>
+					<li><a onclick="scrollToSection('sec-expressions')">Expressions</a></li>
+					<li><a onclick="scrollToSection('sec-aliases')">Value Aliases</a></li>
+					<li><a onclick="scrollToSection('sec-functions')">Functions</a></li>
+					<li><a onclick="scrollToSection('sec-distinct')">Distinct &amp; Group By</a></li>
+					<li><a onclick="scrollToSection('sec-limit')">Limiting Rows</a></li>
+					<li><a onclick="scrollToSection('sec-where')">WHERE Conditions</a></li>
+					<li><a onclick="scrollToSection('sec-sort')">Sorting</a></li>
+					<li><a onclick="scrollToSection('sec-join')">Joins</a></li>
+					<li><a onclick="scrollToSection('sec-config')">Configuration</a></li>
+				</ul>
+			</nav>
 
-			<br>
-			<h4>Selecting distinct rows or aggregates</h4>
-			To get distinct rows of data, put the <code>distinct</code> keyword after <code>select</code>. To get rows of data with only some distinct values rather than the entire row being distinct, use <code>group by</code>. Note that when grouping, selections that are not distinct or aggregate functions will just be the first value that is found.
-			<br>
-			To calculate aggregate function of distinct values, put the <code>distinct</code> keyword in the function call.
-			<br><br>
-			Examples:
-			<blockquote>
-				<code>
-					select distinct dogtypes, fluffiness from '/home/user/pets.csv'
-					<br>
-					select count(distinct species) from '/home/user/pets.csv'
-					<br>
-					select dogtypes, fluffiness from pets.csv group by dogtypes
-				</code>
-			</blockquote>
-			<h4>Selecting a number of rows</h4>
-			Use the <code>top</code> keyword after <code>select</code>, or <code>limit</code> at the end of the query. Be careful not to confuse the number after <code>top</code> for part of an value.
-			<br><br>
-			Examples:
-			<blockquote>
-				<code>
-					select top 100 c1, c2, c3, dogs, cats from '/home/user/pets.csv'
-					<br>
-					select c1, c2, c3, dogs, cats from '/home/user/pets.csv' limit 100
-				</code>
-			</blockquote>
-			<h4>Selecting rows that match a certain condition</h4>
-			Specify conditions you're looking for by using any combination of conditional statements with parentheses, <code>and</code>, <code>or</code>, and <code>xor</code> operators. Dates are handled nicely, so <code>May 18 1955</code> is the same as <code>5/18/1955</code>. Empty entries can be compared against the keyword <code>null</code>. The <code>in</code> operator can be used with a list or subquery, though correlated subqueries are not yet supported.
-			<br><br>
-			Valid relational operators are <code>is</code>, <code>=</code>,  <code>!=</code>,  <code>&lt;&gt;</code>,  <code>&gt;</code>,  <code>&lt;</code>,  <code>&gt;=</code>,  <code>&lt;=</code>, <code>like</code>, <code>in</code>, and <code>between</code>. <code>!</code> is evaluated the same as <code>not</code>, and can be put in front of a relational operator or a whole comparison.
-			<br><br>
-			Examples:
-			<blockquote>
-				<code>
-					select from '/home/user/pets.csv' where dateOfBirth &lt; 'april 10 1980' or age between (c3-19)*1.2 and 30
-					<br>
-					select from '/home/user/pets.csv' where (c1 &lt; c13 or fuzzy = very) and not (c3 = null or weight &gt;= 50 or name not like 'a_b%')
-					<br>
-					select from '/home/user/pets.csv' where c1 in (2,3,5,7,11,13,17,19,23)
-					<br>
-					select from '/home/user/pets.csv' where null not in (c1,c2,c3)
-					<br>
-					select from '/home/user/pets.csv' where name is not null
-					<br>
-					select from '/home/user/pets.csv' where species not in (select species from behaviors.csv where prey != humans)
-				</code>
-			</blockquote>
-			<h4>Sorting results</h4>
-			Use <code>order by</code> at the end of the query, followed by any number of values, each followed optionally by <code>desc</code>. Sorts by ascending values unless <code>desc</code> is specified.
-			<br><br>
-			Examples:
-			<blockquote>
-				<code>
-					select from '/home/user/pets.csv' where dog = husky order by age, fluffiness desc
-					<br>
-					select from '/home/user/pets.csv' order by c2*c3
-				</code>
-			</blockquote>
-			<h4>Joining Files</h4>
-			Any number of files can be joined together. <code>left</code> and <code>inner</code> joins are supported, default is <code>inner</code>. Join conditions can have as many comparisions as you want, combined with <code>and</code>, <code>or</code>, <code>xor</code>, and parentheses.
-			<br><br>
-			Examples:
-			<blockquote>
-				<code>
-					select pet.name, pet.species, code.c1 from '/home/user/pets.csv' pet
-					left join '/home/user/codes.csv' code
-					on pet.species = code.species order by pet.age
-					<br>
-					select pet.name, code.c1, fur.flufftype from '/home/user/pets.csv' pet
-					inner join '/home/user/fur.csv' fur
-					on pet.fluffiness = fur.fluff and fur.flufftype &lt;&gt; hairless
-					left join '/home/user/codes.csv' code
-					on pet.species = code.species or pet.genus = species.genus
-				</code>
-			</blockquote>
-			<hr>
-			<h3>Configuration</h3>
-			Some settings can be configured by editing the config file: <span id=configpath ></span>
-			<hr>
-			Version: <span id=version ></span>
+			<!-- Main Content -->
+			<div class="help-body">
+				<div id="helpPage">
+					<div class="page-header">
+						<h1>CSVQuery Help</h1>
+						<button onclick="checkUpdates(this)">Check for updates</button>
+						<span id=updateMsg></span>
+					</div>
+
+					<!-- Overview -->
+					<div class="help-section" id="sec-intro">
+						<h2>What This Software Does</h2>
+						<p class="intro-text">
+							Run <code>SELECT</code> queries on CSV files, display the results interactively in your browser, and save results to new CSV files. It handles large CSV files efficiently — often larger than spreadsheet programs can manage.
+						</p>
+						<p class="intro-text">
+							It shows you the first several hundred results with options for viewing specific rows or columns. Click any column header to sort results by that column.
+						</p>
+					</div>
+
+					<!-- Saving Files -->
+					<div class="help-section" id="sec-save">
+						<h2>How to Save Files</h2>
+						<p class="intro-text">
+							After running a query, click the <strong>Save</strong> button. Navigate to your desired location, type a filename, and press Enter. All queries on the page will re-run and save to CSV files. The program auto-detects whether to include a header row, but you can override it:
+						</p>
+						<div class="code-block">
+							<div class="code-label">Always output header:</div>
+							<code>OH select * from data.csv</code>
+						</div>
+						<div class="code-block">
+							<div class="code-label">Never output header:</div>
+							<code>NOH select * from data.csv</code>
+						</div>
+					</div>
+
+					<!-- Specifying Files -->
+					<div class="help-section" id="sec-files">
+						<h2>Specifying a File</h2>
+						<p class="intro-text">
+							Click <strong>Open</strong> to browse files, or double-click a file to add it to your query.
+						</p>
+						<p class="intro-text">
+							File paths can be saved with aliases for reuse:
+						</p>
+						<div class="code-block">
+							<div class="code-label">Save an alias:</div>
+							<code>add pets '/home/user/pets.csv'</code>
+						</div>
+						<div class="code-block">
+							<div class="code-label">Use the alias:</div>
+							<code>select * from pets</code>
+						</div>
+						<div class="code-block">
+							<div class="code-label">Remove the alias (doesn't delete the file):</div>
+							<code>drop pets</code>
+						</div>
+						<p class="intro-text">
+							Type <code>show</code> to see all saved aliases. You can also append file format options after the filepath.
+						</p>
+					</div>
+
+					<!-- Delimiters -->
+					<div class="help-section" id="sec-delimiters">
+						<h2>Delimiters &amp; File Headers</h2>
+							<p class="intro-text">
+								Add these codes to the beginning of a query or after the file path:
+							</p>
+							<table border=1>
+								<tr><th>Code</th><th>Meaning</th></tr>
+								<tr><td><code>NH</code></td><td>No header row</td></tr>
+								<tr><td><code>H</code></td><td>First row is a header</td></tr>
+								<tr><td><code>AH</code></td><td>Auto-detect header (default behavior)</td></tr>
+								<tr><td><code>S</code></td><td>Delimiter: spaces</td></tr>
+								<tr><td><code>T</code></td><td>Delimiter: tabs (also default for .tsv files)</td></tr>
+								<tr><td><code>P</code></td><td>Delimiter: pipes <code>|</code></td></tr>
+								<tr><td><code>C</code></td><td>Delimiter: colons <code>:</code></td></tr>
+							</table>
+							<p class="intro-text">
+								Default delimiter is commas and the program guesses whether a header exists based on whether the first row contains numbers.
+							</p>
+						</div>
+
+					<!-- Selecting Columns -->
+					<div class="help-section" id="sec-columns">
+					<h2>Selecting Specific Columns</h2>
+						<p class="intro-text">
+							Columns can be referenced by name or number. Use <code>c1</code>, <code>c2</code> etc. for numbered columns, or use a plain number if you prefix the query with <code>C</code>.
+						</p>
+						<p class="intro-text">
+							Add <code>M</code> before the query to make commas optional between selections (requires <code>AS</code> for renaming):
+						</p>
+						<div class="code-block">
+							<div class="code-label">Select columns by name:</div>
+							<code>select c1, c2 'food', c3, dogs, cats from '/home/user/pets.csv'</code>
+						</div>
+						<div class="code-block">
+							<div class="code-label">Select by number (prefix with C):</div>
+							<code>C select 1, 2 'food', 3, dogs, cats from 'C:\users\dave\pets.csv'</code>
+						</div>
+						<div class="code-block">
+							<div class="code-label">Optional commas (prefix with M C):</div>
+							<code>M C select 1 2 as 'food' 3 dogs cats from 'C:\users\dave\pets.csv'</code>
+						</div>
+					</div>
+
+					<!-- Select All -->
+					<div class="help-section" id="sec-allcols">
+					<h2>Selecting All Columns</h2>
+						<p class="intro-text">
+							All of the following are equivalent to <code>SELECT *</code>:
+						</p>
+						<div class="code-block">
+							<code>select * from data.csv</code>
+						</div>
+						<div class="code-block">
+							<code>select from data.csv</code>
+						</div>
+						<div class="code-block">
+							<code>data.csv</code>
+						</div>
+						<p class="intro-text">
+							You can also select all columns plus additional ones:
+						</p>
+						<div class="code-block">
+							<code>select dogs, * from data.csv</code>
+						</div>
+					</div>
+
+					<!-- Expressions -->
+					<div class="help-section" id="sec-expressions">
+					<h2>Complex Expressions</h2>
+						<p class="intro-text">
+							Use <code>+ - * / %</code> operators and parentheses. Case expressions are also supported.
+						</p>
+						<div class="code-block">
+							<div class="code-label">Arithmetic:</div>
+							<code>select birthdate+'3 weeks', c1*c2, c1/c2, c1-c2, c1%2, (c1-23)*(c2+34) from data.csv</code>
+						</div>
+						<div class="code-block">
+							<div class="code-label">Case expressions:</div>
+							<code>select case when c1*2&lt;10 then dog when c1*10&gt;=10.2 then cat else monkey end from data.csv</code>
+						</div>
+					</div>
+
+					<!-- Value Aliases -->
+					<div class="help-section" id="sec-aliases">
+					<h2>Value Aliases</h2>
+						<p class="intro-text">
+							Rename selections or use <code>WITH</code> to create aliases usable throughout the query:
+						</p>
+						<div class="code-block">
+							<div class="code-label">Using WITH:</div>
+							<code>with age*7 as dogyears, 'Mr.'+name as dogname select dogname, dogyears from data.csv order by dogyears</code>
+						</div>
+						<div class="code-block">
+							<div class="code-label">Rename a selection:</div>
+							<code>select age*7 dogyears from data.csv order by dogyears</code>
+						</div>
+					</div>
+
+					<!-- Functions -->
+					<div class="help-section" id="sec-functions">
+					<h2>Functions</h2>
+						<p class="intro-text">
+							CSVQuery supports a wide range of functions including aggregates, math, string, datetime, hashing, encryption, and more.
+						</p>
+						<button class="funcTable" onclick="toggleCollapsible(this)">
+							<span class="arrow">▶</span> Show complete function reference table
+						</button>
+						<div ><!-- sidebar visible by default -->
+			
+
+							<table border=1>
+								<tr><th>Function</th><th>Description</th><th>Parameters</th></tr>
+								<tr><td><code>sum</code></td><td>Aggregate sum</td><td>(&lt;value&gt;)</td></tr>
+								<tr><td><code>avg</code></td><td>Aggregate average</td><td>(&lt;value&gt;)</td></tr>
+								<tr><td><code>min</code></td><td>Aggregate minimum</td><td>(&lt;value&gt;)</td></tr>
+								<tr><td><code>max</code></td><td>Aggregate maximum</td><td>(&lt;value&gt;)</td></tr>
+								<tr><td><code>count</code></td><td>Aggregate count</td><td>(&lt;value&gt; or *)</td></tr>
+								<tr><td><code>stdev</code></td><td>Sample standard deviation</td><td>(numeric)</td></tr>
+								<tr><td><code>stdevp</code></td><td>Population std deviation</td><td>(numeric)</td></tr>
+								<tr><td><code>inc</code></td><td>Auto-incrementing number per row</td><td>()</td></tr>
+								<tr><td><code>rand</code></td><td>Random number</td><td>()</td></tr>
+								<tr><td><code>abs</code></td><td>Absolute value</td><td>(numeric)</td></tr>
+								<tr><td><code>coalesce</code></td><td>First non-null value</td><td>(values…)</td></tr>
+								<tr><td><code>now</code>, <code>nowlocal</code></td><td>Current local datetime</td><td>()</td></tr>
+								<tr><td><code>nowgm</code></td><td>Current GMT datetime</td><td>()</td></tr>
+								<tr><td><code>year</code>, <code>month</code>, <code>day</code></td><td>Date components</td><td>(datetime)</td></tr>
+								<tr><td><code>monthname</code>, <code>dayname</code></td><td>Month / day name</td><td>(datetime)</td></tr>
+								<tr><td><code>week</code>, <code>dayofyear</code>, <code>dayofmonth</code></td><td>Date components</td><td>(datetime)</td></tr>
+								<tr><td><code>dayofweek</code></td><td>Day of week (1=Sunday)</td><td>(datetime)</td></tr>
+								<tr><td><code>hour</code>, <code>minute</code>, <code>second</code></td><td>Time components</td><td>(datetime)</td></tr>
+								<tr><td><code>format</code></td><td>Format datetime string</td><td>(datetime, format)</td></tr>
+								<tr><td><code>ceil</code>, <code>floor</code>, <code>round</code></td><td>Rounding</td><td>(numeric[, decimals])</td></tr>
+								<tr><td><code>cos</code>, <code>sin</code>, <code>tan</code></td><td>Trigonometric</td><td>(numeric)</td></tr>
+								<tr><td><code>acos</code>, <code>asin</code>, <code>atan</code></td><td>Inverse trigonometric</td><td>(numeric)</td></tr>
+								<tr><td><code>exp</code>, <code>pow</code>, <code>log</code></td><td>Exponential / logarithmic</td><td>(numeric…)</td></tr>
+								<tr><td><code>sqrt</code>, <code>cbrt</code></td><td>Square / cube root</td><td>(numeric)</td></tr>
+								<tr><td><code>upper</code>, <code>lower</code></td><td>Case conversion</td><td>(string)</td></tr>
+								<tr><td><code>len</code></td><td>String length</td><td>(value)</td></tr>
+								<tr><td><code>substr</code></td><td>Substring / regex extract</td><td>(value, params…)</td></tr>
+								<tr><td><code>sip</code>, <code>md5</code>, <code>sha1</code>, <code>sha256</code></td><td>Hash functions</td><td>(value)</td></tr>
+								<tr><td><code>string</code>, <code>int</code>, <code>float</code></td><td>Type conversion</td><td>(value)</td></tr>
+								<tr><td><code>date</code>, <code>duration</code></td><td>Datetime / duration conversion</td><td>(value)</td></tr>
+								<tr><td><code>encrypt</code>, <code>decrypt</code></td><td>Encrypt / decrypt</td><td>(value[, password])</td></tr>
+								<tr><td><code>base64_encode</code>, <code>base64_decode</code></td><td>Base64 encode/decode</td><td>(value)</td></tr>
+							</table>
+						</div>
+						<p class="intro-text" style="margin-top:0.8em">
+							<strong>Aggregate functions</strong> can be combined with <code>GROUP BY</code>. Without <code>GROUP BY</code>, they aggregate all rows into one result row.
+						</p>
+						<p class="intro-text">
+							For <code>encrypt</code>, each value gets a unique nonce while the program runs. Between restarts, avoid reusing passwords for different values. Encryption doesn't hide value lengths. <code>decrypt</code> returns empty if ciphertext was tampered with. Omitting the password prompts you interactively.
+						</p>
+						<p class="intro-text">
+							Math functions like <code>log(0)</code> or <code>asin(100)</code> return empty when not a real number. Add <code>NAN</code> before the query to return <code>nan</code>, <code>inf</code>, or <code>-inf</code> instead.
+						</p>
+						<p class="intro-text">
+							The <code>format</code> function uses standard <a href='https://linux.die.net/man/3/strftime' target='_blank'>strftime</a> format codes plus <code>mmm</code> for milliseconds. Shortcut format codes:
+						</p>
+						<button class="fmtTable" onclick="toggleCollapsible(this)">
+							<span class="arrow">▶</span> Show date format shortcut codes
+						</button>
+						<div ><!-- sidebar visible by default -->
+			
+
+							<table border=1>
+								<tr><th>Code</th><th>Result Format</th><th>strftime Code</th></tr>
+								<tr><td>101</td><td>mm/dd/yyyy</td><td>%m/%d/%Y</td></tr>
+								<tr><td>102</td><td>yyyy.mm.dd</td><td>%Y.%m.%d</td></tr>
+								<tr><td>103</td><td>dd/mm/yyyy</td><td>%d/%m/%Y</td></tr>
+								<tr><td>105</td><td>dd-mm-yyyy</td><td>%d-%m-%Y</td></tr>
+								<tr><td>106</td><td>dd Mon yyyy</td><td>%d %b %Y</td></tr>
+								<tr><td>107</td><td>Mon dd, yyyy</td><td>%b %d, %Y</td></tr>
+								<tr><td>108</td><td>hh:mi:ss (24h)</td><td>%H:%M:%S</td></tr>
+								<tr><td>109</td><td>Mon dd yyyy hh:mi:ss:mmmmAM</td><td>%b %d %Y %I:%M:%S:mmmm%p</td></tr>
+								<tr><td>110</td><td>mm-dd-yyyy</td><td>%m-%d-%Y</td></tr>
+								<tr><td>111</td><td>yyyy/mm/dd</td><td>%Y/%m/%d</td></tr>
+								<tr><td>112</td><td>yyyymmdd</td><td>%Y%m%d</td></tr>
+								<tr><td>113</td><td>dd Mon yyyy hh:mi:ss:mmm (24h)</td><td>%d %b %Y %H:%M:%S:mmm</td></tr>
+								<tr><td>114</td><td>hh:mi:ss:mmm (24h)</td><td>%H:%M:%S:mmm</td></tr>
+								<tr><td>115</td><td>yyyy-mm-dd</td><td>%Y-%m-%d</td></tr>
+								<tr><td>120</td><td>yyyy-mm-dd hh:mi:ss (24h)</td><td>%Y-%m-%d %H:%M:%S</td></tr>
+								<tr><td>121</td><td>yyyy-mm-dd hh:mi:ss.mmm (24h)</td><td>%Y-%m-%d %H:%M:%S.mmm</td></tr>
+								<tr><td>126</td><td>ISO 8601 (no spaces)</td><td>%Y-%m-%dT%H:%M:%S.mmm</td></tr>
+								<tr><td>127</td><td>ISO 8601 with Z (UTC)</td><td>%Y-%m-%dT%H:%M:%S.mmmZ</td></tr>
+								<tr><td>130</td><td>dd Mon yyyy hh:mi:ss:mmmAM</td><td>%d %b %Y %I:%M:%S:mmm%p</td></tr>
+								<tr><td>136</td><td>Compact ISO (no spaces)</td><td>%Y-%m-%dT%H:%M:%S</td></tr>
+								<tr><td>137</td><td>Compact ISO with Z</td><td>%Y-%m-%dT%H:%M:%SZ</td></tr>
+							</table>
+						</div>
+					</div>
+
+					<!-- Distinct -->
+					<div class="help-section" id="sec-distinct">
+					<h2>Distinct &amp; Group By</h2>
+						<p class="intro-text">
+							Use <code>DISTINCT</code> after <code>SELECT</code> for unique rows, or <code>GROUP BY</code> to group and aggregate:
+						</p>
+						<div class="code-block">
+							<div class="code-label">Distinct rows:</div>
+							<code>select distinct dogtypes, fluffiness from data.csv</code>
+						</div>
+						<div class="code-block">
+							<div class="code-label">Count distinct values:</div>
+							<code>select count(distinct species) from data.csv</code>
+						</div>
+						<div class="code-block">
+							<div class="code-label">Group by column:</div>
+							<code>select dogtypes, count(*) from data.csv group by dogtypes</code>
+						</div>
+						<p class="intro-text">
+							Non-aggregate selections in <code>GROUP BY</code> queries return the first found value.
+						</p>
+					</div>
+
+					<!-- Limit -->
+					<div class="help-section" id="sec-limit">
+					<h2>Limiting Rows</h2>
+						<p class="intro-text">
+							Use <code>TOP n</code> after <code>SELECT</code> or <code>LIMIT n</code> at the end:
+						</p>
+						<div class="code-block">
+							<code>select top 100 * from data.csv</code>
+						</div>
+						<div class="code-block">
+							<code>select * from data.csv limit 100</code>
+						</div>
+					</div>
+
+					<!-- WHERE -->
+					<div class="help-section" id="sec-where">
+					<h2>WHERE Conditions</h2>
+						<p class="intro-text">
+							Combine conditions with <code>AND</code>, <code>OR</code>, <code>XOR</code>, and parentheses. Dates accept natural formats like <code>'May 18 1955'</code> or <code>'5/18/1955'</code>. Compare null values with the keyword <code>NULL</code>.
+						</p>
+						<p class="intro-text">Supported operators:</p>
+						<ul>
+							<li><code>=</code>, <code>!=</code>, <code>&lt;&gt;</code>, <code>&gt;</code>, <code>&lt;</code>, <code>&gt;=</code>, <code>&lt;=</code></li>
+							<li><code>IS</code> / <code>IS NOT</code> (for null checks)</li>
+							<li><code>LIKE</code> (pattern matching with % and _)</li>
+							<li><code>IN</code> (with list or subquery)</li>
+							<li><code>BETWEEN</code></li>
+						</ul>
+						<p class="intro-text">
+							<code>!</code> works as <code>NOT</code> and can prefix operators or entire conditions.
+						</p>
+						<div class="code-block">
+							<div class="code-label">Basic comparison:</div>
+							<code>select * from data.csv where age &lt; 30</code>
+						</div>
+						<div class="code-block">
+							<div class="code-label">BETWEEN with expression:</div>
+							<code>select * from data.csv where age between (c3-19)*1.2 and 30</code>
+						</div>
+						<div class="code-block">
+							<div class="code-label">IN with list:</div>
+							<code>select * from data.csv where c1 in (2,3,5,7,11)</code>
+						</div>
+						<div class="code-block">
+							<div class="code-label">Subquery with IN:</div>
+							<code>select * from pets.csv where species not in (select species from behaviors.csv where prey != 'humans')</code>
+						</div>
+						<div class="code-block">
+							<div class="code-label">IS NOT NULL:</div>
+							<code>select * from data.csv where name is not null</code>
+						</div>
+					</div>
+
+					<!-- Sorting -->
+					<div class="help-section" id="sec-sort">
+					<h2>Sorting Results</h2>
+						<p class="intro-text">
+							Use <code>ORDER BY</code> at the end of the query. Append <code>DESC</code> for descending order:
+						</p>
+						<div class="code-block">
+							<code>select * from data.csv order by age, weight desc</code>
+						</div>
+						<div class="code-block">
+							<code>select * from data.csv order by c2*c3</code>
+						</div>
+					</div>
+
+					<!-- Joins -->
+					<div class="help-section" id="sec-join">
+					<h2>Joining Files</h2>
+						<p class="intro-text">
+							Join any number of files. Default is <code>INNER JOIN</code>; use <code>LEFT JOIN</code> to include unmatched rows from the left table:
+						</p>
+						<div class="code-block">
+							<div class="code-label">Left join:</div>
+							<code>select p.name, p.species, code.c1 from pets.csv p
+left join codes.csv code on p.species = code.species
+order by p.age</code>
+						</div>
+						<div class="code-block">
+							<div class="code-label">Mixed joins:</div>
+							<code>select p.name, code.c1, fur.flufftype from pets.csv p
+inner join fur.csv fur on p.fluffiness = fur.fluff and fur.flufftype != 'hairless'
+left join codes.csv code on p.species = code.species or p.genus = species.genus</code>
+						</div>
+						<p class="intro-text">
+							Join conditions support multiple comparisons with <code>AND</code>, <code>OR</code>, <code>XOR</code>, and parentheses.
+						</p>
+					</div>
+
+					<!-- Configuration -->
+					<div class="help-section" id="sec-config">
+					<h2>Configuration</h2>
+					<p class="intro-text">
+						Some settings can be configured by editing the config file:
+					</p>
+					<p id=configpath style="color:#ffaa0e; font-weight:bold;"></p>
+					</div>
+
+					<div class="version-line">
+					Version: <span id=version></span>
+					</div>
+				</div>
+			</div>
 		</div>
 	</body>
 </html>

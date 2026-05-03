@@ -1,6 +1,30 @@
 <html id=mainhtml>
 	<head>
 		<link rel="stylesheet" type="text/css" href="style.css"/>
+		<style>
+			/* Custom scrollbars matching theme */
+			::-webkit-scrollbar {
+				width: 12px;
+			}
+			::-webkit-scrollbar-track {
+				background: #0a0908;
+				border-left: 1px solid #332200;
+			}
+			::-webkit-scrollbar-thumb {
+				background: #443300;
+				border-radius: 6px;
+				border: 2px solid #0a0908;
+			}
+			::-webkit-scrollbar-thumb:hover {
+				background: #664518;
+			}
+
+			/* Firefox scrollbar */
+			* {
+				scrollbar-width: thin;
+				scrollbar-color: #443300 #0a0908;
+			}
+		</style>
 		<script src="color.js"></script>
 	</head>
 	<body id=mainbody>
