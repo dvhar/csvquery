@@ -30,6 +30,7 @@ void help(char* prog){
 		"\t-v    Show version and exit\n"
 		"\t-a    Allow other computers to connect and use the browser interface\n"
 		"\t-l    Only allow connections from this computer (default)\n"
+		"\t-p PORT    Port for webui server (default 8060)\n"
 		"\t-f FILE    Run a selectAll query on FILE and output table\n"
 		"\t-o FILE    Save query to FILE\n\n"
 		"Config file is " << globalSettings.configfilepath << ". These are the settings you can change:\n"
@@ -48,7 +49,7 @@ int main(int argc, char** argv){
 	string querystring;
 	string savefile;
 	loadconfig();
-	for(char c; (c = getopt(argc, argv, "bhvgdejtywcmalf:o:")) != -1;)
+	for(char c; (c = getopt(argc, argv, "bhvgdejtywcmalf:p:o:")) != -1;)
 		switch(c){
 		case 'o':
 			savefile = optarg;
@@ -89,6 +90,11 @@ int main(int argc, char** argv){
 			break;
 		case 'l':
 			globalSettings.allowconnections = false;
+			break;
+		case 'p':
+			globalSettings.port = atoi(optarg);
+			if (globalSettings.port <= 0 || globalSettings.port > 65535)
+				error("Invalid port number: ", optarg);
 			break;
 		case 'a':
 			globalSettings.allowconnections = true;
@@ -193,6 +199,7 @@ void loadconfig(){
 		"need_comma_separator",
 		"allow_nonlocal_connections",
 		"open_browser",
+		"port",
 	};
 	string defaultoutput;
 	fs_create_directories(globalSettings.configdir);
@@ -226,6 +233,7 @@ void loadconfig(){
 				defaultoutput,
 				globalSettings.needcomma,
 				globalSettings.allowconnections,
-				globalSettings.browser);
+				globalSettings.browser,
+				globalSettings.port);
 	}
 }

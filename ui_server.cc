@@ -102,11 +102,11 @@ json& directory::tojson(){
 
 void openbrowser() {
 #if defined _WIN32
-    system("cmd /c start http://localhost:8060");
+    system((st("cmd /c start http://localhost:", globalSettings.port)).c_str());
 #elif defined __APPLE__
-    system("open http://localhost:8060");
+    system((st("open http://localhost:", globalSettings.port)).c_str());
 #elif defined __linux__
-    system("xdg-open http://localhost:8060");
+    system((st("xdg-open http://localhost:", globalSettings.port)).c_str());
 #endif
 }
 
@@ -483,7 +483,9 @@ static void handle_request(SOCKET client) {
     send_response(client, 404, "Not Found", "text/plain", "Not Found");
 }
 
-void run_http_server(int port = 8060) {
+void run_http_server(int port = -1) {
+	if (port < 0)
+		port = globalSettings.port;
 #ifdef _WIN32
     WSADATA wsa;
     WSAStartup(MAKEWORD(2, 2), &wsa);
@@ -519,7 +521,6 @@ void run_http_server(int port = 8060) {
         return;
     }
     cout << "Go to http://localhost:" << port << " to use graphic interface\n";
-    cout << "Allow connections from other computers: " << (globalSettings.allowconnections ? "true":"false") << endl;
     if (globalSettings.browser)
         openbrowser();
 
