@@ -43,14 +43,100 @@
   background: #090908;
   background: linear-gradient(to bottom, #090908 1%, #200c0a 22%, #200c0a 22%, #4d0908 100%); }
 
-#topMessage {
-  transform: translateY(15%); }
+#editorWrap {
+  position: relative;
+  width: 100%;
+  text-align: left;
+  height: 8em;
+  min-height: 2em;
+  border: 2px solid #886611;
+  background: #222222;
+  resize: vertical;
+  overflow: hidden;
+}
 
 #queryTextEntry {
+  position: absolute;
+  top: 0;
+  left: 0;
   width: 100%;
-  background: #222222;
+  height: 100%;
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0.5em;
+  background: transparent;
+  color: transparent;
+  caret-color: lightgoldenrodyellow;
+  border: none;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 14px;
+  line-height: 1.5;
+  overflow: auto;
+  white-space: pre-wrap;
+  word-wrap: normal;
+  outline: none;
+  z-index: 2;
+}
+
+#queryHighlight {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0.5em;
+  background: transparent;
   color: lightgoldenrodyellow;
-  border: 2px solid #886611; }
+  border: none;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 14px;
+  line-height: 1.5;
+  pointer-events: none;
+  white-space: pre-wrap;
+  word-wrap: normal;
+  overflow: hidden;
+  z-index: 1;
+}
+
+/* Syntax highlighting colors */
+.sqhl-keyword {
+  color: #87ceeb;
+  font-weight: bold;
+}
+.sqhl-function {
+  color: #ffd700;
+}
+.sqhl-string {
+  color: #98fb98;
+}
+.sqhl-number {
+  color: #ff9966;
+}
+.sqhl-operator {
+  color: lightgoldenrodyellow;
+}
+.sqhl-parens {
+  color: #ff87af;
+  font-weight: bold;
+}
+.sqhl-comment {
+  color: #5a7a5a;
+  font-style: italic;
+}
+
+/* Placeholder effect for highlighted editor */
+#queryHighlight.empty-placeholder::after {
+  content: attr(data-placeholder);
+  position: relative;
+  color: #666666;
+  pointer-events: none;
+}
+
+#topMessage {
+  transform: translateY(15%);
+}
 
 .singleResult {
   display: inline-block;
@@ -133,7 +219,8 @@ th, td {
   border: 1px solid black;
   color: lightgoldenrodyellow;
   background: #090908;
-  background: linear-gradient(to bottom, #090908 1%, #200c0a 22%, #200c0a 22%, #4d0908 100%); }
+  background: linear-gradient(to bottom, #090908 1%, #200c0a 22%, #200c0a 22%, #4d0908 100%);
+  z-index: 100; }
 
 .pathinput {
   width: 100%;
@@ -178,7 +265,8 @@ th, td {
   position: absolute;
   border: 1px solid black;
   color: lightgoldenrodyellow;
-  background: darkred; }
+  background: darkred;
+  z-index: 100; }
 
 #helpDropdown {
   width: 90%;
@@ -191,7 +279,8 @@ th, td {
   border: 1px solid orange;
   border: 1px solid black;
   background-color: #2c2c2c;
-  overflow-y: scroll; }
+  overflow-y: scroll;
+  z-index: 100; }
 
 #helpPage {
   color: #f5f5d0; }

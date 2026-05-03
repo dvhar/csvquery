@@ -1,13 +1,54 @@
+// Syntax-highlighted editor
+var editorInitialized = false;
+
+function initEditor() {
+	if (editorInitialized) return;
+	var ta = document.getElementById('queryTextEntry');
+	var pre = document.getElementById('queryHighlight');
+	
+	// Sync scroll
+	ta.addEventListener('scroll', function() {
+		pre.scrollTop = ta.scrollTop;
+		pre.scrollLeft = ta.scrollLeft;
+	});
+	
+	// Update highlight on input
+	ta.addEventListener('input', updateHighlight);
+	ta.addEventListener('keydown', updateHighlight);
+	
+	// Initial render
+	updateHighlight();
+	editorInitialized = true;
+}
+
+function updateHighlight() {
+	var ta = document.getElementById('queryTextEntry');
+	var pre = document.getElementById('queryHighlight');
+	if (ta.value.length === 0) {
+		pre.classList.add('empty-placeholder');
+		pre.innerHTML = '';
+	} else {
+		pre.classList.remove('empty-placeholder');
+		pre.innerHTML = SQLHighlighter.highlight(ta.value);
+	}
+}
+
+// Get query text (from textarea)
+function getQueryText() {
+	return document.getElementById('queryTextEntry').value;
+}
+
 function topMessage(msg){
 	messageDiv.textContent = msg;
 }
 
 function fileclick(clicked){
-	let querybox = document.querySelector('#queryTextEntry');
-	let browser = clicked.closest('.fileBrowser');
-	let start = querybox.value.substring(0,querybox.selectionStart);
-	let end = querybox.value.substring(querybox.selectionEnd, 10000000);
-	querybox.value = start +" '"+ clicked.innerText +"' "+ end;
+	var ta = document.getElementById('queryTextEntry');
+	var browser = clicked.closest('.fileBrowser');
+	var start = ta.value.substring(0,ta.selectionStart);
+	var end = ta.value.substring(ta.selectionEnd, 10000000);
+	ta.value = start +" '"+ clicked.innerText +"' "+ end;
+	updateHighlight();
 	browser.classList.add('hidden');
 }
 
@@ -202,18 +243,20 @@ function showTopDrop(but){
 var historyList = [];
 var currentHist = historyList.length;
 function historyClick(direction){
-	let queryTextEntry = document.getElementById('queryTextEntry');
+	var ta = document.getElementById('queryTextEntry');
 	let histNumber = document.getElementById('histNumber');
 	if (direction === 1 && currentHist < historyList.length){
 		currentHist++;
-		queryTextEntry.value = historyList[currentHist-1];
+		ta.value = historyList[currentHist-1];
+		updateHighlight();
 		histNumber.textContent = `${currentHist}/${historyList.length}`;
 	}
 	if (direction === -1 && currentHist > 1){
 		if (currentHist === historyList.length)
-			historyList[currentHist-1] = queryTextEntry.value;
+			historyList[currentHist-1] = ta.value;
 		currentHist--;
-		queryTextEntry.value = historyList[currentHist-1];
+		ta.value = historyList[currentHist-1];
+		updateHighlight();
 		histNumber.textContent = `${currentHist}/${historyList.length}`;
 	}
 }
@@ -227,7 +270,7 @@ function addHistory(query){
 }
 
 function submitQuery(savefile = ''){
-	let query = document.querySelector('#queryTextEntry').value;
+	var query = getQueryText();
 	if (query === ''){
 		topMessage("no query!");
 		return
@@ -242,7 +285,7 @@ function submitQuery(savefile = ''){
 	sock.send(payload);
 }
 function getResult(){
-	addHistory(document.querySelector('#queryTextEntry').value);
+	addHistory(getQueryText());
 	var req = new Request("/result/", {
 		method: 'GET',
 		mode: 'cors',
@@ -366,6 +409,7 @@ function SocketHandler(){
 }
 
 function init(){
+	initEditor();
 	getState();
 	document.addEventListener('click',e=>{
 		if (e.target.classList.contains('dropbutton'))
