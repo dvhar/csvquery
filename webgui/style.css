@@ -125,6 +125,10 @@
   color: #5a7a5a;
   font-style: italic;
 }
+.sqhl-file {
+  color: #5fd7d7;
+  text-decoration: underline;
+}
 
 /* Placeholder effect for highlighted editor */
 #queryHighlight.empty-placeholder::after {

@@ -93,6 +93,17 @@ var SQLHighlighter = (function() {
 				i++;
 				continue;
 			}
+			// File reference (.csv/.tsv filenames)
+			if (/[a-zA-Z0-9_.\/*\-]/.test(query[i])) {
+				var j6 = i;
+				while (j6 < len && /[a-zA-Z0-9_.\/*\-]/.test(query[j6])) j6++;
+				var maybeFile = query.substring(i, j6);
+				if (/^[a-zA-Z0-9_.\/\*\-]+\.csv$/i.test(maybeFile) || /^[a-zA-Z0-9_.\/\*\-]+\.tsv$/i.test(maybeFile)) {
+					tokens.push({type: 'file', value: maybeFile});
+					i = j6;
+					continue;
+				}
+			}
 			// Word (identifier/keyword/function)
 			if (/[a-zA-Z_]/.test(query[i])) {
 				var j4 = i;
@@ -145,6 +156,8 @@ var SQLHighlighter = (function() {
 				html += '<span class="sqhl-parens">' + esc + '</span>';
 			} else if (tok.type === 'comment') {
 				html += '<span class="sqhl-comment">' + esc + '</span>';
+			} else if (tok.type === 'file') {
+				html += '<span class="sqhl-file">' + esc + '</span>';
 			} else if (tok.type === 'whitespace') {
 				html += esc.replace(/ /g,'&nbsp;').replace(/\n/g,'<br>');
 			} else {
@@ -202,7 +215,7 @@ var SQLHighlighter = (function() {
 		<div id=textboxContainer>
 			<div id=editorWrap>
 				<pre id=queryHighlight data-placeholder="Type query here.\nAdd files to query by clicking the 'open' button above.\nIf running multiple queries, separate them with a semicolon;\nRun queries by pressing the button above or shift-enter" aria-hidden="true"></pre>
-				<textarea id=queryTextEntry rows=5 placeholder="Type query here.
+				<textarea id=queryTextEntry rows=5 spellcheck="false" placeholder="Type query here.
 Add files to query by clicking the 'open' button above.
 If running multiple queries, separate them with a semicolon;
 Run queries by pressing the button above or shift-enter"></textarea>
