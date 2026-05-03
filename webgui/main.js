@@ -45,11 +45,34 @@ function topMessage(msg){
 function fileclick(clicked){
 	var ta = document.getElementById('queryTextEntry');
 	var browser = clicked.closest('.fileBrowser');
-	var start = ta.value.substring(0,ta.selectionStart);
-	var end = ta.value.substring(ta.selectionEnd, 10000000);
-	ta.value = start +" '"+ clicked.innerText +"' "+ end;
-	updateHighlight();
-	browser.classList.add('hidden');
+	var fname = clicked.innerText;
+	if (fname.toLowerCase().endsWith('.sql')) {
+		// Read SQL file contents
+		var payload = {path: fname, mode: 'open'};
+		var req = new Request("/info?info=readFile", {
+			method: 'POST',
+			cache: "no-cache",
+			headers: new Headers({ "Content-Type": "application/json" }),
+			body: JSON.stringify(payload),
+		});
+		fetch(req).then(res => res.status >= 400 ? false : res.json()).then(ret => {
+			if (ret.error) {
+				topMessage('Error reading file: ' + ret.error);
+			} else {
+				var start = ta.value.substring(0,ta.selectionStart);
+				var end = ta.value.substring(ta.selectionEnd, 10000000);
+				ta.value = start + ret.content + (end ? '\n' + end : '');
+				updateHighlight();
+			}
+		});
+		browser.classList.add('hidden');
+	} else {
+		var start = ta.value.substring(0,ta.selectionStart);
+		var end = ta.value.substring(ta.selectionEnd, 10000000);
+		ta.value = start +" '"+ fname +"' "+ end;
+		updateHighlight();
+		browser.classList.add('hidden');
+	}
 }
 
 function populateDirs(clicked, ret){

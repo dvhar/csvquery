@@ -22,6 +22,7 @@ typedef int socklen_t;
 #include <memory>
 #include <iostream>
 #include <sstream>
+#include <fstream>
 #include <thread>
 #include <mutex>
 #include <map>
@@ -400,6 +401,24 @@ static void handle_info(SOCKET client, const HttpRequest& req) {
                     state["saveDirList"] = j;
                 }
                 resp = j.dump();
+            } catch (...) {
+                auto e = EX_STRING;
+                cerr << e << endl;
+                resp = json{{"error",e}}.dump();
+            }
+        } else if (info == "readFile") {
+            try {
+                auto j = json::parse(req.body);
+                string fpath = fromjson<string>(j,"path");
+                ifstream ifs(fpath, ios::binary);
+                if (!ifs.is_open()) {
+                    resp = json{{"error","Could not open file: "+fpath}}.dump();
+                } else {
+                    stringstream ss;
+                    ss << ifs.rdbuf();
+                    string content = ss.str();
+                    resp = json{{"content",content}}.dump();
+                }
             } catch (...) {
                 auto e = EX_STRING;
                 cerr << e << endl;
