@@ -42,6 +42,7 @@ using namespace std;
 #define file2 "../webgui/main.js"
 #define file3 "../webgui/style.css"
 #define file4 "../webgui/help.html"
+#define file5 "../webgui/color.js"
 #ifdef testing_site
 #define _f(num) st(ifstream(file##num).rdbuf())
 using page_str = string;
@@ -51,6 +52,7 @@ _ib(1)
 _ib(2)
 _ib(3)
 _ib(4)
+_ib(5)
 #define _f(num) string_view((const char*)g##num##Data, g##num##Size)
 using page_str = string_view;
 #endif
@@ -65,12 +67,14 @@ static page_str get_f1() { return _f(1); }
 static page_str get_f2() { return _f(2); }
 static page_str get_f3() { return _f(3); }
 static page_str get_f4() { return _f(4); }
+static page_str get_f5() { return _f(5); }
 
 static Route static_routes[] = {
     {"/", get_f1, "text/html"},
     {"/main.js", get_f2, "application/javascript"},
     {"/style.css", get_f3, "text/css"},
     {"/help.html", get_f4, "text/html"},
+    {"/color.js", get_f5, "application/javascript"},
     {nullptr, nullptr, nullptr}
 };
 
