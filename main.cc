@@ -214,7 +214,8 @@ void loadconfig(){
 					defaultoutput,
 					globalSettings.needcomma,
 					globalSettings.allowconnections,
-					globalSettings.browser);
+					globalSettings.browser,
+					globalSettings.port);
 			if (defaultoutput == "table")
 				globalSettings.termbox = true;
 			if (confversion >= version){

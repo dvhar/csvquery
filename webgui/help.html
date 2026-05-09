@@ -82,7 +82,6 @@
 			btn.classList.toggle('collapsed');
 			let arrow = btn.querySelector('.arrow');
 			if (arrow) arrow.textContent = content.classList.contains('hidden') ? '[+]' : '[-]';
-
 		}
 
 
@@ -287,9 +286,9 @@
 							CSVQuery supports a wide range of functions including aggregates, math, string, datetime, hashing, encryption, and more.
 						</p>
 						<button class="funcTable" onclick="toggleCollapsible(this)">
-							<span class="arrow">[-]</span> Show complete function reference table
+							<span class="arrow">▶</span> Show complete function reference table
 						</button>
-						<div >
+						<div ><!-- sidebar visible by default -->
 			
 
 							<table border=1>
@@ -338,10 +337,10 @@
 							Math functions like <code>log(0)</code> or <code>asin(100)</code> return empty when not a real number. Add <code>NAN</code> before the query to return <code>nan</code>, <code>inf</code>, or <code>-inf</code> instead.
 						</p>
 						<p class="intro-text">
-							The <code>format</code> function uses standard <a href='https://linux.die.net/man/3/strftime' target='_blank'>strftime</a> format codes plus <code>mmm</code> for milliseconds, or numeric format codes:
+							The <code>format</code> function uses standard <a href='https://linux.die.net/man/3/strftime' target='_blank'>strftime</a> format codes plus <code>mmm</code> for milliseconds. Shortcut format codes:
 						</p>
 						<button class="fmtTable" onclick="toggleCollapsible(this)">
-							<span class="arrow">[-]</span> Show date format shortcut codes
+							<span class="arrow">▶</span> Show date format shortcut codes
 						</button>
 						<div ><!-- sidebar visible by default -->
 			
